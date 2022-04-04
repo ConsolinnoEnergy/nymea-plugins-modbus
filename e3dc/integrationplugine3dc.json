@@ -1,19 +1,19 @@
 {
-    "name": "TCP_template",
-    "displayName": "TCP_template",
-    "id": "e632680f-74b4-444e-82fe-04d4bcbc629f",
+    "name": "e3dc",
+    "displayName": "E3DC",
+    "id": "",
     "vendors": [
         {
-            "name": "TCP_template",
-            "displayName": "TCP_template",
-            "id": "c572c6e8-38ee-44c7-9be4-4e151fbbdf58",
+            "name": "e3dc",
+            "displayName": "E3DC",
+            "id": "",
             "thingClasses": [
                 {
-                    "name": "TCP_template",
-                    "displayName": "TCP_template",
-                    "id": "e13ad236-80a2-4a7d-89b9-2fb300f060f2",
+                    "name": "e3dcInverter",
+                    "displayName": "E3dcInverter",
+                    "id": "",
                     "createMethods": ["discovery", "user"],
-                    "interfaces": [ "connectable"],
+                    "interfaces": [ "smartmeterproducer","connectable"],
                     "paramTypes": [
                         {
                             "id": "f7bb1c7b-62ca-4974-94e2-2f3ceffb1677",

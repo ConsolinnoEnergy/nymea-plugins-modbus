@@ -3,13 +3,13 @@ include(../plugins.pri)
 QT += network serialbus
 
 SOURCES += \
-    integrationpluginTCP_template.cpp \
+    integrationplugine3dc.cpp \
     tcp_modbusconnection.cpp \
     ../modbus/modbustcpmaster.cpp \
     ../modbus/modbusdatautils.cpp
 
 HEADERS += \
-    integrationpluginTCP_template.h \
+    integrationplugine3dc.h \
     tcp_modbusconnection.h \
     ../modbus/modbustcpmaster.h \
     ../modbus/modbusdatautils.h
