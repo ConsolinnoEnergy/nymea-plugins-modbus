@@ -1,0 +1,73 @@
+{
+    "name": "TCP_template",
+    "displayName": "TCP_template",
+    "id": "e632680f-74b4-444e-82fe-04d4bcbc629f",
+    "vendors": [
+        {
+            "name": "TCP_template",
+            "displayName": "TCP_template",
+            "id": "c572c6e8-38ee-44c7-9be4-4e151fbbdf58",
+            "thingClasses": [
+                {
+                    "name": "TCP_template",
+                    "displayName": "TCP_template",
+                    "id": "e13ad236-80a2-4a7d-89b9-2fb300f060f2",
+                    "createMethods": ["discovery", "user"],
+                    "interfaces": [ "connectable"],
+                    "paramTypes": [
+                        {
+                            "id": "f7bb1c7b-62ca-4974-94e2-2f3ceffb1677",
+                            "name": "ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "inputType": "IPv4Address",
+                            "defaultValue": "127.0.0.1"
+                        },
+                        {
+                            "id": "f791c219-98a5-41ee-8e5f-1bfb5136dc9c",
+                            "name":"macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "inputType": "MacAddress",
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "0e828e80-7da7-4217-ab16-914dcb7aac4c",
+                            "name":"port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502
+                        },
+                        {
+                            "id": "7e60191a-0834-4c3d-a1b6-0959f8faa0a4",
+                            "name":"slaveId",
+                            "displayName": "Modbus slave ID",
+                            "type": "int",
+                            "defaultValue": 1
+                        }
+
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "067acd92-560a-49cc-ba00-86cfd9fa08ac",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        }
+                       
+
+
+
+
+
+
+                    ],
+                    "actionTypes": [ ]
+                }
+            ]
+        }
+    ]
+}

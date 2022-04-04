@@ -1,0 +1,24 @@
+{
+    "endianness": "BigEndian",
+    "enums": [
+
+    ],
+    "registers": [
+        {
+            "id": "exampleRegister",
+            "address": 1,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "example",
+            "staticScaleFactor": -1,
+            "defaultValue": "0",
+            "unit": "",
+            "access": "RO"
+        }
+
+    ],
+    "blocks": []
+
+}
