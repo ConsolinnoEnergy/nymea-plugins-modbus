@@ -1,22 +1,25 @@
 {
+    "protocol": "TCP",
     "endianness": "BigEndian",
     "enums": [
 
     ],
     "registers": [
         {
-            "id": "exampleRegister",
-            "address": 1,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "inputRegister",
+            "id": "currentPower",
+            "address": 40068,
+            "size": 2,
+            "type": "int32",
+            "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "example",
+            "description": "Inverter current Power",
             "staticScaleFactor": -1,
             "defaultValue": "0",
-            "unit": "",
+            "unit": "kW",
             "access": "RO"
         }
+
+        
 
     ],
     "blocks": []

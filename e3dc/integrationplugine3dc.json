@@ -1,22 +1,22 @@
 {
     "name": "e3dc",
     "displayName": "E3DC",
-    "id": "",
+    "id": "9db435ac-205f-4fca-aaa6-f336fdf059cd",
     "vendors": [
         {
             "name": "e3dc",
             "displayName": "E3DC",
-            "id": "",
+            "id": "59a38851-7f69-4fd8-b01c-c79abf54debf",
             "thingClasses": [
                 {
                     "name": "e3dcInverter",
                     "displayName": "E3dcInverter",
-                    "id": "",
+                    "id": "b66fe6b9-17f7-4b77-adf9-1f6f5b2640ca",
                     "createMethods": ["discovery", "user"],
                     "interfaces": [ "smartmeterproducer","connectable"],
                     "paramTypes": [
                         {
-                            "id": "f7bb1c7b-62ca-4974-94e2-2f3ceffb1677",
+                            "id": "58520d71-9967-4c4d-89af-680cb223680a",
                             "name": "ipAddress",
                             "displayName": "IP address",
                             "type": "QString",
@@ -24,7 +24,7 @@
                             "defaultValue": "127.0.0.1"
                         },
                         {
-                            "id": "f791c219-98a5-41ee-8e5f-1bfb5136dc9c",
+                            "id": "bed6926f-0b9d-403c-adc1-d17ff2dad5b6",
                             "name":"macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
@@ -32,14 +32,14 @@
                             "defaultValue": ""
                         },
                         {
-                            "id": "0e828e80-7da7-4217-ab16-914dcb7aac4c",
+                            "id": "38ea010e-a595-47d0-b968-8610419ab299",
                             "name":"port",
                             "displayName": "Port",
                             "type": "int",
                             "defaultValue": 502
                         },
                         {
-                            "id": "7e60191a-0834-4c3d-a1b6-0959f8faa0a4",
+                            "id": "0e2d45a0-4aae-45f2-a441-4b29e28ba429",
                             "name":"slaveId",
                             "displayName": "Modbus slave ID",
                             "type": "int",
@@ -49,19 +49,37 @@
                     ],
                     "stateTypes": [
                         {
-                            "id": "067acd92-560a-49cc-ba00-86cfd9fa08ac",
+                            "id": "f026862a-ee98-4c5b-9297-7336aef188c8",
                             "name": "connected",
                             "displayName": "Connected",
                             "displayNameEvent": "Connected changed",
                             "type": "bool",
                             "defaultValue": false,
                             "cached": false
+                        },
+                        {
+
+                            "id": "b89d0dd4-5d80-4e1a-8a10-b89a6d85fc65",
+                            "name": "totalEnergyProduced",
+                            "displayName": "TotalEnergyProduced",
+                            "displayNameEvent": "TotalEnergyProduced Changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+
+                        },
+                        {
+
+                            "id": "23c3f026-3908-4c7e-924c-7ef5d530c356",
+                            "name": "currentPower",
+                            "displayName": "CurrentPower",
+                            "displayNameEvent": "CurrentPower Changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00
+
+
                         }
-                       
-
-
-
-
 
 
                     ],

@@ -1,9 +1,9 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
-* This file is part of nymea.
+* This fileDescriptor is part of nymea.
 * This project including source code and documentation is protected by
 * copyright law, and remains the property of nymea GmbH. All rights, including
 * reproduction, publication, editing and translation, are reserved. The use of
@@ -28,35 +28,54 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINTEMPLATE_H
-#define INTEGRATIONPLUGINTEMPLATE_H
+#ifndef TCP_MODBUSCONNECTION_H
+#define TCP_MODBUSCONNECTION_H
 
-#include "plugintimer.h"
-#include "tcp_modbusconnection.h"
-#include "integrations/integrationplugin.h"
+#include <QObject>
 
-class IntegrationPluginTemplate: public IntegrationPlugin
+#include "../modbus/modbusdatautils.h"
+#include "../modbus/modbustcpmaster.h"
+
+class TCP_ModbusConnection : public ModbusTCPMaster
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationplugine3dc.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginTemplate();
+    enum Registers {
+        RegisterCurrentPower = 40068
+    };
+    Q_ENUM(Registers)
 
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void startMonitoringAutoThings() override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
+    explicit TCP_ModbusConnection(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent = nullptr);
+    ~TCP_ModbusConnection() = default;
+
+    /* Inverter current Power [kW] - Address: 40068, Size: 2 */
+    float currentPower() const;
+
+
+    virtual void initialize();
+    virtual void update();
+
+    void updateCurrentPower();
+
+signals:
+    void initializationFinished();
+
+    void currentPowerChanged(float currentPower);
+
+protected:
+    QModbusReply *readCurrentPower();
+
+    float m_currentPower = 0;
 
 private:
-    PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, TCP_ModbusConnection *> m_templateTcpThings;
+    quint16 m_slaveId = 1;
+    QVector<QModbusReply *> m_pendingInitReplies;
+
+    void verifyInitFinished();
+
+
 };
 
-#endif
+QDebug operator<<(QDebug debug, TCP_ModbusConnection *tCP_ModbusConnection);
 
-
+#endif // TCP_MODBUSCONNECTION_H

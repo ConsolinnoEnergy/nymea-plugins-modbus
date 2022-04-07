@@ -28,7 +28,7 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "integrationpluginTCP_template.h"
+#include "integrationplugine3dc.h"
 
 #include "network/networkdevicediscovery.h"
 #include "hardwaremanager.h"
@@ -75,14 +75,14 @@ void IntegrationPluginTemplate::discoverThings(ThingDiscoveryInfo *info)
                 description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
             }
 
-            ThingDescriptor descriptor(TCP_templateThingClassId, title, description);
+            ThingDescriptor descriptor( e3dcInverterThingClassId , title, description);
             ParamList params;
-            params << Param(TCP_templateThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
-            params << Param(TCP_templateThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+            params << Param(e3dcInverterThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
+            params << Param(e3dcInverterThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
             descriptor.setParams(params);
 
             // Check if we already have set up this device
-            Things existingThings = myThings().filterByParam(TCP_templateThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+            Things existingThings = myThings().filterByParam(e3dcInverterThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
             if (existingThings.count() == 1) {
                 qCDebug(dcTCP_Integration()) << "This connection already exists in the system:" << networkDeviceInfo;
                 descriptor.setThingId(existingThings.first()->id());
@@ -109,8 +109,8 @@ void IntegrationPluginTemplate::setupThing(ThingSetupInfo *info)
     Thing *thing = info->thing();
     qCDebug(dcTCP_Integration()) << "Setup" << thing << thing->params();
 
-    if (thing->thingClassId() == TCP_templateThingClassId) {
-        QHostAddress hostAddress = QHostAddress(thing->paramValue(TCP_templateThingIpAddressParamTypeId).toString());
+    if (thing->thingClassId() == e3dcInverterThingClassId) {
+        QHostAddress hostAddress = QHostAddress(thing->paramValue(e3dcInverterThingIpAddressParamTypeId).toString());
         if (hostAddress.isNull()) {
             qInfo() << "hostAddreess equals to Null:" + hostAddress.toString();
 
@@ -118,17 +118,17 @@ void IntegrationPluginTemplate::setupThing(ThingSetupInfo *info)
             return;
         }
 
-        uint port = thing->paramValue(TCP_templateThingPortParamTypeId).toUInt();
-        quint16 slaveId = thing->paramValue(TCP_templateThingSlaveIdParamTypeId).toUInt();
+        uint port = thing->paramValue(e3dcInverterThingPortParamTypeId).toUInt();
+        quint16 slaveId = thing->paramValue(e3dcInverterThingSlaveIdParamTypeId).toUInt();
 
-        TCP_ModbusConnection *templateTcpConnection = new TCP_ModbusConnection(hostAddress, port, slaveId, this);
-        connect(templateTcpConnection, &TCP_ModbusConnection::connectionStateChanged, this, [thing, templateTcpConnection](bool status){
+        TCP_ModbusConnection *TcpConnection = new TCP_ModbusConnection(hostAddress, port, slaveId, this);
+        connect(TcpConnection, &TCP_ModbusConnection::connectionStateChanged, this, [thing, TcpConnection](bool status){
             qCDebug(dcTCP_Integration()) << "Connected changed to" << status << "for" << thing;
             if (status) {
-                templateTcpConnection->update();
+                TcpConnection->update();
             }
 
-            thing->setStateValue(TCP_templateConnectedStateTypeId, status);
+            thing->setStateValue(e3dcInverterConnectedStateTypeId, status);
         });
 
         //alle funktionen connecten
@@ -137,15 +137,25 @@ void IntegrationPluginTemplate::setupThing(ThingSetupInfo *info)
         //    qCDebug(dcTemplate()) << thing << "Daily_pv_power  changed" << returnDaily_pv_power << "°C";
         //    thing->setStateValue(templateDaily_pv_powerStateTypeId, returnDaily_pv_power);
         //});
-        // is just an example doesnt really work
-       //connect(templateTcpConnection, &TemplateModbusTcpConnection::exampleRegisterChanged, this, [thing](float exampleRegister ){
-       //     qCDebug(dcTemplate()) << thing << "exampleRegister  changed" << exampleRegister << "RegisterUnit";
-       //     thing->setStateValue(templateDaily_pv_powerStateTypeId, exampleRegister);
-       // });
+
+        connect(TcpConnection, &TCP_ModbusConnection::currentPowerChanged, this, [thing](double currentPower){
+            qCDebug(dcTCP_Integration()) << thing << "currentPower  changed" << currentPower << "°C";
+            thing->setStateValue(e3dcInverterCurrentPowerStateTypeId, currentPower);
+        });
 
 
-        m_templateTcpThings.insert(thing, templateTcpConnection);
-        templateTcpConnection->connectDevice();
+
+        /*
+         * e3dc inverter does not offer the usual totalEnergyProduced state
+         *
+        connect(TcpConnection, &TCP_ModbusConnection:: totalEnergyProducedChanged, this, [thing](double totalEnergyProduced){
+            qCDebug(dcTemplate()) << thing << "totalEnergyProduced  changed" << totalEnergyProduced << "°C";
+            thing->setStateValue(e3dcInverterTotalEnergyProducedStateTypeId, totalEnergyProduced);
+        });
+        */
+
+        m_templateTcpThings.insert(thing, TcpConnection);
+        TcpConnection->connectDevice();
 
         info->finish(Thing::ThingErrorNoError);
 
@@ -157,7 +167,7 @@ void IntegrationPluginTemplate::setupThing(ThingSetupInfo *info)
 void IntegrationPluginTemplate::postSetupThing(Thing *thing)
 {
 
- if (thing->thingClassId() == TCP_templateThingClassId){
+ if (thing->thingClassId() == e3dcInverterThingClassId){
      if (!m_pluginTimer){
          m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
          connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
@@ -180,7 +190,7 @@ void IntegrationPluginTemplate::thingRemoved(Thing *thing)
 {
 
 
-    if (thing->thingClassId() == TCP_templateThingClassId && m_templateTcpThings.contains(thing)) {
+    if (thing->thingClassId() == e3dcInverterThingClassId && m_templateTcpThings.contains(thing)) {
         TCP_ModbusConnection *connection = m_templateTcpThings.take(thing);
         delete connection;
     }
