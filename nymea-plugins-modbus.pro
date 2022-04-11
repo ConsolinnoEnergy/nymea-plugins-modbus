@@ -6,7 +6,7 @@ SUBDIRS += libnymea-sunspec
 
 PLUGIN_DIRS = \
    # alphainnotec            \
-   # bgetech                 \
+    bgetech                 \
    # drexelundweiss          \
    # huawei                  \
    # idm                     \
