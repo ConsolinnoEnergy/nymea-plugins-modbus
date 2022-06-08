@@ -305,7 +305,7 @@
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "cpwState",
-            "defaultValue": "0",
+            "defaultValue": "CPWStateEvseNotAvailable",
             "access": "RO"
         },
         {
@@ -317,7 +317,7 @@
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "lastChargeStatus",
-            "defaultValue": "0",
+            "defaultValue": "LastChargeStatusOk",
             "access": "RO"
         },
         {
@@ -338,7 +338,7 @@
             "type": "uint32",
             "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "lastChargeStatus",
+            "description": "errorStatus",
             "defaultValue": "0",
             "access": "RO"
         },
@@ -362,7 +362,7 @@
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "remoteCommand",
-            "defaultValue": "0",
+            "defaultValue": "RemoteCommandAcknowledgeCommand",
             "access": "WO"
         },
         {

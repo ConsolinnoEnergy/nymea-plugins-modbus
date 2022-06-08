@@ -19,8 +19,8 @@ public:
 
     void update();
 
-    QUuid enableOutput(bool state);
-    QUuid setMaxAmpere(int ampereValue);
+    bool enableOutput(bool state);
+    bool setMaxAmpere(int ampereValue);
 
 private:
     SchneiderModbusTcpConnection *m_modbusTcpConnection = nullptr;
@@ -31,12 +31,22 @@ private:
     // The variable is initialized with 0 in schneidermodbustcpconnection.h, and signal is just emitted on change.
     quint16 m_recievedLifeBitRegisterValue{0};
 
-    quint16 m_chargeCurrentSetpoint{14};   // Manual says "x>14A" to charge for Mode 3 plug on three phases.
-
+    quint16 m_chargeCurrentSetpoint{0};
     quint16 m_chargeCurrent{0};
+    quint16 m_degradedMode{0};
+    double m_stationIntensityPhaseX{0};
+    double m_stationIntensityPhase2{0};
+    double m_stationIntensityPhase3{0};
+    quint16 m_phaseCount{0};
+    double m_currentPower{0.0};
+    bool m_errorOccured{false};
+    bool m_acknowledgeCommand{false};
+    quint16 m_remoteCommandStatus{0};
+    SchneiderModbusTcpConnection::RemoteCommand m_lastCommand{SchneiderModbusTcpConnection::RemoteCommandAcknowledgeCommand};
 
 signals:
-    void commandExecuted(QUuid requestId, bool success);
+    void phaseCountChanged(quint16 phaseCount);
+    void currentPowerChanged(double currentPower);
 };
 
 #endif // SCHNEIDERWALLBOX_H

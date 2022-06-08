@@ -43,6 +43,24 @@
                             "displayName": "Modbus slave ID",
                             "type": "int",
                             "defaultValue": 1
+                        },
+                        {
+                            "id": "f30c91ba-1b0e-4eed-afb3-52ddccffc4c3",
+                            "name":"minChargeCurrent",
+                            "displayName": "Minimum charge current",
+                            "type": "int",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 8
+                        },
+                        {
+                            "id": "131aa124-247f-4fe8-8e84-0e93d4086c46",
+                            "name":"maxChargeCurrent",
+                            "displayName": "Maximum charge current",
+                            "type": "int",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 32
                         }
                     ],
                     "stateTypes":[
@@ -119,7 +137,7 @@
                             "unit": "Ampere",
                             "defaultValue": 6,
                             "minValue": 6,
-                            "maxValue": 16,
+                            "maxValue": 32,
                             "writable": true,
                             "suggestLogging": true
                         },
@@ -145,20 +163,32 @@
                             "cached": false
                         },
                         {
+                            "id": "6495cc9f-b0d0-475d-bfec-81f0ca5f5051",
+                            "name": "phaseCount",
+                            "displayName": "Phase count",
+                            "displayNameEvent": "Phase count changed",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 3,
+                            "defaultValue": 1,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
                             "id": "30e02884-8863-40c8-90e3-de8b41d181c7",
                             "name": "errorMessage",
                             "displayName": "Error message",
+                            "displayNameEvent": "Error state changed",
                             "type": "QString",
-                            "defaultValue": "No error",
-                            "displayNameEvent": "Error state changed"
+                            "defaultValue": "No error"
                         },
                         {
                             "id": "6ffa9e78-e0ed-4359-bf92-470ba54495fb",
                             "name": "lastChargeStatus",
                             "displayName": "Last charge status",
+                            "displayNameEvent": "Last charge status changed",
                             "type": "QString",
-                            "defaultValue": "OK (ended by EV in mode 3)",
-                            "displayNameEvent": "Last charge status changed"
+                            "defaultValue": "OK (ended by EV in mode 3)"
                         }
                     ]
                 }

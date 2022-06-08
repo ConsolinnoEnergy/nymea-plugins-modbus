@@ -284,8 +284,8 @@ void SchneiderModbusTcpConnection::updateRemoteCommandStatus()
 
 void SchneiderModbusTcpConnection::updateErrorStatus()
 {
-    // Update registers from lastChargeStatus
-    qCDebug(dcSchneiderModbusTcpConnection()) << "--> Read \"lastChargeStatus\" register:" << 23 << "size:" << 2;
+    // Update registers from errorStatus
+    qCDebug(dcSchneiderModbusTcpConnection()) << "--> Read \"errorStatus\" register:" << 23 << "size:" << 2;
     QModbusReply *reply = readErrorStatus();
     if (reply) {
         if (!reply->isFinished()) {
@@ -294,7 +294,7 @@ void SchneiderModbusTcpConnection::updateErrorStatus()
                 if (reply->error() == QModbusDevice::NoError) {
                     const QModbusDataUnit unit = reply->result();
                     const QVector<quint16> values = unit.values();
-                    qCDebug(dcSchneiderModbusTcpConnection()) << "<-- Response from \"lastChargeStatus\" register" << 23 << "size:" << 2 << values;
+                    qCDebug(dcSchneiderModbusTcpConnection()) << "<-- Response from \"errorStatus\" register" << 23 << "size:" << 2 << values;
                     quint32 receivedErrorStatus = ModbusDataUtils::convertToUInt32(values, ModbusDataUtils::ByteOrderBigEndian);
                     if (m_errorStatus != receivedErrorStatus) {
                         m_errorStatus = receivedErrorStatus;
@@ -304,14 +304,14 @@ void SchneiderModbusTcpConnection::updateErrorStatus()
             });
 
             connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-                qCWarning(dcSchneiderModbusTcpConnection()) << "Modbus reply error occurred while updating \"lastChargeStatus\" registers from" << hostAddress().toString() << error << reply->errorString();
+                qCWarning(dcSchneiderModbusTcpConnection()) << "Modbus reply error occurred while updating \"errorStatus\" registers from" << hostAddress().toString() << error << reply->errorString();
                 emit reply->finished(); // To make sure it will be deleted
             });
         } else {
             delete reply; // Broadcast reply returns immediatly
         }
     } else {
-        qCWarning(dcSchneiderModbusTcpConnection()) << "Error occurred while reading \"lastChargeStatus\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcSchneiderModbusTcpConnection()) << "Error occurred while reading \"errorStatus\" registers from" << hostAddress().toString() << errorString();
     }
 }
 
@@ -821,7 +821,7 @@ QDebug operator<<(QDebug debug, SchneiderModbusTcpConnection *schneiderModbusTcp
     debug.nospace().noquote() << "    - cpwState:" << schneiderModbusTcpConnection->cpwState() << "\n";
     debug.nospace().noquote() << "    - lastChargeStatus:" << schneiderModbusTcpConnection->lastChargeStatus() << "\n";
     debug.nospace().noquote() << "    - remoteCommandStatus:" << schneiderModbusTcpConnection->remoteCommandStatus() << "\n";
-    debug.nospace().noquote() << "    - lastChargeStatus:" << schneiderModbusTcpConnection->errorStatus() << "\n";
+    debug.nospace().noquote() << "    - errorStatus:" << schneiderModbusTcpConnection->errorStatus() << "\n";
     debug.nospace().noquote() << "    - chargeTime:" << schneiderModbusTcpConnection->chargeTime() << "\n";
     debug.nospace().noquote() << "    - remoteCommand:" << schneiderModbusTcpConnection->remoteCommand() << "\n";
     debug.nospace().noquote() << "    - maxIntensitySocket:" << schneiderModbusTcpConnection->maxIntensitySocket() << " [Ampere]" << "\n";

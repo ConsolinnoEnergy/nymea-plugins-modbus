@@ -28,11 +28,12 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include <network/networkdevicediscovery.h>
+#include <hardwaremanager.h>
+
+#include "plugininfo.h"
 #include "integrationpluginschneider.h"
 
-#include "network/networkdevicediscovery.h"
-#include "plugininfo.h"
-#include "hardwaremanager.h"
 
 IntegrationPluginSchneider::IntegrationPluginSchneider()
 {
@@ -124,6 +125,12 @@ void IntegrationPluginSchneider::setupThing(ThingSetupInfo *info)
         uint port = thing->paramValue(schneiderEVlinkThingPortParamTypeId).toUInt();
         quint16 slaveId = thing->paramValue(schneiderEVlinkThingSlaveIdParamTypeId).toUInt();
 
+        quint16 minCurrentLimit = thing->paramValue(schneiderEVlinkThingMinChargeCurrentParamTypeId).toUInt();
+        quint16 maxCurrentLimit = thing->paramValue(schneiderEVlinkThingMaxChargeCurrentParamTypeId).toUInt();
+        thing->setStateMinMaxValues(schneiderEVlinkMaxChargingCurrentStateTypeId, minCurrentLimit, maxCurrentLimit);
+
+        // ToDo: implement code to update the wallbox config file so that minimum current for mono and tri phase charging is the same.
+
         // Check if we have a schneiderWallbox with this ip and slaveId, if reconfigure the object would already been removed from the hash
         foreach (SchneiderWallbox *schneiderWallboxEntry, m_schneiderDevices.values()) {
             if (schneiderWallboxEntry->modbusTcpConnection()->hostAddress() == hostAddress && schneiderWallboxEntry->slaveId() == slaveId) {
@@ -176,7 +183,20 @@ void IntegrationPluginSchneider::setupThing(ThingSetupInfo *info)
         schneiderConnectTcpConnection->connectDevice();
 
         SchneiderWallbox *schneiderWallbox = new SchneiderWallbox(schneiderConnectTcpConnection, slaveId, this);
-        connect(schneiderWallbox, &SchneiderWallbox::commandExecuted, this, &IntegrationPluginSchneider::onCommandExecuted);
+        int ampereValue = thing->stateValue(schneiderEVlinkMaxChargingCurrentStateTypeId).toUInt();
+        bool success = schneiderWallbox->setMaxAmpere(ampereValue);
+        if (!success) {
+            qCWarning(dcSchneiderElectric()) << "Could not set max charging current to initial value.";
+        }
+
+        connect(schneiderWallbox, &SchneiderWallbox::phaseCountChanged, this, [thing, this](quint16 phaseCount){
+            qCDebug(dcSchneiderElectric()) << thing << "Phase count changed" << phaseCount ;
+            setPhaseCount(thing, phaseCount);
+        });
+        connect(schneiderWallbox, &SchneiderWallbox::currentPowerChanged, this, [thing, this](double currentPower){
+            qCDebug(dcSchneiderElectric()) << thing << "Current power changed" << currentPower ;
+            setCurrentPower(thing, currentPower);
+        });
 
         m_schneiderDevices.insert(thing->id(), schneiderWallbox);
 
@@ -223,6 +243,9 @@ void IntegrationPluginSchneider::thingRemoved(Thing *thing)
 {
     if (thing->thingClassId() == schneiderEVlinkThingClassId && m_schneiderDevices.contains(thing->id())) {
         qCDebug(dcSchneiderElectric()) << "Deleting" << thing->name();
+
+        // ToDo: set charging to off? Delete code in schneiderwallbox.cpp has code to turn charging off. Not sure if that works though.
+
         SchneiderWallbox *device = m_schneiderDevices.take(thing->id());
         device->deleteLater();
     }
@@ -249,57 +272,30 @@ void IntegrationPluginSchneider::executeAction(ThingActionInfo *info)
             return;
         }
 
-        QUuid requestId;
+        bool success = false;
         if (action.actionTypeId() == schneiderEVlinkPowerActionTypeId) {
-            requestId = device->enableOutput(action.paramValue(schneiderEVlinkPowerActionPowerParamTypeId).toBool());
+            bool onOff = action.paramValue(schneiderEVlinkPowerActionPowerParamTypeId).toBool();
+            success = device->enableOutput(onOff);
+            info->thing()->setStateValue(schneiderEVlinkPowerStateTypeId, onOff);
         } else if(action.actionTypeId() == schneiderEVlinkMaxChargingCurrentActionTypeId) {
             int ampereValue = action.paramValue(schneiderEVlinkMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
-            requestId = device->setMaxAmpere(ampereValue);
+            success = device->setMaxAmpere(ampereValue);
+            info->thing()->setStateValue(schneiderEVlinkMaxChargingCurrentStateTypeId, ampereValue);
         } else {
             qCWarning(dcSchneiderElectric()) << "Unhandled ActionTypeId:" << action.actionTypeId();
             return info->finish(Thing::ThingErrorActionTypeNotFound);
         }
 
-        // If the SchneiderWallbox returns an invalid uuid, something went wrong
-        if (requestId.isNull()) {
+        if (success) {
+            info->finish(Thing::ThingErrorNoError);
+        } else {
+            qCWarning(dcSchneiderElectric()) << "Action execution finished with error.";
             info->finish(Thing::ThingErrorHardwareFailure);
             return;
         }
-
-        m_asyncActions.insert(requestId, info);
-        connect(info, &ThingActionInfo::aborted, this, [requestId, this]{ m_asyncActions.remove(requestId); });
     } else {
         qCWarning(dcSchneiderElectric()) << "Execute action, unhandled device class" << thing->thingClass();
         info->finish(Thing::ThingErrorThingClassNotFound);
-    }
-}
-
-void IntegrationPluginSchneider::onCommandExecuted(QUuid requestId, bool success)
-{
-    if (m_asyncActions.contains(requestId)) {
-        SchneiderWallbox *device = static_cast<SchneiderWallbox *>(sender());
-        Thing *thing = myThings().findById(m_schneiderDevices.key(device));
-        if (!thing) {
-            qCWarning(dcSchneiderElectric()) << "On command executed: missing device object";
-            return;
-        }
-
-        ThingActionInfo *info = m_asyncActions.take(requestId);
-        if (success) {
-            qCDebug(dcSchneiderElectric()) << "Action execution finished successfully. Request ID:" << requestId.toString();
-            info->finish(Thing::ThingErrorNoError);
-
-            if (info->action().actionTypeId() == schneiderEVlinkPowerActionTypeId) {
-                bool value = info->action().paramValue(schneiderEVlinkPowerActionPowerParamTypeId).toBool();
-                info->thing()->setStateValue(schneiderEVlinkPowerStateTypeId, value);
-            } else if (info->action().actionTypeId() == schneiderEVlinkMaxChargingCurrentActionTypeId) {
-                int ampereValue = info->action().paramValue(schneiderEVlinkMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
-                info->thing()->setStateValue(schneiderEVlinkMaxChargingCurrentStateTypeId, ampereValue);
-            }
-        } else {
-            qCWarning(dcSchneiderElectric()) << "Action execution finished with error. Request ID:" << requestId.toString();
-            info->finish(Thing::ThingErrorHardwareFailure);
-        }
     }
 }
 
@@ -442,6 +438,15 @@ void IntegrationPluginSchneider::setLastChargeStatus(Thing *thing, SchneiderModb
     default:
         thing->setStateValue(schneiderEVlinkLastChargeStatusStateTypeId, "Undefined");
     }
+}
+
+void IntegrationPluginSchneider::setCurrentPower(Thing *thing, double currentPower) {
+    thing->setStateValue(schneiderEVlinkCurrentPowerStateTypeId, currentPower);
+}
+
+void IntegrationPluginSchneider::setPhaseCount(Thing *thing, quint16 phaseCount) {
+    thing->setStateValue(schneiderEVlinkPhaseCountStateTypeId, phaseCount);
+    //qCDebug(dcSchneiderElectric()) << "Phase count set:" << phaseCount << " for thing:" << thing;
 }
 
 void IntegrationPluginSchneider::setErrorMessage(Thing *thing, quint32 errorBits) {

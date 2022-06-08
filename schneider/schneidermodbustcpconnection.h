@@ -156,7 +156,7 @@ public:
     /* remoteCommandStatus - Address: 20, Size: 1 */
     quint16 remoteCommandStatus() const;
 
-    /* lastChargeStatus - Address: 23, Size: 2 */
+    /* errorStatus - Address: 23, Size: 2 */
     quint32 errorStatus() const;
 
     /* chargeTime - Address: 30, Size: 2 */
@@ -222,12 +222,12 @@ public:
 signals:
     void initializationFinished();
 
-    void cpwStateChanged(CPWState cpwState);
-    void lastChargeStatusChanged(LastChargeStatus lastChargeStatus);
+    void cpwStateChanged(SchneiderModbusTcpConnection::CPWState cpwState);
+    void lastChargeStatusChanged(SchneiderModbusTcpConnection::LastChargeStatus lastChargeStatus);
     void remoteCommandStatusChanged(quint16 remoteCommandStatus);
     void errorStatusChanged(quint32 errorStatus);
     void chargeTimeChanged(quint32 chargeTime);
-    void remoteCommandChanged(RemoteCommand remoteCommand);
+    void remoteCommandChanged(SchneiderModbusTcpConnection::RemoteCommand remoteCommand);
     void maxIntensitySocketChanged(quint16 maxIntensitySocket);
     void maxIntensityClusterChanged(quint16 maxIntensityCluster);
     void stationIntensityPhaseXChanged(float stationIntensityPhaseX);

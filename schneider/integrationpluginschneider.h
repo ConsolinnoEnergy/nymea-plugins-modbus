@@ -31,10 +31,10 @@
 #ifndef INTEGRATIONPLUGINSCHNEIDER_H
 #define INTEGRATIONPLUGINSCHNEIDER_H
 
-#include "integrations/integrationplugin.h"
-#include "schneidermodbustcpconnection.h"
-#include "plugintimer.h"
+#include <integrations/integrationplugin.h>
+#include <plugintimer.h>
 
+#include "schneidermodbustcpconnection.h"
 #include "schneiderwallbox.h"
 
 
@@ -62,14 +62,12 @@ private:
     PluginTimer *m_pluginTimer = nullptr;
 
     QHash<ThingId, SchneiderWallbox *> m_schneiderDevices;
-    QHash<QUuid, ThingActionInfo *> m_asyncActions;
 
     void setCpwState(Thing *thing, SchneiderModbusTcpConnection::CPWState state);
     void setLastChargeStatus(Thing *thing, SchneiderModbusTcpConnection::LastChargeStatus status);
+    void setCurrentPower(Thing *thing, double currentPower);
+    void setPhaseCount(Thing *thing, quint16 phaseCount);
     void setErrorMessage(Thing *thing, quint32 errorBits);
-
-private slots:
-    void onCommandExecuted(QUuid requestId, bool success);
 };
 
 #endif // INTEGRATIONPLUGINSCHNEIDER_H
