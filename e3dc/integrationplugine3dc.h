@@ -28,12 +28,18 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINTEMPLATE_H
-#define INTEGRATIONPLUGINTEMPLATE_H
+#ifndef INTEGRATIONPLUGINE3DC_H
+#define INTEGRATIONPLUGINE3DC_H
 
+
+
+
+#include "integrations/integrationplugin.h"
 #include "plugintimer.h"
 #include "tcp_modbusconnection.h"
-#include "integrations/integrationplugin.h"
+#include "e3dcinverter.h"
+#include "e3dcbattery.h"
+#include "e3dcwallbox.h"
 
 class IntegrationPluginTemplate: public IntegrationPlugin
 {
@@ -46,17 +52,58 @@ public:
     explicit IntegrationPluginTemplate();
 
     void discoverThings(ThingDiscoveryInfo *info) override;
-    void startMonitoringAutoThings() override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
+
 
 private:
+
+
+    // e3dc things
+    void setupConnection(ThingSetupInfo *info);
+    void setupInverter(ThingSetupInfo *info);
+    void setupWallbox(ThingSetupInfo *info);
+    void setupBattery(ThingSetupInfo *info);
+
+
+    void processDiscoveryResult(Thing *thing, TCP_ModbusConnection *TcpConnection);
+
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, TCP_ModbusConnection *> m_templateTcpThings;
+
+    // Connection State
+    QHash<ThingClassId, StateTypeId> m_connectedStateTypeIds;
+
+    // Connection Param
+    QHash<ThingClassId, ParamTypeId> m_connectionIpParamTypeIds;
+    QHash<ThingClassId, ParamTypeId> m_connectionPortParamTypeIds;
+    QHash<ThingClassId, ParamTypeId> m_connectionMacAddressParamTypeIds;
+    QHash<ThingClassId, ParamTypeId> m_connectionSlaveIdParamTypeIds;
+
+    // params map
+    QHash<ThingClassId, ParamTypeId> m_modelIdParamTypeIds;
+    QHash<ThingClassId, ParamTypeId> m_modbusAddressParamTypeIds;
+    QHash<ThingClassId, ParamTypeId> m_manufacturerParamTypeIds;
+    QHash<ThingClassId, ParamTypeId> m_deviceModelParamTypeIds;
+    QHash<ThingClassId, ParamTypeId> m_serialNumberParamTypeIds;
+
+
+    // Collection of Devices
+    QHash<ThingId, TCP_ModbusConnection *> m_e3DCConnections;
+    QHash<Thing *, e3dcInverter *> m_e3DCInverters;
+    QHash<Thing *, e3dcBattery *> m_e3DCBatteries;
+    QHash<Thing *, e3dcWallbox *> m_e3DCWallboxes;
+
+
+private slots:
+    void onPluginTimer();
+//    void onInverterUpdated();
+//    void onWallboxUpdated();
+//    void onBatteryUpdated();
+
 };
 
-#endif
+#endif // INTEGRATIONPLUGINE3DC_H
 
 

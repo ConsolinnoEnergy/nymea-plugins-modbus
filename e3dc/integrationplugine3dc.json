@@ -9,47 +9,75 @@
             "id": "59a38851-7f69-4fd8-b01c-c79abf54debf",
             "thingClasses": [
                 {
-                    "name": "e3dcInverter",
-                    "displayName": "E3dcInverter",
-                    "id": "b66fe6b9-17f7-4b77-adf9-1f6f5b2640ca",
-                    "createMethods": ["discovery", "user"],
-                    "interfaces": [ "smartmeterproducer","connectable"],
+                    "name": "e3dcConnection",
+                    "displayName": "e3dc gateway",
+                    "id": "c05722ec-442f-4feb-8889-39ae3769d068",
+                    "createMethods": ["user", "discovery"],
+                    "interfaces": ["gateway"],
+                    "providedInterfaces": ["solarinverter", "energymeter", "energystorage"],
                     "paramTypes": [
                         {
-                            "id": "58520d71-9967-4c4d-89af-680cb223680a",
-                            "name": "ipAddress",
+                            "id": "e9a474c6-7304-424f-9730-8dffd21188d9",
+                            "name":"ipAddress",
                             "displayName": "IP address",
                             "type": "QString",
-                            "inputType": "IPv4Address",
                             "defaultValue": "127.0.0.1"
                         },
                         {
-                            "id": "bed6926f-0b9d-403c-adc1-d17ff2dad5b6",
-                            "name":"macAddress",
-                            "displayName": "MAC address",
-                            "type": "QString",
-                            "inputType": "MacAddress",
-                            "defaultValue": ""
-                        },
-                        {
-                            "id": "38ea010e-a595-47d0-b968-8610419ab299",
+                            "id": "1d1768c1-421c-4486-9843-22e4646668b7",
                             "name":"port",
                             "displayName": "Port",
                             "type": "int",
                             "defaultValue": 502
                         },
                         {
-                            "id": "0e2d45a0-4aae-45f2-a441-4b29e28ba429",
+                            "id": "371f286f-d14f-48b8-99ba-8d547c8148c9",
+                            "name":"macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "defaultValue": "00:00:00:00:00:00"
+                        },
+                        {
+                            "id": "ac61f55c-4bc4-4815-9a3e-8e01ad2da739",
                             "name":"slaveId",
-                            "displayName": "Modbus slave ID",
+                            "displayName": "Slave ID",
                             "type": "int",
                             "defaultValue": 1
                         }
+                    ],
+                    "stateTypes":[
+                        {
+                            "id": "1596bc6a-69b2-417b-8896-997d2029e1e6",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        }
+                    ]
+                },
 
+
+                {
+                    "name": "e3dcInverter",
+                    "displayName": "E3dcInverter",
+                    "id": "ca574fda-63e8-4d59-ac37-e95f9f7ed459",
+                    "createMethods": ["Auto"],
+                    "interfaces": [ "energymeter","connectable"],
+                    "paramTypes": [
+                    {
+                        "id": "c7b39ff1-6c28-436d-a7b2-a73df64206df",
+                        "name":"modelId",
+                        "displayName": "Model",
+                        "type": "QString",
+                        "defaultValue": "e3dc_Inverter",
+                        "readOnly": true
+                    }
                     ],
                     "stateTypes": [
                         {
-                            "id": "f026862a-ee98-4c5b-9297-7336aef188c8",
+                            "id": "7003c902-7024-4d2b-a20b-7e6745e907bc",
                             "name": "connected",
                             "displayName": "Connected",
                             "displayNameEvent": "Connected changed",
@@ -58,33 +86,379 @@
                             "cached": false
                         },
                         {
-
-                            "id": "b89d0dd4-5d80-4e1a-8a10-b89a6d85fc65",
-                            "name": "totalEnergyProduced",
-                            "displayName": "TotalEnergyProduced",
-                            "displayNameEvent": "TotalEnergyProduced Changed",
+                            "id": "1d56ec2b-97e8-4530-8e52-ffc6ae0e60c7",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumed changed",
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00
-
                         },
                         {
-
-                            "id": "23c3f026-3908-4c7e-924c-7ef5d530c356",
+                            "id": "a5afd533-464a-4450-affa-2403a3fcaf20",
                             "name": "currentPower",
-                            "displayName": "CurrentPower",
-                            "displayNameEvent": "CurrentPower Changed",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Current power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "a496e5ce-a57f-413d-962e-61d09acf854b",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "1deb0dc0-eb09-4cad-8389-d61f6846b8ff",
+                            "name": "networkPointPower",
+                            "displayName": "NetworkPointPower",
+                            "displayNameEvent": "NetworkPointPower changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "772225c7-b735-4276-9e6e-992c469af328",
+                            "name": "energyConsumedPhaseA",
+                            "displayName": "Energy consumed phase A",
+                            "displayNameEvent": "Energy consumed phase A changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "4bc55bc7-c23b-49c7-9639-b4e4933dbbdf",
+                            "name": "energyConsumedPhaseB",
+                            "displayName": "Energy consumed phase B",
+                            "displayNameEvent": "Energy consumed phase B changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "aa70e3a0-07de-496e-a09e-f3a48b232309",
+                            "name": "energyConsumedPhaseC",
+                            "displayName": "Energy consumed phase C",
+                            "displayNameEvent": "Energy consumed phase C changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "d25107cf-f664-40b0-90c8-addfdf122956",
+                            "name": "energyProducedPhaseA",
+                            "displayName": "Energy produced phase A",
+                            "displayNameEvent": "Energy produced phase A changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "56b74923-542f-4d62-a48b-37f7f347b820",
+                            "name": "energyProducedPhaseB",
+                            "displayName": "Energy produced phase B",
+                            "displayNameEvent": "Energy produced phase B changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "4bc43979-196a-4b07-af5c-9ba5b07a0ac6",
+                            "name": "energyProducedPhaseC",
+                            "displayName": "Energy produced phase C",
+                            "displayNameEvent": "Energy produced phase C changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "3f17869e-7b54-486e-8142-c2ec9265f91d",
+                            "name": "currentPowerPhaseA",
+                            "displayName": "Current power phase A",
+                            "displayNameEvent": "Current power phase A changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "df5cbe32-737a-4895-8fac-81838caa8b1e",
+                            "name": "currentPowerPhaseB",
+                            "displayName": "Current power phase B",
+                            "displayNameEvent": "Current power phase B changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "eb73df96-39ee-4917-8b72-ea3811146d3c",
+                            "name": "currentPowerPhaseC",
+                            "displayName": "Current power phase C",
+                            "displayNameEvent": "Current power phase C changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "1cbc9c11-7dcb-457d-bf16-870a4cbf9bf3",
+                            "name": "currentPhaseA",
+                            "displayName": "Current phase A",
+                            "displayNameEvent": "Current phase A changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "67d83979-e4a8-4e37-8267-4e0d28862bf7",
+                            "name": "currentPhaseB",
+                            "displayName": "Current phase B",
+                            "displayNameEvent": "Current phase B changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "b008f1eb-7cec-4145-b796-7ae20e9ca448",
+                            "name": "currentPhaseC",
+                            "displayName": "Current phase C",
+                            "displayNameEvent": "Current phase C changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "f84fa3cf-096d-49c4-9998-8721326a2d84",
+                            "name": "voltagePhaseA",
+                            "displayName": "Voltage phase A",
+                            "displayNameEvent": "Voltage phase A changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "b5c1190c-5e4a-497b-a285-ee205f9d2958",
+                            "name": "voltagePhaseB",
+                            "displayName": "Voltage phase B",
+                            "displayNameEvent": "Voltage phase B changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "7f6daded-c83b-43c8-ac53-0155b5bf607c",
+                            "name": "voltagePhaseC",
+                            "displayName": "Voltage phase C",
+                            "displayNameEvent": "Voltage phase C changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0
+                        }
+
+
+
+                    ],
+                    "actionTypes": [ ]
+                },
+                {
+                    "name": "e3dcWallbox",
+                    "displayName": "E3dcWallbox",
+                    "id": "77b5b261-c43b-4ae0-b951-987f6ffe029e",
+                    "createMethods": ["Auto"],
+                    "interfaces": [ "evcharger","connectable"],
+                    "paramTypes": [
+                    {
+                        "id": "acd8ac33-61b4-477f-bf01-cdb1f01fca8e",
+                        "name":"modelId",
+                        "displayName": "Model",
+                        "type": "QString",
+                        "defaultValue": "e3dc_Wallbox",
+                        "readOnly": true
+                    }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "080b8d19-a56a-4058-a659-dcce7573129b",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "f4571359-db08-42d0-b6b0-9d6b7d0436a8",
+                            "name": "currentPower",
+                            "displayName": "Total real power",
+                            "displayNameEvent": "Total real power changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00
-
-
+                        },
+                        {
+                            "id": "5defd64b-39f3-4ea6-b997-1b8eefe4b699",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Charging current",
+                            "displayNameEvent": "Charging current changed",
+                            "displayNameAction": "Set charging current",
+                            "type": "uint",
+                            "unit": "Ampere",
+                            "minValue": 6,
+                            "maxValue": 80,
+                            "defaultValue": 6,
+                            "writable": true
+                        },
+                        {
+                            "id": "689676be-d3b0-440c-9dca-849cb5bd83e2",
+                            "name": "pluggedIn",
+                            "displayName": "Car plugged in",
+                            "displayNameEvent": "Car plugged in changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "684c823e-62f0-4d86-98c9-19df1322c12e",
+                            "name": "charging",
+                            "displayName": "Charging",
+                            "displayNameEvent": "Charging changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "9dbbc7aa-6d10-48c3-add4-87dd18475d12",
+                            "name": "phaseCount",
+                            "displayName": "Number of connected phases",
+                            "displayNameEvent": "Number of connected phases changed",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 3,
+                            "defaultValue": 1
+                        },
+                        {
+                            "id": "d1b33dbe-e6e5-4e0c-bc14-d3f20e4f0487",
+                            "name": "sessionEnergy",
+                            "displayName": "Session energy",
+                            "displayNameEvent": "Session energy changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "c2a61a6c-6323-4dd1-88b6-88bb9c6a90b4",
+                            "name": "power",
+                            "displayName": "Charging",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "displayNameAction": "Start charging",
+                            "displayNameEvent": "Charging status changed",
+                            "writable": true
+                        },
+                        {
+                            "id": "46bb52f3-fa05-4a29-9fbc-dee17b87cba9",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumed changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
                         }
+
+
+
+                    ],
+                    "actionTypes": [ ]
+                },
+                {
+                    "name": "e3dcBattery",
+                    "displayName": "E3DCBattery",
+                    "id": "686291a3-a242-484a-bda3-fac3ed1f87eb",
+                    "createMethods": ["Auto"],
+                    "interfaces": [ "energystorage","connectable"],
+                    "paramTypes": [
+                    {
+                        "id": "eb586b37-9b88-4f65-a088-57651d56738a",
+                        "name":"modelId",
+                        "displayName": "Model",
+                        "type": "QString",
+                        "defaultValue": "e3dc_Battery",
+                        "readOnly": true
+                    }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "b5000745-3c68-460d-b38c-937982aaa3d2",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "d3e8b4a7-a624-4e47-b0a6-88fb818f4a76",
+                            "name": "batteryCritical",
+                            "displayName": "Battery critical",
+                            "displayNameEvent": "Battery critical changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "f1573051-61f5-42af-86f8-40b5fa3c4d7b",
+                            "name": "batteryLevel",
+                            "displayName": "Battery level",
+                            "displayNameEvent": "Battery level changed",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 0,
+                            "maxValue": 100,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "db91b0f7-f036-4987-8037-d65b7f23263a",
+                            "name": "currentPower",
+                            "displayName": "Total real power",
+                            "displayNameEvent": "Total real power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "46d03d8b-fd61-457e-9bab-b8313eb13cea",
+                            "name": "capacity",
+                            "displayName": "Capacity",
+                            "displayNameEvent": "Capacity changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "9c9a7398-0125-4503-bd93-e1917a40d603",
+                            "name": "chargingState",
+                            "displayName": "Charging state",
+                            "displayNameEvent": "Charging state changed",
+                            "type": "QString",
+                            "possibleValues": ["idle", "charging", "discharging"],
+                            "defaultValue": "idle"
+                        },
+                        {
+                            "id": "56fb4065-6c87-4497-96c3-c6b337fc357b",
+                            "name": "pluggedIn",
+                            "displayName": "Car plugged in",
+                            "displayNameEvent": "Car plugged in changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        }
+
 
 
                     ],
                     "actionTypes": [ ]
                 }
+
+
+
             ]
         }
     ]

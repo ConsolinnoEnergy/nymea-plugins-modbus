@@ -35,6 +35,11 @@
 
 #include "../modbus/modbusdatautils.h"
 #include "../modbus/modbustcpmaster.h"
+#include "e3dcinverter.h"
+#include "e3dcbattery.h"
+#include "e3dcwallbox.h"
+
+// information about e3DC is provided here: https://community.symcon.de/uploads/short-url/z6Yc7LiO6m9lJt8r5Aif539GbHI.pdf
 
 class TCP_ModbusConnection : public ModbusTCPMaster
 {
@@ -43,35 +48,130 @@ public:
     enum Registers {
         RegisterCurrentPower = 40068
     };
-    Q_ENUM(Registers)
+    Q_ENUM(Registers);
+
+    enum Error {
+        ConnectionNoError = 0,
+        ConnectionWBError = 1,
+        ConnectionInvError = 2,
+        ConnectionBatError = 3
+    };
+    Q_ENUM(Error);
+
+    // Wallbox_X_CTL gives a bitmask
+    enum WallboxDataBitmask: quint16
+    {
+        ExistenceMask = 1,
+        OperationType = 2
+
+
+
+
+    };
+    Q_ENUM(WallboxDataBitmask);
+
 
     explicit TCP_ModbusConnection(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent = nullptr);
     ~TCP_ModbusConnection() = default;
+    QList<int> activeWallbox();
 
-    /* Inverter current Power [kW] - Address: 40068, Size: 2 */
-    float currentPower() const;
+    // Inverter
+    //current Power Inverter [kW] - Address: 40068, Size: 2
+    float currentPowerInv() const;
+    //current Power Battery [kW] - Address: 40070, Size: 2
+    float currentPowerBat() const;
+    //current Power Wallbox [kW] - Address: 40078, Size: 2
+    float currentPowerWB() const;
+    //current Power NetworkPoint [kW] - Address: 40074, Size: 2
+    float currentNetworkPointPower() const;
+    //current SOC [%] - Address: 40068, Size: 2
+    float currentSOC() const;
 
+    // WallboxDiscovery Getter/Setter
+
+    int WallboxActive();
+    void setWallboxActive(int count);
+
+    int WallboxInactive();
+    void setWallboxInactive(int count);
+
+    int MaximumAmountofWallboxes();
+
+
+    bool discoveryRunning() const;
+    void setDiscoveryRunning(bool discoveryRunning) const;
 
     virtual void initialize();
-    virtual void update();
 
-    void updateCurrentPower();
+    //update
+        //inverter data
+    void updateCurrentPowerInv(e3dcInverter *inverter);
+    void updateNetworkPointPower(e3dcInverter *inverter);
+        //wallbox data
+    void updateCurrentPowerWB(e3dcWallbox* wallbox);
+        //battery data
+    void updateSOC(e3dcBattery* battery);
+    void updateCurrentPowerBat(e3dcBattery* battery);
+
+    //update devices
+    void updateInverter(e3dcInverter *inverter);
+    void updateBattery(e3dcBattery * battery);
+    void updateWallbox(e3dcWallbox * wallbox);
+
+
+public slots:
+    void startDiscovery();
 
 signals:
-    void initializationFinished();
 
-    void currentPowerChanged(float currentPower);
+    void initializationFinished();
+    void discoveryFinished(bool success);
+    void Countwallbox(bool count);
+
+
+    void currentPowerInvChanged(float currentPower);
+    void currentPowerBatChanged(float currentPower);
+    void currentPowerWBChanged(float currentPower);
+    void currentNetworkPointPowerChanged(float currentNetworkPointPower);
+    void currentSOCChanged(float SOC);
 
 protected:
-    QModbusReply *readCurrentPower();
+    // read
+        //inverter data
+    QModbusReply *readCurrentPowerInv();
+    QModbusReply *readNetworkPointPower();
+        //wallbox data
+    QModbusReply *readCurrentPowerWB();
+        //battery data
+    QModbusReply *readCurrentPowerBat();
+    QModbusReply *readSOC();
 
-    float m_currentPower = 0;
+
+    // read Wallbox Control to check if wallbox exist
+    QModbusReply *readWallboxControl(int Register);
+
+    float m_currentPowerInv = 0;
+    float m_currentPowerBat = 0;
+    float m_currentPowerWB = 0;
+    float m_SOC = 0;
+    float m_networkPointPower = 0;
+
+    // the key is the actual modbus adress
+    QList<int> m_activeWallboxes;
+
 
 private:
+    int m_wallboxesActive = 0;
+    int m_wallboxesInactive = 0;
+    int m_maximumAmountofWallboxes = 9;
+
+    bool m_discoveryRunning = false;
     quint16 m_slaveId = 1;
     QVector<QModbusReply *> m_pendingInitReplies;
 
     void verifyInitFinished();
+
+    TCP_ModbusConnection::Error CheckWallboxes();
 
 
 };

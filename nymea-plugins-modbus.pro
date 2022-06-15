@@ -5,19 +5,19 @@ CONFIG += ordered
 SUBDIRS += libnymea-sunspec
 
 PLUGIN_DIRS = \
-   # alphainnotec            \
+    alphainnotec            \
     bgetech                 \
-   # drexelundweiss          \
-   # huawei                  \
-   # idm                     \
-   # inepro                  \
-   # modbuscommander         \
-   # mtec                    \
-   # mypv                    \
-   # sunspec                 \
-   # unipi                   \
-   # wallbe                  \
-   # webasto                 \
+    drexelundweiss          \
+    huawei                  \
+    idm                     \
+    inepro                  \
+    modbuscommander         \
+    mtec                    \
+    mypv                    \
+    sunspec                 \
+    #unipi                   \
+    wallbe                  \
+    webasto                 \
     e3dc
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
