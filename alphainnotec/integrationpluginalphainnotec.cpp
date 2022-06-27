@@ -108,6 +108,7 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
         quint16 slaveId = thing->paramValue(alphaConnectThingSlaveIdParamTypeId).toUInt();
 
         AlphaConnectModbusTcpConnection *alphaConnectTcpConnection = new AlphaConnectModbusTcpConnection(hostAddress, port, slaveId, this);
+
         connect(alphaConnectTcpConnection, &AlphaConnectModbusTcpConnection::connectionStateChanged, this, [thing, alphaConnectTcpConnection](bool status){
             qCDebug(dcAlphaInnotec()) << "Connected changed to" << status << "for" << thing;
             if (status) {

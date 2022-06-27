@@ -16,9 +16,6 @@ public:
     float currentPower();
     void setCurrentPower(float currentPower);
 
-    int wallboxID();
-    void setWallboxID(int ID);
-
 signals:
     void updated();
     void currentPowerChanged(float currentPower);

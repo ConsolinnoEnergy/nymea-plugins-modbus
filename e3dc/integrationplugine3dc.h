@@ -40,6 +40,8 @@
 #include "e3dcinverter.h"
 #include "e3dcbattery.h"
 #include "e3dcwallbox.h"
+#include "e3dcsmartmeter.h"
+
 
 class IntegrationPluginTemplate: public IntegrationPlugin
 {
@@ -65,6 +67,7 @@ private:
     void setupInverter(ThingSetupInfo *info);
     void setupWallbox(ThingSetupInfo *info);
     void setupBattery(ThingSetupInfo *info);
+    void setupSmartMeter(ThingSetupInfo *info);
 
 
     void processDiscoveryResult(Thing *thing, TCP_ModbusConnection *TcpConnection);
@@ -94,6 +97,7 @@ private:
     QHash<Thing *, e3dcInverter *> m_e3DCInverters;
     QHash<Thing *, e3dcBattery *> m_e3DCBatteries;
     QHash<Thing *, e3dcWallbox *> m_e3DCWallboxes;
+    QHash<Thing *, e3dcSmartMeter *> m_e3DCSmartmeter;
 
 
 private slots:

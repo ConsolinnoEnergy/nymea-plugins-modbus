@@ -38,6 +38,7 @@
 #include "e3dcinverter.h"
 #include "e3dcbattery.h"
 #include "e3dcwallbox.h"
+#include "e3dcsmartmeter.h"
 
 // information about e3DC is provided here: https://community.symcon.de/uploads/short-url/z6Yc7LiO6m9lJt8r5Aif539GbHI.pdf
 
@@ -106,7 +107,7 @@ public:
     //update
         //inverter data
     void updateCurrentPowerInv(e3dcInverter *inverter);
-    void updateNetworkPointPower(e3dcInverter *inverter);
+    void updateNetworkPointPower(e3dcSmartMeter *smartmeter);
         //wallbox data
     void updateCurrentPowerWB(e3dcWallbox* wallbox);
         //battery data
@@ -114,9 +115,10 @@ public:
     void updateCurrentPowerBat(e3dcBattery* battery);
 
     //update devices
-    void updateInverter(e3dcInverter *inverter);
+    void updateInverter(e3dcInverter * inverter);
     void updateBattery(e3dcBattery * battery);
     void updateWallbox(e3dcWallbox * wallbox);
+    void updateSmartmeter(e3dcSmartMeter * smartmeter);
 
 
 public slots:
@@ -126,7 +128,7 @@ signals:
 
     void initializationFinished();
     void discoveryFinished(bool success);
-    void Countwallbox(bool count);
+    void Countwallbox(bool count, int register);
 
 
     void currentPowerInvChanged(float currentPower);
@@ -139,13 +141,13 @@ protected:
     // read
         //inverter data
     QModbusReply *readCurrentPowerInv();
+        // Smartmeter data
     QModbusReply *readNetworkPointPower();
         //wallbox data
     QModbusReply *readCurrentPowerWB();
         //battery data
     QModbusReply *readCurrentPowerBat();
     QModbusReply *readSOC();
-
 
     // read Wallbox Control to check if wallbox exist
     QModbusReply *readWallboxControl(int Register);
@@ -163,9 +165,8 @@ protected:
 private:
     int m_wallboxesActive = 0;
     int m_wallboxesInactive = 0;
-    int m_maximumAmountofWallboxes = 9;
+    int m_maximumAmountofWallboxes = 7;
 
-    bool m_discoveryRunning = false;
     quint16 m_slaveId = 1;
     QVector<QModbusReply *> m_pendingInitReplies;
 

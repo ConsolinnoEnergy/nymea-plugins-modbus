@@ -14,14 +14,9 @@ public:
     Q_ENUM(Registers);
 
     e3dcInverter();
+
     float currentPower();
     void setCurrentPower(float currentPower);
-
-    int inverterID();
-    void setInverterID(int ID);
-
-    float neworkPointPower();
-    void setNetworkPointPower(float networkPointPower);
 
 signals:
     void updated();
@@ -38,8 +33,6 @@ private:
     float m_network_Point_Power = 0;
     Registers m_current_Power_Register = RegisterCurrentPower;
     Registers m_network_Point_Power_Register = RegisterNetworkPointPower;
-
-    int m_inverterID;
 
 
 

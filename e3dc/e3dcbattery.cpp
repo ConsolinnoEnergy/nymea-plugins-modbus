@@ -15,22 +15,14 @@ void e3dcBattery::setCurrentPower(float currentPower)
     m_currentPower = currentPower;
 }
 
-int e3dcBattery::SOC()
+quint16 e3dcBattery::SOC()
 {
     return m_SOC;
 }
 
-void e3dcBattery::setSOC(int SOC)
+void e3dcBattery::setSOC(quint16 SOC)
 {
     m_SOC = SOC;
 }
 
-int e3dcBattery::batteryID()
-{
-    return m_batteryID;
-}
 
-void e3dcBattery::setBatteryID(int ID)
-{
-    m_batteryID = ID;
-}

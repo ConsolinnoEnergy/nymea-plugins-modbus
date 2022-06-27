@@ -15,12 +15,3 @@ void e3dcWallbox::setCurrentPower(float currentPower)
     m_current_Power = currentPower;
 }
 
-int e3dcWallbox::wallboxID()
-{
-  return m_wallboxID;
-}
-
-void e3dcWallbox::setWallboxID(int ID)
-{
-  m_wallboxID = ID;
-}
