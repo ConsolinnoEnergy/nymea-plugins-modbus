@@ -1,0 +1,358 @@
+{
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "enums": [
+        {
+            "name": "OCPPstatus",
+            "values": [
+                {
+                    "key": "Available",
+                    "value": 0
+                },
+                {
+                    "key": "Occupied",
+                    "value": 1
+                },
+                {
+                    "key": "Reserved",
+                    "value": 2
+                },
+                {
+                    "key": "Unavailable",
+                    "value": 3
+                },
+                {
+                    "key": "Faulted",
+                    "value": 4
+                },
+                {
+                    "key": "Preparing",
+                    "value": 5
+                },
+                {
+                    "key": "Charging",
+                    "value": 6
+                },
+                {
+                    "key": "SuspendedEVSE",
+                    "value": 7
+                },
+                {
+                    "key": "SuspendedEV",
+                    "value": 8
+                },
+                {
+                    "key": "Finishing",
+                    "value": 9
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "firmware",
+            "address": 100,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "firmware",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "ocppStatus",
+            "address": 104,
+            "size": 1,
+            "type": "uint16",
+            "enum": "OCPPstatus",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "ocppStatus",
+            "defaultValue": "OCPPstatusAvailable",
+            "access": "RO"
+        },
+        {
+            "id": "errorCode1",
+            "address": 105,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "errorCode1",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "errorCode2",
+            "address": 107,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "errorCode2",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "errorCode3",
+            "address": 109,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "errorCode3",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "errorCode4",
+            "address": 111,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "errorCode4",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "protocolVersion",
+            "address": 120,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "protocolVersion",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "vehicleState",
+            "address": 122,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "vehicleState",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "cpAvailable",
+            "address": 124,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "cpAvailable",
+            "defaultValue": "0",
+            "access": "RW"
+        },
+        {
+            "id": "safeCurrent",
+            "address": 131,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "safeCurrent",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RW"
+        },
+        {
+            "id": "commTimeout",
+            "address": 132,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "commTimeout",
+            "defaultValue": "0",
+            "unit": "Seconds",
+            "access": "RW"
+        },
+        {
+            "id": "meterEnergyL1",
+            "address": 200,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "meterEnergyL1",
+            "defaultValue": "0",
+            "unit": "WattHour",
+            "access": "RO"
+        },
+        {
+            "id": "meterEnergyL2",
+            "address": 202,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "meterEnergyL2",
+            "defaultValue": "0",
+            "unit": "WattHour",
+            "access": "RO"
+        },
+        {
+            "id": "meterEnergyL3",
+            "address": 204,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "meterEnergyL3",
+            "defaultValue": "0",
+            "unit": "WattHour",
+            "access": "RO"
+        },
+        {
+            "id": "meterPowerL1",
+            "address": 206,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "meterPowerL1",
+            "defaultValue": "0",
+            "unit": "Watt",
+            "access": "RO"
+        },
+        {
+            "id": "meterPowerL2",
+            "address": 208,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "meterPowerL2",
+            "defaultValue": "0",
+            "unit": "Watt",
+            "access": "RO"
+        },
+        {
+            "id": "meterPowerL3",
+            "address": 210,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "meterPowerL3",
+            "defaultValue": "0",
+            "unit": "Watt",
+            "access": "RO"
+        },
+        {
+            "id": "meterCurrentL1",
+            "address": 212,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "meterCurrentL1",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RO"
+        },
+        {
+            "id": "meterCurrentL2",
+            "address": 214,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "meterCurrentL2",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RO"
+        },
+        {
+            "id": "meterCurrentL3",
+            "address": 216,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "meterCurrentL3",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RO"
+
+        },
+        {
+            "id": "chargedEnergy",
+            "address": 705,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "chargedEnergy",
+            "defaultValue": "0",
+            "unit": "WattHour",
+            "access": "RO"
+        },
+        {
+            "id": "currentLimitSetpointRead",
+            "address": 706,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "currentLimitSetpointRead",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RO"
+
+        },
+        {
+            "id": "startTimehhmmss",
+            "address": 707,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "startTimehhmmss",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "chargeDuration",
+            "address": 709,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "chargeDuration",
+            "defaultValue": "0",
+            "unit": "Seconds",
+            "access": "RO"
+        },
+        {
+            "id": "endTimehhmmss",
+            "address": 710,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "endTimehhmmss",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "currentLimitSetpoint",
+            "address": 1000,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "currentLimitSetpoint",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RW"
+
+        }
+    ]
+}

@@ -108,6 +108,7 @@ void SchneiderWallbox::update()
 
     qCDebug(dcSchneiderElectric()) << "Wallbox state is:" << m_cpwState;
     qCDebug(dcSchneiderElectric()) << "Recieved life bit:" << m_recievedLifeBitRegisterValue;
+    qCDebug(dcSchneiderElectric()) << "Charge current limit set point:" << m_chargeCurrentSetpoint;
     qCDebug(dcSchneiderElectric()) << "Received charge current limit:" << m_chargeCurrent;
     qCDebug(dcSchneiderElectric()) << "Phase count:" << m_phaseCount;
     qCDebug(dcSchneiderElectric()) << "Current power:" << m_currentPower << " (in ampere:" << (m_currentPower / 230) << ")";
@@ -229,6 +230,7 @@ void SchneiderWallbox::update()
 bool SchneiderWallbox::enableOutput(bool state)
 {
     if (!m_modbusTcpConnection->connected()) {
+        qCDebug(dcSchneiderElectric()) << "Can't set charging on/off, device is not connected.";
         return false;
     }
 
@@ -245,6 +247,7 @@ bool SchneiderWallbox::enableOutput(bool state)
 bool SchneiderWallbox::setMaxAmpere(int ampereValue)
 {
     if (!m_modbusTcpConnection->connected()) {
+        qCDebug(dcSchneiderElectric()) << "Can't set current limit, device is not connected.";
         return false;
     }
 

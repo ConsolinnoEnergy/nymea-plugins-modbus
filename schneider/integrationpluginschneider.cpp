@@ -148,21 +148,20 @@ void IntegrationPluginSchneider::setupThing(ThingSetupInfo *info)
             if (status) {
                 schneiderConnectTcpConnection->update();
             }
-
             thing->setStateValue(schneiderEVlinkConnectedStateTypeId, status);
         });
 
         connect(schneiderConnectTcpConnection, &SchneiderModbusTcpConnection::chargeTimeChanged, this, [thing](quint32 chargeTime){
             quint32 chargeTimeMinutes{chargeTime / 60};
-            qCDebug(dcSchneiderElectric()) << thing << "charging time changed" << chargeTimeMinutes << "Minutes";
+            qCDebug(dcSchneiderElectric()) << thing << "charging time changed" << chargeTimeMinutes << "minutes";
             thing->setStateValue(schneiderEVlinkChargeTimeStateTypeId, chargeTimeMinutes);
         });
         connect(schneiderConnectTcpConnection, &SchneiderModbusTcpConnection::cpwStateChanged, this, [thing, this](SchneiderModbusTcpConnection::CPWState cpwState){
-            qCDebug(dcSchneiderElectric()) << thing << "CPW state changed" << cpwState ;
+            qCDebug(dcSchneiderElectric()) << thing << "CPW state changed" << cpwState;
             setCpwState(thing, cpwState);
         });
         connect(schneiderConnectTcpConnection, &SchneiderModbusTcpConnection::lastChargeStatusChanged, this, [thing, this](SchneiderModbusTcpConnection::LastChargeStatus lastChargeStatus){
-            qCDebug(dcSchneiderElectric()) << thing << "Last charge status changed" << lastChargeStatus ;
+            qCDebug(dcSchneiderElectric()) << thing << "Last charge status changed" << lastChargeStatus;
             setLastChargeStatus(thing, lastChargeStatus);
         });
         connect(schneiderConnectTcpConnection, &SchneiderModbusTcpConnection::stationEnergyChanged, this, [thing](quint32 stationEnergyInKilowatt){
@@ -183,11 +182,6 @@ void IntegrationPluginSchneider::setupThing(ThingSetupInfo *info)
         schneiderConnectTcpConnection->connectDevice();
 
         SchneiderWallbox *schneiderWallbox = new SchneiderWallbox(schneiderConnectTcpConnection, slaveId, this);
-        int ampereValue = thing->stateValue(schneiderEVlinkMaxChargingCurrentStateTypeId).toUInt();
-        bool success = schneiderWallbox->setMaxAmpere(ampereValue);
-        if (!success) {
-            qCWarning(dcSchneiderElectric()) << "Could not set max charging current to initial value.";
-        }
 
         connect(schneiderWallbox, &SchneiderWallbox::phaseCountChanged, this, [thing, this](quint16 phaseCount){
             qCDebug(dcSchneiderElectric()) << thing << "Phase count changed" << phaseCount ;
@@ -276,11 +270,17 @@ void IntegrationPluginSchneider::executeAction(ThingActionInfo *info)
         if (action.actionTypeId() == schneiderEVlinkPowerActionTypeId) {
             bool onOff = action.paramValue(schneiderEVlinkPowerActionPowerParamTypeId).toBool();
             success = device->enableOutput(onOff);
-            info->thing()->setStateValue(schneiderEVlinkPowerStateTypeId, onOff);
+            thing->setStateValue(schneiderEVlinkPowerStateTypeId, onOff);
+            if (onOff) {
+                // You can turn the wallbox on without specifying a charge current. The Nymea app saves the last current setpoint and displays it.
+                // Need to get that saved value from the app and give it to schneiderwallbox.cpp so the displayed value matches the actual setpoint.
+                int ampereValue = thing->stateValue(schneiderEVlinkMaxChargingCurrentStateTypeId).toUInt();
+                success = device->setMaxAmpere(ampereValue);
+            }
         } else if(action.actionTypeId() == schneiderEVlinkMaxChargingCurrentActionTypeId) {
             int ampereValue = action.paramValue(schneiderEVlinkMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
             success = device->setMaxAmpere(ampereValue);
-            info->thing()->setStateValue(schneiderEVlinkMaxChargingCurrentStateTypeId, ampereValue);
+            thing->setStateValue(schneiderEVlinkMaxChargingCurrentStateTypeId, ampereValue);
         } else {
             qCWarning(dcSchneiderElectric()) << "Unhandled ActionTypeId:" << action.actionTypeId();
             return info->finish(Thing::ThingErrorActionTypeNotFound);
