@@ -17,7 +17,7 @@ PLUGIN_DIRS = \
     schrack                 \
     stiebeleltron           \
     sunspec                 \
-    #unipi                   \
+    unipi                   \
     wallbe                  \
     webasto                 \
     e3dc
