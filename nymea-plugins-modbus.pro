@@ -1,8 +1,8 @@
 TEMPLATE = subdirs
 
-# Note keep it ordered so the lib will be built first
-CONFIG += ordered
-SUBDIRS += libnymea-sunspec
+# Note: In the loop at the end of this file the plugin
+# dependency on the libs will be defined
+SUBDIRS += libnymea-modbus libnymea-sunspec
 
 PLUGIN_DIRS = \
     alphainnotec            \
@@ -14,6 +14,8 @@ PLUGIN_DIRS = \
     modbuscommander         \
     mtec                    \
     mypv                    \
+    schrack                 \
+    stiebeleltron           \
     sunspec                 \
     #unipi                   \
     wallbe                  \
@@ -48,19 +50,27 @@ QMAKE_EXTRA_TARGETS += lrelease
 # For Qt-Creator's code model: Add CPATH to INCLUDEPATH explicitly
 INCLUDEPATH += $$(CPATH)
 
-# Verify if building only a selection of plugins
-contains(CONFIG, selection) {
-    # Check each plugin if the subdir exists
-    for(plugin, PLUGINS) {
-        contains(PLUGIN_DIRS, $${plugin}) {
-            SUBDIRS*= $${plugin}
-        } else {
-            error("Invalid plugin passed. There is no subdirectory with the name $${plugin}.")
-        }
-    }
-    message("Building plugin selection: $${SUBDIRS}")
-} else {
-    SUBDIRS *= $${PLUGIN_DIRS}
-    message("Building all plugins")
-}
+message("Usage: qmake [srcdir] [WITH_PLUGINS=\"...\"] [WITHOUT_PLUGINS=\"...\"]")
 
+isEmpty(WITH_PLUGINS) {
+    PLUGINS = $${PLUGIN_DIRS}
+} else {
+    PLUGINS = $${WITH_PLUGINS}
+}
+PLUGINS-=$${WITHOUT_PLUGINS}
+
+message("Building plugins:")
+for(plugin, PLUGINS) {
+    exists($${plugin}) {
+        SUBDIRS*= $${plugin}
+        message("- $${plugin}")
+        # Make sure the libs will be built before the plugins
+        equals(plugin, "sunspec") {
+            $${plugin}.depends += libnymea-sunspec
+        } else {
+            $${plugin}.depends += libnymea-modbus
+        }
+    } else {
+        error("Invalid plugin \"$${plugin}\".")
+    }
+}
