@@ -33,8 +33,8 @@
 
 #include <QObject>
 
-#include "../modbus/modbusdatautils.h"
-#include "../modbus/modbustcpmaster.h"
+#include "../libnymea-modbus/modbusdatautils.h"
+#include "../libnymea-modbus/modbustcpmaster.h"
 #include "e3dcinverter.h"
 #include "e3dcbattery.h"
 #include "e3dcwallbox.h"

@@ -9,8 +9,8 @@ SOURCES += \
     e3dcwallbox.cpp \
     integrationplugine3dc.cpp \
     tcp_modbusconnection.cpp \
-    ../modbus/modbustcpmaster.cpp \
-    ../modbus/modbusdatautils.cpp
+    ../libnymea-modbus/modbustcpmaster.cpp \
+    ../libnymea-modbus/modbusdatautils.cpp
 
 HEADERS += \
     e3dcbattery.h \
@@ -19,5 +19,5 @@ HEADERS += \
     e3dcwallbox.h \
     integrationplugine3dc.h \
     tcp_modbusconnection.h \
-    ../modbus/modbustcpmaster.h \
-    ../modbus/modbusdatautils.h
+    ../libnymea-modbus/modbustcpmaster.h \
+    ../libnymea-modbus/modbusdatautils.h

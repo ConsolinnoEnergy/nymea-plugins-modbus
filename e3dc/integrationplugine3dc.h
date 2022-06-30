@@ -34,8 +34,8 @@
 
 
 
-#include "integrations/integrationplugin.h"
-#include "plugintimer.h"
+#include <integrations/integrationplugin.h>
+#include <plugintimer.h>
 #include "tcp_modbusconnection.h"
 #include "e3dcinverter.h"
 #include "e3dcbattery.h"

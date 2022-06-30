@@ -30,8 +30,8 @@
 
 #include "integrationplugine3dc.h"
 
-#include "network/networkdevicediscovery.h"
-#include "hardwaremanager.h"
+#include <network/networkdevicediscovery.h>
+#include <hardwaremanager.h>
 #include "plugininfo.h"
 
 
