@@ -292,6 +292,7 @@ void IntegrationPluginSunSpec::postSetupThing(Thing *thing)
             searchSolarEdgeBatteries(connection);
         }
 
+        // here the data is read
     } else if (m_sunSpecThings.contains(thing)) {
         SunSpecThing *sunSpecThing = m_sunSpecThings.value(thing);
         sunSpecThing->readBlockData();
