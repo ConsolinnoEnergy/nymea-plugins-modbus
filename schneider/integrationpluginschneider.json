@@ -120,6 +120,14 @@
                             "displayNameEvent": "CPW state changed"
                         },
                         {
+                            "id": "336da4ba-e449-418e-aee9-2c9f57d55632",
+                            "name": "pluggedIn",
+                            "displayName": "Car plugged in",
+                            "displayNameEvent": "Car plugged in changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
                             "id": "0c78af0d-4775-40d8-be25-a6754ceed0f4",
                             "name": "charging",
                             "displayName": "Charging",

@@ -103,6 +103,14 @@
                             "defaultValue": "Available"
                         },
                         {
+                            "id": "ade26d41-51ba-43c2-973f-ea50158db1ff",
+                            "name": "pluggedIn",
+                            "displayName": "Car plugged in",
+                            "displayNameEvent": "Car plugged in changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
                             "id": "c0a1ae2c-0b51-4a05-8c8f-7be5948e6ddc",
                             "name": "charging",
                             "displayName": "Charging",

@@ -94,6 +94,16 @@ Description: nymea integration plugin for Huawei FusionSolar energy devices
  based on Modbus TCP.
 
 
+Package: nymea-plugin-mennekes
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Mennekes Amtron wallboxes
+ This package contains the nymea integration plugin for wallboxes made
+ by Mennekes.
+
+
 Package: nymea-plugin-modbuscommander
 Architecture: any
 Section: libs
@@ -120,6 +130,16 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
 Description: nymea integration plugin for M-TEC heat pumps
  This package contains the nymea integration plugin for M-TEC heat pumps.
+
+
+Package: nymea-plugin-schneider
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Schneider EVlink wallboxes
+ This package contains the nymea integration plugin for wallboxes made
+ by Schneider.
 
 
 Package: nymea-plugin-sunspec

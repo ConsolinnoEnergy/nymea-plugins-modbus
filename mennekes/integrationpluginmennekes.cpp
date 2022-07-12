@@ -286,13 +286,14 @@ void IntegrationPluginMennekes::executeAction(ThingActionInfo *info)
 
 void IntegrationPluginMennekes::setOcppState(Thing *thing, MennekesModbusTcpConnection::OCPPstatus ocppStatus)
 {
-    bool isCharging{false};
+    bool isPluggedIn{false};    // ToDo: Wallbox states überprüfen, welche tatsächlich bei "Stecker steckt" angezeigt werden.
     switch (ocppStatus) {
     case MennekesModbusTcpConnection::OCPPstatusAvailable:
         thing->setStateValue(mennekesWallboxOcppStatusStateTypeId, "Available");
         break;
     case MennekesModbusTcpConnection::OCPPstatusOccupied:
         thing->setStateValue(mennekesWallboxOcppStatusStateTypeId, "Occupied");
+        isPluggedIn = true;
         break;
     case MennekesModbusTcpConnection::OCPPstatusReserved:
         thing->setStateValue(mennekesWallboxOcppStatusStateTypeId, "Reserved");
@@ -308,10 +309,11 @@ void IntegrationPluginMennekes::setOcppState(Thing *thing, MennekesModbusTcpConn
         break;
     case MennekesModbusTcpConnection::OCPPstatusCharging:
         thing->setStateValue(mennekesWallboxOcppStatusStateTypeId, "Charging");
-        isCharging = true;
+        isPluggedIn = true;
         break;
     case MennekesModbusTcpConnection::OCPPstatusSuspendedEVSE:
         thing->setStateValue(mennekesWallboxOcppStatusStateTypeId, "Suspended EVSE");
+        isPluggedIn = true;
         break;
     case MennekesModbusTcpConnection::OCPPstatusSuspendedEV:
         thing->setStateValue(mennekesWallboxOcppStatusStateTypeId, "Suspended EV");
@@ -322,11 +324,7 @@ void IntegrationPluginMennekes::setOcppState(Thing *thing, MennekesModbusTcpConn
     default:
         thing->setStateValue(mennekesWallboxOcppStatusStateTypeId, "Unknown");
     }
-    if (isCharging) {
-        thing->setStateValue(mennekesWallboxChargingStateTypeId, true);
-    } else {
-        thing->setStateValue(mennekesWallboxChargingStateTypeId, false);
-    }
+    thing->setStateValue(mennekesWallboxPluggedInStateTypeId, isPluggedIn);
 }
 
 void IntegrationPluginMennekes::setCurrentPower(Thing *thing, double currentPower) {

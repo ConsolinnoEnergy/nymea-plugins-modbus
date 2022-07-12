@@ -301,7 +301,7 @@ void IntegrationPluginSchneider::executeAction(ThingActionInfo *info)
 
 void IntegrationPluginSchneider::setCpwState(Thing *thing, SchneiderModbusTcpConnection::CPWState state)
 {
-    bool isCharging{false};
+    bool isPluggedIn{false};    // ToDo: Wallbox states überprüfen, welche tatsächlich bei "Stecker steckt" angezeigt werden.
     switch (state) {
     case SchneiderModbusTcpConnection::CPWStateEvseNotAvailable:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "EVSE not available");
@@ -311,31 +311,39 @@ void IntegrationPluginSchneider::setCpwState(Thing *thing, SchneiderModbusTcpCon
         break;
     case SchneiderModbusTcpConnection::CPWStatePlugDetected:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "Plug detected");
+        isPluggedIn = true;
         break;
     case SchneiderModbusTcpConnection::CPWStateEvConnected:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "EV connected");
+        isPluggedIn = true;
         break;
     case SchneiderModbusTcpConnection::CPWStateEvConnected2:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "EV connected 2");
+        isPluggedIn = true;
         break;
     case SchneiderModbusTcpConnection::CPWStateEvConnectedVentilationRequired:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "EV connected ventilation required");
+        isPluggedIn = true;
         break;
     case SchneiderModbusTcpConnection::CPWStateEvseReady:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "EVSE ready");
+        isPluggedIn = true;
         break;
     case SchneiderModbusTcpConnection::CPWStateEvReady:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "EV ready");
+        isPluggedIn = true;
         break;
     case SchneiderModbusTcpConnection::CPWStateCharging:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "Charging");
-        isCharging = true;
+        isPluggedIn = true;
         break;
     case SchneiderModbusTcpConnection::CPWStateEvReadyVentilationRequired:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "EV ready ventilation required");
+        isPluggedIn = true;
         break;
     case SchneiderModbusTcpConnection::CPWStateChargingVentilationRequired:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "Charging ventilation required");
+        isPluggedIn = true;
         break;
     case SchneiderModbusTcpConnection::CPWStateStopCharging:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "Stop charging");
@@ -352,11 +360,7 @@ void IntegrationPluginSchneider::setCpwState(Thing *thing, SchneiderModbusTcpCon
     default:
         thing->setStateValue(schneiderEVlinkCpwStateStateTypeId, "EVSE not available");
     }
-    if (isCharging) {
-        thing->setStateValue(schneiderEVlinkChargingStateTypeId, true);
-    } else {
-        thing->setStateValue(schneiderEVlinkChargingStateTypeId, false);
-    }
+    thing->setStateValue(schneiderEVlinkPluggedInStateTypeId, isPluggedIn);
 }
 
 void IntegrationPluginSchneider::setLastChargeStatus(Thing *thing, SchneiderModbusTcpConnection::LastChargeStatus status)
@@ -442,6 +446,12 @@ void IntegrationPluginSchneider::setLastChargeStatus(Thing *thing, SchneiderModb
 
 void IntegrationPluginSchneider::setCurrentPower(Thing *thing, double currentPower) {
     thing->setStateValue(schneiderEVlinkCurrentPowerStateTypeId, currentPower);
+    if (currentPower > 0.01) {
+        thing->setStateValue(schneiderEVlinkChargingStateTypeId, true);
+    } else {
+        thing->setStateValue(schneiderEVlinkChargingStateTypeId, false);
+    }
+
 }
 
 void IntegrationPluginSchneider::setPhaseCount(Thing *thing, quint16 phaseCount) {
