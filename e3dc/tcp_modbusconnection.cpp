@@ -132,7 +132,8 @@ void TCP_ModbusConnection::updateCurrentPowerBat(e3dcBattery* battery)
                     const QModbusDataUnit unit = reply->result();
                     const QVector<quint16> values = unit.values();
                     qCDebug(dcTCP_ModbusConnection()) << "<-- Response from \"Battery current Power\" register" << 40068 << "size:" << 2 << values;
-                    float receivedCurrentPower = ModbusDataUtils::convertToInt32(values, ModbusDataUtils::ByteOrderBigEndian);
+                    // we have to shift back and forth bc. the first 16 bits are only 1 if the value is negative
+                    float receivedCurrentPower = (ModbusDataUtils::convertToInt32(values, ModbusDataUtils::ByteOrderBigEndian) << 16) >> 16;
                     if (battery->currentPower() != receivedCurrentPower) {
                         battery->setCurrentPower(receivedCurrentPower);
                         emit battery->currentPowerChanged(receivedCurrentPower);
