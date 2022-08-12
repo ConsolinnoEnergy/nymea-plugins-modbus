@@ -4,6 +4,7 @@ image:
 stages:  
   - build
   - deploy
+  - feature/dynamic_sdm630_generator
 
 ##### Development snapshots #####
 .snapshot:
@@ -24,6 +25,7 @@ build:buster:
   script:
     - apt-get update
     - apt-get install -y git-buildpackage python
+    - cd sdm630_generator; ./sdm630_generator.sh
     - gbp dch -S -a --snapshot-number=`date +"%s"` --ignore-branch
     - CONFIG_SITE=/etc/dpkg-cross/cross-config.armhf  gosu root dpkg-buildpackage -b -aarmhf -Pcross,nocheck && mkdir -p build/buster && gosu root mv ../*.deb build/buster/
   artifacts:
