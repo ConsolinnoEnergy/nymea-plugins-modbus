@@ -4,13 +4,14 @@ image:
 stages:  
   - build
   - deploy
-  - feature/dynamic_sdm630_generator
 
 ##### Development snapshots #####
 .snapshot:
   only:
    - develop
    - /^add-ci.*$/
+   - feature/dynamic_sdm630_generator
+
 .deploy_template: &deploy_script_templ
   - apt update
   - DEBIAN_FRONTEND=noninteractive apt-get install -y git
