@@ -22,7 +22,8 @@ PLUGIN_DIRS = \
     unipi                   \
     wallbe                  \
     webasto                 \
-    e3dc
+    e3dc                    \
+    schneiderIEM
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
     COMPILER_MAJOR_VERSION = $$str_member($$COMPILER_VERSION)
