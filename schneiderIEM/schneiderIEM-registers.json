@@ -1,0 +1,202 @@
+{
+    "className": "SchneiderIEM",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "registers": [
+        {
+            "id": "totalCurrentPower",
+            "address": 3060,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Total system power",
+            "unit": "kW",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "voltagePhaseA",
+            "address": 3020,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Voltage phase L1",
+            "unit": "V",
+            "defaultValue": "0",
+            "access": "RO"
+        }, 
+        {
+            "id": "voltagePhaseB",
+            "address": 3022,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Voltage phase L2",
+            "unit": "V",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "voltagePhaseC",
+            "address": 3024,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Voltage phase L3",
+            "unit": "V",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "currentPhaseA",
+            "address": 3000,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Current phase L1",
+            "unit": "A",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "currentPhaseB",
+            "address": 3002,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Current phase L2",
+            "unit": "A",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "currentPhaseC",
+            "address": 3004,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Current phase L3",
+            "unit": "A",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "powerPhaseA",
+            "address": 3054,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Power phase L1",
+            "unit": "kW",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "powerPhaseB",
+            "address": 3056,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Power phase L2",
+            "unit": "kW",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "powerPhaseC",
+            "address": 3058,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Power phase L3",
+            "unit": "kW",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "frequency",
+            "address": 3110,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Frequency",
+            "unit": "Hz",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "totalEnergyConsumed",
+            "address": 3204,
+            "size": 4,
+            "type": "int64",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Total energy consumed",
+            "unit": "Wh",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "totalEnergyProduced",
+            "address": 3208,
+            "size": 4,
+            "type": "int64",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Total energy produced",
+            "unit": "Wh",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "energyConsumedPhaseA",
+            "address": 3518,
+            "size": 4,
+            "type": "int64",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Energy consumed phase A",
+            "unit": "Wh",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "energyConsumedPhaseB",
+            "address": 3522,
+            "size": 4,
+            "type": "int64",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Energy consumed phase B",
+            "unit": "Wh",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "energyConsumedPhaseC",
+            "address": 3526,
+            "size": 4,
+            "type": "int64",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Energy consumed phase C",
+            "unit": "Wh",
+            "defaultValue": "0",
+            "access": "RO"
+        }
+
+
+],
+    "blocks": []
+}

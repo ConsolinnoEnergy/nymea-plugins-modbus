@@ -12,16 +12,20 @@ PLUGIN_DIRS = \
     idm                     \
     inepro                  \
     kostal                  \
+    mennekes                \
     modbuscommander         \
     mtec                    \
     mypv                    \
     phoenixconnect          \
+    schneider               \
+    schneiderIEM            \
     schrack                 \
     stiebeleltron           \
     sunspec                 \
     unipi                   \
     webasto                 \
-
+    e3dc                    
+    
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
     COMPILER_MAJOR_VERSION = $$str_member($$COMPILER_VERSION)
