@@ -97,13 +97,13 @@ Description: nymea integration plugin for E3DC inverters
  This package contains the nymea integration plugin for E3DC inverters.
 
 
-Package: nymea-plugin-schneiderIEM
+Package: nymea-plugin-schneider-iem
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-Description: nymea integration plugin for schneiderIEM inverters
- This package contains the nymea integration plugin for schneiderIEM inverters.
+Description: nymea integration plugin for Schneider IEM meters
+ This package contains the nymea integration plugin for Schneider IEM meters.
 
 
 
