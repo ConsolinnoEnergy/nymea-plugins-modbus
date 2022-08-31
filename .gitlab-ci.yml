@@ -24,6 +24,7 @@ build:buster:
   stage: build
   script:
     - apt-get update
+    - apt-get -y upgrade
     - apt-get install -y git-buildpackage python rename
     - cd sdm630_generator; ./sdm630_generator.sh; cd ..
     - gbp dch -S -a --snapshot-number=`date +"%s"` --ignore-branch
@@ -39,6 +40,7 @@ build:focal:
   stage: build
   script:
     - apt-get update
+    - apt-get -y upgrade
     - apt-get install -y git-buildpackage python rename
     - cd sdm630_generator; ./sdm630_generator.sh; cd ..
     - gbp dch -S -a --snapshot-number=`date +"%s"` --ignore-branch
