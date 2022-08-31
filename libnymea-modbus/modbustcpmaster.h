@@ -88,7 +88,7 @@ public slots:
     void disconnectDevice();
     bool reconnectDevice();
 
-private:
+protected:
     QTimer *m_reconnectTimer = nullptr;
     QModbusTcpClient *m_modbusTcpClient = nullptr;
 
@@ -104,6 +104,7 @@ private slots:
 
 signals:
     void connectionStateChanged(bool status);
+    void connectionErrorOccurred(QModbusDevice::Error error);
 
     void writeRequestExecuted(const QUuid &requestId, bool success);
     void writeRequestError(const QUuid &requestId, const QString &error);

@@ -2,6 +2,8 @@
     "className": "Sdm630",
     "protocol": "RTU",
     "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "totalCurrentPower",
     "registers": [
         {
             "id": "totalCurrentPower",

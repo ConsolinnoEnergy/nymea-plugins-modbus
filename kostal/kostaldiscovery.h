@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,39 +28,56 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef WALLBE_H
-#define WALLBE_H
+#ifndef KOSTALDISCOVERY_H
+#define KOSTALDISCOVERY_H
 
 #include <QObject>
-#include <QHostAddress>
-#include <QProcess>
+#include <QTimer>
 
-#include "../modbus/modbustcpmaster.h"
+#include <network/networkdevicediscovery.h>
 
-class WallBe : public QObject
+#include "kostalmodbustcpconnection.h"
+
+class KostalDiscovery : public QObject
 {
     Q_OBJECT
 public:
+    explicit KostalDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 1502, quint16 modbusAddress = 71, QObject *parent = nullptr);
+    typedef struct KostalDiscoveryResult {
+        QString productName;
+        QString manufacturerName;
+        QString serialNumber;
+        QString articleNumber;
+        QString softwareVersionMainController;
+        QString softwareVersionIoController;
+        NetworkDeviceInfo networkDeviceInfo;
+    } KostalDiscoveryResult;
 
+    void startDiscovery();
 
-    WallBe(const QHostAddress &address, int port, QObject *parent = nullptr);
-    ~WallBe();
-    bool isAvailable();
-    bool connect();
+    QList<KostalDiscoveryResult> discoveryResults() const;
 
-    int  getEvStatus();
-    int  getChargingCurrent();
-    bool getChargingStatus();
-    int  getChargingTime();
-    int  getErrorCode();
-
-    void setChargingCurrent(int current);
-    void setChargingStatus(bool enable);
+signals:
+    void discoveryFinished();
 
 private:
-    modbus_t *m_device;
-    QString m_macAddress;
-    QString getMacAddress();
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+    quint16 m_port;
+    quint16 m_modbusAddress;
+
+    QDateTime m_startDateTime;
+
+    NetworkDeviceInfos m_networkDeviceInfos;
+    NetworkDeviceInfos m_verifiedNetworkDeviceInfos;
+
+    QList<KostalModbusTcpConnection *> m_connections;
+
+    QList<KostalDiscoveryResult> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(KostalModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // WALLBE_H
+#endif // KOSTALDISCOVERY_H

@@ -427,44 +427,37 @@ def writeBlocksUpdateMethodDeclarations(fileDescriptor, blockDefinitions):
 
 def writeRegistersDebugLine(fileDescriptor, debugObjectParamName, registerDefinitions):
     for registerDefinition in registerDefinitions:
+        if not 'R' in registerDefinition['access']:
+            continue
+
         propertyName = registerDefinition['id']
         propertyTyp = getCppDataType(registerDefinition)
-        line = ('"    - %s:" << %s->%s()' % (registerDefinition['description'], debugObjectParamName, propertyName))
+        line = ('"    - %s: " << %s->%s()' % (registerDefinition['description'], debugObjectParamName, propertyName))
         if 'unit' in registerDefinition and registerDefinition['unit'] != '':
             line += (' << " [%s]"' % registerDefinition['unit'])
         writeLine(fileDescriptor, '    debug.nospace().noquote() << %s << "\\n";' % (line))
 
 
-def writeUpdateMethod(fileDescriptor, className, registerDefinitions, blockDefinitions):
-    writeLine(fileDescriptor, 'void %s::update()' % (className))
-    writeLine(fileDescriptor, '{')
-    for registerDefinition in registerDefinitions:
-        propertyName = registerDefinition['id']
-        if 'readSchedule' in registerDefinition and registerDefinition['readSchedule'] == 'update':
-            writeLine(fileDescriptor, '    update%s();' % (propertyName[0].upper() + propertyName[1:]))
-
-    # Add the update block methods
-    for blockDefinition in blockDefinitions:
-        blockName = blockDefinition['id']
-        if 'readSchedule' in blockDefinition and blockDefinition['readSchedule'] == 'update':
-            writeLine(fileDescriptor, '    update%sBlock();' % (blockName[0].upper() + blockName[1:]))
-
-    writeLine(fileDescriptor, '}')
-    writeLine(fileDescriptor)
-
-
 def writePropertyChangedSignals(fileDescriptor, registerDefinitions):
     for registerDefinition in registerDefinitions:
+        if not 'R' in registerDefinition['access']:
+            continue
+
         propertyName = registerDefinition['id']
         propertyTyp = getCppDataType(registerDefinition)
         if propertyTyp == 'QString':
             writeLine(fileDescriptor, '    void %sChanged(const %s &%s);' % (propertyName, propertyTyp, propertyName))
+            writeLine(fileDescriptor, '    void %sReadFinished(const %s &%s);' % (propertyName, propertyTyp, propertyName))
         else:
             writeLine(fileDescriptor, '    void %sChanged(%s %s);' % (propertyName, propertyTyp, propertyName))
+            writeLine(fileDescriptor, '    void %sReadFinished(%s %s);' % (propertyName, propertyTyp, propertyName))
 
 
 def writeProtectedPropertyMembers(fileDescriptor, registerDefinitions):
     for registerDefinition in registerDefinitions:
+        if not 'R' in registerDefinition['access']:
+            continue
+
         propertyName = registerDefinition['id']
         propertyTyp = getCppDataType(registerDefinition)
         if 'defaultValue' in registerDefinition:
@@ -476,6 +469,9 @@ def writeProtectedPropertyMembers(fileDescriptor, registerDefinitions):
 def writePropertyProcessMethodDeclaration(fileDescriptor, registerDefinitions):
     propertyVariables = []
     for registerDefinition in registerDefinitions:
+        if not 'R' in registerDefinition['access']:
+            continue
+
         propertyName = registerDefinition['id']
         writeLine(fileDescriptor, '    void process%sRegisterValues(const QVector<quint16> values);' % (propertyName[0].upper() + propertyName[1:]))
 
@@ -485,12 +481,17 @@ def writePropertyProcessMethodDeclaration(fileDescriptor, registerDefinitions):
 def writePropertyProcessMethodImplementations(fileDescriptor, className, registerDefinitions):
     propertyVariables = []
     for registerDefinition in registerDefinitions:
+        if not 'R' in registerDefinition['access']:
+            continue
+
         propertyName = registerDefinition['id']
         propertyTyp = getCppDataType(registerDefinition)
 
         writeLine(fileDescriptor, 'void %s::process%sRegisterValues(const QVector<quint16> values)' % (className, propertyName[0].upper() + propertyName[1:]))
         writeLine(fileDescriptor, '{')
         writeLine(fileDescriptor, '    %s received%s = %s;' % (propertyTyp, propertyName[0].upper() + propertyName[1:], getValueConversionMethod(registerDefinition)))
+        writeLine(fileDescriptor, '    emit %sReadFinished(received%s);' % (propertyName, propertyName[0].upper() + propertyName[1:]))
+        writeLine(fileDescriptor)
         writeLine(fileDescriptor, '    if (m_%s != received%s) {' % (propertyName, propertyName[0].upper() + propertyName[1:]))
         writeLine(fileDescriptor, '        m_%s = received%s;' % (propertyName, propertyName[0].upper() + propertyName[1:]))
         writeLine(fileDescriptor, '        emit %sChanged(m_%s);' % (propertyName, propertyName))

@@ -44,7 +44,6 @@ def writeTcpHeaderFile():
     writeLine(headerFile)
     writeLine(headerFile, '#include <modbusdatautils.h>')
     writeLine(headerFile, '#include <modbustcpmaster.h>')
-
     writeLine(headerFile)
 
     # Begin of class
@@ -67,8 +66,13 @@ def writeTcpHeaderFile():
     writeLine(headerFile, '    explicit %s(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent = nullptr);' % className)
     writeLine(headerFile, '    ~%s() = default;' % className)
     writeLine(headerFile)
+    writeLine(headerFile, '    bool reachable() const;')
+    writeLine(headerFile)
     writeLine(headerFile, '    ModbusDataUtils::ByteOrder endianness() const;')
     writeLine(headerFile, '    void setEndianness(ModbusDataUtils::ByteOrder endianness);')
+    writeLine(headerFile)
+    writeLine(headerFile, '    uint checkReachableRetries() const;')
+    writeLine(headerFile, '    void setCheckReachableRetries(uint checkReachableRetries);')
     writeLine(headerFile)
 
     # Write registers get method declarations
@@ -79,11 +83,6 @@ def writeTcpHeaderFile():
 
         # Write block get/set method declarations
         writeBlocksUpdateMethodDeclarations(headerFile, registerJson['blocks'])
-
-    # Write init and update method declarations
-    writeLine(headerFile, '    virtual void initialize();')
-    writeLine(headerFile, '    virtual void update();')
-    writeLine(headerFile)
 
     writePropertyUpdateMethodDeclarations(headerFile, registerJson['registers'])
     writeLine(headerFile)
@@ -103,45 +102,73 @@ def writeTcpHeaderFile():
 
     writeLine(headerFile)
 
+    # Write init and update method declarations
+    writeLine(headerFile, '    virtual bool initialize();')
+    writeLine(headerFile, '    virtual bool update();')
+    writeLine(headerFile)
+
     # Write registers value changed signals
     writeLine(headerFile, 'signals:')
-    writeLine(headerFile, '    void initializationFinished();')
+    writeLine(headerFile, '    void reachableChanged(bool reachable);')
+    writeLine(headerFile, '    void checkReachabilityFailed();')
+    writeLine(headerFile, '    void checkReachableRetriesChanged(uint checkReachableRetries);')
+    writeLine(headerFile)
+    writeLine(headerFile, '    void initializationFinished(bool success);')
+    writeLine(headerFile, '    void updateFinished();')
+    writeLine(headerFile)
     writeLine(headerFile, '    void endiannessChanged(ModbusDataUtils::ByteOrder endianness);')
     writeLine(headerFile)
+
     writePropertyChangedSignals(headerFile, registerJson['registers'])
     writeLine(headerFile)
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
             writePropertyChangedSignals(headerFile, blockDefinition['registers'])
 
-    writeLine(headerFile)
+        writeLine(headerFile)
 
     # Protected members
     writeLine(headerFile, 'protected:')
-
-    writeLine(headerFile)
     writeProtectedPropertyMembers(headerFile, registerJson['registers'])
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
             writeProtectedPropertyMembers(headerFile, blockDefinition['registers'])
 
-    writeLine(headerFile)
+        writeLine(headerFile)
 
     writePropertyProcessMethodDeclaration(headerFile, registerJson['registers'])
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
             writePropertyProcessMethodDeclaration(headerFile, blockDefinition['registers'])
 
+    writeLine(headerFile, '    void handleModbusError(QModbusDevice::Error error);')
+    writeLine(headerFile, '    void testReachability();')
     writeLine(headerFile)
 
     # Private members
     writeLine(headerFile, 'private:')
-    writeLine(headerFile, '    quint16 m_slaveId = 1;')
-    writeLine(headerFile, '    QVector<QModbusReply *> m_pendingInitReplies;')
     writeLine(headerFile, '    ModbusDataUtils::ByteOrder m_endianness = ModbusDataUtils::ByteOrder%s;' % endianness)
+    writeLine(headerFile, '    quint16 m_slaveId = 1;')
     writeLine(headerFile)
+    writeLine(headerFile, '    bool m_reachable = false;')
+    writeLine(headerFile, '    QModbusReply *m_checkRechableReply = nullptr;')
+    writeLine(headerFile, '    uint m_checkReachableRetries = 0;')
+    writeLine(headerFile, '    uint m_checkReachableRetriesCount = 0;')
+    writeLine(headerFile, '    bool m_communicationWorking = false;')
+    writeLine(headerFile, '    quint8 m_communicationFailedMax = %s;' % (errorLimitUntilNotReachable))
+    writeLine(headerFile, '    quint8 m_communicationFailedCounter = 0;')
+    writeLine(headerFile)
+    writeLine(headerFile, '    QVector<QModbusReply *> m_pendingInitReplies;')
+    writeLine(headerFile, '    QVector<QModbusReply *> m_pendingUpdateReplies;')
+    writeLine(headerFile)
+    writeLine(headerFile, '    QObject *m_initObject = nullptr;')
     writeLine(headerFile, '    void verifyInitFinished();')
+    writeLine(headerFile, '    void finishInitialization(bool success);')
     writeLine(headerFile)
+    writeLine(headerFile, '    void verifyUpdateFinished();')
+    writeLine(headerFile)
+    writeLine(headerFile, '    void onReachabilityCheckFailed();')
+    writeLine(headerFile, '    void evaluateReachableState();')
 
     # End of class
     writeLine(headerFile)
@@ -161,6 +188,8 @@ def writeTcpSourceFile():
     writeLine(sourceFile)
     writeLine(sourceFile, '#include "%s"' % headerFileName)
     writeLine(sourceFile, '#include <loggingcategories.h>')
+    writeLine(sourceFile, '#include <math.h>')
+    writeLine(sourceFile, '#include <QTimer>')
     writeLine(sourceFile)
     writeLine(sourceFile, 'NYMEA_LOGGING_CATEGORY(dc%s, "%s")' % (className, className))
     writeLine(sourceFile)
@@ -170,7 +199,47 @@ def writeTcpSourceFile():
     writeLine(sourceFile, '    ModbusTCPMaster(hostAddress, port, parent),')
     writeLine(sourceFile, '    m_slaveId(slaveId)')
     writeLine(sourceFile, '{')
-    writeLine(sourceFile, '    ')
+    writeLine(sourceFile, '    connect(this, &ModbusTCPMaster::connectionStateChanged, this, [this](bool status){')
+    writeLine(sourceFile, '        if (status) {')
+    writeLine(sourceFile, '           qCDebug(dc%s()) << "Modbus TCP connection" << m_hostAddress.toString() << "connected. Start testing if the connection is reachable...";' % (className))
+    writeLine(sourceFile, '            // Cleanup before starting to initialize')
+    writeLine(sourceFile, '            m_pendingInitReplies.clear();')
+    writeLine(sourceFile, '            m_pendingUpdateReplies.clear();')
+    writeLine(sourceFile, '            m_communicationWorking = false;')
+    writeLine(sourceFile, '            m_communicationFailedCounter = 0;')
+    writeLine(sourceFile, '            m_checkReachableRetriesCount = 0;')
+    writeLine(sourceFile, '            testReachability();')
+    writeLine(sourceFile, '        } else {')
+    writeLine(sourceFile, '            qCWarning(dc%s()) << "Modbus TCP connection diconnected from" << m_hostAddress.toString() << ". The connection is not reachable any more.";' % (className))
+    writeLine(sourceFile, '            m_communicationWorking = false;')
+    writeLine(sourceFile, '            m_communicationFailedCounter = 0;')
+    writeLine(sourceFile, '            m_checkReachableRetriesCount = 0;')
+    writeLine(sourceFile, '        }')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '        evaluateReachableState();')
+    writeLine(sourceFile, '    });')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'bool %s::reachable() const' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_reachable;')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'uint %s::checkReachableRetries() const' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_checkReachableRetries;')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::setCheckReachableRetries(uint checkReachableRetries)' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (m_checkReachableRetries == checkReachableRetries)')
+    writeLine(sourceFile, '        return;')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    m_checkReachableRetries = checkReachableRetries;')
+    writeLine(sourceFile, '    emit checkReachableRetriesChanged(m_checkReachableRetries);')
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -184,7 +253,7 @@ def writeTcpSourceFile():
     writeLine(sourceFile, '{')
     writeLine(sourceFile, '    if (m_endianness == endianness)')
     writeLine(sourceFile, '        return;')
-    writeLine(sourceFile,)
+    writeLine(sourceFile)
     writeLine(sourceFile, '    m_endianness = endianness;')
     writeLine(sourceFile, '    emit endiannessChanged(m_endianness);')
     writeLine(sourceFile, '}')
@@ -197,8 +266,12 @@ def writeTcpSourceFile():
             writePropertyGetSetMethodImplementationsTcp(sourceFile, className, blockDefinition['registers'])
 
     # Write init and update method implementation
-    writeInitMethodImplementationTcp(sourceFile, className, registerJson['registers'], registerJson['blocks'])
-    writeUpdateMethod(sourceFile, className, registerJson['registers'], registerJson['blocks'])
+    blocks = []
+    if 'blocks' in registerJson:
+        blocks = registerJson['blocks']
+
+    writeInitMethodImplementationTcp(sourceFile, className, registerJson['registers'], blocks)
+    writeUpdateMethodTcp(sourceFile, className, registerJson['registers'], blocks)
 
     # Write update methods
     writePropertyUpdateMethodImplementationsTcp(sourceFile, className, registerJson['registers'])
@@ -223,14 +296,90 @@ def writeTcpSourceFile():
         for blockDefinition in registerJson['blocks']:
             writePropertyProcessMethodImplementations(sourceFile, className, blockDefinition['registers'])
 
-    writeLine(sourceFile, 'void %s::verifyInitFinished()' % (className))
+    writeLine(sourceFile, 'void %s::handleModbusError(QModbusDevice::Error error)' % (className))
     writeLine(sourceFile, '{')
-    writeLine(sourceFile, '    if (m_pendingInitReplies.isEmpty()) {')
-    writeLine(sourceFile, '        qCDebug(dc%s()) << "Initialization finished of %s" << hostAddress().toString();' % (className, className))
-    writeLine(sourceFile, '        emit initializationFinished();')
+    writeLine(sourceFile, '    if (error == QModbusDevice::NoError) {')
+    writeLine(sourceFile, '        // Reset the communication counter and we know we can reach the device')
+    writeLine(sourceFile, '        m_communicationFailedCounter = 0;')
+    writeLine(sourceFile, '        if (!m_communicationWorking)')
+    writeLine(sourceFile, '            qCDebug(dc%s()) << "Received a reply without any errors. The communication with the device seems to work now.";' % (className))
+    writeLine(sourceFile)
+    writeLine(sourceFile, '        m_communicationWorking = true;')
+    writeLine(sourceFile, '        evaluateReachableState();')
+    writeLine(sourceFile, '    } else {')
+    writeLine(sourceFile, '        m_communicationFailedCounter++;')
+    writeLine(sourceFile, '        if (m_communicationWorking && m_communicationFailedCounter >= m_communicationFailedMax) {')
+    writeLine(sourceFile, '            m_communicationWorking = false;')
+    writeLine(sourceFile, '            qCWarning(dc%s()) << "Received" << m_communicationFailedCounter << "errors while communicating with the RTU master. Mark as not reachable until the communication works again.";' % (className))
+    writeLine(sourceFile, '            evaluateReachableState();')
+    writeLine(sourceFile, '        }')
     writeLine(sourceFile, '    }')
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
+
+    writeTestReachabilityImplementationsTcp(sourceFile, className, registerJson['registers'], checkReachableRegister)
+
+    writeLine(sourceFile, 'void %s::verifyInitFinished()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (m_pendingInitReplies.isEmpty()) {')
+    writeLine(sourceFile, '        finishInitialization(true);')
+    writeLine(sourceFile, '    }')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::finishInitialization(bool success)' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (success) {')
+    writeLine(sourceFile, '        qCDebug(dc%s()) << "Initialization finished of %s" << hostAddress().toString() << "finished successfully";' % (className, className))
+    writeLine(sourceFile, '    } else {')
+    writeLine(sourceFile, '        qCWarning(dc%s()) << "Initialization finished of %s" << hostAddress().toString() << "failed.";' % (className, className))
+    writeLine(sourceFile, '    }')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    // Cleanup init')
+    writeLine(sourceFile, '    delete m_initObject;')
+    writeLine(sourceFile, '    m_initObject = nullptr;')
+    writeLine(sourceFile, '    m_pendingInitReplies.clear();')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    emit initializationFinished(success);')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::verifyUpdateFinished()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (m_pendingUpdateReplies.isEmpty()) {')
+    writeLine(sourceFile, '        emit updateFinished();')
+    writeLine(sourceFile, '    }')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::onReachabilityCheckFailed()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    m_checkReachableRetriesCount++;')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    if (m_checkReachableRetriesCount <= m_checkReachableRetries) {')
+    writeLine(sourceFile, '        qCDebug(dc%s()) << "Reachability test failed. Retry in on second" << m_checkReachableRetriesCount << "/" << m_checkReachableRetries;' % (className))
+    writeLine(sourceFile, '        QTimer::singleShot(1000, this, &%s::testReachability);' % (className))
+    writeLine(sourceFile, '        return;')
+    writeLine(sourceFile, '    }')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    // The test reachability method failed, not retrying any more')
+    writeLine(sourceFile, '    emit checkReachabilityFailed();')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::evaluateReachableState()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    bool reachable = m_communicationWorking && connected();')
+    writeLine(sourceFile, '    if (m_reachable == reachable)')
+    writeLine(sourceFile, '        return;')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    m_reachable = reachable;')
+    writeLine(sourceFile, '    emit reachableChanged(m_reachable);')
+    writeLine(sourceFile, '    m_checkReachableRetriesCount = 0;')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+
 
     # Write the debug print
     debugObjectParamName = className[0].lower() + className[1:]
@@ -285,9 +434,13 @@ def writeRtuHeaderFile():
     writeLine(headerFile, '    explicit %s(ModbusRtuMaster *modbusRtuMaster, quint16 slaveId, QObject *parent = nullptr);' % className)
     writeLine(headerFile, '    ~%s() = default;' % className)
     writeLine(headerFile)
-
     writeLine(headerFile, '    ModbusRtuMaster *modbusRtuMaster() const;')
     writeLine(headerFile, '    quint16 slaveId() const;')
+    writeLine(headerFile)
+    writeLine(headerFile, '    bool reachable() const;')
+    writeLine(headerFile)
+    writeLine(headerFile, '    uint checkReachableRetries() const;')
+    writeLine(headerFile, '    void setCheckReachableRetries(uint checkReachableRetries);')
     writeLine(headerFile)
     writeLine(headerFile, '    ModbusDataUtils::ByteOrder endianness() const;')
     writeLine(headerFile, '    void setEndianness(ModbusDataUtils::ByteOrder endianness);')
@@ -301,11 +454,6 @@ def writeRtuHeaderFile():
 
         # Write block get/set method declarations
         writeBlocksUpdateMethodDeclarations(headerFile, registerJson['blocks'])
-
-    # Write init and update method declarations
-    writeLine(headerFile, '    virtual void initialize();')
-    writeLine(headerFile, '    virtual void update();')
-    writeLine(headerFile)
 
     writePropertyUpdateMethodDeclarations(headerFile, registerJson['registers'])
     writeLine(headerFile)
@@ -323,10 +471,20 @@ def writeRtuHeaderFile():
         writeLine(headerFile)
         writeInternalBlockReadMethodDeclarationsRtu(headerFile, registerJson['blocks'])
 
+    # Write init and update method declarations
+    writeLine(headerFile, '    virtual bool initialize();')
+    writeLine(headerFile, '    virtual bool update();')
+    writeLine(headerFile)
 
     # Write registers value changed signals
     writeLine(headerFile, 'signals:')
-    writeLine(headerFile, '    void initializationFinished();')
+    writeLine(headerFile, '    void reachableChanged(bool reachable);')
+    writeLine(headerFile, '    void checkReachabilityFailed();')
+    writeLine(headerFile, '    void checkReachableRetriesChanged(uint checkReachableRetries);')
+    writeLine(headerFile)
+    writeLine(headerFile, '    void initializationFinished(bool success);')
+    writeLine(headerFile, '    void updateFinished();')
+    writeLine(headerFile)
     writeLine(headerFile, '    void endiannessChanged(ModbusDataUtils::ByteOrder endianness);')
     writeLine(headerFile)
     writePropertyChangedSignals(headerFile, registerJson['registers'])
@@ -338,7 +496,6 @@ def writeRtuHeaderFile():
 
     # Protected members
     writeLine(headerFile, 'protected:')
-
     writeProtectedPropertyMembers(headerFile, registerJson['registers'])
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
@@ -351,17 +508,38 @@ def writeRtuHeaderFile():
         for blockDefinition in registerJson['blocks']:
             writePropertyProcessMethodDeclaration(headerFile, blockDefinition['registers'])
 
+        writeLine(headerFile)
+
+    writeLine(headerFile, '    void handleModbusError(ModbusRtuReply::Error error);')
+    writeLine(headerFile, '    void testReachability();')
     writeLine(headerFile)
 
     # Private members
     writeLine(headerFile, 'private:')
     writeLine(headerFile, '    ModbusRtuMaster *m_modbusRtuMaster = nullptr;')
-    writeLine(headerFile, '    quint16 m_slaveId = 1;')
-    writeLine(headerFile, '    QVector<ModbusRtuReply *> m_pendingInitReplies;')
     writeLine(headerFile, '    ModbusDataUtils::ByteOrder m_endianness = ModbusDataUtils::ByteOrder%s;' % endianness)
+    writeLine(headerFile, '    quint16 m_slaveId = 1;')
     writeLine(headerFile)
+    writeLine(headerFile, '    bool m_reachable = false;')
+    writeLine(headerFile, '    ModbusRtuReply *m_checkRechableReply = nullptr;')
+    writeLine(headerFile, '    uint m_checkReachableRetries = 0;')
+    writeLine(headerFile, '    uint m_checkReachableRetriesCount = 0;')
+    writeLine(headerFile, '    bool m_communicationWorking = false;')
+    writeLine(headerFile, '    quint8 m_communicationFailedMax = %s;' % (errorLimitUntilNotReachable))
+    writeLine(headerFile, '    quint8 m_communicationFailedCounter = 0;')
+    writeLine(headerFile)
+    writeLine(headerFile, '    QVector<ModbusRtuReply *> m_pendingInitReplies;')
+    writeLine(headerFile, '    QVector<ModbusRtuReply *> m_pendingUpdateReplies;')
+    writeLine(headerFile)
+    writeLine(headerFile, '    QObject *m_initObject = nullptr;')
     writeLine(headerFile, '    void verifyInitFinished();')
+    writeLine(headerFile, '    void finishInitialization(bool success);')
     writeLine(headerFile)
+    writeLine(headerFile, '    void verifyUpdateFinished();')
+    writeLine(headerFile)
+    writeLine(headerFile, '    void onReachabilityCheckFailed();')
+    writeLine(headerFile, '    void evaluateReachableState();')
+
     
     # End of class
     writeLine(headerFile)
@@ -382,6 +560,7 @@ def writeRtuSourceFile():
     writeLine(sourceFile, '#include "%s"' % headerFileName)
     writeLine(sourceFile, '#include <loggingcategories.h>')
     writeLine(sourceFile, '#include <math.h>')
+    writeLine(sourceFile, '#include <QTimer>')
     writeLine(sourceFile)
     writeLine(sourceFile, 'NYMEA_LOGGING_CATEGORY(dc%s, "%s")' % (className, className))
     writeLine(sourceFile)
@@ -392,7 +571,24 @@ def writeRtuSourceFile():
     writeLine(sourceFile, '    m_modbusRtuMaster(modbusRtuMaster),')
     writeLine(sourceFile, '    m_slaveId(slaveId)')
     writeLine(sourceFile, '{')
-    writeLine(sourceFile, '    ')
+    writeLine(sourceFile, '    connect(m_modbusRtuMaster, &ModbusRtuMaster::connectedChanged, this, [=](bool connected){')
+    writeLine(sourceFile, '        if (connected) {')
+    writeLine(sourceFile, '            qCDebug(dc%s()) << "Modbus RTU resource" << m_modbusRtuMaster->serialPort() << "connected again. Start testing if the connection is reachable...";' % (className))
+    writeLine(sourceFile, '            m_pendingInitReplies.clear();')
+    writeLine(sourceFile, '            m_pendingUpdateReplies.clear();')
+    writeLine(sourceFile, '            m_communicationWorking = false;')
+    writeLine(sourceFile, '            m_communicationFailedCounter = 0;')
+    writeLine(sourceFile, '            m_checkReachableRetriesCount = 0;')
+    writeLine(sourceFile, '            testReachability();')
+    writeLine(sourceFile, '        } else {')
+    writeLine(sourceFile, '            qCWarning(dc%s()) << "Modbus RTU resource" << m_modbusRtuMaster->serialPort() << "disconnected. The connection is not reachable any more.";' % (className))
+    writeLine(sourceFile, '            m_communicationWorking = false;')
+    writeLine(sourceFile, '            m_communicationFailedCounter = 0;')
+    writeLine(sourceFile, '            m_checkReachableRetriesCount = 0;')
+    writeLine(sourceFile, '        }')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '        evaluateReachableState();')
+    writeLine(sourceFile, '    });')
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -405,11 +601,35 @@ def writeRtuSourceFile():
     writeLine(sourceFile, '{')
     writeLine(sourceFile, '    return m_slaveId;')
     writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'bool %s::reachable() const' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_reachable;')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'uint %s::checkReachableRetries() const' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_checkReachableRetries;')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::setCheckReachableRetries(uint checkReachableRetries)' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (m_checkReachableRetries == checkReachableRetries)')
+    writeLine(sourceFile, '        return;')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    m_checkReachableRetries = checkReachableRetries;')
+    writeLine(sourceFile, '    emit checkReachableRetriesChanged(m_checkReachableRetries);')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
 
     writeLine(sourceFile, 'ModbusDataUtils::ByteOrder %s::endianness() const' % (className))
     writeLine(sourceFile, '{')
     writeLine(sourceFile, '    return m_endianness;')
     writeLine(sourceFile, '}')
+    writeLine(sourceFile)
 
     writeLine(sourceFile, 'void %s::setEndianness(ModbusDataUtils::ByteOrder endianness)' % (className))
     writeLine(sourceFile, '{')
@@ -419,6 +639,7 @@ def writeRtuSourceFile():
     writeLine(sourceFile, '    m_endianness = endianness;')
     writeLine(sourceFile, '    emit endiannessChanged(m_endianness);')
     writeLine(sourceFile, '}')
+    writeLine(sourceFile)
 
     # Property get methods
     writePropertyGetSetMethodImplementationsRtu(sourceFile, className, registerJson['registers'])
@@ -427,8 +648,12 @@ def writeRtuSourceFile():
             writePropertyGetSetMethodImplementationsRtu(sourceFile, className, blockDefinition['registers'])
 
     # Write init and update method implementation
-    writeInitMethodImplementationRtu(sourceFile, className, registerJson['registers'], registerJson['blocks'])
-    writeUpdateMethod(sourceFile, className, registerJson['registers'], registerJson['blocks'])
+    blocks = []
+    if 'blocks' in registerJson:
+        blocks = registerJson['blocks']
+
+    writeInitMethodImplementationRtu(sourceFile, className, registerJson['registers'], blocks)
+    writeUpdateMethodRtu(sourceFile, className, registerJson['registers'], blocks)
 
     # Write update methods
     writePropertyUpdateMethodImplementationsRtu(sourceFile, className, registerJson['registers'])
@@ -453,12 +678,87 @@ def writeRtuSourceFile():
         for blockDefinition in registerJson['blocks']:
             writePropertyProcessMethodImplementations(sourceFile, className, blockDefinition['registers'])
 
+
+    writeLine(sourceFile, 'void %s::handleModbusError(ModbusRtuReply::Error error)' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (error == ModbusRtuReply::NoError) {')
+    writeLine(sourceFile, '        // Reset the communication counter and we know we can reach the device')
+    writeLine(sourceFile, '        m_communicationFailedCounter = 0;')
+    writeLine(sourceFile, '        if (!m_communicationWorking)')
+    writeLine(sourceFile, '            qCDebug(dc%s()) << "Received a reply without any errors. The communication with the device seems to work now.";' % (className))
+    writeLine(sourceFile)
+    writeLine(sourceFile, '        m_communicationWorking = true;')
+    writeLine(sourceFile, '        evaluateReachableState();')
+    writeLine(sourceFile, '    } else {')
+    writeLine(sourceFile, '        m_communicationFailedCounter++;')
+    writeLine(sourceFile, '        if (m_communicationWorking && m_communicationFailedCounter >= m_communicationFailedMax) {')
+    writeLine(sourceFile, '            m_communicationWorking = false;')
+    writeLine(sourceFile, '            qCWarning(dc%s()) << "Received" << m_communicationFailedCounter << "errors while communicating with the RTU master. Mark as not reachable until the communication works again.";' % (className))
+    writeLine(sourceFile, '            evaluateReachableState();')
+    writeLine(sourceFile, '        }')
+    writeLine(sourceFile, '    }')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeTestReachabilityImplementationsRtu(sourceFile, className, registerJson['registers'], checkReachableRegister)
+
     writeLine(sourceFile, 'void %s::verifyInitFinished()' % (className))
     writeLine(sourceFile, '{')
     writeLine(sourceFile, '    if (m_pendingInitReplies.isEmpty()) {')
-    writeLine(sourceFile, '        qCDebug(dc%s()) << "Initialization finished of %s";' % (className, className))
-    writeLine(sourceFile, '        emit initializationFinished();')
+    writeLine(sourceFile, '        finishInitialization(true);')
     writeLine(sourceFile, '    }')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::finishInitialization(bool success)' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (success) {')
+    writeLine(sourceFile, '        qCDebug(dc%s()) << "Initialization finished of %s finished successfully";' % (className, className))
+    writeLine(sourceFile, '    } else {')
+    writeLine(sourceFile, '        qCWarning(dc%s()) << "Initialization finished of %s failed.";' % (className, className))
+    writeLine(sourceFile, '    }')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    // Cleanup init')
+    writeLine(sourceFile, '    delete m_initObject;')
+    writeLine(sourceFile, '    m_initObject = nullptr;')
+    writeLine(sourceFile, '    m_pendingInitReplies.clear();')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    emit initializationFinished(success);')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::verifyUpdateFinished()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (m_pendingUpdateReplies.isEmpty()) {')
+    writeLine(sourceFile, '        emit updateFinished();')
+    writeLine(sourceFile, '    }')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::onReachabilityCheckFailed()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    m_checkReachableRetriesCount++;')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    if (m_checkReachableRetriesCount <= m_checkReachableRetries) {')
+    writeLine(sourceFile, '        qCDebug(dc%s()) << "Reachability test failed. Retry in on second" << m_checkReachableRetriesCount << "/" << m_checkReachableRetries;' % (className))
+    writeLine(sourceFile, '        QTimer::singleShot(1000, this, &%s::testReachability);' % (className))
+    writeLine(sourceFile, '        return;')
+    writeLine(sourceFile, '    }')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    // The test reachability method failed, not retrying any more')
+    writeLine(sourceFile, '    emit checkReachabilityFailed();')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::evaluateReachableState()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    bool reachable = m_communicationWorking && m_modbusRtuMaster->connected();')
+    writeLine(sourceFile, '    if (m_reachable == reachable)')
+    writeLine(sourceFile, '        return;')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '    m_reachable = reachable;')
+    writeLine(sourceFile, '    emit reachableChanged(m_reachable);')
+    writeLine(sourceFile, '    m_checkReachableRetriesCount = 0;')
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -513,7 +813,7 @@ if args.verboseOutput:
 logger.debug("Verbose output enabled")
 
 if not 'className' in registerJson:
-    logger.warning('Classname missing. Please specify the classname in the json file or pass it to the generatori using -c .')
+    logger.warning('Error: Class name property missing. Please specify the \"classname\" property in the json file.')
     exit(1)
 
 classNamePrefix = registerJson['className']
@@ -522,10 +822,55 @@ endianness = 'BigEndian'
 if 'endianness' in registerJson:
     endianness = registerJson['endianness']
 
-logger.debug('Scrip path: %s' % scriptPath)
+errorLimitUntilNotReachable = 10
+if 'errorLimitUntilNotReachable' in registerJson:
+    errorLimitUntilNotReachable = registerJson['errorLimitUntilNotReachable']
+
+# Check if the developer has specified an
+checkReachableRegister = {}
+if not 'checkReachableRegister' in registerJson:
+    logger.warning('Error: There is no checkReachableRegister specified. Please specify the \"checkReachableRegister\" property in the register JSON and set it to the \"id\" of a mandatory readable register which should be used for testing the communication.')
+    exit(1)
+
+checkReachableRegister = registerJson['checkReachableRegister']
+registerExists = False
+# Make sure this is an existing and readable register
+for registerDefinition in registerJson['registers']:
+    if registerDefinition['id'] == checkReachableRegister:
+        if not 'R' in registerDefinition['access']:
+            logger.warning('Error: The specified \"checkReachableRegister\" is not readable. Please select a manadtory readable register as checkReachableRegister.')
+            exit(1)
+
+        checkReachableRegister = registerDefinition
+        registerExists = True
+        break
+
+if 'blocks' in registerJson:
+    for blockDefinition in registerJson['blocks']:
+        for registerDefinition in blockDefinition['registers']:
+            if registerDefinition['id'] == checkReachableRegister:
+                if not 'R' in registerDefinition['access']:
+                    logger.warning('Error: The specified \"checkReachableRegister\" is not readable. Please select a manadtory readable register as checkReachableRegister.')
+                    exit(1)
+
+                checkReachableRegister = registerDefinition
+                registerExists = True
+                break
+
+if not registerExists:
+    logger.warning('Error: Could not find the given \"checkReachableRegister\". Please make sure the specified register matches the \"id\" of a defined register.')
+    exit(1)
+else:
+    logger.debug('Verified successfully checkReachableRegister: %s' % checkReachableRegister['id'])
+
+
+# Inform about parsed and validated configs if debugging enabled
+logger.debug('Script path: %s' % scriptPath)
 logger.debug('Output directory: %s' % outputDirectory)
 logger.debug('Class name prefix: %s' % classNamePrefix)
 logger.debug('Endianness: %s' % endianness)
+logger.debug('Error limit until not reachable: %s' % errorLimitUntilNotReachable)
+logger.debug('Check reachable register: %s' % checkReachableRegister['id'])
 
 protocol = 'TCP'
 if 'protocol' in registerJson:
@@ -538,7 +883,7 @@ if 'blocks' in registerJson:
 writeTcp = protocol in ["TCP", "BOTH"]
 writeRtu = protocol in ["RTU", "BOTH"]
 if not writeTcp and not writeRtu:
-    logger.warning('Invalid protocol definition. Please use TCP, RTU or BOTH.')
+    logger.warning('Error: Invalid protocol definition. Please use TCP, RTU or BOTH in the register JSON file.')
     exit(1)
 
 headerFiles = []
@@ -585,8 +930,8 @@ projectIncludeFilePath = os.path.join(outputDirectory, projectIncludeFileName)
 
 # Note: we write the project file only if the registers
 # file has been modified since the project has been modified the last time.
-# This prevents qt-creator to retrigger qmake runs on it's own by changing the
-# project file which retriggers a qmake run and so on...
+# This prevents qt-creator to retrigger qmake runs on it's own if the pri file is open
+# by changing the project file which retriggers a qmake run and so on...
 if os.path.exists(projectIncludeFilePath):
     timestampRegistersJson = os.path.getmtime(registerJsonFilePath)
     timestampProjectInclude = os.path.getmtime(projectIncludeFilePath)

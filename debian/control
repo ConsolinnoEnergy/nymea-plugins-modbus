@@ -60,6 +60,15 @@ Description: The main libraries and header files for developing with modbus base
  This package contains the nymea modbus integration plugin library - development files.
 
 
+Package: nymea-modbus-cli
+Architecture: any
+Section: utils
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea modbus command line tool for testing modbus TCP communication
+ This package contains the nymea modbus command line tool for testing modbus TCP communication.
+
+
 Package: nymea-plugin-alphainnotec
 Architecture: any
 Section: libs
@@ -136,6 +145,16 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Huawei FusionSolar energy devices
  This package contains the nymea integration plugin for Huawei FusionSolar devices
  based on Modbus TCP.
+
+
+Package: nymea-plugin-kostal
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea.io plugin for Kostal Solar inverters
+ This package will install the nymea.io plugin for Kostal Solar inverters
 
 
 Package: nymea-plugin-mennekes
@@ -223,14 +242,16 @@ Description: nymea integration plugin for UniPi devices
  This package contains the nymea integration plugin for UniPi devices.
 
 
-Package: nymea-plugin-wallbe
+Package: nymea-plugin-phoenixconnect
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-Description: nymea integration plugin for Wallbe wallboxes
+Conflicts: nymea-plugin-wallbe
+Replaces: nymea-plugin-wallbe
+Description: nymea integration plugin for PhoenixConnect wallboxes
  This package contains the nymea integration plugin for wallboxes made
- by wallbe.
+ by PhonenixConnect and rebranded as Wallbe, Compleo and Scapo.
 
 Package: nymea-plugin-webasto
 Architecture: any

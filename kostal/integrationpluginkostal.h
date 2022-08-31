@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,58 +28,41 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSCHRACK_H
-#define INTEGRATIONPLUGINSCHRACK_H
+#ifndef INTEGRATIONPLUGINKOSTAL_H
+#define INTEGRATIONPLUGINKOSTAL_H
 
-#include <integrations/integrationplugin.h>
-#include <hardware/modbus/modbusrtuhardwareresource.h>
 #include <plugintimer.h>
-
-#include "cionmodbusrtuconnection.h"
+#include <integrations/integrationplugin.h>
+#include <network/networkdevicemonitor.h>
 
 #include "extern-plugininfo.h"
 
-#include <QObject>
-#include <QTimer>
+#include "kostalmodbustcpconnection.h"
 
-class IntegrationPluginSchrack : public IntegrationPlugin
+class IntegrationPluginKostal: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginschrack.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginkostal.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    enum StatusBit {
-        StatusBitPluggedIn = 0x0001,
-        StatusBitChargeContactor1Active = 0x0002,
-        StatusBitChargeContactor2Active = 0x0004,
-        StatusBitVentilationRequired = 0x0008,
-        StatusBitPlugLockController = 0x0010,
-        StatusBitPlugLockReturn = 0x0020,
-        StatusBitCollectiveDisorder = 0x0040,
-        StatusBitDisorderFiLs = 0x0080,
-        StatusBitCableDisorder = 0x0100,
-        StatusBitCableRejected = 0x0200,
-        StatusBitContactorError = 0x0400
-    };
-    Q_ENUM(StatusBit);
-    Q_DECLARE_FLAGS(StatusBits, StatusBit)
+    explicit IntegrationPluginKostal();
 
-    explicit IntegrationPluginSchrack();
-    void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
 
 private:
-    void waitForActionFinish(ThingActionInfo *info, ModbusRtuReply *reply, const StateTypeId &stateTypeId, const QVariant &value);
-private:
-    PluginTimer *m_refreshTimer = nullptr;
+    PluginTimer *m_pluginTimer = nullptr;
+    QHash<Thing *, KostalModbusTcpConnection *> m_kostalConnections;
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
 
-    QHash<Thing *, CionModbusRtuConnection *> m_cionConnections;
+    void setupKostalConnection(ThingSetupInfo *info);
+
 };
 
-#endif // INTEGRATIONPLUGINSCHRACK_H
+#endif // INTEGRATIONPLUGINKOSTAL_H
+
+
