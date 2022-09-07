@@ -8,7 +8,7 @@ stages:
 ##### Development snapshots #####
 .snapshot:
   only:
-   - develop
+   - main
    - /^add-ci.*$/
 
 .deploy_template: &deploy_script_templ
