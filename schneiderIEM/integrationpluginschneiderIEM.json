@@ -6,12 +6,12 @@
     "vendors": [
         {
             "name": "schneider",
-            "displayName": "Schneider electric",
+            "displayName": "Schneider Electric",
             "id": "8dd0fd13-d9e8-49c1-9a28-d63c104e7e31",
             "thingClasses": [
                 {
                     "name": "iem",
-                    "displayName": "IEM",
+                    "displayName": "Schneider Electric IEM",
                     "id": "91e166dd-1d3d-461e-9ef7-dd1559095d6a",
                     "createMethods": ["discovery"],
                     "interfaces": ["energymeter", "connectable"],
