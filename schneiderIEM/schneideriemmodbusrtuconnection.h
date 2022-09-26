@@ -75,6 +75,11 @@ public:
     ModbusRtuMaster *modbusRtuMaster() const;
     quint16 slaveId() const;
 
+    bool reachable() const;
+
+    uint checkReachableRetries() const;
+    void setCheckReachableRetries(uint checkReachableRetries);
+
     ModbusDataUtils::ByteOrder endianness() const;
     void setEndianness(ModbusDataUtils::ByteOrder endianness);
 
@@ -126,9 +131,6 @@ public:
     /* Energy consumed phase C [Wh] - Address: 3526, Size: 4 */
     qint64 energyConsumedPhaseC() const;
 
-    virtual void initialize();
-    virtual void update();
-
     void updateTotalCurrentPower();
     void updateVoltagePhaseA();
     void updateVoltagePhaseB();
@@ -164,26 +166,51 @@ public:
     ModbusRtuReply *readEnergyConsumedPhaseB();
     ModbusRtuReply *readEnergyConsumedPhaseC();
 
+    virtual bool initialize();
+    virtual bool update();
+
 signals:
-    void initializationFinished();
+    void reachableChanged(bool reachable);
+    void checkReachabilityFailed();
+    void checkReachableRetriesChanged(uint checkReachableRetries);
+
+    void initializationFinished(bool success);
+    void updateFinished();
+
     void endiannessChanged(ModbusDataUtils::ByteOrder endianness);
 
     void totalCurrentPowerChanged(float totalCurrentPower);
+    void totalCurrentPowerReadFinished(float totalCurrentPower);
     void voltagePhaseAChanged(float voltagePhaseA);
+    void voltagePhaseAReadFinished(float voltagePhaseA);
     void voltagePhaseBChanged(float voltagePhaseB);
+    void voltagePhaseBReadFinished(float voltagePhaseB);
     void voltagePhaseCChanged(float voltagePhaseC);
+    void voltagePhaseCReadFinished(float voltagePhaseC);
     void currentPhaseAChanged(float currentPhaseA);
+    void currentPhaseAReadFinished(float currentPhaseA);
     void currentPhaseBChanged(float currentPhaseB);
+    void currentPhaseBReadFinished(float currentPhaseB);
     void currentPhaseCChanged(float currentPhaseC);
+    void currentPhaseCReadFinished(float currentPhaseC);
     void powerPhaseAChanged(float powerPhaseA);
+    void powerPhaseAReadFinished(float powerPhaseA);
     void powerPhaseBChanged(float powerPhaseB);
+    void powerPhaseBReadFinished(float powerPhaseB);
     void powerPhaseCChanged(float powerPhaseC);
+    void powerPhaseCReadFinished(float powerPhaseC);
     void frequencyChanged(float frequency);
+    void frequencyReadFinished(float frequency);
     void totalEnergyConsumedChanged(qint64 totalEnergyConsumed);
+    void totalEnergyConsumedReadFinished(qint64 totalEnergyConsumed);
     void totalEnergyProducedChanged(qint64 totalEnergyProduced);
+    void totalEnergyProducedReadFinished(qint64 totalEnergyProduced);
     void energyConsumedPhaseAChanged(qint64 energyConsumedPhaseA);
+    void energyConsumedPhaseAReadFinished(qint64 energyConsumedPhaseA);
     void energyConsumedPhaseBChanged(qint64 energyConsumedPhaseB);
+    void energyConsumedPhaseBReadFinished(qint64 energyConsumedPhaseB);
     void energyConsumedPhaseCChanged(qint64 energyConsumedPhaseC);
+    void energyConsumedPhaseCReadFinished(qint64 energyConsumedPhaseC);
 
 protected:
     float m_totalCurrentPower = 0;
@@ -221,14 +248,33 @@ protected:
     void processEnergyConsumedPhaseCRegisterValues(const QVector<quint16> values);
 
 
+    void handleModbusError(ModbusRtuReply::Error error);
+    void testReachability();
+
 private:
     ModbusRtuMaster *m_modbusRtuMaster = nullptr;
-    quint16 m_slaveId = 1;
-    QVector<ModbusRtuReply *> m_pendingInitReplies;
     ModbusDataUtils::ByteOrder m_endianness = ModbusDataUtils::ByteOrderBigEndian;
+    quint16 m_slaveId = 1;
 
+    bool m_reachable = false;
+    ModbusRtuReply *m_checkRechableReply = nullptr;
+    uint m_checkReachableRetries = 0;
+    uint m_checkReachableRetriesCount = 0;
+    bool m_communicationWorking = false;
+    quint8 m_communicationFailedMax = 15;
+    quint8 m_communicationFailedCounter = 0;
+
+    QVector<ModbusRtuReply *> m_pendingInitReplies;
+    QVector<ModbusRtuReply *> m_pendingUpdateReplies;
+
+    QObject *m_initObject = nullptr;
     void verifyInitFinished();
+    void finishInitialization(bool success);
 
+    void verifyUpdateFinished();
+
+    void onReachabilityCheckFailed();
+    void evaluateReachableState();
 
 };
 
