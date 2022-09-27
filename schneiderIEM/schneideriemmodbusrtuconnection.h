@@ -50,22 +50,22 @@ class SchneiderIEMModbusRtuConnection : public QObject
     Q_OBJECT
 public:
     enum Registers {
-        RegisterCurrentPhaseA = 3000,
-        RegisterCurrentPhaseB = 3002,
-        RegisterCurrentPhaseC = 3004,
-        RegisterVoltagePhaseA = 3020,
-        RegisterVoltagePhaseB = 3022,
-        RegisterVoltagePhaseC = 3024,
-        RegisterPowerPhaseA = 3054,
-        RegisterPowerPhaseB = 3056,
-        RegisterPowerPhaseC = 3058,
-        RegisterTotalCurrentPower = 3060,
-        RegisterFrequency = 3110,
-        RegisterTotalEnergyConsumed = 3204,
-        RegisterTotalEnergyProduced = 3208,
-        RegisterEnergyConsumedPhaseA = 3518,
-        RegisterEnergyConsumedPhaseB = 3522,
-        RegisterEnergyConsumedPhaseC = 3526
+        RegisterCurrentPhaseA = 2999,
+        RegisterCurrentPhaseB = 3001,
+        RegisterCurrentPhaseC = 3003,
+        RegisterVoltagePhaseA = 3027,
+        RegisterVoltagePhaseB = 3029,
+        RegisterVoltagePhaseC = 3031,
+        RegisterPowerPhaseA = 3053,
+        RegisterPowerPhaseB = 3055,
+        RegisterPowerPhaseC = 3057,
+        RegisterTotalCurrentPower = 3059,
+        RegisterFrequency = 3109,
+        RegisterTotalEnergyConsumed = 3203,
+        RegisterTotalEnergyProduced = 3207,
+        RegisterEnergyConsumedPhaseA = 3517,
+        RegisterEnergyConsumedPhaseB = 3521,
+        RegisterEnergyConsumedPhaseC = 3525
     };
     Q_ENUM(Registers)
 
@@ -83,52 +83,52 @@ public:
     ModbusDataUtils::ByteOrder endianness() const;
     void setEndianness(ModbusDataUtils::ByteOrder endianness);
 
-    /* Total system power [kW] - Address: 3060, Size: 2 */
+    /* Total system power [kW] - Address: 3059, Size: 2 */
     float totalCurrentPower() const;
 
-    /* Voltage phase L1 [V] - Address: 3020, Size: 2 */
+    /* Voltage phase L1 [V] - Address: 3027, Size: 2 */
     float voltagePhaseA() const;
 
-    /* Voltage phase L2 [V] - Address: 3022, Size: 2 */
+    /* Voltage phase L2 [V] - Address: 3029, Size: 2 */
     float voltagePhaseB() const;
 
-    /* Voltage phase L3 [V] - Address: 3024, Size: 2 */
+    /* Voltage phase L3 [V] - Address: 3031, Size: 2 */
     float voltagePhaseC() const;
 
-    /* Current phase L1 [A] - Address: 3000, Size: 2 */
+    /* Current phase L1 [A] - Address: 2999, Size: 2 */
     float currentPhaseA() const;
 
-    /* Current phase L2 [A] - Address: 3002, Size: 2 */
+    /* Current phase L2 [A] - Address: 3001, Size: 2 */
     float currentPhaseB() const;
 
-    /* Current phase L3 [A] - Address: 3004, Size: 2 */
+    /* Current phase L3 [A] - Address: 3003, Size: 2 */
     float currentPhaseC() const;
 
-    /* Power phase L1 [kW] - Address: 3054, Size: 2 */
+    /* Power phase L1 [kW] - Address: 3053, Size: 2 */
     float powerPhaseA() const;
 
-    /* Power phase L2 [kW] - Address: 3056, Size: 2 */
+    /* Power phase L2 [kW] - Address: 3055, Size: 2 */
     float powerPhaseB() const;
 
-    /* Power phase L3 [kW] - Address: 3058, Size: 2 */
+    /* Power phase L3 [kW] - Address: 3057, Size: 2 */
     float powerPhaseC() const;
 
-    /* Frequency [Hz] - Address: 3110, Size: 2 */
+    /* Frequency [Hz] - Address: 3109, Size: 2 */
     float frequency() const;
 
-    /* Total energy consumed [Wh] - Address: 3204, Size: 4 */
+    /* Total energy consumed [Wh] - Address: 3203, Size: 4 */
     qint64 totalEnergyConsumed() const;
 
-    /* Total energy produced [Wh] - Address: 3208, Size: 4 */
+    /* Total energy produced [Wh] - Address: 3207, Size: 4 */
     qint64 totalEnergyProduced() const;
 
-    /* Energy consumed phase A [Wh] - Address: 3518, Size: 4 */
+    /* Energy consumed phase A [Wh] - Address: 3517, Size: 4 */
     qint64 energyConsumedPhaseA() const;
 
-    /* Energy consumed phase B [Wh] - Address: 3522, Size: 4 */
+    /* Energy consumed phase B [Wh] - Address: 3521, Size: 4 */
     qint64 energyConsumedPhaseB() const;
 
-    /* Energy consumed phase C [Wh] - Address: 3526, Size: 4 */
+    /* Energy consumed phase C [Wh] - Address: 3525, Size: 4 */
     qint64 energyConsumedPhaseC() const;
 
     void updateTotalCurrentPower();
