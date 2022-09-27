@@ -38,11 +38,11 @@ IntegrationPluginSchneiderIEM::IntegrationPluginSchneiderIEM()
 void IntegrationPluginSchneiderIEM::init()
 {
     connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=] (const QUuid &modbusUuid){
-        qCDebug(dcSchneider()) << "Modbus RTU master has been removed" << modbusUuid.toString();
+        qCDebug(dcSchneiderIEM()) << "Modbus RTU master has been removed" << modbusUuid.toString();
 
         foreach (Thing *thing, myThings()) {
             if (thing->paramValue(iemThingModbusMasterUuidParamTypeId) == modbusUuid) {
-                qCWarning(dcSchneider()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
+                qCWarning(dcSchneiderIEM()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
                 thing->setStateValue(iemConnectedStateTypeId, false);
                 delete m_schneiderIEMConnections.take(thing);
             }
@@ -52,7 +52,7 @@ void IntegrationPluginSchneiderIEM::init()
 
 void IntegrationPluginSchneiderIEM::discoverThings(ThingDiscoveryInfo *info)
 {
-    qCDebug(dcSchneider()) << "Discover modbus RTU resources...";
+    qCDebug(dcSchneiderIEM()) << "Discover modbus RTU resources...";
     if (hardwareManager()->modbusRtuResource()->modbusRtuMasters().isEmpty()) {
         info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No Modbus RTU interface available. Please set up the Modbus RTU interface first."));
         return;
@@ -65,7 +65,7 @@ void IntegrationPluginSchneiderIEM::discoverThings(ThingDiscoveryInfo *info)
     }
 
     foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
-        qCDebug(dcSchneider()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
+        qCDebug(dcSchneiderIEM()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
         if (!modbusMaster->connected())
             continue;
 
@@ -84,33 +84,33 @@ void IntegrationPluginSchneiderIEM::discoverThings(ThingDiscoveryInfo *info)
 void IntegrationPluginSchneiderIEM::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
-    qCDebug(dcSchneider()) << "Setup thing" << thing << thing->params();
+    qCDebug(dcSchneiderIEM()) << "Setup thing" << thing << thing->params();
 
     uint address = thing->paramValue(iemThingSlaveAddressParamTypeId).toUInt();
     if (address > 254 || address == 0) {
-        qCWarning(dcSchneider()) << "Setup failed, slave address is not valid" << address;
+        qCWarning(dcSchneiderIEM()) << "Setup failed, slave address is not valid" << address;
         info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 254."));
         return;
     }
 
     QUuid uuid = thing->paramValue(iemThingModbusMasterUuidParamTypeId).toUuid();
     if (!hardwareManager()->modbusRtuResource()->hasModbusRtuMaster(uuid)) {
-        qCWarning(dcSchneider()) << "Setup failed, hardware manager not available";
+        qCWarning(dcSchneiderIEM()) << "Setup failed, hardware manager not available";
         info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus RTU interface not available."));
         return;
     }
 
     if (m_schneiderIEMConnections.contains(thing)) {
-        qCDebug(dcSchneider()) << "Setup after rediscovery, cleaning up ...";
+        qCDebug(dcSchneiderIEM()) << "Setup after rediscovery, cleaning up ...";
         m_schneiderIEMConnections.take(thing)->deleteLater();
     }
 
     SchneiderIEMModbusRtuConnection *iemConnection = new SchneiderIEMModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
     connect(iemConnection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
         if (connected) {
-            qCDebug(dcSchneider()) << "Modbus RTU resource connected" << thing << iemConnection->modbusRtuMaster()->serialPort();
+            qCDebug(dcSchneiderIEM()) << "Modbus RTU resource connected" << thing << iemConnection->modbusRtuMaster()->serialPort();
         } else {
-            qCWarning(dcSchneider()) << "Modbus RTU resource disconnected" << thing << iemConnection->modbusRtuMaster()->serialPort();
+            qCWarning(dcSchneiderIEM()) << "Modbus RTU resource disconnected" << thing << iemConnection->modbusRtuMaster()->serialPort();
         }
     });
 
@@ -186,7 +186,7 @@ void IntegrationPluginSchneiderIEM::setupThing(ThingSetupInfo *info)
 
 void IntegrationPluginSchneiderIEM::postSetupThing(Thing *thing)
 {
-    qCDebug(dcSchneider()) << "Post setup thing" << thing->name();
+    qCDebug(dcSchneiderIEM()) << "Post setup thing" << thing->name();
     if (!m_refreshTimer) {
         m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
         connect(m_refreshTimer, &PluginTimer::timeout, this, [this] {
@@ -195,20 +195,20 @@ void IntegrationPluginSchneiderIEM::postSetupThing(Thing *thing)
             }
         });
 
-        qCDebug(dcSchneider()) << "Starting refresh timer...";
+        qCDebug(dcSchneiderIEM()) << "Starting refresh timer...";
         m_refreshTimer->start();
     }
 }
 
 void IntegrationPluginSchneiderIEM::thingRemoved(Thing *thing)
 {
-    qCDebug(dcSchneider()) << "Thing removed" << thing->name();
+    qCDebug(dcSchneiderIEM()) << "Thing removed" << thing->name();
 
     if (m_schneiderIEMConnections.contains(thing))
         m_schneiderIEMConnections.take(thing)->deleteLater();
 
     if (myThings().isEmpty() && m_refreshTimer) {
-        qCDebug(dcSchneider()) << "Stopping reconnect timer";
+        qCDebug(dcSchneiderIEM()) << "Stopping reconnect timer";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
         m_refreshTimer = nullptr;
     }
