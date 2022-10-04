@@ -50,4 +50,4 @@ Description: nymea integration to use $DEVICENAME as solar inverter metering dev
 EOF
 
 cp debian/$SOURCEPACKAGENAME.install.in debian/$PACKAGENAME.install.in
-sed 's/${SOURCE}/${TARGET}/g' debian/$PACKAGENAME.install.in -i
+sed "s/${SOURCE_INTEGRATION}/${TARGET}/g" debian/$PACKAGENAME.install.in -i
