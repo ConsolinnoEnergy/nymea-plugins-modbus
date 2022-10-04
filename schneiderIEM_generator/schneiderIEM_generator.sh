@@ -18,7 +18,7 @@ INTERFACE1=solarinverter
 INTERFACE2=connectable
 
 # Name of the package (debian package variables)
-SOURCEPACKAGENAME=nymea-plugin-bgetech
+SOURCEPACKAGENAME=nymea-plugin-schneider-iem
 PACKAGENAME=nymea-plugin-schneider-iem-inverter
 DEVICENAME=schneiderIEM
 
