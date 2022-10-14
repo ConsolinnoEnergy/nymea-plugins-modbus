@@ -1,6 +1,6 @@
 {
-    "name": "schneider",
-    "displayName": "Schneider",
+    "name": "schneiderIEM",
+    "displayName": "SchneiderIEM Energymeter",
     "id": "169b1b46-c4bd-41be-b917-300136d99fba",
     "paramTypes":[ ],
     "vendors": [
@@ -11,7 +11,7 @@
             "thingClasses": [
                 {
                     "name": "iem",
-                    "displayName": "Schneider Electric IEM",
+                    "displayName": "Schneider Electric IEM Energymeter",
                     "id": "91e166dd-1d3d-461e-9ef7-dd1559095d6a",
                     "createMethods": ["discovery"],
                     "interfaces": ["energymeter", "connectable"],

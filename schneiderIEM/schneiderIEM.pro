@@ -1,7 +1,7 @@
 include(../plugins.pri)
 
 # Generate modbus connection
-MODBUS_CONNECTIONS += schneiderIEM-registers.json
+MODBUS_CONNECTIONS += IEM-registers.json
 #MODBUS_TOOLS_CONFIG += VERBOSE
 include(../modbus.pri)
 
