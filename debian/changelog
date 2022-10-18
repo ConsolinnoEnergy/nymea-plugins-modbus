@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.4.0-1) jammy; urgency=medium
+nymea-plugins-modbus (1.4.0-1) qa; urgency=medium
 
   [ Simon Stürz ]
   * New plugin: KOSTAL Solar Electric
