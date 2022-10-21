@@ -1,6 +1,9 @@
 {
+    "className": "SchneiderWallbox",
     "protocol": "TCP",
     "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 20,
+    "checkReachableRegister": "cpwState",
     "enums": [
         {
             "name": "CPWState",
@@ -295,6 +298,74 @@
             ]
         }
     ],
+    "blocks": [
+        {
+            "id": "phaseVoltageAndCurrent",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "stationIntensityPhaseX",
+                    "address": 350,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "stationIntensityPhaseX",
+                    "defaultValue": "0",
+                    "unit": "Ampere",
+                    "access": "RO"
+                },
+                {
+                    "id": "stationIntensityPhase2",
+                    "address": 352,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "stationIntensityPhase2",
+                    "defaultValue": "0",
+                    "unit": "Ampere",
+                    "access": "RO"
+                },
+                {
+                    "id": "stationIntensityPhase3",
+                    "address": 354,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "stationIntensityPhase3",
+                    "defaultValue": "0",
+                    "unit": "Ampere",
+                    "access": "RO"
+                },
+                {
+                    "id": "stationEnergy",
+                    "address": 356,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "stationEnergy",
+                    "defaultValue": "0",
+                    "unit": "WattHour",
+                    "access": "RO"
+                },
+                {
+                    "id": "stationPowerTotal",
+                    "address": 358,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "stationPowerTotal",
+                    "defaultValue": "0",
+                    "unit": "KiloWatt",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
     "registers": [
         {
             "id": "cpwState",
@@ -363,7 +434,7 @@
             "readSchedule": "update",
             "description": "remoteCommand",
             "defaultValue": "RemoteCommandAcknowledgeCommand",
-            "access": "WO"
+            "access": "RW"
         },
         {
             "id": "maxIntensitySocket",
@@ -388,66 +459,6 @@
             "defaultValue": "0",
             "unit": "Ampere",
             "access": "RW"
-        },
-        {
-            "id": "stationIntensityPhaseX",
-            "address": 350,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "stationIntensityPhaseX",
-            "defaultValue": "0",
-            "unit": "Ampere",
-            "access": "RO"
-        },
-        {
-            "id": "stationIntensityPhase2",
-            "address": 352,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "stationIntensityPhase2",
-            "defaultValue": "0",
-            "unit": "Ampere",
-            "access": "RO"
-        },
-        {
-            "id": "stationIntensityPhase3",
-            "address": 354,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "stationIntensityPhase3",
-            "defaultValue": "0",
-            "unit": "Ampere",
-            "access": "RO"
-        },
-        {
-            "id": "stationEnergy",
-            "address": 356,
-            "size": 2,
-            "type": "uint32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "stationEnergy",
-            "defaultValue": "0",
-            "unit": "WattHour",
-            "access": "RO"
-        },
-        {
-            "id": "stationPowerTotal",
-            "address": 358,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "stationPowerTotal",
-            "defaultValue": "0",
-            "unit": "KiloWatt",
-            "access": "RO"
         },
         {
             "id": "remoteControllerLifeBit",

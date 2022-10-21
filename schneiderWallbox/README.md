@@ -1,10 +1,10 @@
-# Schneider
+# Schneider Wallbox
 
-nymea plug-in for EV-chargers from Schneider.
+Nymea plug-in for EV-chargers from Schneider.
 
 ## Supported Things
 
-* Eco 2.0
+* EV-link
 	* Eneable/disable charging
 	* Set charging current
 	* Get charging time
