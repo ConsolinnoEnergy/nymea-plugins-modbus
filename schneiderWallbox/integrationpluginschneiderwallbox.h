@@ -47,7 +47,7 @@ class IntegrationPluginSchneiderWallbox : public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginschneiderwallbox.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginschneiderWallbox.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
