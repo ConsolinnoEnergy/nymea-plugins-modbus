@@ -28,46 +28,46 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSCHNEIDER_H
-#define INTEGRATIONPLUGINSCHNEIDER_H
+#ifndef INTEGRATIONPLUGINSCHNEIDERWALLBOX_H
+#define INTEGRATIONPLUGINSCHNEIDERWALLBOX_H
 
 #include <integrations/integrationplugin.h>
-#include <plugintimer.h>
+#include "extern-plugininfo.h"
 
-#include "schneidermodbustcpconnection.h"
+#include "schneiderwallboxmodbustcpconnection.h"
 #include "schneiderwallbox.h"
 
+#include <QObject>
+#include <QHostAddress>
 
-class IntegrationPluginSchneider : public IntegrationPlugin
+class NetworkDeviceMonitor;
+class PluginTimer;
+
+class IntegrationPluginSchneiderWallbox : public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginschneider.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginschneiderwallbox.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit IntegrationPluginSchneider();
-
-    void init() override;
-
+    explicit IntegrationPluginSchneiderWallbox();
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
-
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
-
     void executeAction(ThingActionInfo *info) override;
 
 private:
+    QHash<Thing*, SchneiderWallbox *> m_schneiderDevices;
+    QHash<Thing*, NetworkDeviceMonitor*> m_monitors;
     PluginTimer *m_pluginTimer = nullptr;
 
-    QHash<ThingId, SchneiderWallbox *> m_schneiderDevices;
-
-    void setCpwState(Thing *thing, SchneiderModbusTcpConnection::CPWState state);
-    void setLastChargeStatus(Thing *thing, SchneiderModbusTcpConnection::LastChargeStatus status);
+    void setCpwState(Thing *thing, SchneiderWallboxModbusTcpConnection::CPWState state);
+    void setLastChargeStatus(Thing *thing, SchneiderWallboxModbusTcpConnection::LastChargeStatus status);
     void setCurrentPower(Thing *thing, double currentPower);
     void setPhaseCount(Thing *thing, quint16 phaseCount);
     void setErrorMessage(Thing *thing, quint32 errorBits);
 };
 
-#endif // INTEGRATIONPLUGINSCHNEIDER_H
+#endif // INTEGRATIONPLUGINSCHNEIDERWALLBOX_H

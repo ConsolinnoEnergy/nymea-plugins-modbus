@@ -1,56 +1,40 @@
 #include "schneiderwallbox.h"
 #include "extern-plugininfo.h"
 
-SchneiderWallbox::SchneiderWallbox(SchneiderModbusTcpConnection *modbusTcpConnection, quint16 slaveId, QObject *parent) :
+SchneiderWallbox::SchneiderWallbox(SchneiderWallboxModbusTcpConnection *modbusTcpConnection, QObject *parent) :
     QObject{parent},
-    m_modbusTcpConnection{modbusTcpConnection},
-    m_slaveId{slaveId}
+    m_modbusTcpConnection{modbusTcpConnection}
 {
-    connect(modbusTcpConnection, &SchneiderModbusTcpConnection::cpwStateChanged, this, [this](SchneiderModbusTcpConnection::CPWState cpwState){
+    connect(modbusTcpConnection, &SchneiderWallboxModbusTcpConnection::cpwStateChanged, this, [this](SchneiderWallboxModbusTcpConnection::CPWState cpwState){
         m_cpwState = cpwState;
     });
-    connect(modbusTcpConnection, &SchneiderModbusTcpConnection::remoteCommandStatusChanged, this, [this](quint16 remoteCommandStatus){
+    connect(modbusTcpConnection, &SchneiderWallboxModbusTcpConnection::remoteCommandStatusChanged, this, [this](quint16 remoteCommandStatus){
         m_remoteCommandStatus = remoteCommandStatus;
     });
-    connect(modbusTcpConnection, &SchneiderModbusTcpConnection::maxIntensitySocketChanged, this, [this](quint16 maxIntensitySocket){
+    connect(modbusTcpConnection, &SchneiderWallboxModbusTcpConnection::maxIntensitySocketChanged, this, [this](quint16 maxIntensitySocket){
         m_chargeCurrent = maxIntensitySocket;
     });
-    connect(modbusTcpConnection, &SchneiderModbusTcpConnection::remoteControllerLifeBitChanged, this, [this](quint16 remoteControllerLifeBit){
+    connect(modbusTcpConnection, &SchneiderWallboxModbusTcpConnection::remoteControllerLifeBitChanged, this, [this](quint16 remoteControllerLifeBit){
         qCDebug(dcSchneiderElectric()) << "Life bit register changed to" << remoteControllerLifeBit;
         m_recievedLifeBitRegisterValue = remoteControllerLifeBit;
     });
-    connect(modbusTcpConnection, &SchneiderModbusTcpConnection::stationIntensityPhaseXChanged, this, [this](double stationIntensityPhaseX){
+    connect(modbusTcpConnection, &SchneiderWallboxModbusTcpConnection::stationIntensityPhaseXChanged, this, [this](double stationIntensityPhaseX){
         m_stationIntensityPhaseX = stationIntensityPhaseX;
     });
-    connect(modbusTcpConnection, &SchneiderModbusTcpConnection::stationIntensityPhase2Changed, this, [this](double stationIntensityPhase2){
+    connect(modbusTcpConnection, &SchneiderWallboxModbusTcpConnection::stationIntensityPhase2Changed, this, [this](double stationIntensityPhase2){
         m_stationIntensityPhase2 = stationIntensityPhase2;
     });
-    connect(modbusTcpConnection, &SchneiderModbusTcpConnection::stationIntensityPhase3Changed, this, [this](double stationIntensityPhase3){
+    connect(modbusTcpConnection, &SchneiderWallboxModbusTcpConnection::stationIntensityPhase3Changed, this, [this](double stationIntensityPhase3){
         m_stationIntensityPhase3 = stationIntensityPhase3;
     });
-    connect(modbusTcpConnection, &SchneiderModbusTcpConnection::degradedModeChanged, this, [this](quint16 degradedMode){
+    connect(modbusTcpConnection, &SchneiderWallboxModbusTcpConnection::degradedModeChanged, this, [this](quint16 degradedMode){
         m_degradedMode = degradedMode;
     });
 }
 
-// When deleting the object, make sure to stop charging and end remote mode.
+// When deleting the object, make sure to end remote mode.
 SchneiderWallbox::~SchneiderWallbox()
 {
-    if (m_chargeCurrent != 0) {
-        qCDebug(dcSchneiderElectric()) << "Device max current:" << m_chargeCurrent <<", sending modbus command current: 0";
-        QModbusReply *reply = m_modbusTcpConnection->setMaxIntensitySocket(0);
-        if (!reply) {
-            qCWarning(dcSchneiderElectric()) << "Sending max intensity socket failed because the reply could not be created.";
-            m_errorOccured = true;
-            return;
-        }
-        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
-            qCWarning(dcSchneiderElectric()) << "Modbus reply error occurred while sending max intensity socket" << error << reply->errorString();
-            emit reply->finished(); // To make sure it will be deleted
-        });
-    }
-
     if (m_recievedLifeBitRegisterValue != 2) {
         qCDebug(dcSchneiderElectric()) << "Terminating remote mode, sending life bit 2.";
         QModbusReply *reply = m_modbusTcpConnection->setRemoteControllerLifeBit(2);
@@ -66,19 +50,14 @@ SchneiderWallbox::~SchneiderWallbox()
         });
     }
 
-    qCDebug(dcSchneiderElectric()) << "Deleting SchneiderWallbox object for device with address" << m_modbusTcpConnection->hostAddress() << "and slaveId" << m_slaveId;
+    qCDebug(dcSchneiderElectric()) << "Deleting SchneiderWallbox object for device with address" << m_modbusTcpConnection->hostAddress();
     delete m_modbusTcpConnection;
 }
 
 
-SchneiderModbusTcpConnection *SchneiderWallbox::modbusTcpConnection()
+SchneiderWallboxModbusTcpConnection *SchneiderWallbox::modbusTcpConnection()
 {
     return m_modbusTcpConnection;
-}
-
-quint16 SchneiderWallbox::slaveId() const
-{
-    return m_slaveId;
 }
 
 void SchneiderWallbox::update()
@@ -111,11 +90,14 @@ void SchneiderWallbox::update()
     qCDebug(dcSchneiderElectric()) << "Charge current limit set point:" << m_chargeCurrentSetpoint;
     qCDebug(dcSchneiderElectric()) << "Received charge current limit:" << m_chargeCurrent;
     qCDebug(dcSchneiderElectric()) << "Phase count:" << m_phaseCount;
-    qCDebug(dcSchneiderElectric()) << "Current power:" << m_currentPower << " (in ampere:" << (m_currentPower / 230) << ")";
+    qCDebug(dcSchneiderElectric()) << "PhaseX:" << m_stationIntensityPhaseX;
+    qCDebug(dcSchneiderElectric()) << "Phase2:" << m_stationIntensityPhase2;
+    qCDebug(dcSchneiderElectric()) << "Phase3:" << m_stationIntensityPhase3;
+    qCDebug(dcSchneiderElectric()) << "Current power (calculated from phase current):" << m_currentPower << " (in ampere:" << (m_currentPower / 230) << ")";
 
     int lifeBitSend{0};
     bool sendCommand{false};
-    SchneiderModbusTcpConnection::RemoteCommand remoteCommandSend{SchneiderModbusTcpConnection::RemoteCommandAcknowledgeCommand};
+    SchneiderWallboxModbusTcpConnection::RemoteCommand remoteCommandSend{SchneiderWallboxModbusTcpConnection::RemoteCommandAcknowledgeCommand};
     quint16 chargeCurrentSetpointSend{0};
     if (m_charging) {
         qCDebug(dcSchneiderElectric()) << "Wallbox is charging.";
@@ -129,11 +111,11 @@ void SchneiderWallbox::update()
         }
 
         // Check if station is available, set available if it is not.
-        if (m_cpwState == SchneiderModbusTcpConnection::CPWStateEvseNotAvailable) {
+        if (m_cpwState == SchneiderWallboxModbusTcpConnection::CPWStateEvseNotAvailable) {
             qCDebug(dcSchneiderElectric()) << "Device state is ’EVSE not available’. Setting it to ’EVSE available’.";
             if (!m_acknowledgeCommand) {    // Wait till last command is acknowledged before sending next command.
                 sendCommand = true;
-                remoteCommandSend = SchneiderModbusTcpConnection::RemoteCommandSetEvcseAvailable;
+                remoteCommandSend = SchneiderWallboxModbusTcpConnection::RemoteCommandSetEvcseAvailable;
             }
         }
 
@@ -185,8 +167,8 @@ void SchneiderWallbox::update()
             m_errorOccured = true;
             // Try to fix it by sending RemoteCommandAcknowledgeCommand.
             sendCommand = true;
-        } else if (static_cast<SchneiderModbusTcpConnection::RemoteCommand>(m_remoteCommandStatus) == m_lastCommand) {
-            if (m_lastCommand == SchneiderModbusTcpConnection::RemoteCommandAcknowledgeCommand) {
+        } else if (static_cast<SchneiderWallboxModbusTcpConnection::RemoteCommand>(m_remoteCommandStatus) == m_lastCommand) {
+            if (m_lastCommand == SchneiderWallboxModbusTcpConnection::RemoteCommandAcknowledgeCommand) {
                 m_acknowledgeCommand = false;
             } else {
                 // At this point, no other command should have been sent, so remoteCommandSend still has the initial value of RemoteCommandAcknowledgeCommand.
@@ -196,6 +178,7 @@ void SchneiderWallbox::update()
     }
 
     if (sendCommand) {
+        qCDebug(dcSchneiderElectric()) << "Sending remote command:" << remoteCommandSend;
         QModbusReply *reply = m_modbusTcpConnection->setRemoteCommand(remoteCommandSend);
         if (!reply) {
             qCWarning(dcSchneiderElectric()) << "Sending remote command failed because the reply could not be created.";
