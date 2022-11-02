@@ -1,6 +1,6 @@
 include(../plugins.pri)
 
-MODBUS_CONNECTIONS=schneiderwallbox-registers.json
+MODBUS_CONNECTIONS += schneiderwallbox-registers.json
 include(../modbus.pri)
 
 SOURCES += \

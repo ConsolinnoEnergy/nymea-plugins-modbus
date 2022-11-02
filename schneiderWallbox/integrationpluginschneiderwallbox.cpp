@@ -57,7 +57,6 @@ void IntegrationPluginSchneiderWallbox::discoverThings(ThingDiscoveryInfo *info)
     qCDebug(dcSchneiderElectric()) << "Starting network discovery...";
     NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, info, [=](){
-        ThingDescriptors descriptors;
         qCDebug(dcSchneiderElectric()) << "Discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "devices";
         foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
             qCDebug(dcSchneiderElectric()) << networkDeviceInfo;
@@ -263,46 +262,47 @@ void IntegrationPluginSchneiderWallbox::executeAction(ThingActionInfo *info)
     Thing *thing = info->thing();
     Action action = info->action();
 
+    SchneiderWallboxModbusTcpConnection *connection = m_schneiderDevices.value(thing)->modbusTcpConnection();
+    if (!connection) {
+        qCWarning(dcSchneiderElectric()) << "Modbus connection not available";
+        info->finish(Thing::ThingErrorHardwareFailure);
+        return;
+    }
 
-    if (thing->thingClassId() == schneiderEVlinkThingClassId) {
-        SchneiderWallbox *device = m_schneiderDevices.value(thing);
+    if (!connection->connected()) {
+        qCWarning(dcSchneiderElectric()) << "Could not execute action. The modbus connection is currently not available.";
+        info->finish(Thing::ThingErrorHardwareNotAvailable);
+        return;
+    }
 
-        if (!device->modbusTcpConnection()->connected()) {
-            qCWarning(dcSchneiderElectric()) << "Could not execute action. The modbus connection is currently not available.";
-            info->finish(Thing::ThingErrorHardwareNotAvailable);
-            return;
-        }
 
-        bool success = false;
-        if (action.actionTypeId() == schneiderEVlinkPowerActionTypeId) {
-            bool onOff = action.paramValue(schneiderEVlinkPowerActionPowerParamTypeId).toBool();
-            success = device->enableOutput(onOff);
-            thing->setStateValue(schneiderEVlinkPowerStateTypeId, onOff);
-            if (onOff) {
-                // You can turn the wallbox on without specifying a charge current. The thing object saves the last current setpoint, the app displays that.
-                // Need to get that saved value and give it to schneiderwallbox.cpp so the displayed value matches the actual setpoint.
-                int ampereValue = thing->stateValue(schneiderEVlinkMaxChargingCurrentStateTypeId).toUInt();
-                success = device->setMaxAmpere(ampereValue);
-            }
-        } else if(action.actionTypeId() == schneiderEVlinkMaxChargingCurrentActionTypeId) {
-            int ampereValue = action.paramValue(schneiderEVlinkMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
+    SchneiderWallbox *device = m_schneiderDevices.value(thing);
+    ActionType actionType = thing->thingClass().actionTypes().findById(info->action().actionTypeId());
+    bool success = false;
+    if (actionType.name() == "power") {
+        bool onOff = action.paramValue(actionType.id()).toBool();
+        success = device->enableOutput(onOff);
+        thing->setStateValue("power", onOff);
+        if (onOff) {
+            // You can turn the wallbox on without specifying a charge current. The thing object saves the last current setpoint, the app displays that.
+            // Need to get that saved value and give it to schneiderwallbox.cpp so the displayed value matches the actual setpoint.
+            int ampereValue = thing->stateValue("maxChargingCurrent").toUInt();
             success = device->setMaxAmpere(ampereValue);
-            thing->setStateValue(schneiderEVlinkMaxChargingCurrentStateTypeId, ampereValue);
-        } else {
-            qCWarning(dcSchneiderElectric()) << "Unhandled ActionTypeId:" << action.actionTypeId();
-            return info->finish(Thing::ThingErrorActionTypeNotFound);
         }
-
-        if (success) {
-            info->finish(Thing::ThingErrorNoError);
-        } else {
-            qCWarning(dcSchneiderElectric()) << "Action execution finished with error.";
-            info->finish(Thing::ThingErrorHardwareFailure);
-            return;
-        }
+    } else if (actionType.name() == "maxChargingCurrent") {
+        int ampereValue = action.paramValue(actionType.id()).toUInt();
+        success = device->setMaxAmpere(ampereValue);
+        thing->setStateValue("maxChargingCurrent", ampereValue);
     } else {
-        qCWarning(dcSchneiderElectric()) << "Execute action, unhandled device class" << thing->thingClass();
-        info->finish(Thing::ThingErrorThingClassNotFound);
+        Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+    }
+
+    if (success) {
+        info->finish(Thing::ThingErrorNoError);
+    } else {
+        qCWarning(dcSchneiderElectric()) << "Action execution finished with error.";
+        info->finish(Thing::ThingErrorHardwareFailure);
+        return;
     }
 }
 
