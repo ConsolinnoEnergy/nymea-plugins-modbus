@@ -1,0 +1,145 @@
+{
+    "name": "Sungrow",
+        "displayName": "Sungrow",
+        "id": "93e398ab-0744-4edc-9d22-b748c952c717",
+        "vendors": [
+        {
+            "name": "sungrow",
+            "displayName": "Sungrow",
+            "id": "c2ccee75-e82e-49c7-a7dd-54267c6044a6",
+            "thingClasses": [
+                {
+                    "name": "sungrowInverterTCP",
+                    "displayName": "Sungrow Inverter (Modbus TCP)",
+                    "id": "434bcb0a-2f56-490f-bf46-52fbb8a1008e",
+                    "createMethods": ["discovery", "user"],
+                    "interfaces": ["solarinverter", "connectable"],
+                    "providedInterfaces": [ "solarinverter"],
+                    "paramTypes": [
+                        {
+                            "id": "6fbbf6a1-8735-4194-9b51-db21b5db9406",
+                            "name":"macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "inputType": "MacAddress",
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "7a1b1f93-8a8a-42cc-bdcc-b55994da0942",
+                            "name":"port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502
+                        },
+                        {
+                            "id": "a7785d20-7fdf-4d63-8921-84b6e5956ae3",
+                            "name":"slaveId",
+                            "displayName": "Slave ID",
+                            "type": "int",
+                            "defaultValue": 1
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "c225c9d1-b714-4b94-9053-9b13fdc9fd43",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "e9250905-4b2c-45a8-af91-295aead3650e",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "2edc9808-5778-451d-b435-44355f48d923",
+                            "name": "totalEnergyProduced",
+                            "displayName": "AC energy",
+                            "displayNameEvent": "AC energy changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        }
+                    ],
+                    "actionTypes": [ ]
+                },
+                {
+                    "name": "sungrowInverterRTU",
+                    "displayName": "Sungrow Inverter (Modbus RTU)",
+                    "id": "57325de3-b712-4939-b1e8-4bb3b1ca6645",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["solarinverter", "connectable"],
+                    "providedInterfaces": [ "solarinverter"],
+                    "discoveryParamTypes": [
+                        {
+                            "id": "e8a4a520-e473-424e-a361-009bc7d9d2b8",
+                            "name": "slaveAddress",
+                            "displayName": "Slave address",
+                            "type": "int",
+                            "defaultValue": 1
+                        }
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "b4ac6a6b-3ca7-4f15-b3dc-b717ac408c91",
+                            "name": "modbusMasterUuid",
+                            "displayName": "Modbus RTU master",
+                            "type": "QUuid",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "e7c650d0-7934-4499-ae8c-9b5afd03d57a",
+                            "name": "slaveAddress",
+                            "displayName": "Modbus slave address",
+                            "type": "uint",
+                            "defaultValue": 1
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "f2867856-5d68-4dcd-9129-f2bf7211740e",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "0d835d47-6ae2-4ba4-b507-0d3ca3fa3fb4",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "d464ce36-af37-4d07-825a-3f41dd92e415",
+                            "name": "totalEnergyProduced",
+                            "displayName": "AC energy",
+                            "displayNameEvent": "AC energy changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        }
+                    ],
+                    "actionTypes": [ ]
+                }
+            ]
+        }
+    ]
+}
+

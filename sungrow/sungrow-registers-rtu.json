@@ -1,0 +1,46 @@
+{
+    "className": "Sungrow",
+    "protocol": "RTU",
+    "endianness": "LittleEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "deviceTypeCode",
+    "blocks": [],
+    "registers": [
+        {
+            "id": "deviceTypeCode",
+            "address": 4999,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "init",
+            "description": "Device type code",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "totalPowerYields",
+            "address": 5003,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Total power yields",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "access": "RO"
+        },
+        {
+            "id": "activePower",
+            "address": 5030,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Active power",
+            "defaultValue": "0",
+            "unit": "W",
+            "access": "RO"
+        }
+    ]
+}
+
