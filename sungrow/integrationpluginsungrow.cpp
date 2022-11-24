@@ -147,8 +147,8 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
         });
 
-        uint port = thing->paramValue("port").toUInt();
-        quint16 slaveId = thing->paramValue("slaveId").toUInt();
+        uint port = thing->paramValue(sungrowInverterTCPThingPortParamTypeId).toUInt();
+        quint16 slaveId = thing->paramValue(sungrowInverterTCPThingSlaveIdParamTypeId).toUInt();
         SungrowModbusTcpConnection *connection = new SungrowModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
         connect(info, &ThingSetupInfo::aborted, connection, &SungrowModbusTcpConnection::deleteLater);
 
