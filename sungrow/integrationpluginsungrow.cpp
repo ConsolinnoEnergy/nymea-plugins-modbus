@@ -119,6 +119,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
     Thing *thing = info->thing();
     qCDebug(dcSungrow()) << "Setup" << thing << thing->params();
 
+    /*
     if (thing->thingClassId() == sungrowInverterTCPThingClassId) {
 
         // Handle reconfigure
@@ -201,6 +202,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
 
         return;
     }
+    */
 
     if (thing->thingClassId() == sungrowInverterRTUThingClassId) {
 

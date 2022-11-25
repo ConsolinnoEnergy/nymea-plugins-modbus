@@ -1,6 +1,6 @@
 {
     "className": "Sungrow",
-    "protocol": "TCP",
+    "protocol": "BOTH",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 15,
     "checkReachableRegister": "deviceTypeCode",
