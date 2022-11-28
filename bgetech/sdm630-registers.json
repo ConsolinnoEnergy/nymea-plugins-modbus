@@ -3,7 +3,7 @@
     "protocol": "RTU",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 15,
-    "checkReachableRegister": "totalCurrentPower",
+    "checkReachableRegister": "voltagePhaseA",
     "registers": [
         {
             "id": "totalCurrentPower",

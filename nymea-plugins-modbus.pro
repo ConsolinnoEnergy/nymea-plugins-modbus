@@ -17,12 +17,16 @@ PLUGIN_DIRS = \
     mtec                    \
     mypv                    \
     phoenixconnect          \
+    schneiderWallbox        \
+    schneiderIEM            \
     schrack                 \
     stiebeleltron           \
     sunspec                 \
+    technivolt              \
     unipi                   \
     webasto                 \
-
+    e3dc                    
+    
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
     COMPILER_MAJOR_VERSION = $$str_member($$COMPILER_VERSION)
