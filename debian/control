@@ -167,16 +167,6 @@ Description: nymea.io plugin for Mennekes wallboxes
  This package contains the nymea.io plugin for Mennekes wallboxes
 
 
-Package: nymea-plugin-mennekes
-Architecture: any
-Section: libs
-Depends: ${shlibs:Depends},
-         ${misc:Depends},
-Description: nymea integration plugin for Mennekes Amtron wallboxes
- This package contains the nymea integration plugin for wallboxes made
- by Mennekes.
-
-
 Package: nymea-plugin-modbuscommander
 Architecture: any
 Section: libs
