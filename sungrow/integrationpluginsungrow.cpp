@@ -91,7 +91,7 @@ void IntegrationPluginSungrow::discoverThings(ThingDiscoveryInfo *info)
             return;
         }
 
-        uint slaveAddress = info->params().paramValue(sungrowInverterRTUThingSlaveAddressParamTypeId).toUInt();
+        uint slaveAddress = info->params().paramValue(sungrowInverterRTUDiscoverySlaveAddressParamTypeId).toUInt();
         if (slaveAddress > 247 || slaveAddress == 0) {
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The Modbus slave address must be a value between 1 and 247."));
             return;
