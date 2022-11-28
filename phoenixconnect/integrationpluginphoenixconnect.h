@@ -60,6 +60,9 @@ private slots:
     void updatePhaseCount(Thing *thing);
 
 private:
+    void evaluateChargingState(Thing *thing);
+
+private:
     QHash<Thing*, PhoenixModbusTcpConnection*> m_connections;
     QHash<Thing*, NetworkDeviceMonitor*> m_monitors;
     PluginTimer *m_pluginTimer = nullptr;

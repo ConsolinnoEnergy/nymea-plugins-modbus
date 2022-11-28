@@ -1,20 +1,23 @@
-# Mennekes
+# MENNEKES
 
-nymea plug-in for EV-chargers from Mennekes.
+Connects nymea to a MENNEKES wallboxes. Currently supported models are:
 
-## Supported Things
+* Amtron Xtra
+* Amtron Premium
+* Amtron Professional
+* Amtron Charge Control
+* Amedio Professional
 
-* Eco 2.0
-	* Eneable/disable charging
-	* Set charging current
-	* Get charging time
-	* Get charging status
-	* Get charging errors
+# Requirements
 
-## Requirements
+nymea uses the Modbus TCP connection to connect to the wallbox.
 
-Make sure to enable the Network interface in your Mennekes device,
-have a look in the Mennekes manual or get help from the Mennekes support.
+> The Modbus TCP connection needs to be enabled manually on the Wallbox.
 
-## More 
-https://www.chargeupyourday.de/
+For the Amtron Charge Control and Premium models, log in to the wallbox's web interface as operator. The login credentials can be obtained
+from the user manual of the wallbox. Once logged in, navigate to the Load Management tab and set the Modbus TCP Server to On.
+
+## More
+
+It is highly recommended to update the wallbox to the latest firmware which can be downloaded from [here](https://www.chargeupyourday.de/services/software-updates/).
+

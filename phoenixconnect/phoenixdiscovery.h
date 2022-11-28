@@ -28,42 +28,49 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HUAWEIFUSIONSOLARDISCOVERY_H
-#define HUAWEIFUSIONSOLARDISCOVERY_H
+#ifndef AMTRONECUDISCOVERY_H
+#define AMTRONECUDISCOVERY_H
 
 #include <QObject>
+#include <QTimer>
 
 #include <network/networkdevicediscovery.h>
 
-#include "huaweifusionsolar.h"
+#include "phoenixmodbustcpconnection.h"
 
-class HuaweiFusionSolarDiscovery : public QObject
+class PhoenixDiscovery : public QObject
 {
     Q_OBJECT
 public:
-    explicit HuaweiFusionSolarDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 502, quint16 modbusAddress = 1, QObject *parent = nullptr);
+    explicit PhoenixDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    struct Result {
+        QString firmwareVersion;
+        QString model;
+        QString serialNumber;
+        NetworkDeviceInfo networkDeviceInfo;
+    };
 
     void startDiscovery();
 
-    NetworkDeviceInfos discoveryResults() const;
+    QList<Result> discoveryResults() const;
 
 signals:
     void discoveryFinished();
 
 private:
     NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
-    quint16 m_port;
-    quint16 m_modbusAddress;
 
+    QTimer m_gracePeriodTimer;
     QDateTime m_startDateTime;
-    QList<HuaweiFusionSolar *> m_connections;
-    NetworkDeviceInfos m_discoveryResults;
+
+    QList<PhoenixModbusTcpConnection *> m_connections;
+
+    QList<Result> m_discoveryResults;
 
     void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
-    void cleanupConnection(HuaweiFusionSolar *connection);
+    void cleanupConnection(PhoenixModbusTcpConnection *connection);
 
     void finishDiscovery();
-
 };
 
-#endif // HUAWEIFUSIONSOLARDISCOVERY_H
+#endif // AMTRONECUDISCOVERY_H

@@ -28,42 +28,48 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HUAWEIFUSIONSOLARDISCOVERY_H
-#define HUAWEIFUSIONSOLARDISCOVERY_H
+#ifndef AMTRONHCC3DISCOVERY_H
+#define AMTRONHCC3DISCOVERY_H
 
 #include <QObject>
+#include <QTimer>
 
 #include <network/networkdevicediscovery.h>
 
-#include "huaweifusionsolar.h"
+#include "amtronhcc3modbustcpconnection.h"
 
-class HuaweiFusionSolarDiscovery : public QObject
+class AmtronHCC3Discovery : public QObject
 {
     Q_OBJECT
 public:
-    explicit HuaweiFusionSolarDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 502, quint16 modbusAddress = 1, QObject *parent = nullptr);
+    explicit AmtronHCC3Discovery(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    typedef struct AmtronDiscoveryResult {
+        QString wallboxName;
+        QString serialNumber;
+        NetworkDeviceInfo networkDeviceInfo;
+    } AmtronDiscoveryResult;
 
     void startDiscovery();
 
-    NetworkDeviceInfos discoveryResults() const;
+    QList<AmtronDiscoveryResult> discoveryResults() const;
 
 signals:
     void discoveryFinished();
 
 private:
     NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
-    quint16 m_port;
-    quint16 m_modbusAddress;
 
+    QTimer m_gracePeriodTimer;
     QDateTime m_startDateTime;
-    QList<HuaweiFusionSolar *> m_connections;
-    NetworkDeviceInfos m_discoveryResults;
+
+    QList<AmtronHCC3ModbusTcpConnection *> m_connections;
+
+    QList<AmtronDiscoveryResult> m_discoveryResults;
 
     void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
-    void cleanupConnection(HuaweiFusionSolar *connection);
+    void cleanupConnection(AmtronHCC3ModbusTcpConnection *connection);
 
     void finishDiscovery();
-
 };
 
-#endif // HUAWEIFUSIONSOLARDISCOVERY_H
+#endif // AMTRONHCC3DISCOVERY_H
