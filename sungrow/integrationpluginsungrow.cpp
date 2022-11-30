@@ -130,7 +130,6 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
     Thing *thing = info->thing();
     qCDebug(dcSungrow()) << "Setup" << thing << thing->params();
 
-    /*
     if (thing->thingClassId() == sungrowInverterTCPThingClassId) {
 
         // Handle reconfigure
@@ -161,6 +160,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
 
         uint port = thing->paramValue(sungrowInverterTCPThingPortParamTypeId).toUInt();
         quint16 slaveId = thing->paramValue(sungrowInverterTCPThingSlaveIdParamTypeId).toUInt();
+
         SungrowModbusTcpConnection *connection = new SungrowModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
         connect(info, &ThingSetupInfo::aborted, connection, &SungrowModbusTcpConnection::deleteLater);
 
@@ -213,7 +213,6 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
 
         return;
     }
-    */
 
     if (thing->thingClassId() == sungrowInverterRTUThingClassId) {
 
