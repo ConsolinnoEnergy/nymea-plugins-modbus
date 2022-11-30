@@ -32,6 +32,8 @@
 #define INTEGRATIONPLUGINSUNGROW_H
 
 #include <integrations/integrationplugin.h>
+#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <plugintimer.h>
 
 #include "extern-plugininfo.h"
 #include "sungrowmodbustcpconnection.h"
@@ -39,9 +41,9 @@
 
 #include <QObject>
 #include <QHostAddress>
+#include <QTimer>
 
 class NetworkDeviceMonitor;
-class PluginTimer;
 
 class IntegrationPluginSungrow: public IntegrationPlugin
 {
@@ -52,7 +54,7 @@ class IntegrationPluginSungrow: public IntegrationPlugin
 
 public:
     explicit IntegrationPluginSungrow();
-
+    void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;

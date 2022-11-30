@@ -33,19 +33,30 @@
 
 #include <network/networkdevicediscovery.h>
 #include <types/param.h>
-#include <plugintimer.h>
 
 #include <QDebug>
 #include <QStringList>
 #include <QJsonDocument>
 #include <QNetworkInterface>
 
-#include <hardware/modbus/modbusrtuhardwareresource.h>
-#include <hardwaremanager.h>
-
 IntegrationPluginSungrow::IntegrationPluginSungrow()
 {
 
+}
+
+void IntegrationPluginSungrow::init()
+{
+    connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=] (const QUuid &modbusUuid){
+        qCDebug(dcSungrow()) << "Modbus RTU master has been removed" << modbusUuid.toString();
+
+        foreach (Thing *thing, myThings()) {
+            if (thing->paramValue(sungrowInverterRTUThingModbusMasterUuidParamTypeId) == modbusUuid) {
+                qCWarning(dcSungrow()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
+                thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, false);
+                delete m_rtuConnections.take(thing);
+            }
+        }
+    });
 }
 
 void IntegrationPluginSungrow::discoverThings(ThingDiscoveryInfo *info)
@@ -222,37 +233,15 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
 
         if (m_rtuConnections.contains(thing)) {
             qCDebug(dcSungrow()) << "Already have a Sungrow connection for this thing. Cleaning up old connection and initializing new one...";
-            delete m_rtuConnections.take(thing);
+            m_rtuConnections.take(thing)->deleteLater();
         }
 
-        ModbusRtuMaster *rtuMaster = hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid);
-        SungrowModbusRtuConnection *connection = new SungrowModbusRtuConnection(rtuMaster, address, this);
-
-        connect(connection, &SungrowModbusRtuConnection::reachableChanged, thing, [this, thing, connection](bool reachable){
-            qCDebug(dcSungrow()) << thing->name() << "reachable changed" << reachable;
-            if (reachable) {
-                // Connected true will be set after successfull init
-                connection->initialize();
+        SungrowModbusRtuConnection *connection = new SungrowModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
+        connect(connection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
+            if (connected) {
+                qCDebug(dcSungrow()) << "Modbus RTU resource connected" << thing << connection->modbusRtuMaster()->serialPort();
             } else {
-                thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, false);
-            }
-        });
-
-        connect(connection, &SungrowModbusRtuConnection::initializationFinished, info, [this, thing, connection, info](bool success){
-            if (success) {
-                qCDebug(dcSungrow()) << "Sungrow inverter initialized.";
-                m_rtuConnections.insert(thing, connection);
-                info->finish(Thing::ThingErrorNoError);
-            } else {
-                connection->deleteLater();
-                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Could not initialize the communication with the inverter."));
-            }
-        });
-
-        connect(connection, &SungrowModbusRtuConnection::initializationFinished, thing, [this, thing, connection](bool success){
-            if (success) {
-                thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, true);
-                connection->update();
+                qCWarning(dcSungrow()) << "Modbus RTU resource disconnected" << thing << connection->modbusRtuMaster()->serialPort();
             }
         });
 
@@ -260,6 +249,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
         connect(connection, &SungrowModbusRtuConnection::activePowerChanged, thing, [thing](quint32 activePower){
             qCDebug(dcSungrow()) << "Inverter power changed" << activePower << "W";
             thing->setStateValue(sungrowInverterRTUCurrentPowerStateTypeId, activePower);
+            thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, true);
         });
 
         connect(connection, &SungrowModbusRtuConnection::deviceTypeCodeChanged, thing, [thing](quint16 deviceTypeCode){
@@ -272,11 +262,9 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             thing->setStateValue(sungrowInverterRTUTotalEnergyProducedStateTypeId, totalEnergyProduced);
         });
 
-        connection->initialize();
-
         // FIXME: make async and check if this is really a sungrow
-
-        return;
+        m_rtuConnections.insert(thing, connection);
+        info->finish(Thing::ThingErrorNoError);
     }
 }
 
@@ -317,9 +305,6 @@ void IntegrationPluginSungrow::thingRemoved(Thing *thing)
         m_rtuConnections.take(thing)->deleteLater();
     }
 
-    // possible error: "myThings()" will only be empty when there are no things configured.
-    // So the timer is unregistered only when the last thing is removed, not when this thing
-    // is removed.
     if (myThings().isEmpty() && m_pluginTimer) {
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;

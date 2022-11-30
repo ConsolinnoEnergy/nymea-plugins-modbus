@@ -12,7 +12,7 @@
             "size": 1,
             "type": "uint16",
             "registerType": "inputRegister",
-            "readSchedule": "init",
+            "readSchedule": "update",
             "description": "Device type code",
             "defaultValue": "0",
             "access": "RO"
