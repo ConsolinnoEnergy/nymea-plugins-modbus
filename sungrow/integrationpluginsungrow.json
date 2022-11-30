@@ -62,8 +62,8 @@
                         {
                             "id": "2edc9808-5778-451d-b435-44355f48d923",
                             "name": "totalEnergyProduced",
-                            "displayName": "AC energy",
-                            "displayNameEvent": "AC energy changed",
+                            "displayName": "Total power yields",
+                            "displayNameEvent": "Total power yields changed",
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
@@ -128,8 +128,8 @@
                         {
                             "id": "d464ce36-af37-4d07-825a-3f41dd92e415",
                             "name": "totalEnergyProduced",
-                            "displayName": "AC energy",
-                            "displayNameEvent": "AC energy changed",
+                            "displayName": "Total power yields",
+                            "displayNameEvent": "Total power yields changed",
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
