@@ -21,6 +21,7 @@ PLUGIN_DIRS = \
     schneiderIEM            \
     schrack                 \
     stiebeleltron           \
+    sungrow                 \
     sunspec                 \
     technivolt              \
     unipi                   \

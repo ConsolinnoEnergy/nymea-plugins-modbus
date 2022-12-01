@@ -222,6 +222,15 @@ Description: nymea.io plugin for Stiebel Eltron heat pumps
   This package will install the nymea.io plugin for Stiebel Eltron heat pumps.
 
 
+Package: nymea-plugin-sungrow
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea.io plugin for Sungrow inverters
+  This package will install the nymea.io plugin for Sungrow inverters.
+
+
 Package: nymea-plugin-sunspec
 Architecture: any
 Depends: ${shlibs:Depends},
