@@ -70,6 +70,7 @@ void IntegrationPluginSungrow::discoverThings(ThingDiscoveryInfo *info)
         ThingClass thingClass = supportedThings().findById(info->thingClassId()); // TODO can this be done easier?
         qCDebug(dcSungrow()) << "Starting network discovery...";
         NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
+        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
         connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, info, [=](){
             qCDebug(dcSungrow()) << "Discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "devices";
             foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
