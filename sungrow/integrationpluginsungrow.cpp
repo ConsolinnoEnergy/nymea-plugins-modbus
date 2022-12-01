@@ -75,11 +75,25 @@ void IntegrationPluginSungrow::discoverThings(ThingDiscoveryInfo *info)
             foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
                 qCDebug(dcSungrow()) << networkDeviceInfo;
 
-                ThingClass thingClass = supportedThings().findById(info->thingClassId());
-                ParamTypeId macAddressParamType = thingClass.paramTypes().findByName("mac").id();
+                QString title;
+                if (networkDeviceInfo.hostName().isEmpty()) {
+                    title = networkDeviceInfo.address().toString();
+                } else {
+                    title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
+                }
 
-                ThingDescriptor descriptor(info->thingClassId(), thingClass.displayName(), networkDeviceInfo.address().toString());
-                descriptor.setParams({Param(macAddressParamType, networkDeviceInfo.macAddress())});
+                QString description;
+                if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
+                    description = networkDeviceInfo.macAddress();
+                } else {
+                    description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
+                }
+
+                ThingDescriptor descriptor(info->thingClassId(), title, description);
+                ParamList params;
+                params << Param(alphaConnectThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
+                params << Param(alphaConnectThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
 
                 // Check if we already have set up this device
                 Thing *existingThing = myThings().findByParams(descriptor.params());
