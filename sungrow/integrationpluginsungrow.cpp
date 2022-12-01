@@ -91,7 +91,6 @@ void IntegrationPluginSungrow::discoverThings(ThingDiscoveryInfo *info)
 
                 ThingDescriptor descriptor(info->thingClassId(), title, description);
                 ParamList params;
-                params << Param(sungrowInverterTCPThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
                 params << Param(sungrowInverterTCPThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
                 descriptor.setParams(params);
 
