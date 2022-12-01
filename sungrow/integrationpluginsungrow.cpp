@@ -67,7 +67,7 @@ void IntegrationPluginSungrow::discoverThings(ThingDiscoveryInfo *info)
             info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
             return;
         }
-
+        ThingClass thingClass = supportedThings().findById(info->thingClassId()); // TODO can this be done easier?
         qCDebug(dcSungrow()) << "Starting network discovery...";
         NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
         connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, info, [=](){
