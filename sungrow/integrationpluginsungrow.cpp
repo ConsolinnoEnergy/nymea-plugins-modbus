@@ -91,8 +91,8 @@ void IntegrationPluginSungrow::discoverThings(ThingDiscoveryInfo *info)
 
                 ThingDescriptor descriptor(info->thingClassId(), title, description);
                 ParamList params;
-                params << Param(alphaConnectThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
-                params << Param(alphaConnectThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                params << Param(sungrowThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
+                params << Param(sungrowThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
                 descriptor.setParams(params);
 
                 // Check if we already have set up this device
