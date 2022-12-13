@@ -127,81 +127,194 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         });
 
         // Handle property changed signals for inverter
+        // Check if this is the correct ragister for this value. Register "powerPv1" is alternative.
         connect(connection, &AzzurroModbusRtuConnection::activePowerOnGridChanged, thing, [thing](qint16 activePower){
             double activePowerConverted = activePower * 10;
-            qCDebug(dcAzzurro()) << "Inverter active power on grid changed" << activePowerConverted << "W";
+            qCDebug(dcAzzurro()) << "Inverter active power (activePowerOnGrid) changed" << activePowerConverted << "W";
             thing->setStateValue(azzurroInverterRTUCurrentPowerStateTypeId, activePowerConverted);
             thing->setStateValue(azzurroInverterRTUConnectedStateTypeId, true);
         });
 
         connect(connection, &AzzurroModbusRtuConnection::systemStatusChanged, thing, [thing](AzzurroModbusRtuConnection::SystemStatus systemStatus){
             qCDebug(dcAzzurro()) << "Inverter system status recieved" << systemStatus;
-            Q_UNUSED(thing)
+            Q_UNUSED(thing);
         });
 
         connect(connection, &AzzurroModbusRtuConnection::pvGenerationTotalChanged, thing, [thing](quint32 totalEnergyProduced){
-            double totalEnergyProducedConverted = totalEnergyProduced / 10.0
-            qCDebug(dcAzzurro()) << "Inverter total energy produced changed" << totalEnergyProducedConverted << "kWh";
+            double totalEnergyProducedConverted = totalEnergyProduced / 10.0;
+            qCDebug(dcAzzurro()) << "Inverter total energy produced (pvGenerationTotal) changed" << totalEnergyProducedConverted << "kWh";
             thing->setStateValue(azzurroInverterRTUTotalEnergyProducedStateTypeId, totalEnergyProducedConverted);
         });
 
 
         // Meter
-        connect(connection, &AzzurroModbusRtuConnection::powerMeterActivePowerChanged, thing, [this, thing](qint32 powerMeterActivePower){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiMeterThingClassId);
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccChanged, thing, [this, thing](qint16 currentPower){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                qCDebug(dcAzzurro()) << "Meter power changed" << powerMeterActivePower << "W";
-                // Note: > 0 -> return, < 0 consume
-                meterThings.first()->setStateValue(huaweiMeterCurrentPowerStateTypeId, -powerMeterActivePower);
+                double currentPowerConverted = currentPower * 10;
+                qCDebug(dcAzzurro()) << "Meter power (activePowerPcc) changed" << currentPowerConverted << "W";
+                // Check if sign is correct for power to grid and power from grid.
+                meterThings.first()->setStateValue(azzurroMeterCurrentPowerStateTypeId, currentPowerConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::energySellingTotalChanged, thing, [this, thing](quint32 totalEnergyProduced){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double totalEnergyProducedConverted = totalEnergyProduced / 10.0;
+                qCDebug(dcAzzurro()) << "Meter total energy produced (energySellingTotal) changed" << totalEnergyProducedConverted << "kWh";
+                meterThings.first()->setStateValue(azzurroMeterTotalEnergyProducedStateTypeId, totalEnergyProducedConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::energyPurchaseTotalChanged, thing, [this, thing](quint32 totalEnergyConsumed){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double totalEnergyConsumedConverted = totalEnergyConsumed / 10.0;
+                qCDebug(dcAzzurro()) << "Meter total energy consumed (energyPurchaseTotal) changed" << totalEnergyConsumedConverted << "kWh";
+                meterThings.first()->setStateValue(azzurroMeterTotalEnergyConsumedStateTypeId, totalEnergyConsumedConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::currentPccRChanged, thing, [this, thing](quint16 currentPhaseA){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double currentPhaseAConverted = currentPhaseA / 100.0;
+                qCDebug(dcAzzurro()) << "Meter current phase A (currentPccR) changed" << currentPhaseAConverted << "A";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPhaseAStateTypeId, currentPhaseAConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::currentPccSChanged, thing, [this, thing](quint16 currentPhaseB){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double currentPhaseBConverted = currentPhaseB / 100.0;
+                qCDebug(dcAzzurro()) << "Meter current phase B (currentPccS) changed" << currentPhaseBConverted << "A";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPhaseBStateTypeId, currentPhaseBConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::currentPccTChanged, thing, [this, thing](quint16 currentPhaseC){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double currentPhaseCConverted = currentPhaseC / 100.0;
+                qCDebug(dcAzzurro()) << "Meter current phase C (currentPccT) changed" << currentPhaseCConverted << "A";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPhaseCStateTypeId, currentPhaseCConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccRChanged, thing, [this, thing](quint16 currentPowerPhaseA){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double currentPowerPhaseAConverted = currentPowerPhaseA * 10;
+                qCDebug(dcAzzurro()) << "Meter current power phase A (activePowerPccR) changed" << currentPowerPhaseAConverted << "W";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseAStateTypeId, currentPowerPhaseAConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccSChanged, thing, [this, thing](quint16 currentPowerPhaseB){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double currentPowerPhaseBConverted = currentPowerPhaseB * 10;
+                qCDebug(dcAzzurro()) << "Meter current power phase B (activePowerPccS) changed" << currentPowerPhaseBConverted << "W";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseBStateTypeId, currentPowerPhaseBConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccTChanged, thing, [this, thing](quint16 currentPowerPhaseC){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double currentPowerPhaseCConverted = currentPowerPhaseC * 10;
+                qCDebug(dcAzzurro()) << "Meter current power phase C (activePowerPccT) changed" << currentPowerPhaseCConverted << "W";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseCStateTypeId, currentPowerPhaseCConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::voltagePhaseRChanged, thing, [this, thing](quint16 voltagePhaseA){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double voltagePhaseAConverted = voltagePhaseA / 10.0;
+                qCDebug(dcAzzurro()) << "Meter voltage phase A (voltagePhaseR) changed" << voltagePhaseAConverted << "V";
+                meterThings.first()->setStateValue(azzurroMeterVoltagePhaseAStateTypeId, voltagePhaseAConverted);
             }
         });
 
 
+        connect(connection, &AzzurroModbusRtuConnection::voltagePhaseSChanged, thing, [this, thing](quint16 voltagePhaseB){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double voltagePhaseBConverted = voltagePhaseB / 10.0;
+                qCDebug(dcAzzurro()) << "Meter voltage phase B (voltagePhaseS) changed" << voltagePhaseBConverted << "V";
+                meterThings.first()->setStateValue(azzurroMeterVoltagePhaseBStateTypeId, voltagePhaseBConverted);
+            }
+        });
+
+
+        connect(connection, &AzzurroModbusRtuConnection::voltagePhaseTChanged, thing, [this, thing](quint16 voltagePhaseC){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double voltagePhaseCConverted = voltagePhaseC / 10.0;
+                qCDebug(dcAzzurro()) << "Meter voltage phase C (voltagePhaseT) changed" << voltagePhaseCConverted << "V";
+                meterThings.first()->setStateValue(azzurroMeterVoltagePhaseCStateTypeId, voltagePhaseCConverted);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::frequencyGridChanged, thing, [this, thing](quint16 frequency){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                double frequencyConverted = frequency / 100.0;
+                qCDebug(dcAzzurro()) << "Meter frequency (frequencyGrid) changed" << frequencyConverted << "Hz";
+                meterThings.first()->setStateValue(azzurroMeterFrequencyStateTypeId, frequencyConverted);
+            }
+        });
+
+
+
         // Battery
-        connect(connection, &AzzurroModbusRtuConnection::lunaBattery1StatusChanged, thing, [this, thing](HuaweiModbusRtuConnection::BatteryDeviceStatus lunaBattery1Status){
-            qCDebug(dcAzzurro()) << "Battery 1 status changed" << lunaBattery1Status;
-            if (lunaBattery1Status != HuaweiModbusRtuConnection::BatteryDeviceStatusOffline) {
+        connect(connection, &AzzurroModbusRtuConnection::sohBat1Changed, thing, [this, thing](quint16 sohBat1){
+            qCDebug(dcAzzurro()) << "Battery 1 state of health (sohBat1) changed" << sohBat1;
+            if (sohBat1 > 0) {
                 // Check if w have to create the energy storage
-                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId);
+                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId);
                 bool alreadySetUp = false;
                 foreach (Thing *batteryThing, batteryThings) {
-                    if (batteryThing->paramValue(huaweiBatteryThingUnitParamTypeId).toUInt() == 1) {
+                    if (batteryThing->paramValue(azzurroBatteryThingUnitParamTypeId).toUInt() == 1) {
                         alreadySetUp = true;
                     }
                 }
 
                 if (!alreadySetUp) {
-                    qCDebug(dcAzzurro()) << "Set up huawei energy storage 1 for" << thing;
-                    ThingDescriptor descriptor(huaweiBatteryThingClassId, "Luna 2000 Battery", QString(), thing->id());
+                    qCDebug(dcAzzurro()) << "Set up azzurro energy storage 1 for" << thing;
+                    ThingDescriptor descriptor(azzurroBatteryThingClassId, "Azzurro battery", QString(), thing->id());
                     ParamList params;
-                    params.append(Param(huaweiBatteryThingUnitParamTypeId, 1));
+                    params.append(Param(azzurroBatteryThingUnitParamTypeId, 1));
                     descriptor.setParams(params);
                     emit autoThingsAppeared(ThingDescriptors() << descriptor);
                 }
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::lunaBattery1PowerChanged, thing, [this, thing](qint32 lunaBattery1Power){
+        connect(connection, &AzzurroModbusRtuConnection::powerBat1Changed, thing, [this, thing](quint16 powerBat1){
             qCDebug(dcAzzurro()) << "Battery 1 power changed" << lunaBattery1Power << "W";
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId).filterByParam(huaweiBatteryThingUnitParamTypeId, 1);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
             if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(huaweiBatteryCurrentPowerStateTypeId, lunaBattery1Power);
+                batteryThings.first()->setStateValue(azzurroBatteryCurrentPowerStateTypeId, lunaBattery1Power);
                 if (lunaBattery1Power < 0) {
-                    batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "discharging");
+                    batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "discharging");
                 } else if (lunaBattery1Power > 0) {
-                    batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "charging");
+                    batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "charging");
                 } else {
-                    batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "idle");
+                    batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "idle");
                 }
             }
         });
 
         connect(connection, &AzzurroModbusRtuConnection::lunaBattery1SocChanged, thing, [this, thing](float lunaBattery1Soc){
             qCDebug(dcAzzurro()) << "Battery 1 SOC changed" << lunaBattery1Soc << "%";
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId).filterByParam(huaweiBatteryThingUnitParamTypeId, 1);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
             if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(huaweiBatteryBatteryLevelStateTypeId, lunaBattery1Soc);
-                batteryThings.first()->setStateValue(huaweiBatteryBatteryCriticalStateTypeId, lunaBattery1Soc < 10);
+                batteryThings.first()->setStateValue(azzurroBatteryBatteryLevelStateTypeId, lunaBattery1Soc);
+                batteryThings.first()->setStateValue(azzurroBatteryBatteryCriticalStateTypeId, lunaBattery1Soc < 10);
             }
         });
 
@@ -213,7 +326,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
     }
 
 
-    if (thing->thingClassId() == huaweiMeterThingClassId) {
+    if (thing->thingClassId() == azzurroMeterThingClassId) {
         // Nothing to do here, we get all information from the inverter connection
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
@@ -223,7 +336,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         return;
     }
 
-    if (thing->thingClassId() == huaweiBatteryThingClassId) {
+    if (thing->thingClassId() == azzurroBatteryThingClassId) {
         // Nothing to do here, we get all information from the inverter connection
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
@@ -250,9 +363,9 @@ void IntegrationPluginAzzurro::postSetupThing(Thing *thing)
         }
 
         // Check if w have to set up a child meter for this inverter connection
-        if (myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiMeterThingClassId).isEmpty()) {
-            qCDebug(dcAzzurro()) << "Set up huawei meter for" << thing;
-            emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(huaweiMeterThingClassId, "Huawei Power Meter", QString(), thing->id()));
+        if (myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId).isEmpty()) {
+            qCDebug(dcAzzurro()) << "Set up azzurro meter for" << thing;
+            emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(azzurroMeterThingClassId, "Azzurro Power Meter", QString(), thing->id()));
         }
     }
 }
