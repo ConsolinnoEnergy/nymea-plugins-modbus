@@ -127,7 +127,8 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         });
 
         // Handle property changed signals for inverter
-        // Check if this is the correct ragister for this value. Register "powerPv1" is alternative.
+        // Check if this is the correct ragister for this value. There is also a register for off grid power. If we want to enable
+        // off grid use, that needs to be considered. Maybe register "powerPv1" can be used to cover both off grid and on grid.
         connect(connection, &AzzurroModbusRtuConnection::activePowerOnGridChanged, thing, [thing](qint16 activePower){
             double activePowerConverted = activePower * 10;
             qCDebug(dcAzzurro()) << "Inverter active power (activePowerOnGrid) changed" << activePowerConverted << "W";
@@ -294,14 +295,15 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::powerBat1Changed, thing, [this, thing](quint16 powerBat1){
-            qCDebug(dcAzzurro()) << "Battery 1 power changed" << lunaBattery1Power << "W";
+        connect(connection, &AzzurroModbusRtuConnection::powerBat1Changed, thing, [this, thing](qint16 powerBat1){
+            double powerBat1Converted = powerBat1 * 10; // currentPower state has type double.
+            qCDebug(dcAzzurro()) << "Battery 1 power (powerBat1) changed" << powerBat1Converted << "W";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
             if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(azzurroBatteryCurrentPowerStateTypeId, lunaBattery1Power);
-                if (lunaBattery1Power < 0) {
+                batteryThings.first()->setStateValue(azzurroBatteryCurrentPowerStateTypeId, powerBat1Converted);
+                if (powerBat1 < 0) {    // Don't use a double to compare to 0 when you also have an int.
                     batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "discharging");
-                } else if (lunaBattery1Power > 0) {
+                } else if (powerBat1 > 0) {
                     batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "charging");
                 } else {
                     batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "idle");
@@ -309,12 +311,12 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::lunaBattery1SocChanged, thing, [this, thing](float lunaBattery1Soc){
-            qCDebug(dcAzzurro()) << "Battery 1 SOC changed" << lunaBattery1Soc << "%";
+        connect(connection, &AzzurroModbusRtuConnection::socBat1Changed, thing, [this, thing](quint16 socBat1){
+            qCDebug(dcAzzurro()) << "Battery 1 state of charge (socBat1) changed" << socBat1 << "%";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
             if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(azzurroBatteryBatteryLevelStateTypeId, lunaBattery1Soc);
-                batteryThings.first()->setStateValue(azzurroBatteryBatteryCriticalStateTypeId, lunaBattery1Soc < 10);
+                batteryThings.first()->setStateValue(azzurroBatteryBatteryLevelStateTypeId, socBat1);
+                batteryThings.first()->setStateValue(azzurroBatteryBatteryCriticalStateTypeId, socBat1 < 10);
             }
         });
 
@@ -331,7 +333,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
-            thing->setStateValue("connected", parentThing->stateValue("connected").toBool());
+            thing->setStateValue(azzurroMeterConnectedStateTypeId, parentThing->stateValue(azzurroInverterRTUConnectedStateTypeId).toBool());
         }
         return;
     }
@@ -341,7 +343,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
-            thing->setStateValue("connected", parentThing->stateValue("connected").toBool());
+            thing->setStateValue(azzurroBatteryConnectedStateTypeId, parentThing->stateValue(azzurroInverterRTUConnectedStateTypeId).toBool());
         }
         return;
     }

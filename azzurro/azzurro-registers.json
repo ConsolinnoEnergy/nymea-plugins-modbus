@@ -13,11 +13,11 @@
                     "value": 0
                 },
                 {
-                    "key": "Checking grid",
+                    "key": "CheckingGrid",
                     "value": 1
                 },
                 {
-                    "key": "Grid connected",
+                    "key": "GridConnected",
                     "value": 2
                 },
                 {
@@ -25,19 +25,19 @@
                     "value": 3
                 },
                 {
-                    "key": "Emergency power supply (EPS)",
+                    "key": "EmergencyPowerSupplyEPS",
                     "value": 4
                 },
                 {
-                    "key": "Recoverable fault",
+                    "key": "RecoverableFault",
                     "value": 5
                 },
                 {
-                    "key": "Permanent fault",
+                    "key": "PermanentFault",
                     "value": 6
                 },
                 {
-                    "key": "Self-charging",
+                    "key": "SelfCharging",
                     "value": 7
                 }
             ]
@@ -54,7 +54,7 @@
             "readSchedule": "update",
             "description": "System status, address is 0x0404",
             "enum": "SystemStatus",
-            "defaultValue": "Waiting",
+            "defaultValue": "SystemStatusWaiting",
             "access": "RO"
         },
         {
@@ -284,7 +284,7 @@
             "defaultValue": "0",
             "unit": "kWh",
             "access": "RO"
-        },
+        }
     ]
 }
 

@@ -253,16 +253,16 @@
                         {
                             "id": "adc7a183-8470-412d-8d5d-b5c7c3dd9e8d",
                             "name": "batteryCritical",
-                            "displayName": "Battery critical",
-                            "displayNameEvent": "Battery critical changed",
+                            "displayName": "Battery low charge",
+                            "displayNameEvent": "Battery low charge changed",
                             "type": "bool",
                             "defaultValue": false
                         },
                         {
                             "id": "20af1564-3795-4629-b7ce-e0a1f0f4e54c",
                             "name": "batteryLevel",
-                            "displayName": "Battery level",
-                            "displayNameEvent": "Battery level changed",
+                            "displayName": "Battery charge percent",
+                            "displayNameEvent": "Battery charge percent changed",
                             "type": "int",
                             "unit": "Percentage",
                             "minValue": 0,
@@ -272,21 +272,12 @@
                         {
                             "id": "c6dc2659-eab8-45b4-b5e1-5f0636747154",
                             "name": "currentPower",
-                            "displayName": "Total real power",
-                            "displayNameEvent": "Total real power changed",
+                            "displayName": "Battery energy input/output",
+                            "displayNameEvent": "Battery energy input/output changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00,
                             "cached": true
-                        },
-                        {
-                            "id": "298a3f3e-620a-4e4d-948f-f64c5531559b",
-                            "name": "capacity",
-                            "displayName": "Capacity",
-                            "displayNameEvent": "Capacity changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0.00
                         },
                         {
                             "id": "17f50f81-2fec-475f-9f90-7a413bd72e28",
