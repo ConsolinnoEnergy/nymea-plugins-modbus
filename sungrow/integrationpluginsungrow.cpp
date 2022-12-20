@@ -209,8 +209,8 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
 
         // Handle property changed signals
         connect(connection, &SungrowModbusTcpConnection::activePowerChanged, thing, [thing](quint32 activePower){
-            qCDebug(dcSungrow()) << "Inverter power changed" << activePower << "W";
-            thing->setStateValue(sungrowInverterTCPCurrentPowerStateTypeId, activePower);
+            qCDebug(dcSungrow()) << "Inverter power changed" << -activePower << "W";
+            thing->setStateValue(sungrowInverterTCPCurrentPowerStateTypeId, -activePower);
         });
 
         connect(connection, &SungrowModbusTcpConnection::deviceTypeCodeChanged, thing, [thing](quint16 deviceTypeCode){
