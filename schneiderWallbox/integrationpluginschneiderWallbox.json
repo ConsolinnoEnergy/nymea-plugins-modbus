@@ -11,7 +11,7 @@
                 {
                     "id": "1d8bb49d-9820-4c4d-89d8-8c06889f29c6",
                     "displayName": "Schneider EVlink Wallbox G4 Smart",
-                    "name": "schneiderEVlink",
+                    "name": "schneiderEvLink",
                     "createMethods": ["discovery", "user"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [

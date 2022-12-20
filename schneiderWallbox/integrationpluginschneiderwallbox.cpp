@@ -99,6 +99,7 @@ void IntegrationPluginSchneiderWallbox::discoverThings(ThingDiscoveryInfo *info)
             }
             info->finish(Thing::ThingErrorNoError);
         });
+    }
 }
 
 
@@ -205,7 +206,8 @@ void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
 
     connect(schneiderWallbox, &SchneiderWallbox::phaseCountChanged, this, [thing, this](quint16 phaseCount){
         qCDebug(dcSchneiderElectric()) << thing << "Phase count changed" << phaseCount ;
-        setPhaseCount(thing, phaseCount);
+        thing->setStateValue(schneiderEvLinkPhaseCountStateTypeId, phaseCount);
+
     });
 }
 
@@ -213,7 +215,7 @@ void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
 void IntegrationPluginSchneiderWallbox::postSetupThing(Thing *thing)
 {
     qCDebug(dcSchneiderElectric()) << "Post setup" << thing->name();
-    if (thing->thingClassId() != schneiderEVlinkThingClassId) {
+    if (thing->thingClassId() != schneiderEvLinkThingClassId) {
         qCWarning(dcSchneiderElectric()) << "Thing class id not supported" << thing->thingClassId();
         return;
     }
@@ -449,11 +451,6 @@ void IntegrationPluginSchneiderWallbox::setLastChargeStatus(Thing *thing, Schnei
     default:
         thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Undefined");
     }
-}
-
-void IntegrationPluginSchneider::setPhaseCount(Thing *thing, quint16 phaseCount) {
-    thing->setStateValue(schneiderEvLinkPhaseCountStateTypeId, phaseCount);
-    //qCDebug(dcSchneiderElectric()) << "Phase count set:" << phaseCount << " for thing:" << thing;
 }
 
 void IntegrationPluginSchneiderWallbox::setErrorMessage(Thing *thing, quint32 errorBits) {
