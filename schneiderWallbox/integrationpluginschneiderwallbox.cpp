@@ -48,56 +48,63 @@ IntegrationPluginSchneiderWallbox::IntegrationPluginSchneiderWallbox()
 
 void IntegrationPluginSchneiderWallbox::discoverThings(ThingDiscoveryInfo *info)
 {
-    if (!hardwareManager()->networkDeviceDiscovery()->available()) {
-        qCWarning(dcSchneiderElectric()) << "Failed to discover network devices. The network device discovery is not available.";
-        info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("The discovery is not available. Please enter the IP address manually."));
-        return;
-    }
-
-    qCDebug(dcSchneiderElectric()) << "Starting network discovery...";
-    NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
-    connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, info, [=](){
-        qCDebug(dcSchneiderElectric()) << "Discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "devices";
-        foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
-            qCDebug(dcSchneiderElectric()) << networkDeviceInfo;
-
-            if (!networkDeviceInfo.macAddressManufacturer().contains("TELEMECANIQUE", Qt::CaseSensitivity::CaseInsensitive)) {
-                continue;
-            }
-
-            ThingClass thingClass = supportedThings().findById(info->thingClassId());
-            ParamTypeId macAddressParamType = thingClass.paramTypes().findByName("mac").id();
-
-            ThingDescriptor descriptor(info->thingClassId(), thingClass.displayName(), networkDeviceInfo.address().toString());
-            descriptor.setParams({Param(macAddressParamType, networkDeviceInfo.macAddress())});
-
-            // Check if we already have set up this device
-            Thing *existingThing = myThings().findByParams(descriptor.params());
-            if (existingThing) {
-                qCDebug(dcSchneiderElectric()) << "Found already existing" << thingClass.name() << "wallbox:" << existingThing->name() << networkDeviceInfo;
-                descriptor.setThingId(existingThing->id());
-            } else {
-                qCDebug(dcSchneiderElectric()) << "Found new" << thingClass.name() << "wallbox";
-            }
-
-            info->addThingDescriptor(descriptor);
+    if (info->thingClassId() == schneiderEvLinkThingClassId) {
+        if (!hardwareManager()->networkDeviceDiscovery()->available()) {
+            qCWarning(dcSchneiderElectric()) << "Failed to discover network devices. The network device discovery is not available.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("The discovery is not available. Please enter the IP address manually."));
+            return;
         }
-        info->finish(Thing::ThingErrorNoError);
-    });
+
+        qCDebug(dcSchneiderElectric()) << "Starting network discovery...";
+        NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
+        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
+        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, info, [=](){
+            qCDebug(dcSchneiderElectric()) << "Discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "devices";
+            foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
+                qCDebug(dcSchneiderElectric()) << networkDeviceInfo;
+
+                /*
+                if (!networkDeviceInfo.macAddressManufacturer().contains("TELEMECANIQUE", Qt::CaseSensitivity::CaseInsensitive)) {
+                    continue;
+                }
+                */
+
+                QString title;
+                if (networkDeviceInfo.hostName().isEmpty()) {
+                    title = networkDeviceInfo.address().toString();
+                } else {
+                    title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
+                }
+
+                QString description;
+                if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
+                    description = networkDeviceInfo.macAddress();
+                } else {
+                    description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
+                }
+
+                ThingDescriptor descriptor(info->thingClassId(), title, description);
+                ParamList params;
+                params << Param(schneiderEvLinkThingMacParamTypeId, networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
+
+                // Check if we already have set up this device
+                Things existingThings = myThings().filterByParam(schneiderEvLinkThingMacParamTypeId, networkDeviceInfo.macAddress());
+                if (existingThings.count() == 1) {
+                    qCDebug(dcSchneiderElectric()) << "This connection already exists in the system:" << networkDeviceInfo;
+                    descriptor.setThingId(existingThings.first()->id());
+                }
+
+                info->addThingDescriptor(descriptor);
+            }
+            info->finish(Thing::ThingErrorNoError);
+        });
 }
 
 
 void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
-
-    /* Probably not needed.
-    if (thing->thingClassId() != schneiderEVlinkThingClassId) {
-        qCWarning(dcSchneiderElectric()) << "Could not setup thing: unhandled device class" << thing->thingClass();
-        info->finish(Thing::ThingErrorThingClassNotFound);
-        return;
-    }
-    */
 
     if (m_schneiderDevices.contains(thing)) {
         qCDebug(dcSchneiderElectric()) << "Reconfiguring existing thing" << thing->name();
@@ -106,15 +113,15 @@ void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
         qCDebug(dcSchneiderElectric()) << "Setting up a new device:" << thing->params();
     }
 
-    MacAddress mac = MacAddress(thing->paramValue("mac").toString());
+    MacAddress mac = MacAddress(thing->paramValue(schneiderEvLinkThingMacParamTypeId).toString());
     if (!mac.isValid()) {
         info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The given MAC address is not valid."));
         return;
     }
     NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(mac);
 
-    uint port = thing->paramValue("port").toUInt();
-    quint16 slaveId = thing->paramValue("slaveId").toUInt();
+    uint port = thing->paramValue(schneiderEvLinkThingPortParamTypeId).toUInt();
+    quint16 slaveId = thing->paramValue(schneiderEvLinkThingSlaveIdParamTypeId).toUInt();
     SchneiderWallboxModbusTcpConnection *schneiderWallboxTcpConnection = new SchneiderWallboxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
     SchneiderWallbox *schneiderWallbox = new SchneiderWallbox(schneiderWallboxTcpConnection, this);
     connect(info, &ThingSetupInfo::aborted, schneiderWallbox, &SchneiderWallbox::deleteLater);
@@ -122,16 +129,16 @@ void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
 
     // ToDO: Check if this is really a Schneider wallbox.
 
-    quint16 minCurrentLimit = thing->paramValue("minChargeCurrent").toUInt();
-    quint16 maxCurrentLimit = thing->paramValue("maxChargeCurrent").toUInt();
-    thing->setStateMinMaxValues("maxChargingCurrent", minCurrentLimit, maxCurrentLimit);
+    quint16 minCurrentLimit = thing->paramValue(schneiderEvLinkThingMinChargeCurrentParamTypeId).toUInt();
+    quint16 maxCurrentLimit = thing->paramValue(schneiderEvLinkThingMaxChargeCurrentParamTypeId).toUInt();
+    thing->setStateMinMaxValues(schneiderEvLinkMaxChargingCurrentStateTypeId, minCurrentLimit, maxCurrentLimit);
 
     connect(schneiderWallboxTcpConnection, &SchneiderWallboxModbusTcpConnection::reachableChanged, thing, [schneiderWallboxTcpConnection, thing](bool reachable){
         qCDebug(dcSchneiderElectric()) << "Reachable state changed" << reachable;
         if (reachable) {
             schneiderWallboxTcpConnection->initialize();
         } else {
-            thing->setStateValue("connected", false);
+            thing->setStateValue(schneiderEvLinkConnectedStateTypeId, false);
         }
     });
 
@@ -155,7 +162,7 @@ void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
 
     connect(schneiderWallboxTcpConnection, &SchneiderWallboxModbusTcpConnection::initializationFinished, thing, [thing](bool success){
         if (success) {
-            thing->setStateValue("connected", true);
+            thing->setStateValue(schneiderEvLinkConnectedStateTypeId, true);
         }
     });
 
@@ -163,7 +170,7 @@ void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
     connect(schneiderWallboxTcpConnection, &SchneiderWallboxModbusTcpConnection::chargeTimeChanged, this, [thing](quint32 chargeTime){
         quint32 chargeTimeMinutes{chargeTime / 60};
         qCDebug(dcSchneiderElectric()) << thing << "charging time changed" << chargeTimeMinutes << "minutes";
-        thing->setStateValue("chargeTime", chargeTimeMinutes);
+        thing->setStateValue(schneiderEvLinkChargeTimeStateTypeId, chargeTimeMinutes);
     });
 
     connect(schneiderWallboxTcpConnection, &SchneiderWallboxModbusTcpConnection::cpwStateChanged, this, [thing, this](SchneiderWallboxModbusTcpConnection::CPWState cpwState){
@@ -179,14 +186,14 @@ void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
     connect(schneiderWallboxTcpConnection, &SchneiderWallboxModbusTcpConnection::stationEnergyChanged, this, [thing](quint32 stationEnergyInWattHours){
         double stationEnergyInKilowattHours{(static_cast<double>(stationEnergyInWattHours)) / 1000.0};
         qCDebug(dcSchneiderElectric()) << thing << "station energy changed" << stationEnergyInKilowattHours << "kWh";
-        thing->setStateValue("totalEnergyConsumed", stationEnergyInKilowattHours);
+        thing->setStateValue(schneiderEvLinkTotalEnergyConsumedStateTypeId, stationEnergyInKilowattHours);
     });
 
     connect(schneiderWallboxTcpConnection, &SchneiderWallboxModbusTcpConnection::stationPowerTotalChanged, this, [thing](float stationPowerTotalKilowatt){
         double stationPowerTotalWatt{stationPowerTotalKilowatt * 1000};
         qCDebug(dcSchneiderElectric()) << thing << "station total power changed" << stationPowerTotalWatt << "W";
-        thing->setStateValue("currentPower", stationPowerTotalWatt);
-        thing->setStateValue("charging", stationPowerTotalWatt > 20);
+        thing->setStateValue(schneiderEvLinkCurrentPowerStateTypeId, stationPowerTotalWatt);
+        thing->setStateValue(schneiderEvLinkChargingStateTypeId, stationPowerTotalWatt > 20);
     });
 
     connect(schneiderWallboxTcpConnection, &SchneiderWallboxModbusTcpConnection::errorStatusChanged, this, [thing, this](quint32 errorBits){
@@ -200,15 +207,6 @@ void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
         qCDebug(dcSchneiderElectric()) << thing << "Phase count changed" << phaseCount ;
         setPhaseCount(thing, phaseCount);
     });
-
-    /* Probably not needed.
-    connect(schneiderWallbox, &SchneiderWallbox::currentPowerChanged, this, [thing, this](double currentPower){
-        qCDebug(dcSchneiderElectric()) << thing << "Current power changed" << currentPower ;
-        setCurrentPower(thing, currentPower);
-        thing->setStateValue("currentPower", currentPower);
-        thing->setStateValue("charging", currentPower > 20);
-    });
-    */
 }
 
 
@@ -250,7 +248,7 @@ void IntegrationPluginSchneiderWallbox::thingRemoved(Thing *thing)
         hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
     }
 
-    if (myThings().isEmpty()) {
+    if (myThings().isEmpty() && m_pluginTimer) {
         qCDebug(dcSchneiderElectric()) << "Stopping plugin timers ...";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;
@@ -262,47 +260,50 @@ void IntegrationPluginSchneiderWallbox::executeAction(ThingActionInfo *info)
     Thing *thing = info->thing();
     Action action = info->action();
 
-    SchneiderWallboxModbusTcpConnection *connection = m_schneiderDevices.value(thing)->modbusTcpConnection();
-    if (!connection) {
-        qCWarning(dcSchneiderElectric()) << "Modbus connection not available";
-        info->finish(Thing::ThingErrorHardwareFailure);
-        return;
-    }
-
-    if (!connection->connected()) {
-        qCWarning(dcSchneiderElectric()) << "Could not execute action. The modbus connection is currently not available.";
-        info->finish(Thing::ThingErrorHardwareNotAvailable);
-        return;
-    }
-
-
-    SchneiderWallbox *device = m_schneiderDevices.value(thing);
-    ActionType actionType = thing->thingClass().actionTypes().findById(info->action().actionTypeId());
-    bool success = false;
-    if (actionType.name() == "power") {
-        bool onOff = action.paramValue(actionType.id()).toBool();
-        success = device->enableOutput(onOff);
-        thing->setStateValue("power", onOff);
-        if (onOff) {
-            // You can turn the wallbox on without specifying a charge current. The thing object saves the last current setpoint, the app displays that.
-            // Need to get that saved value and give it to schneiderwallbox.cpp so the displayed value matches the actual setpoint.
-            int ampereValue = thing->stateValue("maxChargingCurrent").toUInt();
-            success = device->setMaxAmpere(ampereValue);
+    if (thing->thingClassId() == schneiderEvLinkThingClassId) {
+        SchneiderWallboxModbusTcpConnection *connection = m_schneiderDevices.value(thing)->modbusTcpConnection();
+        if (!connection) {
+            qCWarning(dcSchneiderElectric()) << "Modbus connection not available";
+            info->finish(Thing::ThingErrorHardwareFailure);
+            return;
         }
-    } else if (actionType.name() == "maxChargingCurrent") {
-        int ampereValue = action.paramValue(actionType.id()).toUInt();
-        success = device->setMaxAmpere(ampereValue);
-        thing->setStateValue("maxChargingCurrent", ampereValue);
-    } else {
-        Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
-    }
 
-    if (success) {
-        info->finish(Thing::ThingErrorNoError);
+        if (!connection->connected()) {
+            qCWarning(dcSchneiderElectric()) << "Could not execute action. The modbus connection is currently not available.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+
+        SchneiderWallbox *device = m_schneiderDevices.value(thing);
+        bool success = false;
+        if (action.actionTypeId() == schneiderEvLinkPowerActionTypeId) {
+            bool onOff = action.paramValue(schneiderEvLinkPowerActionPowerParamTypeId).toBool();
+            success = device->enableOutput(onOff);
+            thing->setStateValue(schneiderEvLinkPowerStateTypeId, onOff);
+            if (onOff) {
+                // You can turn the wallbox on without specifying a charge current. The thing object saves the last current setpoint, the app displays that.
+                // Need to get that saved value and give it to schneiderwallbox.cpp so the displayed value matches the actual setpoint.
+                int ampereValue = thing->stateValue(schneiderEvLinkMaxChargingCurrentStateTypeId).toUInt();
+                success = device->setMaxAmpere(ampereValue);
+            }
+        } else if (action.actionTypeId() == schneiderEvLinkMaxChargingCurrentActionTypeId) {
+            int ampereValue = action.paramValue(schneiderEvLinkMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
+            success = device->setMaxAmpere(ampereValue);
+            thing->setStateValue(schneiderEvLinkMaxChargingCurrentStateTypeId, ampereValue);
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled actionTypeId: %1").arg(action.actionTypeId().toString()).toUtf8());
+        }
+
+        if (success) {
+            info->finish(Thing::ThingErrorNoError);
+        } else {
+            qCWarning(dcSchneiderElectric()) << "Action execution finished with error.";
+            info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
     } else {
-        qCWarning(dcSchneiderElectric()) << "Action execution finished with error.";
-        info->finish(Thing::ThingErrorHardwareFailure);
-        return;
+        Q_ASSERT_X(false, "executeAction", QString("Unhandled thingClassId: %1").arg(thing->thingClassId().toString()).toUtf8());
     }
 }
 
@@ -311,153 +312,153 @@ void IntegrationPluginSchneiderWallbox::setCpwState(Thing *thing, SchneiderWallb
     bool isPluggedIn{false};    // ToDo: Wallbox states überprüfen, welche tatsächlich bei "Stecker steckt" angezeigt werden.
     switch (state) {
     case SchneiderWallboxModbusTcpConnection::CPWStateEvseNotAvailable:
-        thing->setStateValue("cpwState", "EVSE not available");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "EVSE not available");
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateEvseAvailable:
-        thing->setStateValue("cpwState", "EVSE available");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "EVSE available");
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStatePlugDetected:
-        thing->setStateValue("cpwState", "Plug detected");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "Plug detected");
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateEvConnected:
-        thing->setStateValue("cpwState", "EV connected");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "EV connected");
         isPluggedIn = true;
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateEvConnected2:
-        thing->setStateValue("cpwState", "EV connected 2");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "EV connected 2");
         isPluggedIn = true;
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateEvConnectedVentilationRequired:
-        thing->setStateValue("cpwState", "EV connected ventilation required");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "EV connected ventilation required");
         isPluggedIn = true;
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateEvseReady:
-        thing->setStateValue("cpwState", "EVSE ready");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "EVSE ready");
         isPluggedIn = true;
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateEvReady:
-        thing->setStateValue("cpwState", "EV ready");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "EV ready");
         isPluggedIn = true;
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateCharging:
-        thing->setStateValue("cpwState", "Charging");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "Charging");
         isPluggedIn = true;
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateEvReadyVentilationRequired:
-        thing->setStateValue("cpwState", "EV ready ventilation required");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "EV ready ventilation required");
         isPluggedIn = true;
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateChargingVentilationRequired:
-        thing->setStateValue("cpwState", "Charging ventilation required");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "Charging ventilation required");
         isPluggedIn = true;
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateStopCharging:
-        thing->setStateValue("cpwState", "Stop charging");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "Stop charging");
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateAlarm:
-        thing->setStateValue("cpwState", "Alarm");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "Alarm");
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateShortcut:
-        thing->setStateValue("cpwState", "Short circuit");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "Short circuit");
         break;
     case SchneiderWallboxModbusTcpConnection::CPWStateDigitalComByEvseState:
-        thing->setStateValue("cpwState", "Digital com by EVSE state");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "Digital com by EVSE state");
         break;
     default:
-        thing->setStateValue("cpwState", "EVSE not available");
+        thing->setStateValue(schneiderEvLinkCpwStateStateTypeId, "EVSE not available");
     }
-    thing->setStateValue("pluggedIn", isPluggedIn);
+    thing->setStateValue(schneiderEvLinkPluggedInStateTypeId, isPluggedIn);
 }
 
 void IntegrationPluginSchneiderWallbox::setLastChargeStatus(Thing *thing, SchneiderWallboxModbusTcpConnection::LastChargeStatus status)
 {
     switch (status) {
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusCircuitBreakerEnabled:
-        thing->setStateValue("lastChargeStatus", "Circuit breaker enabled (emergency)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Circuit breaker enabled (emergency)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusOk:
-        thing->setStateValue("lastChargeStatus", "OK (ended by EV in mode 3)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "OK (ended by EV in mode 3)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusEndedByClusterManagerLoss:
-        thing->setStateValue("lastChargeStatus", "Ended by cluster manager loss (lifebit timeout 10s)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Ended by cluster manager loss (lifebit timeout 10s)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusEndOfChargeInSm3:
-        thing->setStateValue("lastChargeStatus", "End of charge in SM3 (low current)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "End of charge in SM3 (low current)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusCommunicationError:
-        thing->setStateValue("lastChargeStatus", "Communication error (PWM lost)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Communication error (PWM lost)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDisconnectionCable:
-        thing->setStateValue("lastChargeStatus", "Disconnection cable (Electric Vehicle Supply Equipment plug off)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Disconnection cable (Electric Vehicle Supply Equipment plug off)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDisconnectionEv:
-        thing->setStateValue("lastChargeStatus", "Disconnection EV (EV plug off)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Disconnection EV (EV plug off)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusShortcut:
-        thing->setStateValue("lastChargeStatus", "Shortcut");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Shortcut");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusOverload:
-        thing->setStateValue("lastChargeStatus", "Overload");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Overload");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusCanceledBySupervisor:
-        thing->setStateValue("lastChargeStatus", "Canceled by supervisor (external command)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Canceled by supervisor (external command)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusVentilationNotAllowed:
-        thing->setStateValue("lastChargeStatus", "Ventillation not allowed");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Ventillation not allowed");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusUnexpectedContactorOpen:
-        thing->setStateValue("lastChargeStatus", "Unexpected contactor open");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Unexpected contactor open");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusSimplifiedMode3NotAllowed:
-        thing->setStateValue("lastChargeStatus", "Simplified mode 3 not allowed");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Simplified mode 3 not allowed");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusPowerSupplyInternalError:
-        thing->setStateValue("lastChargeStatus", "Power supply internal error(contactor not able to close)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Power supply internal error(contactor not able to close)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusUnexpectedPlugUnlock:
-        thing->setStateValue("lastChargeStatus", "Unexpected plug unlock");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Unexpected plug unlock");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDefaultNbPhases:
-        thing->setStateValue("lastChargeStatus", "Default Nb Phases (triphase not allowed)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Default Nb Phases (triphase not allowed)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDiDefaultSurgeArrestor:
-        thing->setStateValue("lastChargeStatus", "DI default Surge arrestor");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "DI default Surge arrestor");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDiDefaultAntiIntrusion:
-        thing->setStateValue("lastChargeStatus", "DI default Anti Intrusion");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "DI default Anti Intrusion");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDiDefaultShutterUnlock:
-        thing->setStateValue("lastChargeStatus", "DI default Shutter Unlock");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "DI default Shutter Unlock");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDiDefaultFlsi:
-        thing->setStateValue("lastChargeStatus", "DI default FLSI (Force Load Shedding Input)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "DI default FLSI (Force Load Shedding Input)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDiDefaultEmergencyStop:
-        thing->setStateValue("lastChargeStatus", "DI default Emergency Stop");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "DI default Emergency Stop");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDiDefaultUndervoltage:
-        thing->setStateValue("lastChargeStatus", "DI default Undervoltage");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "DI default Undervoltage");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusDiDefaultCi:
-        thing->setStateValue("lastChargeStatus", "DI default CI (Conditional Input)");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "DI default CI (Conditional Input)");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusOther:
-        thing->setStateValue("lastChargeStatus", "Other");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Other");
         break;
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusUndefined:
     default:
-        thing->setStateValue("lastChargeStatus", "Undefined");
+        thing->setStateValue(schneiderEvLinkLastChargeStatusStateTypeId, "Undefined");
     }
 }
 
-void IntegrationPluginSchneiderWallbox::setPhaseCount(Thing *thing, quint16 phaseCount) {
-    thing->setStateValue("phaseCount", phaseCount);
+void IntegrationPluginSchneider::setPhaseCount(Thing *thing, quint16 phaseCount) {
+    thing->setStateValue(schneiderEvLinkPhaseCountStateTypeId, phaseCount);
     //qCDebug(dcSchneiderElectric()) << "Phase count set:" << phaseCount << " for thing:" << thing;
 }
 
 void IntegrationPluginSchneiderWallbox::setErrorMessage(Thing *thing, quint32 errorBits) {
     if (!errorBits) {
-        thing->setStateValue("errorMessage", "No error");
+        thing->setStateValue(schneiderEvLinkErrorMessageStateTypeId, "No error");
     } else {
         QString errorMessage{""};
         quint32 testBit{0b01};
@@ -541,6 +542,6 @@ void IntegrationPluginSchneiderWallbox::setErrorMessage(Thing *thing, quint32 er
         if (stringLength > 1) {
             errorMessage.replace(stringLength - 2, 2, "."); // Replace ", " at the end with ".".
         }
-        thing->setStateValue("errorMessage", errorMessage);
+        thing->setStateValue(schneiderEvLinkErrorMessageStateTypeId, errorMessage);
     }
 }
