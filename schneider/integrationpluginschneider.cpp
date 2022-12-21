@@ -28,7 +28,7 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "integrationpluginschneiderwallbox.h"
+#include "integrationpluginschneider.h"
 #include "plugininfo.h"
 
 #include <network/networkdevicediscovery.h>
@@ -41,12 +41,12 @@
 #include <QNetworkInterface>
 
 
-IntegrationPluginSchneiderWallbox::IntegrationPluginSchneiderWallbox()
+IntegrationPluginSchneider::IntegrationPluginSchneider()
 {
 
 }
 
-void IntegrationPluginSchneiderWallbox::discoverThings(ThingDiscoveryInfo *info)
+void IntegrationPluginSchneider::discoverThings(ThingDiscoveryInfo *info)
 {
     if (info->thingClassId() == schneiderEvLinkThingClassId) {
         if (!hardwareManager()->networkDeviceDiscovery()->available()) {
@@ -103,7 +103,7 @@ void IntegrationPluginSchneiderWallbox::discoverThings(ThingDiscoveryInfo *info)
 }
 
 
-void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
+void IntegrationPluginSchneider::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
 
@@ -212,7 +212,7 @@ void IntegrationPluginSchneiderWallbox::setupThing(ThingSetupInfo *info)
 }
 
 
-void IntegrationPluginSchneiderWallbox::postSetupThing(Thing *thing)
+void IntegrationPluginSchneider::postSetupThing(Thing *thing)
 {
     qCDebug(dcSchneiderElectric()) << "Post setup" << thing->name();
     if (thing->thingClassId() != schneiderEvLinkThingClassId) {
@@ -239,7 +239,7 @@ void IntegrationPluginSchneiderWallbox::postSetupThing(Thing *thing)
     }
 }
 
-void IntegrationPluginSchneiderWallbox::thingRemoved(Thing *thing)
+void IntegrationPluginSchneider::thingRemoved(Thing *thing)
 {
     qCDebug(dcSchneiderElectric()) << "Removing device" << thing->name();
     if (m_schneiderDevices.contains(thing)) {
@@ -257,7 +257,7 @@ void IntegrationPluginSchneiderWallbox::thingRemoved(Thing *thing)
     }
 }
 
-void IntegrationPluginSchneiderWallbox::executeAction(ThingActionInfo *info)
+void IntegrationPluginSchneider::executeAction(ThingActionInfo *info)
 {
     Thing *thing = info->thing();
     Action action = info->action();
@@ -309,7 +309,7 @@ void IntegrationPluginSchneiderWallbox::executeAction(ThingActionInfo *info)
     }
 }
 
-void IntegrationPluginSchneiderWallbox::setCpwState(Thing *thing, SchneiderWallboxModbusTcpConnection::CPWState state)
+void IntegrationPluginSchneider::setCpwState(Thing *thing, SchneiderWallboxModbusTcpConnection::CPWState state)
 {
     bool isPluggedIn{false};    // ToDo: Wallbox states überprüfen, welche tatsächlich bei "Stecker steckt" angezeigt werden.
     switch (state) {
@@ -372,7 +372,7 @@ void IntegrationPluginSchneiderWallbox::setCpwState(Thing *thing, SchneiderWallb
     thing->setStateValue(schneiderEvLinkPluggedInStateTypeId, isPluggedIn);
 }
 
-void IntegrationPluginSchneiderWallbox::setLastChargeStatus(Thing *thing, SchneiderWallboxModbusTcpConnection::LastChargeStatus status)
+void IntegrationPluginSchneider::setLastChargeStatus(Thing *thing, SchneiderWallboxModbusTcpConnection::LastChargeStatus status)
 {
     switch (status) {
     case SchneiderWallboxModbusTcpConnection::LastChargeStatusCircuitBreakerEnabled:
@@ -453,7 +453,7 @@ void IntegrationPluginSchneiderWallbox::setLastChargeStatus(Thing *thing, Schnei
     }
 }
 
-void IntegrationPluginSchneiderWallbox::setErrorMessage(Thing *thing, quint32 errorBits) {
+void IntegrationPluginSchneider::setErrorMessage(Thing *thing, quint32 errorBits) {
     if (!errorBits) {
         thing->setStateValue(schneiderEvLinkErrorMessageStateTypeId, "No error");
     } else {
