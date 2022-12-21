@@ -77,6 +77,14 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for alpha innotec heat pumps
  This package contains the nymea integration plugin for alpha innotec head pumps.
 
+Package: nymea-plugin-alphatec
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for alphatec ev charger
+ This package contains the nymea integration plugin for the alphatec ev charger.
+
 
 Package: nymea-plugin-bgetech
 Architecture: any
@@ -102,7 +110,7 @@ Architecture: any
 Section: libs
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-Description: nymea integration plugin for E3DC inverters 
+Description: nymea integration plugin for E3DC inverters
  This package contains the nymea integration plugin for E3DC inverters.
 
 
@@ -136,12 +144,12 @@ Description: nymea integration plugin for inepro Metering Modbus based energy me
  made by inepro Metering.
 
 
-Package: nymea-plugin-huawei      
+Package: nymea-plugin-huawei
 Architecture: any
-Multi-Arch: same 
+Multi-Arch: same
 Section: libs
 Depends: ${shlibs:Depends},
-         ${misc:Depends}   
+         ${misc:Depends}
 Description: nymea integration plugin for Huawei FusionSolar energy devices
  This package contains the nymea integration plugin for Huawei FusionSolar devices
  based on Modbus TCP.
@@ -175,7 +183,7 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin to send and receive generic modbus commands
  This package contains a nymea integration plugin which allows to send and receive
  generic Modbus commands to/from a Modbus device.
- 
+
 
 Package: nymea-plugin-mypv
 Architecture: any
@@ -244,7 +252,7 @@ Architecture: any
 Section: libs
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-Description: nymea integration plugin for Technivolt wallboxes 
+Description: nymea integration plugin for Technivolt wallboxes
   This package contains the nymea integration plugin for wallboxes made
  by Technivolt.
 
