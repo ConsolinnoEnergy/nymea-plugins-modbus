@@ -203,7 +203,7 @@ Description: nymea integration plugin for M-TEC heat pumps
  This package contains the nymea integration plugin for M-TEC heat pumps.
 
 
-Package: nymea-plugin-schneider-wallbox
+Package: nymea-plugin-schneider
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends},

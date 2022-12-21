@@ -18,7 +18,7 @@ PLUGIN_DIRS = \
     mtec                    \
     mypv                    \
     phoenixconnect          \
-    schneiderWallbox        \
+    schneider               \
     schneiderIEM            \
     schrack                 \
     stiebeleltron           \
