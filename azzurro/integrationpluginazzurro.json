@@ -272,8 +272,8 @@
                         {
                             "id": "c6dc2659-eab8-45b4-b5e1-5f0636747154",
                             "name": "currentPower",
-                            "displayName": "Battery energy input/output",
-                            "displayNameEvent": "Battery energy input/output changed",
+                            "displayName": "Battery power input/output",
+                            "displayNameEvent": "Battery power input/output changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00,
