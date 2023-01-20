@@ -1,0 +1,132 @@
+{
+    "className": "Kaco",
+    "protocol": "BOTH",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "SunspecModel103",
+    "enums": [
+        {
+            "name": "OperatingState",
+            "values": [
+                {
+                    "key": "Off",
+                    "value": 0
+                },
+                {
+                    "key": "Sleeping",
+                    "value": 0
+                },
+                {
+                    "key": "Starting",
+                    "value": 0
+                },
+                {
+                    "key": "Mppt",
+                    "value": 0
+                },
+                {
+                    "key": "Throttled",
+                    "value": 0
+                },
+                {
+                    "key": "ShuttingDown",
+                    "value": 0
+                },
+                {
+                    "key": "Fault",
+                    "value": 0
+                },
+                {
+                    "key": "Standby",
+                    "value": 0
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "power",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "activePower",
+                    "address": 40084,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Active power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "activePowerSf",
+                    "address": 40085,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Active power scale factor",
+                    "defaultValue": "1",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "energy",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "totalEnergyProduced",
+                    "address": 40094,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Total energy produced",
+                    "defaultValue": "0",
+                    "unit": "Wh",
+                    "access": "RO"
+                },
+                {
+                    "id": "totalEnergyProducedSf",
+                    "address": 40096,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Total energy produced scale factor",
+                    "defaultValue": "1",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "SunspecModel103",
+            "address": 40070,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Sunspec model 103",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "operatingState",
+            "address": 40108,
+            "size": 1,
+            "type": "uint16",
+            "enum": "OperatingState",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Operating state",
+            "defaultValue": "OperatingStateOff",
+            "access": "RO"
+        }
+    ]
+}
+

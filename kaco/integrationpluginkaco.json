@@ -1,0 +1,145 @@
+{
+    "name": "Kaco",
+        "displayName": "Kaco",
+        "id": "5168c92c-fe0c-4716-aba2-24ec886af885",
+        "vendors": [
+        {
+            "name": "kaco",
+            "displayName": "Kaco",
+            "id": "41bd21a1-6c34-4a2a-907c-859ce0efc012",
+            "thingClasses": [
+                {
+                    "name": "kacoInverterTCP",
+                    "displayName": "Kaco Inverter (Modbus TCP)",
+                    "id": "2c6f9d45-44a2-4a16-96d8-76be4162ffcf",
+                    "createMethods": ["discovery", "user"],
+                    "interfaces": ["solarinverter", "connectable"],
+                    "providedInterfaces": [ "solarinverter"],
+                    "paramTypes": [
+                        {
+                            "id": "9f96f308-dca3-438f-ac4a-7dde0c5f49f1",
+                            "name":"macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "inputType": "MacAddress",
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "a2894fe9-8e2a-4d47-9443-90cb71b6d527",
+                            "name":"port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502
+                        },
+                        {
+                            "id": "c34a8776-3e90-41c4-ae32-fb461e5cb998",
+                            "name":"slaveId",
+                            "displayName": "Slave ID",
+                            "type": "int",
+                            "defaultValue": 3
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "dd6739c5-c7c9-4ebf-902b-0f3b2cbaa0f6",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "bb8cdb1e-3612-42b4-a995-2b3179cbb741",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "057c00ca-ee8e-4914-b618-e686e2a48906",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        }
+                    ],
+                    "actionTypes": [ ]
+                },
+                {
+                    "name": "kacoInverterRTU",
+                    "displayName": "Kaco Inverter (Modbus RTU)",
+                    "id": "4fa73aab-377f-41ce-b167-14654f157b88",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["solarinverter", "connectable"],
+                    "providedInterfaces": [ "solarinverter"],
+                    "discoveryParamTypes": [
+                        {
+                            "id": "95f393de-13bc-4e32-b538-0c9f097e4c75",
+                            "name": "slaveAddress",
+                            "displayName": "Slave address",
+                            "type": "int",
+                            "defaultValue": 3
+                        }
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "8ccaf129-c303-49a3-be4f-d891f0bff988",
+                            "name": "modbusMasterUuid",
+                            "displayName": "Modbus RTU master",
+                            "type": "QUuid",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "c5cb32d8-2811-4610-8f7e-1edb55f58729",
+                            "name": "slaveAddress",
+                            "displayName": "Modbus slave address",
+                            "type": "uint",
+                            "defaultValue": 3
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "e5a8e0e1-cd98-4c5e-9271-d4c33e1c028c",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "1d735719-f10c-4230-9bc0-3996ee68bee4",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "2c7c7a2c-7af6-4038-a6df-47e2e0026f97",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        }
+                    ],
+                    "actionTypes": [ ]
+                }
+            ]
+        }
+    ]
+}
+
