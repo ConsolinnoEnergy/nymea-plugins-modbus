@@ -179,6 +179,7 @@ void IntegrationPluginKaco::setupThing(ThingSetupInfo *info)
         quint16 slaveId = thing->paramValue(kacoInverterTCPThingSlaveIdParamTypeId).toUInt();
 
         KacoModbusTcpConnection *connection = new KacoModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
+        connection->setTimeout(5000);
         connect(info, &ThingSetupInfo::aborted, connection, &KacoModbusTcpConnection::deleteLater);
 
         connect(connection, &KacoModbusTcpConnection::reachableChanged, thing, [connection, thing](bool reachable){
@@ -213,26 +214,26 @@ void IntegrationPluginKaco::setupThing(ThingSetupInfo *info)
         });
 
         // Handle property changed signals
-        connect(connection, &KacoModbusTcpConnection::activePowerSfChanged, thing, [thing](qint16 activePowerSf){
+        connect(connection, &KacoModbusTcpConnection::activePowerSfChanged, thing, [this, thing](qint16 activePowerSf){
             qCDebug(dcKaco()) << "Inverter active power scale factor recieved" << activePowerSf;
             m_scalefactors.find(thing)->powerSf = activePowerSf;
         });
 
-        connect(connection, &KacoModbusTcpConnection::activePowerChanged, thing, [thing](qint16 activePower){
+        connect(connection, &KacoModbusTcpConnection::activePowerChanged, thing, [this, thing](qint16 activePower){
             double activePowerConverted = -1.0 * activePower * m_scalefactors.value(thing).powerSf;
             qCDebug(dcKaco()) << "Inverter power changed" << activePowerConverted << "W";
             thing->setStateValue(kacoInverterTCPCurrentPowerStateTypeId, activePowerConverted);
         });
 
-        connect(connection, &KacoModbusTcpConnection::totalEnergyProducedSfChanged, thing, [thing](qint16 totalEnergyProducedSf){
+        connect(connection, &KacoModbusTcpConnection::totalEnergyProducedSfChanged, thing, [this, thing](qint16 totalEnergyProducedSf){
             qCDebug(dcKaco()) << "Inverter total energy produced scale factor recieved" << totalEnergyProducedSf;
             m_scalefactors.find(thing)->energySf = totalEnergyProducedSf;
         });
 
-        connect(connection, &KacoModbusTcpConnection::totalPowerYieldsChanged, thing, [thing](quint32 totalEnergyProduced){
-            quint32 totalEnergyProducedkWh = (totalEnergyProduced * m_scalefactors.value(thing).energySf) / 1000;
-            qCDebug(dcKaco()) << "Inverter total energy produced changed" << totalEnergyProducedkWh << "kWh";
-            thing->setStateValue(kacoInverterTCPTotalEnergyProducedStateTypeId, totalEnergyProducedkWh);
+        connect(connection, &KacoModbusTcpConnection::totalEnergyProducedChanged, thing, [this, thing](quint32 totalEnergyProduced){
+            double totalEnergyProducedConverted = (totalEnergyProduced * m_scalefactors.value(thing).energySf) / 1000.0;
+            qCDebug(dcKaco()) << "Inverter total energy produced changed" << totalEnergyProducedConverted << "kWh";
+            thing->setStateValue(kacoInverterTCPTotalEnergyProducedStateTypeId, totalEnergyProducedConverted);
         });
 
         connect(connection, &KacoModbusTcpConnection::operatingStateChanged, thing, [thing](KacoModbusTcpConnection::OperatingState operatingState){
@@ -279,26 +280,26 @@ void IntegrationPluginKaco::setupThing(ThingSetupInfo *info)
         });
 
         // Handle property changed signals
-        connect(connection, &KacoModbusRtuConnection::activePowerSfChanged, thing, [thing](qint16 activePowerSf){
+        connect(connection, &KacoModbusRtuConnection::activePowerSfChanged, thing, [this, thing](qint16 activePowerSf){
             qCDebug(dcKaco()) << "Inverter active power scale factor recieved" << activePowerSf;
             m_scalefactors.find(thing)->powerSf = activePowerSf;
         });
 
-        connect(connection, &KacoModbusRtuConnection::activePowerChanged, thing, [thing](qint16 activePower){
+        connect(connection, &KacoModbusRtuConnection::activePowerChanged, thing, [this, thing](qint16 activePower){
             double activePowerConverted = -1.0 * activePower * m_scalefactors.value(thing).powerSf;
             qCDebug(dcKaco()) << "Inverter power changed" << activePowerConverted << "W";
             thing->setStateValue(kacoInverterRTUCurrentPowerStateTypeId, activePowerConverted);
         });
 
-        connect(connection, &KacoModbusRtuConnection::totalEnergyProducedSfChanged, thing, [thing](qint16 totalEnergyProducedSf){
+        connect(connection, &KacoModbusRtuConnection::totalEnergyProducedSfChanged, thing, [this, thing](qint16 totalEnergyProducedSf){
             qCDebug(dcKaco()) << "Inverter total energy produced scale factor recieved" << totalEnergyProducedSf;
             m_scalefactors.find(thing)->energySf = totalEnergyProducedSf;
         });
 
-        connect(connection, &KacoModbusRtuConnection::totalPowerYieldsChanged, thing, [thing](quint32 totalEnergyProduced){
-            quint32 totalEnergyProducedkWh = (totalEnergyProduced * m_scalefactors.value(thing).energySf) / 1000;
-            qCDebug(dcKaco()) << "Inverter total energy produced changed" << totalEnergyProducedkWh << "kWh";
-            thing->setStateValue(kacoInverterRTUTotalEnergyProducedStateTypeId, totalEnergyProducedkWh);
+        connect(connection, &KacoModbusRtuConnection::totalEnergyProducedChanged, thing, [this, thing](quint32 totalEnergyProduced){
+            double totalEnergyProducedConverted = (totalEnergyProduced * m_scalefactors.value(thing).energySf) / 1000;
+            qCDebug(dcKaco()) << "Inverter total energy produced changed" << totalEnergyProducedConverted << "kWh";
+            thing->setStateValue(kacoInverterRTUTotalEnergyProducedStateTypeId, totalEnergyProducedConverted);
         });
 
         connect(connection, &KacoModbusRtuConnection::operatingStateChanged, thing, [thing](KacoModbusRtuConnection::OperatingState operatingState){
