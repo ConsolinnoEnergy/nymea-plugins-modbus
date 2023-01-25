@@ -68,6 +68,25 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": true
+                        },
+                        {
+                            "id": "a7bb1db5-1100-4ddc-acd6-3b9e325d1977",
+                            "name": "operatingState",
+                            "displayName": "Operating State",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Off",
+                                "Sleeping",
+                                "Starting",
+                                "MPPT",
+                                "Throttled",
+                                "ShuttingDown",
+                                "Fault",
+                                "Standby"
+                            ],
+                            "defaultValue": "Off",
+                            "displayNameEvent": "Operating state changed",
+                            "cached": false
                         }
                     ],
                     "actionTypes": [ ]
@@ -134,6 +153,25 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": true
+                        },
+                        {
+                            "id": "f45d0dbf-6947-45e4-a67e-89e646a2d3b0",
+                            "name": "operatingState",
+                            "displayName": "Operating State",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Off",
+                                "Sleeping",
+                                "Starting",
+                                "MPPT",
+                                "Throttled",
+                                "ShuttingDown",
+                                "Fault",
+                                "Standby"
+                            ],
+                            "defaultValue": "Off",
+                            "displayNameEvent": "Operating state changed",
+                            "cached": false
                         }
                     ],
                     "actionTypes": [ ]

@@ -39,6 +39,8 @@
 #include <QJsonDocument>
 #include <QNetworkInterface>
 
+#include <QtMath>
+
 IntegrationPluginKaco::IntegrationPluginKaco()
 {
 
@@ -179,10 +181,10 @@ void IntegrationPluginKaco::setupThing(ThingSetupInfo *info)
         quint16 slaveId = thing->paramValue(kacoInverterTCPThingSlaveIdParamTypeId).toUInt();
 
         KacoModbusTcpConnection *connection = new KacoModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
-        connection->setTimeout(5000);
+        connection->setTimeout(4500);
         connect(info, &ThingSetupInfo::aborted, connection, &KacoModbusTcpConnection::deleteLater);
 
-        connect(connection, &KacoModbusTcpConnection::reachableChanged, thing, [connection, thing](bool reachable){
+        connect(connection, &KacoModbusTcpConnection::reachableChanged, this, [connection, thing](bool reachable){
             qCDebug(dcKaco()) << "Reachable state changed" << reachable;
             if (reachable) {
                 connection->initialize();
@@ -206,7 +208,7 @@ void IntegrationPluginKaco::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &KacoModbusTcpConnection::initializationFinished, thing, [this, thing, connection](bool success){
+        connect(connection, &KacoModbusTcpConnection::initializationFinished, this, [this, thing, connection](bool success){
             if (success) {
                 thing->setStateValue(kacoInverterTCPConnectedStateTypeId, true);
                 connection->update();
@@ -214,31 +216,31 @@ void IntegrationPluginKaco::setupThing(ThingSetupInfo *info)
         });
 
         // Handle property changed signals
-        connect(connection, &KacoModbusTcpConnection::activePowerSfChanged, thing, [this, thing](qint16 activePowerSf){
+        connect(connection, &KacoModbusTcpConnection::activePowerSfChanged, this, [this, thing](qint16 activePowerSf){
             qCDebug(dcKaco()) << "Inverter active power scale factor recieved" << activePowerSf;
             m_scalefactors.find(thing)->powerSf = activePowerSf;
         });
 
-        connect(connection, &KacoModbusTcpConnection::activePowerChanged, thing, [this, thing](qint16 activePower){
-            double activePowerConverted = -1.0 * activePower * m_scalefactors.value(thing).powerSf;
+        connect(connection, &KacoModbusTcpConnection::activePowerChanged, this, [this, thing](qint16 activePower){
+            double activePowerConverted = -1.0 * activePower * qPow(10, m_scalefactors.value(thing).powerSf);
             qCDebug(dcKaco()) << "Inverter power changed" << activePowerConverted << "W";
             thing->setStateValue(kacoInverterTCPCurrentPowerStateTypeId, activePowerConverted);
         });
 
-        connect(connection, &KacoModbusTcpConnection::totalEnergyProducedSfChanged, thing, [this, thing](qint16 totalEnergyProducedSf){
+        connect(connection, &KacoModbusTcpConnection::totalEnergyProducedSfChanged, this, [this, thing](qint16 totalEnergyProducedSf){
             qCDebug(dcKaco()) << "Inverter total energy produced scale factor recieved" << totalEnergyProducedSf;
             m_scalefactors.find(thing)->energySf = totalEnergyProducedSf;
         });
 
-        connect(connection, &KacoModbusTcpConnection::totalEnergyProducedChanged, thing, [this, thing](quint32 totalEnergyProduced){
-            double totalEnergyProducedConverted = (totalEnergyProduced * m_scalefactors.value(thing).energySf) / 1000.0;
+        connect(connection, &KacoModbusTcpConnection::totalEnergyProducedChanged, this, [this, thing](quint32 totalEnergyProduced){
+            double totalEnergyProducedConverted = (totalEnergyProduced * qPow(10, m_scalefactors.value(thing).energySf)) / 1000.0;
             qCDebug(dcKaco()) << "Inverter total energy produced changed" << totalEnergyProducedConverted << "kWh";
             thing->setStateValue(kacoInverterTCPTotalEnergyProducedStateTypeId, totalEnergyProducedConverted);
         });
 
-        connect(connection, &KacoModbusTcpConnection::operatingStateChanged, thing, [thing](KacoModbusTcpConnection::OperatingState operatingState){
+        connect(connection, &KacoModbusTcpConnection::operatingStateChanged, this, [this, thing](KacoModbusTcpConnection::OperatingState operatingState){
             qCDebug(dcKaco()) << "Inverter operating state recieved" << operatingState;
-            Q_UNUSED(thing)
+            setOperatingState(thing, operatingState);
         });
 
         connection->connectDevice();
@@ -280,31 +282,31 @@ void IntegrationPluginKaco::setupThing(ThingSetupInfo *info)
         });
 
         // Handle property changed signals
-        connect(connection, &KacoModbusRtuConnection::activePowerSfChanged, thing, [this, thing](qint16 activePowerSf){
+        connect(connection, &KacoModbusRtuConnection::activePowerSfChanged, this, [this, thing](qint16 activePowerSf){
             qCDebug(dcKaco()) << "Inverter active power scale factor recieved" << activePowerSf;
             m_scalefactors.find(thing)->powerSf = activePowerSf;
         });
 
-        connect(connection, &KacoModbusRtuConnection::activePowerChanged, thing, [this, thing](qint16 activePower){
-            double activePowerConverted = -1.0 * activePower * m_scalefactors.value(thing).powerSf;
+        connect(connection, &KacoModbusRtuConnection::activePowerChanged, this, [this, thing](qint16 activePower){
+            double activePowerConverted = -1.0 * activePower * qPow(10, m_scalefactors.value(thing).powerSf);
             qCDebug(dcKaco()) << "Inverter power changed" << activePowerConverted << "W";
             thing->setStateValue(kacoInverterRTUCurrentPowerStateTypeId, activePowerConverted);
         });
 
-        connect(connection, &KacoModbusRtuConnection::totalEnergyProducedSfChanged, thing, [this, thing](qint16 totalEnergyProducedSf){
+        connect(connection, &KacoModbusRtuConnection::totalEnergyProducedSfChanged, this, [this, thing](qint16 totalEnergyProducedSf){
             qCDebug(dcKaco()) << "Inverter total energy produced scale factor recieved" << totalEnergyProducedSf;
             m_scalefactors.find(thing)->energySf = totalEnergyProducedSf;
         });
 
-        connect(connection, &KacoModbusRtuConnection::totalEnergyProducedChanged, thing, [this, thing](quint32 totalEnergyProduced){
-            double totalEnergyProducedConverted = (totalEnergyProduced * m_scalefactors.value(thing).energySf) / 1000;
+        connect(connection, &KacoModbusRtuConnection::totalEnergyProducedChanged, this, [this, thing](quint32 totalEnergyProduced){
+            double totalEnergyProducedConverted = (totalEnergyProduced * qPow(10, m_scalefactors.value(thing).energySf)) / 1000;
             qCDebug(dcKaco()) << "Inverter total energy produced changed" << totalEnergyProducedConverted << "kWh";
             thing->setStateValue(kacoInverterRTUTotalEnergyProducedStateTypeId, totalEnergyProducedConverted);
         });
 
-        connect(connection, &KacoModbusRtuConnection::operatingStateChanged, thing, [thing](KacoModbusRtuConnection::OperatingState operatingState){
+        connect(connection, &KacoModbusRtuConnection::operatingStateChanged, this, [this, thing](KacoModbusRtuConnection::OperatingState operatingState){
             qCDebug(dcKaco()) << "Inverter operating state recieved" << operatingState;
-            Q_UNUSED(thing)
+            setOperatingState(thing, operatingState);
         });
 
 
@@ -321,7 +323,7 @@ void IntegrationPluginKaco::postSetupThing(Thing *thing)
     if (thing->thingClassId() == kacoInverterTCPThingClassId || thing->thingClassId() == kacoInverterRTUThingClassId) {
         if (!m_pluginTimer) {
             qCDebug(dcKaco()) << "Starting plugin timer...";
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(KacoModbusTcpConnection *connection, m_tcpConnections) {
                     if (connection->connected()) {
@@ -359,5 +361,66 @@ void IntegrationPluginKaco::thingRemoved(Thing *thing)
     if (myThings().isEmpty() && m_pluginTimer) {
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;
+    }
+}
+
+void IntegrationPluginKaco::setOperatingState(Thing *thing, KacoModbusTcpConnection::OperatingState state)
+{
+    switch (state) {
+        case KacoModbusTcpConnection::OperatingStateOff:
+            thing->setStateValue(kacoInverterTCPOperatingStateStateTypeId, "Off");
+            break;
+        case KacoModbusTcpConnection::OperatingStateSleeping:
+            thing->setStateValue(kacoInverterTCPOperatingStateStateTypeId, "Sleeping");
+            break;
+        case KacoModbusTcpConnection::OperatingStateStarting:
+            thing->setStateValue(kacoInverterTCPOperatingStateStateTypeId, "Starting");
+            break;
+        case KacoModbusTcpConnection::OperatingStateMppt:
+            thing->setStateValue(kacoInverterTCPOperatingStateStateTypeId, "MPPT");
+            break;
+        case KacoModbusTcpConnection::OperatingStateThrottled:
+            thing->setStateValue(kacoInverterTCPOperatingStateStateTypeId, "Throttled");
+            break;
+        case KacoModbusTcpConnection::OperatingStateShuttingDown:
+            thing->setStateValue(kacoInverterTCPOperatingStateStateTypeId, "ShuttingDown");
+            break;
+        case KacoModbusTcpConnection::OperatingStateFault:
+            thing->setStateValue(kacoInverterTCPOperatingStateStateTypeId, "Fault");
+            break;
+        case KacoModbusTcpConnection::OperatingStateStandby:
+            thing->setStateValue(kacoInverterTCPOperatingStateStateTypeId, "Standby");
+            break;
+    }
+}
+
+
+void IntegrationPluginKaco::setOperatingState(Thing *thing, KacoModbusRtuConnection::OperatingState state)
+{
+    switch (state) {
+        case KacoModbusRtuConnection::OperatingStateOff:
+            thing->setStateValue(kacoInverterRTUOperatingStateStateTypeId, "Off");
+            break;
+        case KacoModbusRtuConnection::OperatingStateSleeping:
+            thing->setStateValue(kacoInverterRTUOperatingStateStateTypeId, "Sleeping");
+            break;
+        case KacoModbusRtuConnection::OperatingStateStarting:
+            thing->setStateValue(kacoInverterRTUOperatingStateStateTypeId, "Starting");
+            break;
+        case KacoModbusRtuConnection::OperatingStateMppt:
+            thing->setStateValue(kacoInverterRTUOperatingStateStateTypeId, "MPPT");
+            break;
+        case KacoModbusRtuConnection::OperatingStateThrottled:
+            thing->setStateValue(kacoInverterRTUOperatingStateStateTypeId, "Throttled");
+            break;
+        case KacoModbusRtuConnection::OperatingStateShuttingDown:
+            thing->setStateValue(kacoInverterRTUOperatingStateStateTypeId, "ShuttingDown");
+            break;
+        case KacoModbusRtuConnection::OperatingStateFault:
+            thing->setStateValue(kacoInverterRTUOperatingStateStateTypeId, "Fault");
+            break;
+        case KacoModbusRtuConnection::OperatingStateStandby:
+            thing->setStateValue(kacoInverterRTUOperatingStateStateTypeId, "Standby");
+            break;
     }
 }

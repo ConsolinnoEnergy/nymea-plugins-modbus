@@ -72,6 +72,9 @@ private:
     QHash<Thing *, KacoModbusTcpConnection *> m_tcpConnections;
     QHash<Thing *, KacoModbusRtuConnection *> m_rtuConnections;
     QHash<Thing *, ScaleFactors> m_scalefactors;
+
+    void setOperatingState(Thing *thing, KacoModbusTcpConnection::OperatingState state);
+    void setOperatingState(Thing *thing, KacoModbusRtuConnection::OperatingState state);
 };
 
 #endif // INTEGRATIONPLUGINKACO_H
