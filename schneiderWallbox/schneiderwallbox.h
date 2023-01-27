@@ -3,19 +3,16 @@
 
 #include <QObject>
 
-#include "schneidermodbustcpconnection.h"
+#include "schneiderwallboxmodbustcpconnection.h"
 
 class SchneiderWallbox : public QObject
 {
     Q_OBJECT
 public:
-    explicit SchneiderWallbox(SchneiderModbusTcpConnection *modbusTcpConnection, quint16 slaveId, QObject *parent = nullptr);
+    explicit SchneiderWallbox(SchneiderWallboxModbusTcpConnection *modbusTcpConnection, QObject *parent = nullptr);
     ~SchneiderWallbox();
 
-    SchneiderModbusTcpConnection *modbusTcpConnection();
-
-    // SchneiderModbusTcpConnection does not have a getter for this. Don't want to add it to SchneiderModbusTcpConnection, since SchneiderModbusTcpConnection is created by a script.
-    quint16 slaveId() const;
+    SchneiderWallboxModbusTcpConnection *modbusTcpConnection();
 
     void update();
 
@@ -23,10 +20,9 @@ public:
     bool setMaxAmpere(int ampereValue);
 
 private:
-    SchneiderModbusTcpConnection *m_modbusTcpConnection = nullptr;
-    quint16 m_slaveId{1};
+    SchneiderWallboxModbusTcpConnection *m_modbusTcpConnection = nullptr;
     bool m_charging{false};
-    SchneiderModbusTcpConnection::CPWState m_cpwState{SchneiderModbusTcpConnection::CPWStateEvseNotAvailable};
+    SchneiderWallboxModbusTcpConnection::CPWState m_cpwState{SchneiderWallboxModbusTcpConnection::CPWStateEvseNotAvailable};
 
     // The variable is initialized with 0 in schneidermodbustcpconnection.h, and signal is just emitted on change.
     quint16 m_recievedLifeBitRegisterValue{0};
@@ -42,7 +38,7 @@ private:
     bool m_errorOccured{false};
     bool m_acknowledgeCommand{false};
     quint16 m_remoteCommandStatus{0};
-    SchneiderModbusTcpConnection::RemoteCommand m_lastCommand{SchneiderModbusTcpConnection::RemoteCommandAcknowledgeCommand};
+    SchneiderWallboxModbusTcpConnection::RemoteCommand m_lastCommand{SchneiderWallboxModbusTcpConnection::RemoteCommandAcknowledgeCommand};
 
 signals:
     void phaseCountChanged(quint16 phaseCount);

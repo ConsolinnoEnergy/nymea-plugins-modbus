@@ -17,11 +17,13 @@ PLUGIN_DIRS = \
     mtec                    \
     mypv                    \
     phoenixconnect          \
-    schneider               \
+    schneiderWallbox        \
     schneiderIEM            \
     schrack                 \
     stiebeleltron           \
+    sungrow                 \
     sunspec                 \
+    technivolt              \
     unipi                   \
     webasto                 \
     e3dc                    

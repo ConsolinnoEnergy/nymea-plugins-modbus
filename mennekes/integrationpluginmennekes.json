@@ -1,71 +1,131 @@
 {
-    "displayName": "Mennekes Wallbox",
-    "name": "MennekesWallbox",
-    "id": "8b72d8b3-417f-48de-be77-f46e46e55d4d",
-    "vendors": [
+    "name": "Mennekes",
+        "displayName": "Mennekes",
+        "id": "c7c3c65c-a0cc-4ab1-90d8-4ad05bfcdc38",
+        "vendors": [
         {
-            "displayName": "Mennekes Wallbox",
-            "name": "mennekesWallbox",
-            "id": "6d53ee82-4072-4cb2-94c7-dd58c67f63a5",
+            "name": "mennekes",
+            "displayName": "MENNEKES",
+            "id": "7c585571-e3a3-458c-a598-e11f510cbc10",
             "thingClasses": [
                 {
-                    "id": "06f9eb6b-a1b0-4e64-bf02-7b5efd33b4a2",
-                    "displayName": "Mennekes Wallbox",
-                    "name": "mennekesWallbox",
+                    "name": "amtronECU",
+                    "displayName": "AMTRON Charge Control/Professional",
+                    "id": "fb48e067-2237-4eaf-8d2c-681d406395fc",
                     "createMethods": ["discovery", "user"],
-                    "interfaces": ["evcharger", "connectable"],
+                    "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {
-                            "id": "91e639d2-4085-4238-85fa-ed25b0a36548",
-                            "displayName": "IP address",
-                            "name": "ip",
-                            "type": "QString",
-                            "defaultValue": "192.168.0.8"
-                        },
-                        {
-                            "id": "c4036d84-9534-40ed-865b-1ebebc62175c",
+                            "id": "0b9c1466-5eb9-4b25-9450-513e2484a3b4",
+                            "name":"macAddress",
                             "displayName": "MAC address",
-                            "name": "mac",
                             "type": "QString",
-                            "defaultValue": "",
-                            "readOnly": true
+                            "inputType": "MacAddress",
+                            "defaultValue": ""
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "352be84a-f5c6-434d-8a92-a4065a24ff0a",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
                         },
                         {
-                            "id": "57687da2-f7e8-4746-bf80-b48636b276f8",
-                            "name":"port",
-                            "displayName": "Port",
-                            "type": "int",
-                            "defaultValue": 502
+                            "id": "c93d7377-8a4a-4c35-9876-1032d8b309e3",
+                            "name": "pluggedIn",
+                            "displayName": "Plugged in",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
                         },
                         {
-                            "id": "ed7055de-806a-4f81-bcea-6cfbd37c3ada",
-                            "name":"slaveId",
-                            "displayName": "Modbus slave ID",
-                            "type": "int",
+                            "id": "c8c812c6-dd56-425c-8dd1-8dd621bd3a11",
+                            "name": "charging",
+                            "displayName": "Charging",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "a51d0beb-f4fd-4279-85b5-b436b283a86e",
+                            "name": "phaseCount",
+                            "displayName": "Connected phases",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 3,
                             "defaultValue": 1
                         },
                         {
-                            "id": "05b8d966-f61c-4d63-8903-a9f174280eb4",
-                            "name":"minChargeCurrent",
-                            "displayName": "Minimum charge current",
-                            "type": "int",
-                            "minValue": 6,
-                            "maxValue": 32,
-                            "defaultValue": 8
+                            "id": "8b2eb039-b4e3-49ae-94fc-a8b825fd8d9b",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
-                            "id": "a147b6f6-1820-41ea-892f-9c670650128b",
-                            "name":"maxChargeCurrent",
-                            "displayName": "Maximum charge current",
-                            "type": "int",
+                            "id": "5b8bfdf0-eaa6-41d0-8f2f-119b06aed181",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total consumed energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        },
+                        {
+                            "id": "53dc845a-a397-4c90-890b-fd50512666f4",
+                            "name": "power",
+                            "displayName": "Charging enabled",
+                            "displayNameAction": "Set charging enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
+                        },
+                        {
+                            "id": "fb12ff61-f88a-4bfc-930f-a4a55b342d1b",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Maximum charging current",
+                            "displayNameAction": "Set maximum charging current",
+                            "type": "uint",
+                            "unit": "Ampere",
                             "minValue": 6,
                             "maxValue": 32,
-                            "defaultValue": 32
+                            "defaultValue": 6,
+                            "writable": true
+                        },
+                        {
+                            "id": "2ce6b363-5b8d-4703-8376-611a0e573f71",
+                            "name": "sessionEnergy",
+                            "displayName": "Session energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0
+                        }
+                    ]
+                },
+                {
+                    "name": "amtronHCC3",
+                    "displayName": "AMTRON XTRA/Premium",
+                    "id": "01995c4f-a7b5-4bdd-9333-486390ff75fd",
+                    "createMethods": ["discovery", "user"],
+                    "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
+                    "paramTypes": [
+                        {
+                            "id": "6112045e-e472-4475-bc11-f373e9c39cdd",
+                            "name":"macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "inputType": "MacAddress",
+                            "defaultValue": ""
                         }
                     ],
-                    "stateTypes":[
+                    "stateTypes": [
                         {
-                            "id": "2a542ba0-02f8-45ba-83be-eb63919f4ac8",
+                            "id": "899e270f-7666-44b3-8509-0dad43ac9c4c",
                             "name": "connected",
                             "displayName": "Connected",
                             "displayNameEvent": "Connected changed",
@@ -74,114 +134,47 @@
                             "cached": false
                         },
                         {
-                            "id": "ee0076f7-88b4-4cab-8354-ac76e92b9177",
-                            "name": "power",
-                            "displayName": "Charging enabled",
-                            "displayNameEvent": "Charging status changed",
-                            "displayNameAction": "Set charging enabled",
-                            "type": "bool",
-                            "writable": true,
-                            "defaultValue": false,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "63ff152c-d1c7-4834-93f9-d0256e0cc8f2",
-                            "name": "chargeTime",
-                            "displayName": "Charging Time",
-                            "unit": "Minutes",
-                            "type": "uint",
-                            "defaultValue": 0,
-                            "displayNameEvent": "Charging time changed",
-                            "cached": false
-                        },
-                        {
-                            "id": "29275178-a276-4486-ac9e-1333e655a59e",
-                            "name": "ocppStatus",
-                            "displayName": "OCPP Status",
-                            "displayNameEvent": "OCPP status changed",
-                            "type": "QString",
-                            "defaultValue": "Available"
-                        },
-                        {
-                            "id": "ade26d41-51ba-43c2-973f-ea50158db1ff",
-                            "name": "pluggedIn",
-                            "displayName": "Car plugged in",
-                            "displayNameEvent": "Car plugged in changed",
-                            "type": "bool",
-                            "defaultValue": false
-                        },
-                        {
-                            "id": "c0a1ae2c-0b51-4a05-8c8f-7be5948e6ddc",
-                            "name": "charging",
-                            "displayName": "Charging",
-                            "displayNameEvent": "Charging changed",
-                            "type": "bool",
-                            "defaultValue": false
-                        },
-                        {
-                            "id": "556a702b-13f5-4144-be31-109fffd3373a",
-                            "name": "maxChargingCurrent",
-                            "displayName": "Maximal charging current",
-                            "displayNameEvent": "Maximal charging current changed",
-                            "displayNameAction": "Set maximal charging current",
-                            "type": "uint",
-                            "unit": "Ampere",
-                            "defaultValue": 6,
-                            "minValue": 6,
-                            "maxValue": 16,
-                            "writable": true,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "9550f223-e108-4f89-b7c0-01239c954542",
-                            "name": "sessionEnergy",
-                            "displayName": "Session energy",
-                            "displayNameEvent": "Session energy changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "72cca394-5689-48bb-87c1-dcd8331a9a3b",
-                            "name": "totalEnergyConsumed",
-                            "displayName": "Total energy consumed",
-                            "displayNameEvent": "Total energy consumption changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "975d78ce-9389-484d-90b6-123db93fb843",
+                            "id": "96b9c121-3caf-44fe-8380-483b9b40dbd9",
                             "name": "currentPower",
-                            "displayName": "Power consumption",
-                            "displayNameEvent": "Power consumtion changed",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
                             "type": "double",
                             "unit": "Watt",
-                            "defaultValue": 0.00,
-                            "suggestLogging": true,
+                            "defaultValue": 0,
                             "cached": false
                         },
                         {
-                            "id": "c5dfb778-6301-46d9-b64c-b48903b8f0d5",
-                            "name": "phaseCount",
-                            "displayName": "Phase count",
-                            "displayNameEvent": "Phase count changed",
+                            "id": "3d1384fc-8b46-42b0-b043-23279d8c7665",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total consumed energy",
+                            "displayNameEvent": "Total consumed energy changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        },
+                        {
+                            "id": "130585ca-14e9-45b7-87d7-c0d935228104",
+                            "name": "power",
+                            "displayName": "Charging enabled",
+                            "displayNameEvent": "Charging enabled changed",
+                            "displayNameAction": "Set charging enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
+                        },
+                        {
+                            "id": "87b4e9cb-e57b-461a-90f9-207bb5dab44c",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Maximum charging current",
+                            "displayNameEvent": "Maximum charging current changed",
+                            "displayNameAction": "Set maximum charging current",
                             "type": "uint",
-                            "minValue": 1,
-                            "maxValue": 3,
-                            "defaultValue": 1,
-                            "suggestLogging": true,
-                            "cached": false
-                        },
-                        {
-                            "id": "7822aef3-4faa-4a5f-af72-7b6a0d28a134",
-                            "name": "errorMessage",
-                            "displayName": "Error message",
-                            "type": "QString",
-                            "defaultValue": "No error",
-                            "displayNameEvent": "Error state changed"
+                            "unit": "Ampere",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 6,
+                            "writable": true
                         }
                     ]
                 }

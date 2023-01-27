@@ -1,4 +1,39 @@
-nymea-plugins-modbus (1.4.0-1) qa; urgency=medium
+nymea-plugins-modbus (1.5.101-1) jammy; urgency=medium
+
+  * Bumps version number to reflect fork: 1.5.1>01-1<-- Fork version based on upstream 1.5.1
+
+ -- Leonhard Heizinger <l.heizinger@consolinno.de>  Wed, 14 Dec 2022 10:43:41 +0100
+
+nymea-plugins-modbus (1.5.1) jammy; urgency=medium
+
+
+ -- jenkins <developer@nymea.io>  Mon, 07 Nov 2022 12:48:34 +0100
+
+nymea-plugins-modbus (1.5.0) jammy; urgency=medium
+
+  [ Michael Zanetti ]
+  * New plugin: Mennekes HCC3 and ECU wallboxes
+  * Add host address to error debug prints
+  * Schrack: Only complete the setup if reading a register actually
+    works
+  * PhoenixConnect: Improve plugin stability
+
+  [ Simon Stürz ]
+  * Clean up network device discovery replies due to mechanism update
+
+  [ Michael Zanetti ]
+  * Add a parameter to write registers to the cli
+
+ -- jenkins <developer@nymea.io>  Thu, 27 Oct 2022 12:03:49 +0200
+
+nymea-plugins-modbus (1.4.1) jammy; urgency=medium
+
+  [ Simon Stürz ]
+  * Kostal: Add total energy returned to grid property
+
+ -- jenkins <developer@nymea.io>  Fri, 30 Sep 2022 12:08:08 +0200
+
+nymea-plugins-modbus (1.4.0) jammy; urgency=medium
 
   [ Simon Stürz ]
   * New plugin: KOSTAL Solar Electric

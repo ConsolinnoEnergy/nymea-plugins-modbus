@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,16 +28,19 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSCHNEIDER_H
-#define INTEGRATIONPLUGINSCHNEIDER_H
+#ifndef INTEGRATIONPLUGINMENNEKES_H
+#define INTEGRATIONPLUGINMENNEKES_H
 
-#include <integrations/integrationplugin.h>
 #include <plugintimer.h>
+#include <integrations/integrationplugin.h>
+#include <network/networkdevicemonitor.h>
 
-#include "mennekesmodbustcpconnection.h"
-#include "mennekeswallbox.h"
+#include "extern-plugininfo.h"
 
-class IntegrationPluginMennekes : public IntegrationPlugin
+#include "amtronecumodbustcpconnection.h"
+#include "amtronhcc3modbustcpconnection.h"
+
+class IntegrationPluginMennekes: public IntegrationPlugin
 {
     Q_OBJECT
 
@@ -47,25 +50,28 @@ class IntegrationPluginMennekes : public IntegrationPlugin
 public:
     explicit IntegrationPluginMennekes();
 
-    void init() override;
-
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
-
     void postSetupThing(Thing *thing) override;
+    void executeAction(ThingActionInfo *info) override;
     void thingRemoved(Thing *thing) override;
 
-    void executeAction(ThingActionInfo *info) override;
+private slots:
+    void updateECUPhaseCount(Thing *thing);
 
 private:
+    void setupAmtronECUConnection(ThingSetupInfo *info);
+    void setupAmtronHCC3Connection(ThingSetupInfo *info);
+
+    bool ensureAmtronECUVersion(AmtronECUModbusTcpConnection *connection, const QString &version);
+
     PluginTimer *m_pluginTimer = nullptr;
+    QHash<Thing *, AmtronECUModbusTcpConnection *> m_amtronECUConnections;
+    QHash<Thing *, AmtronHCC3ModbusTcpConnection *> m_amtronHCC3Connections;
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
 
-    QHash<ThingId, MennekesWallbox *> m_wallboxDevices;
-
-    void setOcppState(Thing *thing, MennekesModbusTcpConnection::OCPPstatus ocppStatus);
-    void setCurrentPower(Thing *thing, double currentPower);
-    void setPhaseCount(Thing *thing, quint16 phaseCount);
-    void setErrorMessage(Thing *thing, quint32 errorBits);
 };
 
-#endif // INTEGRATIONPLUGINSCHNEIDER_H
+#endif // INTEGRATIONPLUGINMENNEKES_H
+
+

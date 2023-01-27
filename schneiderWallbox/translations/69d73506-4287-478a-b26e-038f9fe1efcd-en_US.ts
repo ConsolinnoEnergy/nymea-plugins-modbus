@@ -2,20 +2,20 @@
 <!DOCTYPE TS>
 <TS version="2.1">
 <context>
-    <name>IntegrationPluginSchneider</name>
+    <name>IntegrationPluginSchneiderWallbox</name>
     <message>
-        <location filename="../integrationpluginschneider.cpp" line="52"/>
+        <location filename="../integrationpluginschneiderwallbox.cpp" line="53"/>
         <source>The discovery is not available. Please enter the IP address manually.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../integrationpluginschneider.cpp" line="121"/>
-        <source>No IP address given</source>
+        <location filename="../integrationpluginschneiderwallbox.cpp" line="112"/>
+        <source>The given MAC address is not valid.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../integrationpluginschneider.cpp" line="138"/>
-        <source>Already configured for this IP address and slaveId.</source>
+        <location filename="../integrationpluginschneiderwallbox.cpp" line="149"/>
+        <source>Could not initialize the communication with the wallbox.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -29,19 +29,25 @@
     </message>
     <message>
         <location filename="../plugininfo.h" line="52"/>
+        <source>Car plugged in</source>
+        <extracomment>The name of the StateType ({336da4ba-e449-418e-aee9-2c9f57d55632}) of ThingClass schneiderEVlink</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="55"/>
         <source>Charging</source>
         <extracomment>The name of the StateType ({0c78af0d-4775-40d8-be25-a6754ceed0f4}) of ThingClass schneiderEVlink</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="55"/>
+        <location filename="../plugininfo.h" line="58"/>
         <source>Charging Time</source>
         <extracomment>The name of the StateType ({8c3084f1-d41f-4448-97ef-d75ff4467c8f}) of ThingClass schneiderEVlink</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="58"/>
         <location filename="../plugininfo.h" line="61"/>
+        <location filename="../plugininfo.h" line="64"/>
         <source>Charging enabled</source>
         <extracomment>The name of the ParamType (ThingClass: schneiderEVlink, ActionType: power, ID: {0663400f-b446-4a71-8f48-6596f02a8731})
 ----------
@@ -49,21 +55,15 @@ The name of the StateType ({0663400f-b446-4a71-8f48-6596f02a8731}) of ThingClass
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="64"/>
+        <location filename="../plugininfo.h" line="67"/>
         <source>Connected</source>
         <extracomment>The name of the StateType ({515231ed-bc7e-4799-b34f-a09fbe5163aa}) of ThingClass schneiderEVlink</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="67"/>
+        <location filename="../plugininfo.h" line="70"/>
         <source>Error message</source>
         <extracomment>The name of the StateType ({30e02884-8863-40c8-90e3-de8b41d181c7}) of ThingClass schneiderEVlink</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="70"/>
-        <source>IP address</source>
-        <extracomment>The name of the ParamType (ThingClass: schneiderEVlink, Type: thing, ID: {3609e51d-61b8-4f1e-b1c5-d752e280d96d})</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>

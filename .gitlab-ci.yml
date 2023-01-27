@@ -2,3 +2,6 @@ include:
   - project: 'leafletfirmware/nymea/nymea-ci'
     file: '/nymea/pipeline.yml'
     ref: main
+  - project: 'leafletfirmware/nymea/nymea-modbus-sim'
+    file: '/ci-generator/simulator-ci.yaml'
+    ref: main
