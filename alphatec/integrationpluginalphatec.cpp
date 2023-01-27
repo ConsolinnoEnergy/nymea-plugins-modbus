@@ -22,7 +22,6 @@
 #include "integrationpluginalphatec.h"
 #include <network/networkdevicediscovery.h>
 #include <types/param.h>
-#include <plugintimer.h>
 
 #include <QDebug>
 #include <QStringList>

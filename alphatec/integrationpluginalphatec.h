@@ -29,7 +29,6 @@
 #include <QTimer>
 #include <plugintimer.h>
 
-
 class NetworkDeviceMonitor;
 
 class IntegrationPluginAlphatec: public IntegrationPlugin
