@@ -13,30 +13,35 @@
                     "displayName": "Alphatec Wallbox Power",
                     "id": "549a8069-244b-4259-8196-72fed033d16a",
                     "setupMethod": "JustAdd",
-                    "createMethods": ["User"],
+                    "createMethods": ["discovery"],
                     "interfaces": ["evcharger","connectable","smartmeterconsumer"],
+                    "discoveryParamTypes": [
+                        {
+                            "id": "599b0bfb-0440-44be-8778-e9e6fd8c0df0",
+                            "name": "slaveAddress",
+                            "displayName": "Slave address",
+                            "type": "int",
+                            "defaultValue": 1
+                        }
+                    ],
+
                     "paramTypes": [
                     {
-                        "id": "6aab8a75-828b-4e3e-8fa1-d9f3a817489c",
-                        "name": "ip",
-                        "displayName": "IpAdress",
-                        "type": "QString",
-                        "defaultValue": "192.168.0.0"
+                        "id": "0c6f2f4b-ef11-429f-a9b0-adb244bad52f",
+                        "name": "modbusMasterUuid",
+                        "displayName": "Modbus RTU master",
+                        "type": "QUuid",
+                        "defaultValue": "",
+                        "readOnly": true
                     },
                     {
-                        "id": "122b6ab5-1c27-42e3-83a0-73d2d4c12473",
-                        "name": "port",
-                        "displayName": "Port",
-                        "type": "int",
-                        "defaultValue": 502
-                    },
-                    {
-                        "id": "c85bfd5e-733d-4aa6-a247-d4870c584770",
-                        "name": "slaveId",
-                        "displayName": "Modbus slave ID",
-                        "type": "int",
-                        "defaultValue": 255
-                    },
+                        "id": "955cea1e-5b5e-40fb-8a47-eef3cbe1790d",
+                        "name": "slaveAddress",
+                        "displayName": "Modbus slave address",
+                        "type": "uint",
+                        "defaultValue": 1
+                    }
+,
                     {
                         "id": "b0c2d687-be93-4909-9dca-92781b56d90b",
                         "name": "minChargeCurrent",
