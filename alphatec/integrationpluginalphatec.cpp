@@ -132,7 +132,7 @@ void IntegrationPluginAlphatec::setupThing(ThingSetupInfo *info)
           });
 
           connect(connection, &AlphatecWallboxModbusRtuConnection::chargePowerChanged, thing, [thing](quint16 chargePower){
-             thing->setStateValue(alphatecWallboxPowerCurrentPowerStateTypeId,chargePower);
+              chargePower = chargePower;
           });
 
 
