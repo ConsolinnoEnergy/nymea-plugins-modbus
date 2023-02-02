@@ -1,6 +1,6 @@
 {
     "className": "AlphatecWallbox",
-    "protocol": "TCP",
+    "protocol": "RTU",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 20,
     "checkReachableRegister": "evseStatus",

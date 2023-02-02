@@ -1,11 +1,12 @@
-include($$[QT_INSTALL_PREFIX]/include/nymea/plugin.pri)
+include(../plugins.pri)
+
+# Generate modbus connection
+# MODBUS_TOOLS_CONFIG += VERBOSE
 MODBUS_CONNECTIONS += alphatec-registers.json
 include(../modbus.pri)
-SOURCES += \
-    alphatecWallbox.cpp \
-    integrationpluginalphatec.cpp
 
 HEADERS += \
-    alphatecWallbox.h \
     integrationpluginalphatec.h
 
+SOURCES += \
+    integrationpluginalphatec.cpp

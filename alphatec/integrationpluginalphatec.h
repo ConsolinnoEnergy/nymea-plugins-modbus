@@ -22,11 +22,14 @@
 #define INTEGRATIONPLUGINALPHATEC_H
 
 #include "integrations/integrationplugin.h"
-#include "alphatecwallboxmodbustcpconnection.h"
-#include "alphatecWallbox.h"
+#include "alphatecwallboxmodbusrtuconnection.h"
+#include <hardware/modbus/modbusrtuhardwareresource.h>
 #include <QObject>
 #include <QHostAddress>
-class PluginTimer;
+#include <QTimer>
+#include <plugintimer.h>
+
+class NetworkDeviceMonitor;
 
 class IntegrationPluginAlphatec: public IntegrationPlugin
 {
@@ -41,6 +44,8 @@ public:
 
     void init() override;
 
+    void discoverThings(ThingDiscoveryInfo *info) override;
+
     void setupThing(ThingSetupInfo *info) override;
 
     void postSetupThing(Thing *thing) override;
@@ -50,9 +55,8 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
-    void updateRegisters(Thing *thing);
-    QHash<Thing*, AlphatecWallbox*> m_alphatecDevices;
-    AlphatecWallboxModbusTcpConnection *alphatecTcp = nullptr;
+    QHash<Thing *, AlphatecWallboxModbusRtuConnection *> m_rtuConnections;
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     PluginTimer *m_pluginTimer = nullptr;
 
 };
