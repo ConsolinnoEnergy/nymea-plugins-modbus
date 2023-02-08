@@ -323,7 +323,7 @@ void IntegrationPluginKaco::postSetupThing(Thing *thing)
     if (thing->thingClassId() == kacoInverterTCPThingClassId || thing->thingClassId() == kacoInverterRTUThingClassId) {
         if (!m_pluginTimer) {
             qCDebug(dcKaco()) << "Starting plugin timer...";
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
+            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(KacoModbusTcpConnection *connection, m_tcpConnections) {
                     if (connection->connected()) {
