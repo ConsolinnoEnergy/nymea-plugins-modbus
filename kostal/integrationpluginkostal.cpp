@@ -345,10 +345,12 @@ void IntegrationPluginKostal::setupKostalConnection(ThingSetupInfo *info)
         if (!thing->setupComplete())
             return;
 
-        if (success) {
-            thing->setStateValue("connected", true);
-        } else {
-            thing->setStateValue("connected", false);
+        thing->setStateValue("connected", success);
+        foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+            childThing->setStateValue("connected", success);
+        }
+
+        if (!success) {
             // Try once to reconnect the device
             kostalConnection->reconnectDevice();
         }
@@ -454,8 +456,8 @@ void IntegrationPluginKostal::setupKostalConnection(ThingSetupInfo *info)
 
                 meterThing->setStateValue(kostalMeterFrequencyStateTypeId, kostalConnection->gridFrequencyPowerMeter());
 
-                // TODO: Not sure where to get the exported energy
                 meterThing->setStateValue(kostalMeterTotalEnergyConsumedStateTypeId, kostalConnection->totalHomeConsumptionFromGrid() / 1000.0); // kWh
+                meterThing->setStateValue(kostalMeterTotalEnergyProducedStateTypeId, kostalConnection->totalEnergyAcToGrid() / 1000.0); // kWh
 
                 // Set the power as last value
                 meterThing->setStateValue(kostalMeterCurrentPowerStateTypeId, kostalConnection->powerMeterTotalActivePower());

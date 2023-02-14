@@ -40,6 +40,7 @@
 #include "schneideriemmodbusrtuconnection.h"
 #include <loggingcategories.h>
 #include <math.h>
+#include <QTimer>
 
 NYMEA_LOGGING_CATEGORY(dcSchneiderIEMModbusRtuConnection, "SchneiderIEMModbusRtuConnection")
 
@@ -48,7 +49,24 @@ SchneiderIEMModbusRtuConnection::SchneiderIEMModbusRtuConnection(ModbusRtuMaster
     m_modbusRtuMaster(modbusRtuMaster),
     m_slaveId(slaveId)
 {
-    
+    connect(m_modbusRtuMaster, &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
+        if (connected) {
+            qCDebug(dcSchneiderIEMModbusRtuConnection()) << "Modbus RTU resource" << m_modbusRtuMaster->serialPort() << "connected again. Start testing if the connection is reachable...";
+            m_pendingInitReplies.clear();
+            m_pendingUpdateReplies.clear();
+            m_communicationWorking = false;
+            m_communicationFailedCounter = 0;
+            m_checkReachableRetriesCount = 0;
+            testReachability();
+        } else {
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Modbus RTU resource" << m_modbusRtuMaster->serialPort() << "disconnected. The connection is not reachable any more.";
+            m_communicationWorking = false;
+            m_communicationFailedCounter = 0;
+            m_checkReachableRetriesCount = 0;
+        }
+
+        evaluateReachableState();
+    });
 }
 
 ModbusRtuMaster *SchneiderIEMModbusRtuConnection::modbusRtuMaster() const
@@ -59,10 +77,31 @@ quint16 SchneiderIEMModbusRtuConnection::slaveId() const
 {
     return m_slaveId;
 }
+
+bool SchneiderIEMModbusRtuConnection::reachable() const
+{
+    return m_reachable;
+}
+
+uint SchneiderIEMModbusRtuConnection::checkReachableRetries() const
+{
+    return m_checkReachableRetries;
+}
+
+void SchneiderIEMModbusRtuConnection::setCheckReachableRetries(uint checkReachableRetries)
+{
+    if (m_checkReachableRetries == checkReachableRetries)
+        return;
+
+    m_checkReachableRetries = checkReachableRetries;
+    emit checkReachableRetriesChanged(m_checkReachableRetries);
+}
+
 ModbusDataUtils::ByteOrder SchneiderIEMModbusRtuConnection::endianness() const
 {
     return m_endianness;
 }
+
 void SchneiderIEMModbusRtuConnection::setEndianness(ModbusDataUtils::ByteOrder endianness)
 {
     if (m_endianness == endianness)
@@ -71,6 +110,7 @@ void SchneiderIEMModbusRtuConnection::setEndianness(ModbusDataUtils::ByteOrder e
     m_endianness = endianness;
     emit endiannessChanged(m_endianness);
 }
+
 float SchneiderIEMModbusRtuConnection::totalCurrentPower() const
 {
     return m_totalCurrentPower;
@@ -151,499 +191,1053 @@ qint64 SchneiderIEMModbusRtuConnection::energyConsumedPhaseC() const
     return m_energyConsumedPhaseC;
 }
 
-void SchneiderIEMModbusRtuConnection::initialize()
+bool SchneiderIEMModbusRtuConnection::initialize()
 {
+    if (!m_reachable) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Tried to initialize but the device is not to be reachable.";
+        return false;
+    }
     // No init registers defined. Nothing to be done and we are finished.
-    emit initializationFinished();
+    emit initializationFinished(true);
+    return true;
 }
 
-void SchneiderIEMModbusRtuConnection::update()
+bool SchneiderIEMModbusRtuConnection::update()
 {
-    updateTotalCurrentPower();
-    updateVoltagePhaseA();
-    updateVoltagePhaseB();
-    updateVoltagePhaseC();
-    updateCurrentPhaseA();
-    updateCurrentPhaseB();
-    updateCurrentPhaseC();
-    updatePowerPhaseA();
-    updatePowerPhaseB();
-    updatePowerPhaseC();
-    updateFrequency();
-    updateTotalEnergyConsumed();
-    updateTotalEnergyProduced();
-    updateEnergyConsumedPhaseA();
-    updateEnergyConsumedPhaseB();
-    updateEnergyConsumedPhaseC();
+    if (!m_modbusRtuMaster->connected()) {
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "Tried to update the registers but the hardware resource seems not to be connected.";
+        return false;
+    }
+
+    if (!m_pendingUpdateReplies.isEmpty()) {
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "Tried to update the registers but there are still some update replies pending. Waiting for them to be finished...";
+        return true;
+    }
+
+    // Hardware resource available but communication not working. 
+    // Try to read the check reachability register to re-evaluatoe the communication... 
+    if (m_modbusRtuMaster->connected() && !m_communicationWorking) {
+        testReachability();
+        return false;
+    }
+
+    ModbusRtuReply *reply = nullptr;
+
+    // Read Total system power
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Total system power\" register:" << 3059 << "size:" << 2;
+    reply = readTotalCurrentPower();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Total system power\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Total system power\" register" << 3059 << "size:" << 2 << values;
+        processTotalCurrentPowerRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Total system power\" registers" << error << reply->errorString();
+    });
+
+    // Read Voltage phase L1
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Voltage phase L1\" register:" << 3027 << "size:" << 2;
+    reply = readVoltagePhaseA();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Voltage phase L1\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Voltage phase L1\" register" << 3027 << "size:" << 2 << values;
+        processVoltagePhaseARegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Voltage phase L1\" registers" << error << reply->errorString();
+    });
+
+    // Read Voltage phase L2
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Voltage phase L2\" register:" << 3029 << "size:" << 2;
+    reply = readVoltagePhaseB();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Voltage phase L2\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Voltage phase L2\" register" << 3029 << "size:" << 2 << values;
+        processVoltagePhaseBRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Voltage phase L2\" registers" << error << reply->errorString();
+    });
+
+    // Read Voltage phase L3
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Voltage phase L3\" register:" << 3031 << "size:" << 2;
+    reply = readVoltagePhaseC();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Voltage phase L3\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Voltage phase L3\" register" << 3031 << "size:" << 2 << values;
+        processVoltagePhaseCRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Voltage phase L3\" registers" << error << reply->errorString();
+    });
+
+    // Read Current phase L1
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Current phase L1\" register:" << 2999 << "size:" << 2;
+    reply = readCurrentPhaseA();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Current phase L1\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Current phase L1\" register" << 2999 << "size:" << 2 << values;
+        processCurrentPhaseARegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Current phase L1\" registers" << error << reply->errorString();
+    });
+
+    // Read Current phase L2
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Current phase L2\" register:" << 3001 << "size:" << 2;
+    reply = readCurrentPhaseB();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Current phase L2\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Current phase L2\" register" << 3001 << "size:" << 2 << values;
+        processCurrentPhaseBRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Current phase L2\" registers" << error << reply->errorString();
+    });
+
+    // Read Current phase L3
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Current phase L3\" register:" << 3003 << "size:" << 2;
+    reply = readCurrentPhaseC();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Current phase L3\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Current phase L3\" register" << 3003 << "size:" << 2 << values;
+        processCurrentPhaseCRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Current phase L3\" registers" << error << reply->errorString();
+    });
+
+    // Read Power phase L1
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Power phase L1\" register:" << 3053 << "size:" << 2;
+    reply = readPowerPhaseA();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Power phase L1\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Power phase L1\" register" << 3053 << "size:" << 2 << values;
+        processPowerPhaseARegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Power phase L1\" registers" << error << reply->errorString();
+    });
+
+    // Read Power phase L2
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Power phase L2\" register:" << 3055 << "size:" << 2;
+    reply = readPowerPhaseB();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Power phase L2\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Power phase L2\" register" << 3055 << "size:" << 2 << values;
+        processPowerPhaseBRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Power phase L2\" registers" << error << reply->errorString();
+    });
+
+    // Read Power phase L3
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Power phase L3\" register:" << 3057 << "size:" << 2;
+    reply = readPowerPhaseC();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Power phase L3\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Power phase L3\" register" << 3057 << "size:" << 2 << values;
+        processPowerPhaseCRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Power phase L3\" registers" << error << reply->errorString();
+    });
+
+    // Read Frequency
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Frequency\" register:" << 3109 << "size:" << 2;
+    reply = readFrequency();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Frequency\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Frequency\" register" << 3109 << "size:" << 2 << values;
+        processFrequencyRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Frequency\" registers" << error << reply->errorString();
+    });
+
+    // Read Total energy consumed
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Total energy consumed\" register:" << 3203 << "size:" << 4;
+    reply = readTotalEnergyConsumed();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Total energy consumed\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Total energy consumed\" register" << 3203 << "size:" << 4 << values;
+        processTotalEnergyConsumedRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Total energy consumed\" registers" << error << reply->errorString();
+    });
+
+    // Read Total energy produced
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Total energy produced\" register:" << 3207 << "size:" << 4;
+    reply = readTotalEnergyProduced();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Total energy produced\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Total energy produced\" register" << 3207 << "size:" << 4 << values;
+        processTotalEnergyProducedRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Total energy produced\" registers" << error << reply->errorString();
+    });
+
+    // Read Energy consumed phase A
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Energy consumed phase A\" register:" << 3517 << "size:" << 4;
+    reply = readEnergyConsumedPhaseA();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Energy consumed phase A\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Energy consumed phase A\" register" << 3517 << "size:" << 4 << values;
+        processEnergyConsumedPhaseARegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Energy consumed phase A\" registers" << error << reply->errorString();
+    });
+
+    // Read Energy consumed phase B
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Energy consumed phase B\" register:" << 3521 << "size:" << 4;
+    reply = readEnergyConsumedPhaseB();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Energy consumed phase B\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Energy consumed phase B\" register" << 3521 << "size:" << 4 << values;
+        processEnergyConsumedPhaseBRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Energy consumed phase B\" registers" << error << reply->errorString();
+    });
+
+    // Read Energy consumed phase C
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Energy consumed phase C\" register:" << 3525 << "size:" << 4;
+    reply = readEnergyConsumedPhaseC();
+    if (!reply) {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Energy consumed phase C\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        return false; // Broadcast reply returns immediatly
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingUpdateReplies.removeAll(reply);
+
+        if (reply->error() != ModbusRtuReply::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        QVector<quint16> values = reply->result();
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Energy consumed phase C\" register" << 3525 << "size:" << 4 << values;
+        processEnergyConsumedPhaseCRegisterValues(values);
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Energy consumed phase C\" registers" << error << reply->errorString();
+    });
+    return true;
 }
 
 void SchneiderIEMModbusRtuConnection::updateTotalCurrentPower()
 {
     // Update registers from Total system power
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Total system power\" register:" << 3060 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Total system power\" register:" << 3059 << "size:" << 2;
     ModbusRtuReply *reply = readTotalCurrentPower();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Total system power\" register" << 3060 << "size:" << 2 << values;
-                    processTotalCurrentPowerRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Total system power\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Total system power\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Total system power\" register" << 3059 << "size:" << 2 << values;
+                processTotalCurrentPowerRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Total system power\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateVoltagePhaseA()
 {
     // Update registers from Voltage phase L1
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Voltage phase L1\" register:" << 3020 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Voltage phase L1\" register:" << 3027 << "size:" << 2;
     ModbusRtuReply *reply = readVoltagePhaseA();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Voltage phase L1\" register" << 3020 << "size:" << 2 << values;
-                    processVoltagePhaseARegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Voltage phase L1\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Voltage phase L1\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Voltage phase L1\" register" << 3027 << "size:" << 2 << values;
+                processVoltagePhaseARegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Voltage phase L1\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateVoltagePhaseB()
 {
     // Update registers from Voltage phase L2
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Voltage phase L2\" register:" << 3022 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Voltage phase L2\" register:" << 3029 << "size:" << 2;
     ModbusRtuReply *reply = readVoltagePhaseB();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Voltage phase L2\" register" << 3022 << "size:" << 2 << values;
-                    processVoltagePhaseBRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Voltage phase L2\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Voltage phase L2\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Voltage phase L2\" register" << 3029 << "size:" << 2 << values;
+                processVoltagePhaseBRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Voltage phase L2\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateVoltagePhaseC()
 {
     // Update registers from Voltage phase L3
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Voltage phase L3\" register:" << 3024 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Voltage phase L3\" register:" << 3031 << "size:" << 2;
     ModbusRtuReply *reply = readVoltagePhaseC();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Voltage phase L3\" register" << 3024 << "size:" << 2 << values;
-                    processVoltagePhaseCRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Voltage phase L3\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Voltage phase L3\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Voltage phase L3\" register" << 3031 << "size:" << 2 << values;
+                processVoltagePhaseCRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Voltage phase L3\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateCurrentPhaseA()
 {
     // Update registers from Current phase L1
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Current phase L1\" register:" << 3000 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Current phase L1\" register:" << 2999 << "size:" << 2;
     ModbusRtuReply *reply = readCurrentPhaseA();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Current phase L1\" register" << 3000 << "size:" << 2 << values;
-                    processCurrentPhaseARegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Current phase L1\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Current phase L1\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Current phase L1\" register" << 2999 << "size:" << 2 << values;
+                processCurrentPhaseARegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Current phase L1\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateCurrentPhaseB()
 {
     // Update registers from Current phase L2
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Current phase L2\" register:" << 3002 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Current phase L2\" register:" << 3001 << "size:" << 2;
     ModbusRtuReply *reply = readCurrentPhaseB();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Current phase L2\" register" << 3002 << "size:" << 2 << values;
-                    processCurrentPhaseBRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Current phase L2\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Current phase L2\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Current phase L2\" register" << 3001 << "size:" << 2 << values;
+                processCurrentPhaseBRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Current phase L2\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateCurrentPhaseC()
 {
     // Update registers from Current phase L3
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Current phase L3\" register:" << 3004 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Current phase L3\" register:" << 3003 << "size:" << 2;
     ModbusRtuReply *reply = readCurrentPhaseC();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Current phase L3\" register" << 3004 << "size:" << 2 << values;
-                    processCurrentPhaseCRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Current phase L3\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Current phase L3\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Current phase L3\" register" << 3003 << "size:" << 2 << values;
+                processCurrentPhaseCRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Current phase L3\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updatePowerPhaseA()
 {
     // Update registers from Power phase L1
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Power phase L1\" register:" << 3054 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Power phase L1\" register:" << 3053 << "size:" << 2;
     ModbusRtuReply *reply = readPowerPhaseA();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Power phase L1\" register" << 3054 << "size:" << 2 << values;
-                    processPowerPhaseARegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Power phase L1\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Power phase L1\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Power phase L1\" register" << 3053 << "size:" << 2 << values;
+                processPowerPhaseARegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Power phase L1\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updatePowerPhaseB()
 {
     // Update registers from Power phase L2
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Power phase L2\" register:" << 3056 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Power phase L2\" register:" << 3055 << "size:" << 2;
     ModbusRtuReply *reply = readPowerPhaseB();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Power phase L2\" register" << 3056 << "size:" << 2 << values;
-                    processPowerPhaseBRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Power phase L2\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Power phase L2\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Power phase L2\" register" << 3055 << "size:" << 2 << values;
+                processPowerPhaseBRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Power phase L2\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updatePowerPhaseC()
 {
     // Update registers from Power phase L3
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Power phase L3\" register:" << 3058 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Power phase L3\" register:" << 3057 << "size:" << 2;
     ModbusRtuReply *reply = readPowerPhaseC();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Power phase L3\" register" << 3058 << "size:" << 2 << values;
-                    processPowerPhaseCRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Power phase L3\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Power phase L3\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Power phase L3\" register" << 3057 << "size:" << 2 << values;
+                processPowerPhaseCRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Power phase L3\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateFrequency()
 {
     // Update registers from Frequency
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Frequency\" register:" << 3110 << "size:" << 2;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Frequency\" register:" << 3109 << "size:" << 2;
     ModbusRtuReply *reply = readFrequency();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Frequency\" register" << 3110 << "size:" << 2 << values;
-                    processFrequencyRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Frequency\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Frequency\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Frequency\" register" << 3109 << "size:" << 2 << values;
+                processFrequencyRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Frequency\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateTotalEnergyConsumed()
 {
     // Update registers from Total energy consumed
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Total energy consumed\" register:" << 3204 << "size:" << 4;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Total energy consumed\" register:" << 3203 << "size:" << 4;
     ModbusRtuReply *reply = readTotalEnergyConsumed();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Total energy consumed\" register" << 3204 << "size:" << 4 << values;
-                    processTotalEnergyConsumedRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Total energy consumed\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Total energy consumed\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Total energy consumed\" register" << 3203 << "size:" << 4 << values;
+                processTotalEnergyConsumedRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Total energy consumed\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateTotalEnergyProduced()
 {
     // Update registers from Total energy produced
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Total energy produced\" register:" << 3208 << "size:" << 4;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Total energy produced\" register:" << 3207 << "size:" << 4;
     ModbusRtuReply *reply = readTotalEnergyProduced();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Total energy produced\" register" << 3208 << "size:" << 4 << values;
-                    processTotalEnergyProducedRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Total energy produced\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Total energy produced\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Total energy produced\" register" << 3207 << "size:" << 4 << values;
+                processTotalEnergyProducedRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Total energy produced\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateEnergyConsumedPhaseA()
 {
     // Update registers from Energy consumed phase A
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Energy consumed phase A\" register:" << 3518 << "size:" << 4;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Energy consumed phase A\" register:" << 3517 << "size:" << 4;
     ModbusRtuReply *reply = readEnergyConsumedPhaseA();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Energy consumed phase A\" register" << 3518 << "size:" << 4 << values;
-                    processEnergyConsumedPhaseARegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Energy consumed phase A\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Energy consumed phase A\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Energy consumed phase A\" register" << 3517 << "size:" << 4 << values;
+                processEnergyConsumedPhaseARegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Energy consumed phase A\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateEnergyConsumedPhaseB()
 {
     // Update registers from Energy consumed phase B
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Energy consumed phase B\" register:" << 3522 << "size:" << 4;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Energy consumed phase B\" register:" << 3521 << "size:" << 4;
     ModbusRtuReply *reply = readEnergyConsumedPhaseB();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Energy consumed phase B\" register" << 3522 << "size:" << 4 << values;
-                    processEnergyConsumedPhaseBRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Energy consumed phase B\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Energy consumed phase B\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Energy consumed phase B\" register" << 3521 << "size:" << 4 << values;
+                processEnergyConsumedPhaseBRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Energy consumed phase B\" registers" << error << reply->errorString();
+        });
     }
 }
 
 void SchneiderIEMModbusRtuConnection::updateEnergyConsumedPhaseC()
 {
     // Update registers from Energy consumed phase C
-    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Energy consumed phase C\" register:" << 3526 << "size:" << 4;
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Read \"Energy consumed phase C\" register:" << 3525 << "size:" << 4;
     ModbusRtuReply *reply = readEnergyConsumedPhaseC();
-    if (reply) {
-        if (!reply->isFinished()) {
-            connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
-                if (reply->error() == ModbusRtuReply::NoError) {
-                    QVector<quint16> values = reply->result();
-                    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Energy consumed phase C\" register" << 3526 << "size:" << 4 << values;
-                    processEnergyConsumedPhaseCRegisterValues(values);
-                }
-            });
-
-            connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-                qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Energy consumed phase C\" registers" << error << reply->errorString();
-            });
-        }
-    } else {
+    if (!reply) {
         qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Error occurred while reading \"Energy consumed phase C\" registers";
+        return;
+    }
+
+    if (!reply->isFinished()) {
+        connect(reply, &ModbusRtuReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == ModbusRtuReply::NoError) {
+                QVector<quint16> values = reply->result();
+                qCDebug(dcSchneiderIEMModbusRtuConnection()) << "<-- Response from \"Energy consumed phase C\" register" << 3525 << "size:" << 4 << values;
+                processEnergyConsumedPhaseCRegisterValues(values);
+            }
+        });
+
+        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while updating \"Energy consumed phase C\" registers" << error << reply->errorString();
+        });
     }
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readTotalCurrentPower()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3060, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3059, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readVoltagePhaseA()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3020, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3027, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readVoltagePhaseB()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3022, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3029, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readVoltagePhaseC()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3024, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3031, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readCurrentPhaseA()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3000, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 2999, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readCurrentPhaseB()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3002, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3001, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readCurrentPhaseC()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3004, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3003, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readPowerPhaseA()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3054, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3053, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readPowerPhaseB()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3056, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3055, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readPowerPhaseC()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3058, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3057, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readFrequency()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3110, 2);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3109, 2);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readTotalEnergyConsumed()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3204, 4);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3203, 4);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readTotalEnergyProduced()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3208, 4);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3207, 4);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readEnergyConsumedPhaseA()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3518, 4);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3517, 4);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readEnergyConsumedPhaseB()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3522, 4);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3521, 4);
 }
 
 ModbusRtuReply *SchneiderIEMModbusRtuConnection::readEnergyConsumedPhaseC()
 {
-    return m_modbusRtuMaster->readInputRegister(m_slaveId, 3526, 4);
+    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, 3525, 4);
 }
 
 void SchneiderIEMModbusRtuConnection::processTotalCurrentPowerRegisterValues(const QVector<quint16> values)
 {
     float receivedTotalCurrentPower = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit totalCurrentPowerReadFinished(receivedTotalCurrentPower);
+
     if (m_totalCurrentPower != receivedTotalCurrentPower) {
         m_totalCurrentPower = receivedTotalCurrentPower;
         emit totalCurrentPowerChanged(m_totalCurrentPower);
@@ -653,6 +1247,8 @@ void SchneiderIEMModbusRtuConnection::processTotalCurrentPowerRegisterValues(con
 void SchneiderIEMModbusRtuConnection::processVoltagePhaseARegisterValues(const QVector<quint16> values)
 {
     float receivedVoltagePhaseA = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit voltagePhaseAReadFinished(receivedVoltagePhaseA);
+
     if (m_voltagePhaseA != receivedVoltagePhaseA) {
         m_voltagePhaseA = receivedVoltagePhaseA;
         emit voltagePhaseAChanged(m_voltagePhaseA);
@@ -662,6 +1258,8 @@ void SchneiderIEMModbusRtuConnection::processVoltagePhaseARegisterValues(const Q
 void SchneiderIEMModbusRtuConnection::processVoltagePhaseBRegisterValues(const QVector<quint16> values)
 {
     float receivedVoltagePhaseB = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit voltagePhaseBReadFinished(receivedVoltagePhaseB);
+
     if (m_voltagePhaseB != receivedVoltagePhaseB) {
         m_voltagePhaseB = receivedVoltagePhaseB;
         emit voltagePhaseBChanged(m_voltagePhaseB);
@@ -671,6 +1269,8 @@ void SchneiderIEMModbusRtuConnection::processVoltagePhaseBRegisterValues(const Q
 void SchneiderIEMModbusRtuConnection::processVoltagePhaseCRegisterValues(const QVector<quint16> values)
 {
     float receivedVoltagePhaseC = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit voltagePhaseCReadFinished(receivedVoltagePhaseC);
+
     if (m_voltagePhaseC != receivedVoltagePhaseC) {
         m_voltagePhaseC = receivedVoltagePhaseC;
         emit voltagePhaseCChanged(m_voltagePhaseC);
@@ -680,6 +1280,8 @@ void SchneiderIEMModbusRtuConnection::processVoltagePhaseCRegisterValues(const Q
 void SchneiderIEMModbusRtuConnection::processCurrentPhaseARegisterValues(const QVector<quint16> values)
 {
     float receivedCurrentPhaseA = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit currentPhaseAReadFinished(receivedCurrentPhaseA);
+
     if (m_currentPhaseA != receivedCurrentPhaseA) {
         m_currentPhaseA = receivedCurrentPhaseA;
         emit currentPhaseAChanged(m_currentPhaseA);
@@ -689,6 +1291,8 @@ void SchneiderIEMModbusRtuConnection::processCurrentPhaseARegisterValues(const Q
 void SchneiderIEMModbusRtuConnection::processCurrentPhaseBRegisterValues(const QVector<quint16> values)
 {
     float receivedCurrentPhaseB = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit currentPhaseBReadFinished(receivedCurrentPhaseB);
+
     if (m_currentPhaseB != receivedCurrentPhaseB) {
         m_currentPhaseB = receivedCurrentPhaseB;
         emit currentPhaseBChanged(m_currentPhaseB);
@@ -698,6 +1302,8 @@ void SchneiderIEMModbusRtuConnection::processCurrentPhaseBRegisterValues(const Q
 void SchneiderIEMModbusRtuConnection::processCurrentPhaseCRegisterValues(const QVector<quint16> values)
 {
     float receivedCurrentPhaseC = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit currentPhaseCReadFinished(receivedCurrentPhaseC);
+
     if (m_currentPhaseC != receivedCurrentPhaseC) {
         m_currentPhaseC = receivedCurrentPhaseC;
         emit currentPhaseCChanged(m_currentPhaseC);
@@ -707,6 +1313,8 @@ void SchneiderIEMModbusRtuConnection::processCurrentPhaseCRegisterValues(const Q
 void SchneiderIEMModbusRtuConnection::processPowerPhaseARegisterValues(const QVector<quint16> values)
 {
     float receivedPowerPhaseA = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit powerPhaseAReadFinished(receivedPowerPhaseA);
+
     if (m_powerPhaseA != receivedPowerPhaseA) {
         m_powerPhaseA = receivedPowerPhaseA;
         emit powerPhaseAChanged(m_powerPhaseA);
@@ -716,6 +1324,8 @@ void SchneiderIEMModbusRtuConnection::processPowerPhaseARegisterValues(const QVe
 void SchneiderIEMModbusRtuConnection::processPowerPhaseBRegisterValues(const QVector<quint16> values)
 {
     float receivedPowerPhaseB = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit powerPhaseBReadFinished(receivedPowerPhaseB);
+
     if (m_powerPhaseB != receivedPowerPhaseB) {
         m_powerPhaseB = receivedPowerPhaseB;
         emit powerPhaseBChanged(m_powerPhaseB);
@@ -725,6 +1335,8 @@ void SchneiderIEMModbusRtuConnection::processPowerPhaseBRegisterValues(const QVe
 void SchneiderIEMModbusRtuConnection::processPowerPhaseCRegisterValues(const QVector<quint16> values)
 {
     float receivedPowerPhaseC = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit powerPhaseCReadFinished(receivedPowerPhaseC);
+
     if (m_powerPhaseC != receivedPowerPhaseC) {
         m_powerPhaseC = receivedPowerPhaseC;
         emit powerPhaseCChanged(m_powerPhaseC);
@@ -734,6 +1346,8 @@ void SchneiderIEMModbusRtuConnection::processPowerPhaseCRegisterValues(const QVe
 void SchneiderIEMModbusRtuConnection::processFrequencyRegisterValues(const QVector<quint16> values)
 {
     float receivedFrequency = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    emit frequencyReadFinished(receivedFrequency);
+
     if (m_frequency != receivedFrequency) {
         m_frequency = receivedFrequency;
         emit frequencyChanged(m_frequency);
@@ -743,6 +1357,8 @@ void SchneiderIEMModbusRtuConnection::processFrequencyRegisterValues(const QVect
 void SchneiderIEMModbusRtuConnection::processTotalEnergyConsumedRegisterValues(const QVector<quint16> values)
 {
     qint64 receivedTotalEnergyConsumed = ModbusDataUtils::convertToInt64(values, m_endianness);
+    emit totalEnergyConsumedReadFinished(receivedTotalEnergyConsumed);
+
     if (m_totalEnergyConsumed != receivedTotalEnergyConsumed) {
         m_totalEnergyConsumed = receivedTotalEnergyConsumed;
         emit totalEnergyConsumedChanged(m_totalEnergyConsumed);
@@ -752,6 +1368,8 @@ void SchneiderIEMModbusRtuConnection::processTotalEnergyConsumedRegisterValues(c
 void SchneiderIEMModbusRtuConnection::processTotalEnergyProducedRegisterValues(const QVector<quint16> values)
 {
     qint64 receivedTotalEnergyProduced = ModbusDataUtils::convertToInt64(values, m_endianness);
+    emit totalEnergyProducedReadFinished(receivedTotalEnergyProduced);
+
     if (m_totalEnergyProduced != receivedTotalEnergyProduced) {
         m_totalEnergyProduced = receivedTotalEnergyProduced;
         emit totalEnergyProducedChanged(m_totalEnergyProduced);
@@ -761,6 +1379,8 @@ void SchneiderIEMModbusRtuConnection::processTotalEnergyProducedRegisterValues(c
 void SchneiderIEMModbusRtuConnection::processEnergyConsumedPhaseARegisterValues(const QVector<quint16> values)
 {
     qint64 receivedEnergyConsumedPhaseA = ModbusDataUtils::convertToInt64(values, m_endianness);
+    emit energyConsumedPhaseAReadFinished(receivedEnergyConsumedPhaseA);
+
     if (m_energyConsumedPhaseA != receivedEnergyConsumedPhaseA) {
         m_energyConsumedPhaseA = receivedEnergyConsumedPhaseA;
         emit energyConsumedPhaseAChanged(m_energyConsumedPhaseA);
@@ -770,6 +1390,8 @@ void SchneiderIEMModbusRtuConnection::processEnergyConsumedPhaseARegisterValues(
 void SchneiderIEMModbusRtuConnection::processEnergyConsumedPhaseBRegisterValues(const QVector<quint16> values)
 {
     qint64 receivedEnergyConsumedPhaseB = ModbusDataUtils::convertToInt64(values, m_endianness);
+    emit energyConsumedPhaseBReadFinished(receivedEnergyConsumedPhaseB);
+
     if (m_energyConsumedPhaseB != receivedEnergyConsumedPhaseB) {
         m_energyConsumedPhaseB = receivedEnergyConsumedPhaseB;
         emit energyConsumedPhaseBChanged(m_energyConsumedPhaseB);
@@ -779,39 +1401,142 @@ void SchneiderIEMModbusRtuConnection::processEnergyConsumedPhaseBRegisterValues(
 void SchneiderIEMModbusRtuConnection::processEnergyConsumedPhaseCRegisterValues(const QVector<quint16> values)
 {
     qint64 receivedEnergyConsumedPhaseC = ModbusDataUtils::convertToInt64(values, m_endianness);
+    emit energyConsumedPhaseCReadFinished(receivedEnergyConsumedPhaseC);
+
     if (m_energyConsumedPhaseC != receivedEnergyConsumedPhaseC) {
         m_energyConsumedPhaseC = receivedEnergyConsumedPhaseC;
         emit energyConsumedPhaseCChanged(m_energyConsumedPhaseC);
     }
 }
 
+void SchneiderIEMModbusRtuConnection::handleModbusError(ModbusRtuReply::Error error)
+{
+    if (error == ModbusRtuReply::NoError) {
+        // Reset the communication counter and we know we can reach the device
+        m_communicationFailedCounter = 0;
+        if (!m_communicationWorking)
+            qCDebug(dcSchneiderIEMModbusRtuConnection()) << "Received a reply without any errors. The communication with the device seems to work now.";
+
+        m_communicationWorking = true;
+        evaluateReachableState();
+    } else {
+        m_communicationFailedCounter++;
+        if (m_communicationWorking && m_communicationFailedCounter >= m_communicationFailedMax) {
+            m_communicationWorking = false;
+            qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Received" << m_communicationFailedCounter << "errors while communicating with the RTU master. Mark as not reachable until the communication works again.";
+            evaluateReachableState();
+        }
+    }
+}
+
+void SchneiderIEMModbusRtuConnection::testReachability()
+{
+    if (m_checkRechableReply)
+        return;
+
+    // Try to read the check reachability register totalCurrentPower in order to verify if the communication is working or not.
+    qCDebug(dcSchneiderIEMModbusRtuConnection()) << "--> Test reachability by reading \"Total system power\" register:" << 3059 << "size:" << 2;
+    m_checkRechableReply = readTotalCurrentPower();
+    if (!m_checkRechableReply) {
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "Error occurred verifying reachability by reading \"Total system power\" register";
+        onReachabilityCheckFailed();
+        return;
+    }
+
+    if (m_checkRechableReply->isFinished()) {
+        m_checkRechableReply = nullptr;
+        onReachabilityCheckFailed();
+        return;
+    }
+
+    connect(m_checkRechableReply, &ModbusRtuReply::finished, this, [this](){
+        // Note: we don't care about the result here, only the error
+        handleModbusError(m_checkRechableReply->error());
+        if (m_checkRechableReply->error() != ModbusRtuReply::NoError)
+            onReachabilityCheckFailed();
+
+        m_checkRechableReply = nullptr;
+    });
+
+    connect(m_checkRechableReply, &ModbusRtuReply::errorOccurred, this, [this] (ModbusRtuReply::Error error){
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "ModbusRtu reply error occurred while verifying reachability by reading \"Total system power\" register" << error << m_checkRechableReply->errorString();
+    });
+}
+
 void SchneiderIEMModbusRtuConnection::verifyInitFinished()
 {
     if (m_pendingInitReplies.isEmpty()) {
-        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "Initialization finished of SchneiderIEMModbusRtuConnection";
-        emit initializationFinished();
+        finishInitialization(true);
     }
+}
+
+void SchneiderIEMModbusRtuConnection::finishInitialization(bool success)
+{
+    if (success) {
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "Initialization finished of SchneiderIEMModbusRtuConnection finished successfully";
+    } else {
+        qCWarning(dcSchneiderIEMModbusRtuConnection()) << "Initialization finished of SchneiderIEMModbusRtuConnection failed.";
+    }
+
+    // Cleanup init
+    delete m_initObject;
+    m_initObject = nullptr;
+    m_pendingInitReplies.clear();
+
+    emit initializationFinished(success);
+}
+
+void SchneiderIEMModbusRtuConnection::verifyUpdateFinished()
+{
+    if (m_pendingUpdateReplies.isEmpty()) {
+        emit updateFinished();
+    }
+}
+
+void SchneiderIEMModbusRtuConnection::onReachabilityCheckFailed()
+{
+    m_checkReachableRetriesCount++;
+
+    if (m_checkReachableRetriesCount <= m_checkReachableRetries) {
+        qCDebug(dcSchneiderIEMModbusRtuConnection()) << "Reachability test failed. Retry in on second" << m_checkReachableRetriesCount << "/" << m_checkReachableRetries;
+        QTimer::singleShot(1000, this, &SchneiderIEMModbusRtuConnection::testReachability);
+        return;
+    }
+
+    // The test reachability method failed, not retrying any more
+    emit checkReachabilityFailed();
+}
+
+void SchneiderIEMModbusRtuConnection::evaluateReachableState()
+{
+    bool reachable = m_communicationWorking && m_modbusRtuMaster->connected();
+    if (m_reachable == reachable)
+        return;
+
+    m_reachable = reachable;
+    emit reachableChanged(m_reachable);
+    m_checkReachableRetriesCount = 0;
 }
 
 QDebug operator<<(QDebug debug, SchneiderIEMModbusRtuConnection *schneiderIEMModbusRtuConnection)
 {
     debug.nospace().noquote() << "SchneiderIEMModbusRtuConnection(" << schneiderIEMModbusRtuConnection->modbusRtuMaster()->modbusUuid().toString() << ", " << schneiderIEMModbusRtuConnection->modbusRtuMaster()->serialPort() << ", slave ID:" << schneiderIEMModbusRtuConnection->slaveId() << ")" << "\n";
-    debug.nospace().noquote() << "    - Total system power:" << schneiderIEMModbusRtuConnection->totalCurrentPower() << " [kW]" << "\n";
-    debug.nospace().noquote() << "    - Voltage phase L1:" << schneiderIEMModbusRtuConnection->voltagePhaseA() << " [V]" << "\n";
-    debug.nospace().noquote() << "    - Voltage phase L2:" << schneiderIEMModbusRtuConnection->voltagePhaseB() << " [V]" << "\n";
-    debug.nospace().noquote() << "    - Voltage phase L3:" << schneiderIEMModbusRtuConnection->voltagePhaseC() << " [V]" << "\n";
-    debug.nospace().noquote() << "    - Current phase L1:" << schneiderIEMModbusRtuConnection->currentPhaseA() << " [A]" << "\n";
-    debug.nospace().noquote() << "    - Current phase L2:" << schneiderIEMModbusRtuConnection->currentPhaseB() << " [A]" << "\n";
-    debug.nospace().noquote() << "    - Current phase L3:" << schneiderIEMModbusRtuConnection->currentPhaseC() << " [A]" << "\n";
-    debug.nospace().noquote() << "    - Power phase L1:" << schneiderIEMModbusRtuConnection->powerPhaseA() << " [kW]" << "\n";
-    debug.nospace().noquote() << "    - Power phase L2:" << schneiderIEMModbusRtuConnection->powerPhaseB() << " [kW]" << "\n";
-    debug.nospace().noquote() << "    - Power phase L3:" << schneiderIEMModbusRtuConnection->powerPhaseC() << " [kW]" << "\n";
-    debug.nospace().noquote() << "    - Frequency:" << schneiderIEMModbusRtuConnection->frequency() << " [Hz]" << "\n";
-    debug.nospace().noquote() << "    - Total energy consumed:" << schneiderIEMModbusRtuConnection->totalEnergyConsumed() << " [Wh]" << "\n";
-    debug.nospace().noquote() << "    - Total energy produced:" << schneiderIEMModbusRtuConnection->totalEnergyProduced() << " [Wh]" << "\n";
-    debug.nospace().noquote() << "    - Energy consumed phase A:" << schneiderIEMModbusRtuConnection->energyConsumedPhaseA() << " [Wh]" << "\n";
-    debug.nospace().noquote() << "    - Energy consumed phase B:" << schneiderIEMModbusRtuConnection->energyConsumedPhaseB() << " [Wh]" << "\n";
-    debug.nospace().noquote() << "    - Energy consumed phase C:" << schneiderIEMModbusRtuConnection->energyConsumedPhaseC() << " [Wh]" << "\n";
+    debug.nospace().noquote() << "    - Total system power: " << schneiderIEMModbusRtuConnection->totalCurrentPower() << " [kW]" << "\n";
+    debug.nospace().noquote() << "    - Voltage phase L1: " << schneiderIEMModbusRtuConnection->voltagePhaseA() << " [V]" << "\n";
+    debug.nospace().noquote() << "    - Voltage phase L2: " << schneiderIEMModbusRtuConnection->voltagePhaseB() << " [V]" << "\n";
+    debug.nospace().noquote() << "    - Voltage phase L3: " << schneiderIEMModbusRtuConnection->voltagePhaseC() << " [V]" << "\n";
+    debug.nospace().noquote() << "    - Current phase L1: " << schneiderIEMModbusRtuConnection->currentPhaseA() << " [A]" << "\n";
+    debug.nospace().noquote() << "    - Current phase L2: " << schneiderIEMModbusRtuConnection->currentPhaseB() << " [A]" << "\n";
+    debug.nospace().noquote() << "    - Current phase L3: " << schneiderIEMModbusRtuConnection->currentPhaseC() << " [A]" << "\n";
+    debug.nospace().noquote() << "    - Power phase L1: " << schneiderIEMModbusRtuConnection->powerPhaseA() << " [kW]" << "\n";
+    debug.nospace().noquote() << "    - Power phase L2: " << schneiderIEMModbusRtuConnection->powerPhaseB() << " [kW]" << "\n";
+    debug.nospace().noquote() << "    - Power phase L3: " << schneiderIEMModbusRtuConnection->powerPhaseC() << " [kW]" << "\n";
+    debug.nospace().noquote() << "    - Frequency: " << schneiderIEMModbusRtuConnection->frequency() << " [Hz]" << "\n";
+    debug.nospace().noquote() << "    - Total energy consumed: " << schneiderIEMModbusRtuConnection->totalEnergyConsumed() << " [Wh]" << "\n";
+    debug.nospace().noquote() << "    - Total energy produced: " << schneiderIEMModbusRtuConnection->totalEnergyProduced() << " [Wh]" << "\n";
+    debug.nospace().noquote() << "    - Energy consumed phase A: " << schneiderIEMModbusRtuConnection->energyConsumedPhaseA() << " [Wh]" << "\n";
+    debug.nospace().noquote() << "    - Energy consumed phase B: " << schneiderIEMModbusRtuConnection->energyConsumedPhaseB() << " [Wh]" << "\n";
+    debug.nospace().noquote() << "    - Energy consumed phase C: " << schneiderIEMModbusRtuConnection->energyConsumedPhaseC() << " [Wh]" << "\n";
     return debug.quote().space();
 }
 

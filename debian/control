@@ -154,17 +154,17 @@ Section: libs
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: nymea.io plugin for Kostal Solar inverters
- This package will install the nymea.io plugin for Kostal Solar inverters
+ This package contains the nymea.io plugin for Kostal Solar inverters
 
 
 Package: nymea-plugin-mennekes
 Architecture: any
+Multi-Arch: same
 Section: libs
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-Description: nymea integration plugin for Mennekes Amtron wallboxes
- This package contains the nymea integration plugin for wallboxes made
- by Mennekes.
+         ${misc:Depends}
+Description: nymea.io plugin for Mennekes wallboxes
+ This package contains the nymea.io plugin for Mennekes wallboxes
 
 
 Package: nymea-plugin-modbuscommander
@@ -195,7 +195,7 @@ Description: nymea integration plugin for M-TEC heat pumps
  This package contains the nymea integration plugin for M-TEC heat pumps.
 
 
-Package: nymea-plugin-schneider
+Package: nymea-plugin-schneider-wallbox
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends},
@@ -222,12 +222,31 @@ Description: nymea.io plugin for Stiebel Eltron heat pumps
   This package will install the nymea.io plugin for Stiebel Eltron heat pumps.
 
 
+Package: nymea-plugin-sungrow
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea.io plugin for Sungrow inverters
+  This package will install the nymea.io plugin for Sungrow inverters.
+
+
 Package: nymea-plugin-sunspec
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
 Description: nymea integration plugin for SunSpec Modbus devices
  This package contains the nymea integration plugin for SunSpec compatible solar inverters.
+
+
+Package: nymea-plugin-technivolt
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Technivolt wallboxes 
+  This package contains the nymea integration plugin for wallboxes made
+ by Technivolt.
 
 
 Package: nymea-plugin-unipi2

@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,46 +28,48 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSCHNEIDER_H
-#define INTEGRATIONPLUGINSCHNEIDER_H
+#ifndef AMTRONHCC3DISCOVERY_H
+#define AMTRONHCC3DISCOVERY_H
 
-#include <integrations/integrationplugin.h>
-#include <plugintimer.h>
+#include <QObject>
+#include <QTimer>
 
-#include "schneidermodbustcpconnection.h"
-#include "schneiderwallbox.h"
+#include <network/networkdevicediscovery.h>
 
+#include "amtronhcc3modbustcpconnection.h"
 
-class IntegrationPluginSchneider : public IntegrationPlugin
+class AmtronHCC3Discovery : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginschneider.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginSchneider();
+    explicit AmtronHCC3Discovery(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    typedef struct AmtronDiscoveryResult {
+        QString wallboxName;
+        QString serialNumber;
+        NetworkDeviceInfo networkDeviceInfo;
+    } AmtronDiscoveryResult;
 
-    void init() override;
+    void startDiscovery();
 
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void setupThing(ThingSetupInfo *info) override;
+    QList<AmtronDiscoveryResult> discoveryResults() const;
 
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
-
-    void executeAction(ThingActionInfo *info) override;
+signals:
+    void discoveryFinished();
 
 private:
-    PluginTimer *m_pluginTimer = nullptr;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
 
-    QHash<ThingId, SchneiderWallbox *> m_schneiderDevices;
+    QTimer m_gracePeriodTimer;
+    QDateTime m_startDateTime;
 
-    void setCpwState(Thing *thing, SchneiderModbusTcpConnection::CPWState state);
-    void setLastChargeStatus(Thing *thing, SchneiderModbusTcpConnection::LastChargeStatus status);
-    void setCurrentPower(Thing *thing, double currentPower);
-    void setPhaseCount(Thing *thing, quint16 phaseCount);
-    void setErrorMessage(Thing *thing, quint32 errorBits);
+    QList<AmtronHCC3ModbusTcpConnection *> m_connections;
+
+    QList<AmtronDiscoveryResult> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(AmtronHCC3ModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // INTEGRATIONPLUGINSCHNEIDER_H
+#endif // AMTRONHCC3DISCOVERY_H
