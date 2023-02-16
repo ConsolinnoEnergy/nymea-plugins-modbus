@@ -26,6 +26,9 @@
 * contact@nymea.io or see our FAQ/Licensing Information on
 * https://nymea.io/license/faq
 *
+*
+* SDM72 added by Consolinno Energy GmbH
+*
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "integrationpluginbgetech.h"
@@ -149,7 +152,6 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
             thing->setStateValue(sdm630CurrentPhaseAStateTypeId, currentPhaseA);
-            thing->setStateValue(sdm630ConnectedStateTypeId, true);
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::currentPhaseBChanged, this, [=](float currentPhaseB){
@@ -162,6 +164,7 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
             thing->setStateValue(sdm630VoltagePhaseAStateTypeId, voltagePhaseA);
+            thing->setStateValue(sdm630ConnectedStateTypeId, true);
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::voltagePhaseBChanged, this, [=](float voltagePhaseB){
@@ -259,7 +262,6 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
         connect(sdmConnection, &Sdm72ModbusRtuConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
             thing->setStateValue(sdm72CurrentPhaseAStateTypeId, currentPhaseA);
-            thing->setStateValue(sdm72ConnectedStateTypeId, true);
         });
 
         connect(sdmConnection, &Sdm72ModbusRtuConnection::currentPhaseBChanged, this, [=](float currentPhaseB){
@@ -272,6 +274,7 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
         connect(sdmConnection, &Sdm72ModbusRtuConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
             thing->setStateValue(sdm72VoltagePhaseAStateTypeId, voltagePhaseA);
+            thing->setStateValue(sdm72ConnectedStateTypeId, true);
         });
 
         connect(sdmConnection, &Sdm72ModbusRtuConnection::voltagePhaseBChanged, this, [=](float voltagePhaseB){
