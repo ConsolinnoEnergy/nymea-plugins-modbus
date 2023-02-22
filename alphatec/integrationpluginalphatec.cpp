@@ -173,9 +173,7 @@ void IntegrationPluginAlphatec::executeAction(ThingActionInfo *info)
     if (thing->thingClassId() == alphatecWallboxPowerThingClassId) {
 
         if (info->action().actionTypeId() == alphatecWallboxPowerMaxChargingCurrentActionTypeId){
-              QUuid uuid = thing->paramValue(alphatecWallboxPowerThingModbusMasterUuidParamTypeId).toUuid();
-               uint address = thing->paramValue(alphatecWallboxPowerThingSlaveAddressParamTypeId).toUInt();
-          AlphatecWallboxModbusRtuConnection *connection = new AlphatecWallboxModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
+          AlphatecWallboxModbusRtuConnection *connection = m_rtuConnections.value(thing);
             uint chargeLimit = thing->stateValue(alphatecWallboxPowerMaxChargingCurrentStateTypeId).toUInt();
             ModbusRtuReply *reply = connection -> setWriteChargeLimit(chargeLimit);
             connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
