@@ -155,6 +155,16 @@ Description: nymea integration plugin for Huawei FusionSolar energy devices
  based on Modbus TCP.
 
 
+Package: nymea-plugin-kaco-sunspec
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea.io plugin for Kaco Solar inverters supporting SunSpec using modbus
+ This package contains the nymea.io plugin for Kaco Solar inverters supportung SunSpec using modbus
+
+
 Package: nymea-plugin-kostal
 Architecture: any
 Multi-Arch: same

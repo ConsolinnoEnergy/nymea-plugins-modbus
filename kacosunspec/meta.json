@@ -1,0 +1,13 @@
+{
+    "title": "Kaco Inverter",
+    "tagline": "Connect to Kaco inverters.",
+    "icon": "kaco.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}
