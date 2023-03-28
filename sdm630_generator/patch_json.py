@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--display_name_sdm630", help="Display name of new SDM630 thing", required=True
     )
-     parser.add_argument(
+    parser.add_argument(
         "--display_name_sdm72", help="Display name of new SDM72 thing", required=True
     )
     parser.add_argument(
