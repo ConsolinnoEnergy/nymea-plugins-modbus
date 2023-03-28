@@ -32,7 +32,10 @@ if __name__ == "__main__":
     #        "--name", help="Name of new SDM630 thing class", required=True
     #    )
     parser.add_argument(
-        "--display_name", help="Display name of new SDM630 thing", required=True
+        "--display_name_sdm630", help="Display name of new SDM630 thing", required=True
+    )
+     parser.add_argument(
+        "--display_name_sdm72", help="Display name of new SDM72 thing", required=True
     )
     parser.add_argument(
         "--uuid_offset", type=int, help="Offset of uuids of new plugin ", default=1
@@ -53,8 +56,10 @@ if __name__ == "__main__":
 
     traverse_json(data, callback, args.uuid_offset)
     # data['vendors'][0]['thingClasses'][0]['name'] = args.name
-    data["vendors"][0]["thingClasses"][0]["displayName"] = args.display_name
+    data["vendors"][0]["thingClasses"][0]["displayName"] = args.display_name_sdm630
     data["vendors"][0]["thingClasses"][0]["interfaces"] = args.interfaces
+    data["vendors"][0]["thingClasses"][1]["displayName"] = args.display_name_sdm72
+    data["vendors"][0]["thingClasses"][1]["interfaces"] = args.interfaces
 
     with open(args.output, "w") as f:
         json.dump(data, f, indent=4)
