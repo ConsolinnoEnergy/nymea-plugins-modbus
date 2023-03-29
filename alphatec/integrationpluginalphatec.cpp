@@ -118,7 +118,7 @@ void IntegrationPluginAlphatec::setupThing(ThingSetupInfo *info)
 
           // Handle property changed signals
           connect(connection, &AlphatecWallboxModbusRtuConnection::evseStatusChanged, thing, [thing](quint32 evseStatus){
-              if (evseStatus > 0){
+              if (evseStatus >= 0){
                   thing->setStateValue(alphatecWallboxPowerConnectedStateTypeId,true);
                   if (evseStatus == 2){
                       thing->setStateValue(alphatecWallboxPowerPluggedInStateTypeId,true);
