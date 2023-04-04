@@ -118,7 +118,7 @@ void IntegrationPluginAlphatec::setupThing(ThingSetupInfo *info)
 
           // Handle property changed signals
           connect(connection, &AlphatecWallboxModbusRtuConnection::evseStatusChanged, thing, [thing](quint32 evseStatus){
-              if (evseStatus >= 0){
+              if (evseStatus > 0){
                   thing->setStateValue(alphatecWallboxPowerConnectedStateTypeId,true);
                   if (evseStatus == 2){
                       thing->setStateValue(alphatecWallboxPowerPluggedInStateTypeId,true);
@@ -174,7 +174,7 @@ void IntegrationPluginAlphatec::executeAction(ThingActionInfo *info)
 
         if (info->action().actionTypeId() == alphatecWallboxPowerMaxChargingCurrentActionTypeId){
           AlphatecWallboxModbusRtuConnection *connection = m_rtuConnections.value(thing);
-            uint chargeLimit = thing->stateValue(alphatecWallboxPowerMaxChargingCurrentStateTypeId).toUInt();
+            uint chargeLimit = info->action().paramValue(alphatecWallboxPowerMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
             ModbusRtuReply *reply = connection -> setWriteChargeLimit(chargeLimit);
             connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
             connect(reply, &ModbusRtuReply::finished, info, [info, reply, chargeLimit]{
