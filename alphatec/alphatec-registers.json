@@ -1,0 +1,47 @@
+{
+    "className": "AlphatecWallbox",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 20,
+    "checkReachableRegister": "evseStatus",
+    "enums": [],
+    "blocks": [],
+    "registers": [
+        {
+            "id": "evseStatus",
+            "address": 0,
+            "size": 1,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "EvseStatus",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "chargePower",
+            "address": 2,
+            "size": 1,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "chargePower",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RO"
+        },
+        {
+            "id": "writeChargeLimit",
+            "address": 5,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "maxIntensitySocket",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RW"
+        }
+
+    ]
+}

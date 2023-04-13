@@ -43,15 +43,15 @@
 class NetworkDeviceMonitor;
 class PluginTimer;
 
-class IntegrationPluginSchneiderWallbox : public IntegrationPlugin
+class IntegrationPluginSchneider : public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginschneiderWallbox.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginschneider.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit IntegrationPluginSchneiderWallbox();
+    explicit IntegrationPluginSchneider();
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
