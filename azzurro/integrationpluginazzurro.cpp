@@ -41,6 +41,22 @@ void IntegrationPluginAzzurro::init()
             if (thing->paramValue(azzurroInverterRTUThingModbusMasterUuidParamTypeId) == modbusUuid) {
                 qCWarning(dcAzzurro()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
                 thing->setStateValue(azzurroInverterRTUConnectedStateTypeId, false);
+
+                // Set connected state for meter
+                Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+                if (!meterThings.isEmpty()) {
+                    meterThings.first()->setStateValue(azzurroMeterConnectedStateTypeId, false);
+                }
+
+                // Set connected state for battery
+                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId);
+                if (!batteryThings.isEmpty()) {
+                    // Support for multiple batteries.
+                    foreach (Thing *batteryThing, batteryThings) {
+                        batteryThing->setStateValue(azzurroBatteryConnectedStateTypeId, false);
+                    }
+                }
+
                 delete m_rtuConnections.take(thing);
             }
         }
@@ -122,6 +138,23 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             qCDebug(dcAzzurro()) << "Inverter active power (activePowerOnGrid) changed" << activePowerConverted << "W";
             thing->setStateValue(azzurroInverterRTUCurrentPowerStateTypeId, activePowerConverted);
             thing->setStateValue(azzurroInverterRTUConnectedStateTypeId, true);
+
+            // Set connected state for meter
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                meterThings.first()->setStateValue(azzurroMeterConnectedStateTypeId, true);
+            }
+
+            // Set connected state for battery
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                foreach (Thing *batteryThing, batteryThings) {
+                    batteryThing->setStateValue(azzurroBatteryConnectedStateTypeId, true);
+                }
+            }
+
+            // FIX ME: Connected only goes to ’false’ when RTU Master is removed. Any other problems (inverter not answering Modbus calls
+            // for whatever reason) won't trigger connected = false.
         });
 
         connect(connection, &AzzurroModbusRtuConnection::systemStatusChanged, thing, [thing](AzzurroModbusRtuConnection::SystemStatus systemStatus){
@@ -259,26 +292,31 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
 
 
 
-        // Battery
+        // Battery 1
         connect(connection, &AzzurroModbusRtuConnection::sohBat1Changed, thing, [this, thing](quint16 sohBat1){
             qCDebug(dcAzzurro()) << "Battery 1 state of health (sohBat1) changed" << sohBat1;
             if (sohBat1 > 0) {
-                // Check if w have to create the energy storage
-                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId);
-                bool alreadySetUp = false;
-                foreach (Thing *batteryThing, batteryThings) {
-                    if (batteryThing->paramValue(azzurroBatteryThingUnitParamTypeId).toUInt() == 1) {
-                        alreadySetUp = true;
-                    }
-                }
-
-                if (!alreadySetUp) {
+                // Check if w have to create the energy storage. Code supports more than one battery in principle,
+                // currently only 1 though. The part ".filterByParam(azzurroBatteryThingUnitParamTypeId, 1)" is
+                // what enables multiple batteries.
+                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
+                if (batteryThings.isEmpty()) {
+                    // No battery with Unit = 1 exists yet. Create it.
                     qCDebug(dcAzzurro()) << "Set up azzurro energy storage 1 for" << thing;
                     ThingDescriptor descriptor(azzurroBatteryThingClassId, "Azzurro battery", QString(), thing->id());
                     ParamList params;
                     params.append(Param(azzurroBatteryThingUnitParamTypeId, 1));
                     descriptor.setParams(params);
                     emit autoThingsAppeared(ThingDescriptors() << descriptor);
+
+                    // Not sure if battery is already available here. Try to set state now, because otherwise have to wait for next change in
+                    // soh before value will be set. Soh does not change that fast.
+                    batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
+                    if (!batteryThings.isEmpty()) {
+                        batteryThings.first()->setStateValue(azzurroBatteryStateOfHealthStateTypeId, sohBat1);
+                    }
+                } else {
+                    batteryThings.first()->setStateValue(azzurroBatteryStateOfHealthStateTypeId, sohBat1);
                 }
             }
         });
@@ -307,6 +345,61 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
                 batteryThings.first()->setStateValue(azzurroBatteryBatteryCriticalStateTypeId, socBat1 < 10);
             }
         });
+
+
+        // Battery 2. Code not active yet because registers are still missing. Have it here because now I know how it needs to be coded, and later I might not remember.
+        /**
+        connect(connection, &AzzurroModbusRtuConnection::sohBat2Changed, thing, [this, thing](quint16 sohBat2){
+            qCDebug(dcAzzurro()) << "Battery 2 state of health (sohBat2) changed" << sohBat2;
+            if (sohBat2 > 0) {
+                // Check if w have to create the energy storage.
+                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 2);
+                if (batteryThings.isEmpty()) {
+                    // No battery with Unit = 2 exists yet. Create it.
+                    qCDebug(dcAzzurro()) << "Set up azzurro energy storage 2 for" << thing;
+                    ThingDescriptor descriptor(azzurroBatteryThingClassId, "Azzurro battery", QString(), thing->id());
+                    ParamList params;
+                    params.append(Param(azzurroBatteryThingUnitParamTypeId, 2));
+                    descriptor.setParams(params);
+                    emit autoThingsAppeared(ThingDescriptors() << descriptor);
+
+                    // Not sure if battery is already available here. Try to set state now, because otherwise have to wait for next change in
+                    // soh before value will be set. Soh does not change that fast.
+                    batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 2);
+                    if (!batteryThings.isEmpty()) {
+                        batteryThings.first()->setStateValue(azzurroBatteryStateOfHealthStateTypeId, sohBat2);
+                    }
+                } else {
+                    batteryThings.first()->setStateValue(azzurroBatteryStateOfHealthStateTypeId, sohBat2);
+                }
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::powerBat2Changed, thing, [this, thing](qint16 powerBat2){
+            double powerBat1Converted = powerBat2 * 10; // currentPower state has type double.
+            qCDebug(dcAzzurro()) << "Battery 2 power (powerBat2) changed" << powerBat2Converted << "W";
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 2);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(azzurroBatteryCurrentPowerStateTypeId, powerBat2Converted);
+                if (powerBat2 < 0) {    // Don't use a double to compare to 0 when you also have an int.
+                    batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "discharging");
+                } else if (powerBat2 > 0) {
+                    batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "charging");
+                } else {
+                    batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "idle");
+                }
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::socBat2Changed, thing, [this, thing](quint16 socBat2){
+            qCDebug(dcAzzurro()) << "Battery 2 state of charge (socBat2) changed" << socBat2 << "%";
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 2);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(azzurroBatteryBatteryLevelStateTypeId, socBat2);
+                batteryThings.first()->setStateValue(azzurroBatteryBatteryCriticalStateTypeId, socBat2 < 10);
+            }
+        });
+        **/
 
 
         // FIXME: make async and check if this is really an azzurro

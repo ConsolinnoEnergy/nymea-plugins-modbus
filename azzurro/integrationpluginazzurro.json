@@ -287,6 +287,14 @@
                             "type": "QString",
                             "possibleValues": ["idle", "charging", "discharging"],
                             "defaultValue": "idle"
+                        },
+                        {
+                            "id": "5b55e790-c7df-4694-8cd3-8c07e1774a63",
+                            "name": "stateOfHealth",
+                            "displayName": "Battery state of health",
+                            "displayNameEvent": "Battery state of health changed",
+                            "type": "int",
+                            "defaultValue": 0
                         }
                     ],
                     "actionTypes": [ ]
