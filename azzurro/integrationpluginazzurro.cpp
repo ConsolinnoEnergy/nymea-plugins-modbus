@@ -122,11 +122,27 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         }
 
         AzzurroModbusRtuConnection *connection = new AzzurroModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
-        connect(connection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
-            if (connected) {
-                qCDebug(dcAzzurro()) << "Modbus RTU resource connected" << thing << connection->modbusRtuMaster()->serialPort();
+        connect(connection, &AzzurroModbusRtuConnection::reachableChanged, this, [=](bool reachable){
+            thing->setStateValue(azzurroInverterRTUConnectedStateTypeId, reachable);
+
+            // Set connected state for meter
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                meterThings.first()->setStateValue(azzurroMeterConnectedStateTypeId, reachable);
+            }
+
+            // Set connected state for battery
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                foreach (Thing *batteryThing, batteryThings) {
+                    batteryThing->setStateValue(azzurroBatteryConnectedStateTypeId, reachable);
+                }
+            }
+
+            if (reachable) {
+                qCDebug(dcAzzurro()) << "Device" << thing << "is reachable via Modbus RTU on" << connection->modbusRtuMaster()->serialPort();
             } else {
-                qCWarning(dcAzzurro()) << "Modbus RTU resource disconnected" << thing << connection->modbusRtuMaster()->serialPort();
+                qCWarning(dcAzzurro()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
             }
         });
 
@@ -137,24 +153,6 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             double activePowerConverted = activePower * 10;
             qCDebug(dcAzzurro()) << "Inverter active power (activePowerOnGrid) changed" << activePowerConverted << "W";
             thing->setStateValue(azzurroInverterRTUCurrentPowerStateTypeId, activePowerConverted);
-            thing->setStateValue(azzurroInverterRTUConnectedStateTypeId, true);
-
-            // Set connected state for meter
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                meterThings.first()->setStateValue(azzurroMeterConnectedStateTypeId, true);
-            }
-
-            // Set connected state for battery
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                foreach (Thing *batteryThing, batteryThings) {
-                    batteryThing->setStateValue(azzurroBatteryConnectedStateTypeId, true);
-                }
-            }
-
-            // FIX ME: Connected only goes to ’false’ when RTU Master is removed. Any other problems (inverter not answering Modbus calls
-            // for whatever reason) won't trigger connected = false.
         });
 
         connect(connection, &AzzurroModbusRtuConnection::systemStatusChanged, thing, [thing](AzzurroModbusRtuConnection::SystemStatus systemStatus){
