@@ -133,7 +133,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         // Handle property changed signals for inverter
         // Check if this is the correct ragister for this value. There is also a register for off grid power. If we want to enable
         // off grid use, that needs to be considered. Maybe register "powerPv1" can be used to cover both off grid and on grid.
-        connect(connection, &AzzurroModbusRtuConnection::activePowerOnGridChanged, thing, [thing](qint16 activePower){
+        connect(connection, &AzzurroModbusRtuConnection::activePowerOnGridChanged, thing, [this, thing](qint16 activePower){
             double activePowerConverted = activePower * 10;
             qCDebug(dcAzzurro()) << "Inverter active power (activePowerOnGrid) changed" << activePowerConverted << "W";
             thing->setStateValue(azzurroInverterRTUCurrentPowerStateTypeId, activePowerConverted);
