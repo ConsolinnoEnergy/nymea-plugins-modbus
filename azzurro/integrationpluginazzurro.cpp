@@ -150,7 +150,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         // Check if this is the correct ragister for this value. There is also a register for off grid power. If we want to enable
         // off grid use, that needs to be considered. Maybe register "powerPv1" can be used to cover both off grid and on grid.
         connect(connection, &AzzurroModbusRtuConnection::activePowerOnGridChanged, thing, [this, thing](qint16 activePower){
-            double activePowerConverted = activePower * 10;
+            double activePowerConverted = activePower * -10;
             qCDebug(dcAzzurro()) << "Inverter active power (activePowerOnGrid) changed" << activePowerConverted << "W";
             thing->setStateValue(azzurroInverterRTUCurrentPowerStateTypeId, activePowerConverted);
         });
@@ -171,7 +171,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         connect(connection, &AzzurroModbusRtuConnection::activePowerPccChanged, thing, [this, thing](qint16 currentPower){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPowerConverted = currentPower * 10;
+                double currentPowerConverted = currentPower * -10;
                 qCDebug(dcAzzurro()) << "Meter power (activePowerPcc) changed" << currentPowerConverted << "W";
                 // Check if sign is correct for power to grid and power from grid.
                 meterThings.first()->setStateValue(azzurroMeterCurrentPowerStateTypeId, currentPowerConverted);
@@ -226,7 +226,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         connect(connection, &AzzurroModbusRtuConnection::activePowerPccRChanged, thing, [this, thing](quint16 currentPowerPhaseA){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPowerPhaseAConverted = currentPowerPhaseA * 10;
+                double currentPowerPhaseAConverted = currentPowerPhaseA * -10;
                 qCDebug(dcAzzurro()) << "Meter current power phase A (activePowerPccR) changed" << currentPowerPhaseAConverted << "W";
                 meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseAStateTypeId, currentPowerPhaseAConverted);
             }
@@ -235,7 +235,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         connect(connection, &AzzurroModbusRtuConnection::activePowerPccSChanged, thing, [this, thing](quint16 currentPowerPhaseB){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPowerPhaseBConverted = currentPowerPhaseB * 10;
+                double currentPowerPhaseBConverted = currentPowerPhaseB * -10;
                 qCDebug(dcAzzurro()) << "Meter current power phase B (activePowerPccS) changed" << currentPowerPhaseBConverted << "W";
                 meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseBStateTypeId, currentPowerPhaseBConverted);
             }
@@ -244,7 +244,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         connect(connection, &AzzurroModbusRtuConnection::activePowerPccTChanged, thing, [this, thing](quint16 currentPowerPhaseC){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPowerPhaseCConverted = currentPowerPhaseC * 10;
+                double currentPowerPhaseCConverted = currentPowerPhaseC * -10;
                 qCDebug(dcAzzurro()) << "Meter current power phase C (activePowerPccT) changed" << currentPowerPhaseCConverted << "W";
                 meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseCStateTypeId, currentPowerPhaseCConverted);
             }

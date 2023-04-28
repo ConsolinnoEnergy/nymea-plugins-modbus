@@ -14,7 +14,7 @@
                     "id": "72346dd7-42cb-4a58-ad21-94f93fd523d2",
                     "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": [ "solarinverter"],
+                    "providedInterfaces": [ "solarinverter", "energymeter", "energystorage"],
                     "discoveryParamTypes": [
                         {
                             "id": "f50f8b5e-2311-4ba4-84fb-99f8054e4ff5",
