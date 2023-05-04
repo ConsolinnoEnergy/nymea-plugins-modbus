@@ -1,0 +1,235 @@
+{
+    "className": "KacoSunSpec",
+    "protocol": "BOTH",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "activePower",
+    "enums": [
+        {
+            "name": "BatteryStatus",
+            "values": [
+                {
+                    "key": "NoBattery",
+                    "value": 0
+                },
+                {
+                    "key": "Standby",
+                    "value": 1
+                },
+                {
+                    "key": "Discharging",
+                    "value": 2
+                },
+                {
+                    "key": "Charging",
+                    "value": 3
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "bla",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "bla",
+                    "address": 40084,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Active power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "totalInvPower",
+            "address": 35138,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Total inverter power",
+            "defaultValue": "0",
+            "unit": "W",
+            "access": "RO"
+        },
+        {
+            "id": "acActivePower",
+            "address": 35140,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "AC active power",
+            "defaultValue": "0",
+            "unit": "W",
+            "access": "RO"
+        },
+        {
+            "id": "pvEtotal",
+            "address": 35191,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "PV E-Total",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "access": "RO"
+        },
+        {
+            "id": "errorMessage",
+            "address": 35189,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Error Message",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "eTotalSell",
+            "address": 36015,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "E-Total-Sell",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "access": "RO"
+        },
+        {
+            "id": "eTotalBuy",
+            "address": 36017,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "E-Total-Buy",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "access": "RO"
+        },
+        {
+            "id": "iGridR",
+            "address": 35122,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Current phase L1",
+            "defaultValue": "0",
+            "unit": "A",
+            "access": "RO"
+        },
+        {
+            "id": "iGridS",
+            "address": 35127,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Current phase L2",
+            "defaultValue": "0",
+            "unit": "A",
+            "access": "RO"
+        },
+        {
+            "id": "iGridT",
+            "address": 35132,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Current phase L3",
+            "defaultValue": "0",
+            "unit": "A",
+            "access": "RO"
+        },
+        {
+            "id": "vGridR",
+            "address": 35121,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Voltage phase L1",
+            "defaultValue": "0",
+            "unit": "V",
+            "access": "RO"
+        },
+        {
+            "id": "vGridS",
+            "address": 35126,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Voltage phase L2",
+            "defaultValue": "0",
+            "unit": "V",
+            "access": "RO"
+        },
+        {
+            "id": "vGridT",
+            "address": 35131,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Voltage phase L3",
+            "defaultValue": "0",
+            "unit": "V",
+            "access": "RO"
+        },
+        {
+            "id": "MeterActivePowerR",
+            "address": 36005,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Power phase L1",
+            "defaultValue": "0",
+            "unit": "W",
+            "access": "RO"
+        },
+        {
+            "id": "MeterActivePowerS",
+            "address": 36006,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Power phase L2",
+            "defaultValue": "0",
+            "unit": "W",
+            "access": "RO"
+        },
+        {
+            "id": "MeterActivePowerT",
+            "address": 36007,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Power phase L3",
+            "defaultValue": "0",
+            "unit": "W",
+            "access": "RO"
+        }
+
+
+
+    ]
+}
+
