@@ -29,19 +29,312 @@
     ],
     "blocks": [
         {
-            "id": "bla",
+            "id": "phaseR",
             "readSchedule": "update",
             "registers": [
                 {
-                    "id": "bla",
-                    "address": 40084,
+                    "id": "vGridR",
+                    "address": 35121,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage phase L1",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "access": "RO"
+                },
+                {
+                    "id": "iGridR",
+                    "address": 35122,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase L1",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "phaseS",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "vGridS",
+                    "address": 35126,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage phase L2",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "access": "RO"
+                },
+                {
+                    "id": "iGridS",
+                    "address": 35127,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase L2",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "phaseT",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "vGridT",
+                    "address": 35131,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage phase L3",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "access": "RO"
+                },
+                {
+                    "id": "iGridT",
+                    "address": 35132,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase L3",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "batteryStuff1",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "batteryPower",
+                    "address": 35183,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Battery power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryMode",
+                    "address": 35184,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Battery mode",
+                    "enum": "BatteryStatus",
+                    "defaultValue": "BatteryStatusNoBattery",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "meterStuff1",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "meterConnectStatus",
+                    "address": 36003,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter connect status",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCommStatus",
+                    "address": 36004,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter comm status",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterActivePowerR",
+                    "address": 36005,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
                     "readSchedule": "update",
-                    "description": "Active power",
+                    "description": "Power phase L1",
                     "defaultValue": "0",
                     "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterActivePowerS",
+                    "address": 36006,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Power phase L2",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterActivePowerT",
+                    "address": 36007,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Power phase L3",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "meterStuff2",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "meterFrequence",
+                    "address": 36014,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter frequence",
+                    "defaultValue": "0",
+                    "unit": "Hz",
+                    "access": "RO"
+                },
+                {
+                    "id": "eTotalSell",
+                    "address": 36015,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "E-Total-Sell",
+                    "defaultValue": "0",
+                    "unit": "kWh",
+                    "access": "RO"
+                },
+                {
+                    "id": "eTotalBuy",
+                    "address": 36017,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "E-Total-Buy",
+                    "defaultValue": "0",
+                    "unit": "kWh",
+                    "access": "RO"
+                },
+            ]
+        },
+        {
+            "id": "batteryStuff2",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "batterySoc",
+                    "address": 37007,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Battery state of charge",
+                    "defaultValue": "0",
+                    "unit": "%",
+                    "access": "RO"
+                },
+                {
+                    "id": "batterySoh",
+                    "address": 37008,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Battery state of health",
+                    "defaultValue": "0",
+                    "unit": "%",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 37009,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Filler",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bmsWarningCodeL",
+                    "address": 37010,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "BMS warning code L",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 37011,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Filler",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bmsErrorCodeH",
+                    "address": 37012,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "BMS error code H",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bmsWarningCodeH",
+                    "address": 37013,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "BMS warning code H",
+                    "defaultValue": "0",
                     "access": "RO"
                 }
             ]
@@ -73,18 +366,6 @@
             "access": "RO"
         },
         {
-            "id": "pvEtotal",
-            "address": 35191,
-            "size": 2,
-            "type": "uint32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "PV E-Total",
-            "defaultValue": "0",
-            "unit": "kWh",
-            "access": "RO"
-        },
-        {
             "id": "errorMessage",
             "address": 35189,
             "size": 2,
@@ -96,140 +377,17 @@
             "access": "RO"
         },
         {
-            "id": "eTotalSell",
-            "address": 36015,
+            "id": "pvEtotal",
+            "address": 35191,
             "size": 2,
-            "type": "float",
+            "type": "uint32",
             "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "E-Total-Sell",
+            "description": "PV E-Total",
             "defaultValue": "0",
             "unit": "kWh",
-            "access": "RO"
-        },
-        {
-            "id": "eTotalBuy",
-            "address": 36017,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "E-Total-Buy",
-            "defaultValue": "0",
-            "unit": "kWh",
-            "access": "RO"
-        },
-        {
-            "id": "iGridR",
-            "address": 35122,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Current phase L1",
-            "defaultValue": "0",
-            "unit": "A",
-            "access": "RO"
-        },
-        {
-            "id": "iGridS",
-            "address": 35127,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Current phase L2",
-            "defaultValue": "0",
-            "unit": "A",
-            "access": "RO"
-        },
-        {
-            "id": "iGridT",
-            "address": 35132,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Current phase L3",
-            "defaultValue": "0",
-            "unit": "A",
-            "access": "RO"
-        },
-        {
-            "id": "vGridR",
-            "address": 35121,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Voltage phase L1",
-            "defaultValue": "0",
-            "unit": "V",
-            "access": "RO"
-        },
-        {
-            "id": "vGridS",
-            "address": 35126,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Voltage phase L2",
-            "defaultValue": "0",
-            "unit": "V",
-            "access": "RO"
-        },
-        {
-            "id": "vGridT",
-            "address": 35131,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Voltage phase L3",
-            "defaultValue": "0",
-            "unit": "V",
-            "access": "RO"
-        },
-        {
-            "id": "MeterActivePowerR",
-            "address": 36005,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Power phase L1",
-            "defaultValue": "0",
-            "unit": "W",
-            "access": "RO"
-        },
-        {
-            "id": "MeterActivePowerS",
-            "address": 36006,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Power phase L2",
-            "defaultValue": "0",
-            "unit": "W",
-            "access": "RO"
-        },
-        {
-            "id": "MeterActivePowerT",
-            "address": 36007,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Power phase L3",
-            "defaultValue": "0",
-            "unit": "W",
             "access": "RO"
         }
-
-
-
     ]
 }
 
