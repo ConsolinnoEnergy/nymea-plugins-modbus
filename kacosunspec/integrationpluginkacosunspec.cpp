@@ -261,11 +261,12 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             m_scalefactors.remove(thing);
 
         KacoSunSpecModbusRtuConnection *connection = new KacoSunSpecModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
-        connect(connection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
-            if (connected) {
-                qCDebug(dcKacoSunSpec()) << "Modbus RTU resource connected" << thing << connection->modbusRtuMaster()->serialPort();
+        connect(connection, &KacoSunSpecModbusRtuConnection::reachableChanged, this, [=](bool reachable){
+            thing->setStateValue(kacosunspecInverterRTUConnectedStateTypeId, reachable);
+            if (reachable) {
+                qCDebug(dcKacoSunSpec()) << "Device" << thing << "is reachable via Modbus RTU on" << connection->modbusRtuMaster()->serialPort();
             } else {
-                qCWarning(dcKacoSunSpec()) << "Modbus RTU resource disconnected" << thing << connection->modbusRtuMaster()->serialPort();
+                qCWarning(dcKacoSunSpec()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
             }
         });
 
