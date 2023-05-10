@@ -1,0 +1,335 @@
+{
+    "className": "KacoSunSpec",
+    "protocol": "BOTH",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "SunspecModel103",
+    "enums": [
+        {
+            "name": "OperatingState",
+            "values": [
+                {
+                    "key": "Off",
+                    "value": 0
+                },
+                {
+                    "key": "Sleeping",
+                    "value": 1
+                },
+                {
+                    "key": "Starting",
+                    "value": 2
+                },
+                {
+                    "key": "Mppt",
+                    "value": 3
+                },
+                {
+                    "key": "Throttled",
+                    "value": 4
+                },
+                {
+                    "key": "ShuttingDown",
+                    "value": 5
+                },
+                {
+                    "key": "Fault",
+                    "value": 6
+                },
+                {
+                    "key": "Standby",
+                    "value": 7
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "powerAndEnergy",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "activePower",
+                    "address": 40084,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Active power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "activePowerSf",
+                    "address": 40085,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Active power scale factor",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 40086,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 40087,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy3",
+                    "address": 40088,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy4",
+                    "address": 40089,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy5",
+                    "address": 40090,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy6",
+                    "address": 40091,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy7",
+                    "address": 40092,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy8",
+                    "address": 40093,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "totalEnergyProduced",
+                    "address": 40094,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Total energy produced",
+                    "defaultValue": "0",
+                    "unit": "Wh",
+                    "access": "RO"
+                },
+                {
+                    "id": "totalEnergyProducedSf",
+                    "address": 40096,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Total energy produced scale factor",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy9",
+                    "address": 40097,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy10",
+                    "address": 40098,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy11",
+                    "address": 40099,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy12",
+                    "address": 40100,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy13",
+                    "address": 40101,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy14",
+                    "address": 40102,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy15",
+                    "address": 40103,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy16",
+                    "address": 40104,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy17",
+                    "address": 40105,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy18",
+                    "address": 40106,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy19",
+                    "address": 40107,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "filler register",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "operatingState",
+                    "address": 40108,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "OperatingState",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Operating state",
+                    "defaultValue": "OperatingStateOff",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "SunspecModel103",
+            "address": 40070,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "Sunspec model 103",
+            "defaultValue": "0",
+            "access": "RO"
+        }
+    ]
+}
+
