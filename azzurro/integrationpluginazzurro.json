@@ -230,7 +230,7 @@
                     "displayName": "Azzurro Battery",
                     "id": "064d2805-3130-41cf-8ea8-98806af044b6",
                     "createMethods": ["auto"],
-                    "interfaces": [ "battery", "connectable"],
+                    "interfaces": [ "energystorage", "connectable"],
                     "paramTypes": [
                         {
                             "id": "16c0c9f1-2641-4ced-9948-b39ab664a81a",
@@ -295,6 +295,16 @@
                             "displayNameEvent": "Battery state of health changed",
                             "type": "int",
                             "defaultValue": 0
+                        },
+                        {
+                            "id": "433dbe01-a48d-4c28-8312-ee64d5434895",
+                            "name": "capacity",
+                            "displayName": "Battery capacity",
+                            "displayNameEvent": "Battery capacity changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
                         }
                     ],
                     "actionTypes": [ ]
