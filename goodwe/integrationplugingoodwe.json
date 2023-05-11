@@ -70,6 +70,23 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": true
+                        },
+                        {
+                            "id": "a61d4ed0-063d-4fef-af34-5adc4988524e",
+                            "name": "operatingState",
+                            "displayName": "Operating State",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Wait",
+                                "On grid",
+                                "Off grid",
+                                "Fault",
+                                "Inverter upgradeing",
+                                "Self check"
+                            ],
+                            "defaultValue": "Off",
+                            "displayNameEvent": "Operating state changed",
+                            "cached": false
                         }
                     ],
                     "actionTypes": [ ]
@@ -230,7 +247,7 @@
                     "displayName": "GoodWe Battery",
                     "id": "c9e4dda4-5c22-4efe-b56f-448929313b00",
                     "createMethods": ["auto"],
-                    "interfaces": [ "battery", "connectable"],
+                    "interfaces": [ "energystorage", "connectable"],
                     "paramTypes": [
                         {
                             "id": "50460afd-3585-4f55-aa17-21f037919381",
@@ -287,6 +304,16 @@
                             "type": "QString",
                             "possibleValues": ["idle", "charging", "discharging"],
                             "defaultValue": "idle"
+                        },
+                        {
+                            "id": "2c470852-02bf-4f78-831a-079471ed2c39",
+                            "name": "capacity",
+                            "displayName": "Battery capacity",
+                            "displayNameEvent": "Battery capacity changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
                         }
                     ],
                     "actionTypes": [ ]

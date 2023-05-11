@@ -16,16 +16,15 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINKACOSUNSPEC_H
-#define INTEGRATIONPLUGINKACOSUNSPEC_H
+#ifndef INTEGRATIONPLUGINGOODWE_H
+#define INTEGRATIONPLUGINGOODWE_H
 
 #include <integrations/integrationplugin.h>
 #include <hardware/modbus/modbusrtuhardwareresource.h>
 #include <plugintimer.h>
 
 #include "extern-plugininfo.h"
-#include "kacosunspecmodbustcpconnection.h"
-#include "kacosunspecmodbusrtuconnection.h"
+#include "goodwemodbusrtuconnection.h"
 
 #include <QObject>
 #include <QHostAddress>
@@ -33,15 +32,15 @@
 
 class NetworkDeviceMonitor;
 
-class IntegrationPluginKacoSunSpec: public IntegrationPlugin
+class IntegrationPluginGoodwe: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginkacosunspec.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationplugingoodwe.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit IntegrationPluginKacoSunSpec();
+    explicit IntegrationPluginGoodwe();
     void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
@@ -51,19 +50,23 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
 
-    struct ScaleFactors {
-        qint16 powerSf {1};
-        qint16 energySf {1};
+    struct MeterConnected {
+        bool modbusReachable {false};
+        bool meterCommStatus {false};
+    };
+
+    struct BatteryPowerSign {
+        quint32 batteryPower {0};
+        GoodweModbusRtuConnection::BatteryStatus status {GoodweModbusRtuConnection::BatteryStatusNoBattery};
     };
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, KacoSunSpecModbusTcpConnection *> m_tcpConnections;
-    QHash<Thing *, KacoSunSpecModbusRtuConnection *> m_rtuConnections;
-    QHash<Thing *, ScaleFactors> m_scalefactors;
+    QHash<Thing *, GoodweModbusRtuConnection *> m_rtuConnections;
+    QHash<Thing *, MeterConnected> m_meterconnected;
+    QHash<Thing *, BatteryPowerSign> m_batterypowersign;
 
-    void setOperatingState(Thing *thing, KacoSunSpecModbusTcpConnection::OperatingState state);
-    void setOperatingState(Thing *thing, KacoSunSpecModbusRtuConnection::OperatingState state);
+    void setWorkMode(Thing *thing, GoodweModbusRtuConnection::WorkMode state);
 };
 
-#endif // INTEGRATIONPLUGINKACOSUNSPEC_H
+#endif // INTEGRATIONPLUGINGOODWE_H
 

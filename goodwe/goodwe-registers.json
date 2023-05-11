@@ -1,10 +1,39 @@
 {
-    "className": "KacoSunSpec",
-    "protocol": "BOTH",
+    "className": "Goodwe",
+    "protocol": "RTU",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 15,
-    "checkReachableRegister": "activePower",
+    "checkReachableRegister": "totalInvPower",
     "enums": [
+        {
+            "name": "WorkMode",
+            "values": [
+                {
+                    "key": "Wait",
+                    "value": 0
+                },
+                {
+                    "key": "OnGrid",
+                    "value": 1
+                },
+                {
+                    "key": "OffGrid",
+                    "value": 2
+                },
+                {
+                    "key": "Fault",
+                    "value": 3
+                },
+                {
+                    "key": "InverterUpgrade",
+                    "value": 4
+                },
+                {
+                    "key": "SelfCheck",
+                    "value": 5
+                }
+            ]
+        },
         {
             "name": "BatteryStatus",
             "values": [
@@ -42,6 +71,7 @@
                     "description": "Voltage phase L1",
                     "defaultValue": "0",
                     "unit": "V",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 },
                 {
@@ -54,6 +84,7 @@
                     "description": "Current phase L1",
                     "defaultValue": "0",
                     "unit": "A",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 }
             ]
@@ -72,6 +103,7 @@
                     "description": "Voltage phase L2",
                     "defaultValue": "0",
                     "unit": "V",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 },
                 {
@@ -84,6 +116,7 @@
                     "description": "Current phase L2",
                     "defaultValue": "0",
                     "unit": "A",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 }
             ]
@@ -102,6 +135,7 @@
                     "description": "Voltage phase L3",
                     "defaultValue": "0",
                     "unit": "V",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 },
                 {
@@ -114,6 +148,7 @@
                     "description": "Current phase L3",
                     "defaultValue": "0",
                     "unit": "A",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 }
             ]
@@ -124,9 +159,9 @@
             "registers": [
                 {
                     "id": "batteryPower",
-                    "address": 35183,
-                    "size": 1,
-                    "type": "uint16",
+                    "address": 35182,
+                    "size": 2,
+                    "type": "uint32",
                     "registerType": "holdingRegister",
                     "readSchedule": "update",
                     "description": "Battery power",
@@ -144,6 +179,59 @@
                     "description": "Battery mode",
                     "enum": "BatteryStatus",
                     "defaultValue": "BatteryStatusNoBattery",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "mixedStuff1",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "workMode",
+                    "address": 35187,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Work mode",
+                    "enum": "WorkMode",
+                    "defaultValue": "WorkModeWait",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 35188,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Filler",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "errorMessage",
+                    "address": 35189,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Error Message",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pvEtotal",
+                    "address": 35191,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV E-Total",
+                    "defaultValue": "0",
+                    "unit": "kWh",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 }
             ]
@@ -226,6 +314,7 @@
                     "description": "Meter frequence",
                     "defaultValue": "0",
                     "unit": "Hz",
+                    "staticScaleFactor": -2,
                     "access": "RO"
                 },
                 {
@@ -283,7 +372,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy1",
+                    "id": "dummy2",
                     "address": 37009,
                     "size": 1,
                     "type": "uint16",
@@ -305,7 +394,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy2",
+                    "id": "dummy3",
                     "address": 37011,
                     "size": 1,
                     "type": "uint16",
@@ -363,29 +452,6 @@
             "description": "AC active power",
             "defaultValue": "0",
             "unit": "W",
-            "access": "RO"
-        },
-        {
-            "id": "errorMessage",
-            "address": 35189,
-            "size": 2,
-            "type": "uint32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Error Message",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "pvEtotal",
-            "address": 35191,
-            "size": 2,
-            "type": "uint32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "PV E-Total",
-            "defaultValue": "0",
-            "unit": "kWh",
             "access": "RO"
         }
     ]
