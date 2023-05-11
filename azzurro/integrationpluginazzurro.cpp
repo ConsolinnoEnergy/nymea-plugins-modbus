@@ -223,7 +223,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::activePowerPccRChanged, thing, [this, thing](quint16 currentPowerPhaseA){
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccRChanged, thing, [this, thing](qint16 currentPowerPhaseA){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 double currentPowerPhaseAConverted = currentPowerPhaseA * -10;
@@ -232,7 +232,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::activePowerPccSChanged, thing, [this, thing](quint16 currentPowerPhaseB){
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccSChanged, thing, [this, thing](qint16 currentPowerPhaseB){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 double currentPowerPhaseBConverted = currentPowerPhaseB * -10;
@@ -241,7 +241,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::activePowerPccTChanged, thing, [this, thing](quint16 currentPowerPhaseC){
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccTChanged, thing, [this, thing](qint16 currentPowerPhaseC){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 double currentPowerPhaseCConverted = currentPowerPhaseC * -10;
