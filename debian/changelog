@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.5.103-1) jammy; urgency=medium
+
+  * Added Kaco Sunspec inverter integration
+
+ -- Leonhard Heizinger <l.heizinger@consolinno.de>  Wed, 10 May 2022 10:28:48 +0100
+
 nymea-plugins-modbus (1.5.102-1) jammy; urgency=medium
 
   * Added Alphatec wallbox integration
