@@ -21,6 +21,8 @@
                             "name": "slaveAddress",
                             "displayName": "Slave address",
                             "type": "int",
+                            "minValue": 1,
+                            "maxValue": 247,
                             "defaultValue": 1
                         }
                     ],
@@ -38,6 +40,8 @@
                             "name": "slaveAddress",
                             "displayName": "Modbus slave address",
                             "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 247,
                             "defaultValue": 1
                         }
                     ],
@@ -70,7 +74,27 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": true
+                        },
+                        {
+                            "id": "5c88b778-0f4a-49dc-94a7-fd15465dce9e",
+                            "name": "systemStatus",
+                            "displayName": "System Status",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Waiting",
+                                "Checking Grid",
+                                "Grid Connected",
+                                "Grid UFP",
+                                "Emergency Power Supply EPS",
+                                "Recoverable Fault",
+                                "Permanent Fault",
+                                "Self Charging",
+                            ],
+                            "defaultValue": "Waiting",
+                            "displayNameEvent": "System Status changed",
+                            "cached": false
                         }
+
                     ],
                     "actionTypes": [ ]
                 },
@@ -237,6 +261,8 @@
                             "name": "capacity",
                             "displayName": "Battery capacity kWh",
                             "type": "uint",
+                            "minValue": 0,
+                            "maxValue": 10000,
                             "defaultValue": 0
                         }
                     ],
@@ -314,7 +340,42 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": true
-                        }
+                        },
+                        {
+                            "id": "dc499581-3170-480e-9d51-93ce96309df0",
+                            "name": "voltage",
+                            "displayName": "Battery voltage",
+                            "displayNameEvent": "Battery power changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                        },
+                        {
+                            "id": "7bb3679b-a23d-4460-ba01-d5fa0a6de04c",
+                            "name": "current",
+                            "displayName": "Battery current",
+                            "displayNameEvent": "Battery current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                        },
+                        {
+                            "id": "eb6ff8dc-43aa-4c06-9429-67b384e48fad",
+                            "name": "temperature",
+                            "displayName": "Battery temperature",
+                            "displayNameEvent": "Battery temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0.00,
+                        },
+                        {
+                            "id": "7c874972-c03b-4f9c-b285-621c5c7b7906",
+                            "name": "cycles",
+                            "displayName": "Battery charge cycles",
+                            "displayNameEvent": "Battery charge cycles changed",
+                            "type": "int",
+                            "defaultValue": 0,
+                        },
                     ],
                     "actionTypes": [ ]
                 }
