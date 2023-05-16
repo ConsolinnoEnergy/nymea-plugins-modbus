@@ -259,7 +259,6 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             }
         });
 
-
         connect(connection, &AzzurroModbusRtuConnection::voltagePhaseSChanged, thing, [this, thing](quint16 voltagePhaseB){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
@@ -268,7 +267,6 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
                 meterThings.first()->setStateValue(azzurroMeterVoltagePhaseBStateTypeId, voltagePhaseBConverted);
             }
         });
-
 
         connect(connection, &AzzurroModbusRtuConnection::voltagePhaseTChanged, thing, [this, thing](quint16 voltagePhaseC){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
@@ -420,11 +418,23 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
     if (thing->thingClassId() == azzurroBatteryThingClassId) {
         // Nothing to do here, we get all information from the inverter connection
         info->finish(Thing::ThingErrorNoError);
+
+        // Set battery capacity from settings on restart.
+        thing->setStateValue(azzurroBatteryCapacityStateTypeId, thing->setting(azzurroBatterySettingsCapacityParamTypeId).toUInt());
+
+        // Set battery capacity on settings change.
+        connect(thing, &Thing::settingChanged, this, [this, thing] (const ParamTypeId &paramTypeId, const QVariant &value) {
+            if (paramTypeId == azzurroBatterySettingsCapacityParamTypeId) {
+                qCDebug(dcAzzurro()) << "Battery capacity changed to" << value.toInt() << "kWh";
+                thing->setStateValue(azzurroBatteryCapacityStateTypeId, value.toInt());
+            }
+        });
+
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
-            thing->setStateValue(azzurroBatteryConnectedStateTypeId, parentThing->stateValue(azzurroInverterRTUConnectedStateTypeId).toBool());
+            thing->setStateValue(azzurroBatteryConnectedStateTypeId, parentThing->stateValue(azzurroInverterRTUConnectedStateTypeId).toBool());   
         }
-        return;
+        return;        
     }
 }
 

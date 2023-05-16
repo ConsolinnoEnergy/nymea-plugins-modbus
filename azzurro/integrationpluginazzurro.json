@@ -231,6 +231,15 @@
                     "id": "064d2805-3130-41cf-8ea8-98806af044b6",
                     "createMethods": ["auto"],
                     "interfaces": [ "energystorage", "connectable"],
+                    "settingsTypes": [
+                        {
+                            "id": "9c661517-d7bb-4545-93ef-cbf843a7bec7",
+                            "name": "capacity",
+                            "displayName": "Battery capacity kWh",
+                            "type": "uint",
+                            "defaultValue": 0
+                        }
+                    ],
                     "paramTypes": [
                         {
                             "id": "16c0c9f1-2641-4ced-9948-b39ab664a81a",
