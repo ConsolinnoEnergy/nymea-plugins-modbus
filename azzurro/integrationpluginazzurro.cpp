@@ -121,6 +121,10 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             m_rtuConnections.take(thing)->deleteLater();
         }
 
+        if (m_pvpower.contains(thing))
+            m_pvpower.remove(thing);
+
+
         AzzurroModbusRtuConnection *connection = new AzzurroModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
         connect(connection, &AzzurroModbusRtuConnection::reachableChanged, this, [=](bool reachable){
             thing->setStateValue(azzurroInverterRTUConnectedStateTypeId, reachable);
@@ -147,142 +151,134 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         });
 
         // Handle property changed signals for inverter
-        // Check if this is the correct ragister for this value. There is also a register for off grid power. If we want to enable
-        // off grid use, that needs to be considered. Maybe register "powerPv1" can be used to cover both off grid and on grid.
-        connect(connection, &AzzurroModbusRtuConnection::activePowerOnGridChanged, thing, [this, thing](qint16 activePower){
-            double activePowerConverted = activePower * -10;
-            qCDebug(dcAzzurro()) << "Inverter active power (activePowerOnGrid) changed" << activePowerConverted << "W";
-            thing->setStateValue(azzurroInverterRTUCurrentPowerStateTypeId, activePowerConverted);
+        connect(connection, &AzzurroModbusRtuConnection::powerPv1Changed, thing, [this, thing](quint16 powerPv1){
+            m_pvpower.find(thing)->power1 = powerPv1;
+            double combinedPower = powerPv1 + m_pvpower.value(thing).power2;
+            qCDebug(dcAzzurro()) << "Inverter PV power 1 changed" << powerPv1 << "W. Combined power is" << combinedPower << "W";
+            thing->setStateValue(azzurroInverterRTUCurrentPowerStateTypeId, -combinedPower);
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::systemStatusChanged, thing, [thing](AzzurroModbusRtuConnection::SystemStatus systemStatus){
+        connect(connection, &AzzurroModbusRtuConnection::powerPv2Changed, thing, [this, thing](quint16 powerPv2){
+            m_pvpower.find(thing)->power2 = powerPv2;
+            double combinedPower = powerPv2 + m_pvpower.value(thing).power1;
+            qCDebug(dcAzzurro()) << "Inverter PV power 2 changed" << powerPv2 << "W. Combined power is" << combinedPower << "W";
+            thing->setStateValue(azzurroInverterRTUCurrentPowerStateTypeId, -combinedPower);
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::systemStatusChanged, thing, [this, thing](AzzurroModbusRtuConnection::SystemStatus systemStatus){
             qCDebug(dcAzzurro()) << "Inverter system status recieved" << systemStatus;
-            Q_UNUSED(thing);
+            setSystemStatus(thing, systemStatus);
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::pvGenerationTotalChanged, thing, [thing](quint32 totalEnergyProduced){
-            double totalEnergyProducedConverted = totalEnergyProduced / 10.0;
-            qCDebug(dcAzzurro()) << "Inverter total energy produced (pvGenerationTotal) changed" << totalEnergyProducedConverted << "kWh";
-            thing->setStateValue(azzurroInverterRTUTotalEnergyProducedStateTypeId, totalEnergyProducedConverted);
+        connect(connection, &AzzurroModbusRtuConnection::pvGenerationTotalChanged, thing, [thing](float totalEnergyProduced){
+            qCDebug(dcAzzurro()) << "Inverter total energy produced (pvGenerationTotal) changed" << totalEnergyProduced << "kWh";
+            thing->setStateValue(azzurroInverterRTUTotalEnergyProducedStateTypeId, totalEnergyProduced);
         });
 
 
         // Meter
-        connect(connection, &AzzurroModbusRtuConnection::activePowerPccChanged, thing, [this, thing](qint16 currentPower){
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccChanged, thing, [this, thing](float currentPower){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPowerConverted = currentPower * -10;
-                qCDebug(dcAzzurro()) << "Meter power (activePowerPcc) changed" << currentPowerConverted << "W";
+                qCDebug(dcAzzurro()) << "Meter power (activePowerPcc) changed" << -currentPower << "W";
                 // Check if sign is correct for power to grid and power from grid.
-                meterThings.first()->setStateValue(azzurroMeterCurrentPowerStateTypeId, currentPowerConverted);
+                meterThings.first()->setStateValue(azzurroMeterCurrentPowerStateTypeId, -currentPower);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::energySellingTotalChanged, thing, [this, thing](quint32 totalEnergyProduced){
+        connect(connection, &AzzurroModbusRtuConnection::energySellingTotalChanged, thing, [this, thing](float totalEnergyProduced){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double totalEnergyProducedConverted = totalEnergyProduced / 10.0;
-                qCDebug(dcAzzurro()) << "Meter total energy produced (energySellingTotal) changed" << totalEnergyProducedConverted << "kWh";
-                meterThings.first()->setStateValue(azzurroMeterTotalEnergyProducedStateTypeId, totalEnergyProducedConverted);
+                qCDebug(dcAzzurro()) << "Meter total energy produced (energySellingTotal) changed" << totalEnergyProduced << "kWh";
+                meterThings.first()->setStateValue(azzurroMeterTotalEnergyProducedStateTypeId, totalEnergyProduced);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::energyPurchaseTotalChanged, thing, [this, thing](quint32 totalEnergyConsumed){
+        connect(connection, &AzzurroModbusRtuConnection::energyPurchaseTotalChanged, thing, [this, thing](float totalEnergyConsumed){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double totalEnergyConsumedConverted = totalEnergyConsumed / 10.0;
-                qCDebug(dcAzzurro()) << "Meter total energy consumed (energyPurchaseTotal) changed" << totalEnergyConsumedConverted << "kWh";
-                meterThings.first()->setStateValue(azzurroMeterTotalEnergyConsumedStateTypeId, totalEnergyConsumedConverted);
+                qCDebug(dcAzzurro()) << "Meter total energy consumed (energyPurchaseTotal) changed" << totalEnergyConsumed << "kWh";
+                meterThings.first()->setStateValue(azzurroMeterTotalEnergyConsumedStateTypeId, totalEnergyConsumed);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::currentPccRChanged, thing, [this, thing](quint16 currentPhaseA){
+        connect(connection, &AzzurroModbusRtuConnection::currentPccRChanged, thing, [this, thing](float currentPhaseA){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPhaseAConverted = currentPhaseA / 100.0;
-                qCDebug(dcAzzurro()) << "Meter current phase A (currentPccR) changed" << currentPhaseAConverted << "A";
-                meterThings.first()->setStateValue(azzurroMeterCurrentPhaseAStateTypeId, currentPhaseAConverted);
+                qCDebug(dcAzzurro()) << "Meter current phase A (currentPccR) changed" << currentPhaseA << "A";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPhaseAStateTypeId, currentPhaseA);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::currentPccSChanged, thing, [this, thing](quint16 currentPhaseB){
+        connect(connection, &AzzurroModbusRtuConnection::currentPccSChanged, thing, [this, thing](float currentPhaseB){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPhaseBConverted = currentPhaseB / 100.0;
-                qCDebug(dcAzzurro()) << "Meter current phase B (currentPccS) changed" << currentPhaseBConverted << "A";
-                meterThings.first()->setStateValue(azzurroMeterCurrentPhaseBStateTypeId, currentPhaseBConverted);
+                qCDebug(dcAzzurro()) << "Meter current phase B (currentPccS) changed" << currentPhaseB << "A";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPhaseBStateTypeId, currentPhaseB);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::currentPccTChanged, thing, [this, thing](quint16 currentPhaseC){
+        connect(connection, &AzzurroModbusRtuConnection::currentPccTChanged, thing, [this, thing](float currentPhaseC){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPhaseCConverted = currentPhaseC / 100.0;
-                qCDebug(dcAzzurro()) << "Meter current phase C (currentPccT) changed" << currentPhaseCConverted << "A";
-                meterThings.first()->setStateValue(azzurroMeterCurrentPhaseCStateTypeId, currentPhaseCConverted);
+                qCDebug(dcAzzurro()) << "Meter current phase C (currentPccT) changed" << currentPhaseC << "A";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPhaseCStateTypeId, currentPhaseC);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::activePowerPccRChanged, thing, [this, thing](qint16 currentPowerPhaseA){
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccRChanged, thing, [this, thing](float currentPowerPhaseA){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPowerPhaseAConverted = currentPowerPhaseA * -10;
-                qCDebug(dcAzzurro()) << "Meter current power phase A (activePowerPccR) changed" << currentPowerPhaseAConverted << "W";
-                meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseAStateTypeId, currentPowerPhaseAConverted);
+                qCDebug(dcAzzurro()) << "Meter current power phase A (activePowerPccR) changed" << -currentPowerPhaseA << "W";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseAStateTypeId, -currentPowerPhaseA);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::activePowerPccSChanged, thing, [this, thing](qint16 currentPowerPhaseB){
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccSChanged, thing, [this, thing](float currentPowerPhaseB){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPowerPhaseBConverted = currentPowerPhaseB * -10;
-                qCDebug(dcAzzurro()) << "Meter current power phase B (activePowerPccS) changed" << currentPowerPhaseBConverted << "W";
-                meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseBStateTypeId, currentPowerPhaseBConverted);
+                qCDebug(dcAzzurro()) << "Meter current power phase B (activePowerPccS) changed" << -currentPowerPhaseB << "W";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseBStateTypeId, -currentPowerPhaseB);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::activePowerPccTChanged, thing, [this, thing](qint16 currentPowerPhaseC){
+        connect(connection, &AzzurroModbusRtuConnection::activePowerPccTChanged, thing, [this, thing](float currentPowerPhaseC){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double currentPowerPhaseCConverted = currentPowerPhaseC * -10;
-                qCDebug(dcAzzurro()) << "Meter current power phase C (activePowerPccT) changed" << currentPowerPhaseCConverted << "W";
-                meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseCStateTypeId, currentPowerPhaseCConverted);
+                qCDebug(dcAzzurro()) << "Meter current power phase C (activePowerPccT) changed" << -currentPowerPhaseC << "W";
+                meterThings.first()->setStateValue(azzurroMeterCurrentPowerPhaseCStateTypeId, -currentPowerPhaseC);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::voltagePhaseRChanged, thing, [this, thing](quint16 voltagePhaseA){
+        connect(connection, &AzzurroModbusRtuConnection::voltagePhaseRChanged, thing, [this, thing](float voltagePhaseA){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double voltagePhaseAConverted = voltagePhaseA / 10.0;
-                qCDebug(dcAzzurro()) << "Meter voltage phase A (voltagePhaseR) changed" << voltagePhaseAConverted << "V";
-                meterThings.first()->setStateValue(azzurroMeterVoltagePhaseAStateTypeId, voltagePhaseAConverted);
+                qCDebug(dcAzzurro()) << "Meter voltage phase A (voltagePhaseR) changed" << voltagePhaseA << "V";
+                meterThings.first()->setStateValue(azzurroMeterVoltagePhaseAStateTypeId, voltagePhaseA);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::voltagePhaseSChanged, thing, [this, thing](quint16 voltagePhaseB){
+        connect(connection, &AzzurroModbusRtuConnection::voltagePhaseSChanged, thing, [this, thing](float voltagePhaseB){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double voltagePhaseBConverted = voltagePhaseB / 10.0;
-                qCDebug(dcAzzurro()) << "Meter voltage phase B (voltagePhaseS) changed" << voltagePhaseBConverted << "V";
-                meterThings.first()->setStateValue(azzurroMeterVoltagePhaseBStateTypeId, voltagePhaseBConverted);
+                qCDebug(dcAzzurro()) << "Meter voltage phase B (voltagePhaseS) changed" << voltagePhaseB << "V";
+                meterThings.first()->setStateValue(azzurroMeterVoltagePhaseBStateTypeId, voltagePhaseB);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::voltagePhaseTChanged, thing, [this, thing](quint16 voltagePhaseC){
+        connect(connection, &AzzurroModbusRtuConnection::voltagePhaseTChanged, thing, [this, thing](float voltagePhaseC){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double voltagePhaseCConverted = voltagePhaseC / 10.0;
-                qCDebug(dcAzzurro()) << "Meter voltage phase C (voltagePhaseT) changed" << voltagePhaseCConverted << "V";
-                meterThings.first()->setStateValue(azzurroMeterVoltagePhaseCStateTypeId, voltagePhaseCConverted);
+                qCDebug(dcAzzurro()) << "Meter voltage phase C (voltagePhaseT) changed" << voltagePhaseC << "V";
+                meterThings.first()->setStateValue(azzurroMeterVoltagePhaseCStateTypeId, voltagePhaseC);
             }
         });
 
-        connect(connection, &AzzurroModbusRtuConnection::frequencyGridChanged, thing, [this, thing](quint16 frequency){
+        connect(connection, &AzzurroModbusRtuConnection::frequencyGridChanged, thing, [this, thing](float frequency){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                double frequencyConverted = frequency / 100.0;
-                qCDebug(dcAzzurro()) << "Meter frequency (frequencyGrid) changed" << frequencyConverted << "Hz";
-                meterThings.first()->setStateValue(azzurroMeterFrequencyStateTypeId, frequencyConverted);
+                qCDebug(dcAzzurro()) << "Meter frequency (frequencyGrid) changed" << frequency << "Hz";
+                meterThings.first()->setStateValue(azzurroMeterFrequencyStateTypeId, frequency);
             }
         });
 
@@ -318,12 +314,13 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         });
 
         connect(connection, &AzzurroModbusRtuConnection::powerBat1Changed, thing, [this, thing](qint16 powerBat1){
-            double powerBat1Converted = powerBat1 * 10; // currentPower state has type double.
+            // powerBat1 is not scaled by the Modbus class, because we need the value as an int here. The scaled value is always a float.
+            double powerBat1Converted = powerBat1 * 10;
             qCDebug(dcAzzurro()) << "Battery 1 power (powerBat1) changed" << powerBat1Converted << "W";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
             if (!batteryThings.isEmpty()) {
                 batteryThings.first()->setStateValue(azzurroBatteryCurrentPowerStateTypeId, powerBat1Converted);
-                if (powerBat1 < 0) {    // Don't use a double to compare to 0 when you also have an int.
+                if (powerBat1 < 0) {    // This is where we need int, not float.
                     batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "discharging");
                 } else if (powerBat1 > 0) {
                     batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "charging");
@@ -339,6 +336,38 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             if (!batteryThings.isEmpty()) {
                 batteryThings.first()->setStateValue(azzurroBatteryBatteryLevelStateTypeId, socBat1);
                 batteryThings.first()->setStateValue(azzurroBatteryBatteryCriticalStateTypeId, socBat1 < 10);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::voltageBat1Changed, thing, [this, thing](float voltageBat1){
+            qCDebug(dcAzzurro()) << "Battery 1 voltage changed" << voltageBat1 << "V";
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(azzurroBatteryVoltageStateTypeId, voltageBat1);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::currentBat1Changed, thing, [this, thing](float currentBat1){
+            qCDebug(dcAzzurro()) << "Battery 1 current changed" << currentBat1 << "A";
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(azzurroBatteryCurrentStateTypeId, currentBat1);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::tempBat1Changed, thing, [this, thing](qint16 tempBat1){
+            qCDebug(dcAzzurro()) << "Battery 1 temperature changed" << tempBat1 << "°C";
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(azzurroBatteryTemperatureStateTypeId, tempBat1);
+            }
+        });
+
+        connect(connection, &AzzurroModbusRtuConnection::cycleBat1Changed, thing, [this, thing](quint16 cycleBat1){
+            qCDebug(dcAzzurro()) << "Battery 1 charge cycles changed" << cycleBat1;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 1);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(azzurroBatteryCyclesStateTypeId, cycleBat1);
             }
         });
 
@@ -372,12 +401,12 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         });
 
         connect(connection, &AzzurroModbusRtuConnection::powerBat2Changed, thing, [this, thing](qint16 powerBat2){
-            double powerBat1Converted = powerBat2 * 10; // currentPower state has type double.
+            double powerBat1Converted = powerBat2 * 10;
             qCDebug(dcAzzurro()) << "Battery 2 power (powerBat2) changed" << powerBat2Converted << "W";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(azzurroBatteryThingClassId).filterByParam(azzurroBatteryThingUnitParamTypeId, 2);
             if (!batteryThings.isEmpty()) {
                 batteryThings.first()->setStateValue(azzurroBatteryCurrentPowerStateTypeId, powerBat2Converted);
-                if (powerBat2 < 0) {    // Don't use a double to compare to 0 when you also have an int.
+                if (powerBat2 < 0) {
                     batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "discharging");
                 } else if (powerBat2 > 0) {
                     batteryThings.first()->setStateValue(azzurroBatteryChargingStateStateTypeId, "charging");
@@ -400,6 +429,8 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
 
         // FIXME: make async and check if this is really an azzurro
         m_rtuConnections.insert(thing, connection);
+        PvPower pvPower{};
+        m_pvpower.insert(thing, pvPower);
         info->finish(Thing::ThingErrorNoError);
         return;
     }
@@ -467,8 +498,41 @@ void IntegrationPluginAzzurro::thingRemoved(Thing *thing)
         m_rtuConnections.take(thing)->deleteLater();
     }
 
+    if (m_pvpower.contains(thing))
+        m_pvpower.remove(thing);
+
     if (myThings().isEmpty() && m_pluginTimer) {
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;
+    }
+}
+
+void IntegrationPluginAzzurro::setSystemStatus(Thing *thing, AzzurroModbusRtuConnection::SystemStatus state)
+{
+    switch (state) {
+        case AzzurroModbusRtuConnection::SystemStatusWaiting:
+            thing->setStateValue(azzurroInverterRTUSystemStatusStateTypeId, "Waiting");
+            break;
+        case AzzurroModbusRtuConnection::SystemStatusCheckingGrid:
+            thing->setStateValue(azzurroInverterRTUSystemStatusStateTypeId, "Checking Grid");
+            break;
+        case AzzurroModbusRtuConnection::SystemStatusGridConnected:
+            thing->setStateValue(azzurroInverterRTUSystemStatusStateTypeId, "Grid Connected");
+            break;
+        case AzzurroModbusRtuConnection::SystemStatusGridUFP:
+            thing->setStateValue(azzurroInverterRTUSystemStatusStateTypeId, "Grid UFP");
+            break;
+        case AzzurroModbusRtuConnection::SystemStatusEmergencyPowerSupplyEPS:
+            thing->setStateValue(azzurroInverterRTUSystemStatusStateTypeId, "Emergency Power Supply");
+            break;
+        case AzzurroModbusRtuConnection::SystemStatusRecoverableFault:
+            thing->setStateValue(azzurroInverterRTUSystemStatusStateTypeId, "Recoverable Fault");
+            break;
+        case AzzurroModbusRtuConnection::SystemStatusPermanentFault:
+            thing->setStateValue(azzurroInverterRTUSystemStatusStateTypeId, "Permanent Fault");
+            break;
+        case AzzurroModbusRtuConnection::SystemStatusSelfCharging:
+            thing->setStateValue(azzurroInverterRTUSystemStatusStateTypeId, "Self Charging");
+            break;
     }
 }

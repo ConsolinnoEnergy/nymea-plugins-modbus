@@ -180,7 +180,6 @@
                     "description": "Power battery 1 (0x0606)",
                     "defaultValue": "0",
                     "unit": "W",
-                    "staticScaleFactor": 1,
                     "access": "RO"
                 },
                 {

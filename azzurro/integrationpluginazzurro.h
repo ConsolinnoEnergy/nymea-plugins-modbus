@@ -47,7 +47,15 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
 
+    struct PvPower {
+        quint16 power1 {0};
+        quint16 power2 {0};
+    };
+
     QHash<Thing *, AzzurroModbusRtuConnection *> m_rtuConnections;
+    QHash<Thing *, PvPower> m_pvpower;
+
+    void setSystemStatus(Thing *thing, AzzurroModbusRtuConnection::SystemStatus state);
 };
 
 #endif // INTEGRATIONPLUGINAZZURRO_H
