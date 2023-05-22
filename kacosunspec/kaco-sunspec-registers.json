@@ -3,7 +3,7 @@
     "protocol": "BOTH",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 15,
-    "checkReachableRegister": "SunspecModel103",
+    "checkReachableRegister": "activePower",
     "enums": [
         {
             "name": "OperatingState",
