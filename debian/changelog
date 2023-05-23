@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.5.103-1) jammy; urgency=medium
+nymea-plugins-modbus (1.5.104-1) jammy; urgency=medium
 
   * Added Kaco Sunspec inverter integration
 
