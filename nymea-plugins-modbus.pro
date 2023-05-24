@@ -12,6 +12,7 @@ PLUGIN_DIRS = \
     huawei                  \
     idm                     \
     inepro                  \
+    kacosunspec             \
     kostal                  \
     mennekes                \
     modbuscommander         \
