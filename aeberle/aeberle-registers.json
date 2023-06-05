@@ -1,0 +1,193 @@
+{
+    "className": "a-eberle-pqi-da-smart",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "voltagePhaseA",
+    "registers": [
+        {
+            "id": "totalCurrentPower",
+            "address": 1964,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Total system power",
+            "unit": "W",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "powerPhaseA",
+            "address": 1946,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Power phase L1",
+            "unit": "W",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "powerPhaseB",
+            "address": 1952,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Power phase L2",
+            "unit": "W",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "powerPhaseC",
+            "address": 1958,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Power phase L3",
+            "unit": "W",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "totalEnergyConsumed",
+            "address": 2184,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Total energy consumed",
+            "unit": "kWh",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "totalEnergyProduced",
+            "address": 2176,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Total energy produced",
+            "unit": "kWh",
+            "defaultValue": "0",
+            "access": "RO"
+        }
+    ],
+    "blocks": [
+        {
+            "id": "phaseVoltageAndFrequency",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "frequency",
+                    "address": 1008,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Frequency",
+                    "unit": "Hz",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseA",
+                    "address": 1010,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage phase L1",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseB",
+                    "address": 1012,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage phase L2",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseC",
+                    "address": 1014,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage phase L3",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "phaseCurrent",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currentPhaseA",
+                    "address": 1586,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase L1",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseB",
+                    "address": 1588,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase L2",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseC",
+                    "address": 1590,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase L3",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "phasePower",
+            "readSchedule": "update",
+            "registers": [
+
+            ]
+        },
+        {
+            "id": "frequencyAndTotalEnergy",
+            "readSchedule": "update",
+            "registers": [
+
+            ]
+        }
+    ]
+}
