@@ -6,7 +6,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 HEADERS += \
-    $${PWD}/a-eberle-pqi-da-smartmodbusrtuconnection.h \
+    $${PWD}/pqidamodbusrtuconnection.h \
 
 SOURCES += \
-    $${PWD}/a-eberle-pqi-da-smartmodbusrtuconnection.cpp \
+    $${PWD}/pqidamodbusrtuconnection.cpp \

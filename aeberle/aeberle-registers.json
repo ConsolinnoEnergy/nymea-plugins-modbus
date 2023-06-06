@@ -1,7 +1,7 @@
 {
-    "className": "a-eberle-pqi-da-smart",
+    "className": "Pqida",
     "protocol": "RTU",
-    "endianness": "BigEndian",
+    "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 15,
     "checkReachableRegister": "voltagePhaseA",
     "registers": [
@@ -50,30 +50,6 @@
             "readSchedule": "update",
             "description": "Power phase L3",
             "unit": "W",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "totalEnergyConsumed",
-            "address": 2184,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Total energy consumed",
-            "unit": "kWh",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "totalEnergyProduced",
-            "address": 2176,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Total energy produced",
-            "unit": "kWh",
             "defaultValue": "0",
             "access": "RO"
         }
@@ -176,17 +152,105 @@
             ]
         },
         {
-            "id": "phasePower",
+            "id": "energy",
             "readSchedule": "update",
             "registers": [
-
-            ]
-        },
-        {
-            "id": "frequencyAndTotalEnergy",
-            "readSchedule": "update",
-            "registers": [
-
+                {
+                    "id": "energyProducedPhaseA",
+                    "address": 2170,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Energy consumed L1",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "energyProducedPhaseB",
+                    "address": 2172,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Energy produced L2",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "energyProducedPhaseC",
+                    "address": 2174,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Energy produced L3",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "totalEnergyProduced",
+                    "address": 2176,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Total energy produced",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "energyConsumedPhaseA",
+                    "address": 2178,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Energy consumed L1",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "energyConsumedPhaseB",
+                    "address": 2180,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Energy consumed L2",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "energyConsumedPhaseC",
+                    "address": 2182,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Energy consumed L3",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "totalEnergyConsumed",
+                    "address": 2184,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Total energy consumed",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
             ]
         }
     ]

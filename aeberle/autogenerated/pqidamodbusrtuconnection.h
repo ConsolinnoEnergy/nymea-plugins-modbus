@@ -37,15 +37,15 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef A-EBERLE-PQI-DA-SMARTMODBUSRTUCONNECTION_H
-#define A-EBERLE-PQI-DA-SMARTMODBUSRTUCONNECTION_H
+#ifndef PQIDAMODBUSRTUCONNECTION_H
+#define PQIDAMODBUSRTUCONNECTION_H
 
 #include <QObject>
 
 #include <modbusdatautils.h>
 #include <hardware/modbus/modbusrtumaster.h>
 
-class a-eberle-pqi-da-smartModbusRtuConnection : public QObject
+class PqidaModbusRtuConnection : public QObject
 {
     Q_OBJECT
 public:
@@ -61,13 +61,19 @@ public:
         RegisterPowerPhaseB = 1952,
         RegisterPowerPhaseC = 1958,
         RegisterTotalCurrentPower = 1964,
+        RegisterEnergyProducedPhaseA = 2170,
+        RegisterEnergyProducedPhaseB = 2172,
+        RegisterEnergyProducedPhaseC = 2174,
         RegisterTotalEnergyProduced = 2176,
+        RegisterEnergyConsumedPhaseA = 2178,
+        RegisterEnergyConsumedPhaseB = 2180,
+        RegisterEnergyConsumedPhaseC = 2182,
         RegisterTotalEnergyConsumed = 2184
     };
     Q_ENUM(Registers)
 
-    explicit a-eberle-pqi-da-smartModbusRtuConnection(ModbusRtuMaster *modbusRtuMaster, quint16 slaveId, QObject *parent = nullptr);
-    ~a-eberle-pqi-da-smartModbusRtuConnection() = default;
+    explicit PqidaModbusRtuConnection(ModbusRtuMaster *modbusRtuMaster, quint16 slaveId, QObject *parent = nullptr);
+    ~PqidaModbusRtuConnection() = default;
 
     ModbusRtuMaster *modbusRtuMaster() const;
     quint16 slaveId() const;
@@ -92,12 +98,6 @@ public:
     /* Power phase L3 [W] - Address: 1958, Size: 2 */
     float powerPhaseC() const;
 
-    /* Total energy consumed [kWh] - Address: 2184, Size: 2 */
-    float totalEnergyConsumed() const;
-
-    /* Total energy produced [kWh] - Address: 2176, Size: 2 */
-    float totalEnergyProduced() const;
-
     /* Frequency [Hz] - Address: 1008, Size: 2 */
     float frequency() const;
 
@@ -119,6 +119,30 @@ public:
     /* Current phase L3 [A] - Address: 1590, Size: 2 */
     float currentPhaseC() const;
 
+    /* Energy consumed L1 [kWh] - Address: 2170, Size: 2 */
+    float energyProducedPhaseA() const;
+
+    /* Energy produced L2 [kWh] - Address: 2172, Size: 2 */
+    float energyProducedPhaseB() const;
+
+    /* Energy produced L3 [kWh] - Address: 2174, Size: 2 */
+    float energyProducedPhaseC() const;
+
+    /* Total energy produced [kWh] - Address: 2176, Size: 2 */
+    float totalEnergyProduced() const;
+
+    /* Energy consumed L1 [kWh] - Address: 2178, Size: 2 */
+    float energyConsumedPhaseA() const;
+
+    /* Energy consumed L2 [kWh] - Address: 2180, Size: 2 */
+    float energyConsumedPhaseB() const;
+
+    /* Energy consumed L3 [kWh] - Address: 2182, Size: 2 */
+    float energyConsumedPhaseC() const;
+
+    /* Total energy consumed [kWh] - Address: 2184, Size: 2 */
+    float totalEnergyConsumed() const;
+
     /* Read block from start addess 1008 with size of 8 registers containing following 4 properties:
       - Frequency [Hz] - Address: 1008, Size: 2
       - Voltage phase L1 [V] - Address: 1010, Size: 2
@@ -134,20 +158,22 @@ public:
     */
     void updatePhaseCurrentBlock();
 
-    /* Read block from start addess 0 with size of 0 registers containing following 0 properties:
+    /* Read block from start addess 2170 with size of 16 registers containing following 8 properties:
+      - Energy consumed L1 [kWh] - Address: 2170, Size: 2
+      - Energy produced L2 [kWh] - Address: 2172, Size: 2
+      - Energy produced L3 [kWh] - Address: 2174, Size: 2
+      - Total energy produced [kWh] - Address: 2176, Size: 2
+      - Energy consumed L1 [kWh] - Address: 2178, Size: 2
+      - Energy consumed L2 [kWh] - Address: 2180, Size: 2
+      - Energy consumed L3 [kWh] - Address: 2182, Size: 2
+      - Total energy consumed [kWh] - Address: 2184, Size: 2
     */
-    void updatePhasePowerBlock();
-
-    /* Read block from start addess 0 with size of 0 registers containing following 0 properties:
-    */
-    void updateFrequencyAndTotalEnergyBlock();
+    void updateEnergyBlock();
 
     void updateTotalCurrentPower();
     void updatePowerPhaseA();
     void updatePowerPhaseB();
     void updatePowerPhaseC();
-    void updateTotalEnergyConsumed();
-    void updateTotalEnergyProduced();
 
     void updateFrequency();
     void updateVoltagePhaseA();
@@ -156,13 +182,19 @@ public:
     void updateCurrentPhaseA();
     void updateCurrentPhaseB();
     void updateCurrentPhaseC();
+    void updateEnergyProducedPhaseA();
+    void updateEnergyProducedPhaseB();
+    void updateEnergyProducedPhaseC();
+    void updateTotalEnergyProduced();
+    void updateEnergyConsumedPhaseA();
+    void updateEnergyConsumedPhaseB();
+    void updateEnergyConsumedPhaseC();
+    void updateTotalEnergyConsumed();
 
     ModbusRtuReply *readTotalCurrentPower();
     ModbusRtuReply *readPowerPhaseA();
     ModbusRtuReply *readPowerPhaseB();
     ModbusRtuReply *readPowerPhaseC();
-    ModbusRtuReply *readTotalEnergyConsumed();
-    ModbusRtuReply *readTotalEnergyProduced();
     ModbusRtuReply *readFrequency();
     ModbusRtuReply *readVoltagePhaseA();
     ModbusRtuReply *readVoltagePhaseB();
@@ -170,6 +202,14 @@ public:
     ModbusRtuReply *readCurrentPhaseA();
     ModbusRtuReply *readCurrentPhaseB();
     ModbusRtuReply *readCurrentPhaseC();
+    ModbusRtuReply *readEnergyProducedPhaseA();
+    ModbusRtuReply *readEnergyProducedPhaseB();
+    ModbusRtuReply *readEnergyProducedPhaseC();
+    ModbusRtuReply *readTotalEnergyProduced();
+    ModbusRtuReply *readEnergyConsumedPhaseA();
+    ModbusRtuReply *readEnergyConsumedPhaseB();
+    ModbusRtuReply *readEnergyConsumedPhaseC();
+    ModbusRtuReply *readTotalEnergyConsumed();
 
     /* Read block from start addess 1008 with size of 8 registers containing following 4 properties:
       - Frequency [Hz] - Address: 1008, Size: 2
@@ -186,13 +226,17 @@ public:
     */
     ModbusRtuReply *readBlockPhaseCurrent();
 
-    /* Read block from start addess 0 with size of 0 registers containing following 0 properties:
+    /* Read block from start addess 2170 with size of 16 registers containing following 8 properties:
+      - Energy consumed L1 [kWh] - Address: 2170, Size: 2
+      - Energy produced L2 [kWh] - Address: 2172, Size: 2
+      - Energy produced L3 [kWh] - Address: 2174, Size: 2
+      - Total energy produced [kWh] - Address: 2176, Size: 2
+      - Energy consumed L1 [kWh] - Address: 2178, Size: 2
+      - Energy consumed L2 [kWh] - Address: 2180, Size: 2
+      - Energy consumed L3 [kWh] - Address: 2182, Size: 2
+      - Total energy consumed [kWh] - Address: 2184, Size: 2
     */
-    ModbusRtuReply *readBlockPhasePower();
-
-    /* Read block from start addess 0 with size of 0 registers containing following 0 properties:
-    */
-    ModbusRtuReply *readBlockFrequencyAndTotalEnergy();
+    ModbusRtuReply *readBlockEnergy();
 
     virtual bool initialize();
     virtual bool update();
@@ -215,10 +259,6 @@ signals:
     void powerPhaseBReadFinished(float powerPhaseB);
     void powerPhaseCChanged(float powerPhaseC);
     void powerPhaseCReadFinished(float powerPhaseC);
-    void totalEnergyConsumedChanged(float totalEnergyConsumed);
-    void totalEnergyConsumedReadFinished(float totalEnergyConsumed);
-    void totalEnergyProducedChanged(float totalEnergyProduced);
-    void totalEnergyProducedReadFinished(float totalEnergyProduced);
     void frequencyChanged(float frequency);
     void frequencyReadFinished(float frequency);
     void voltagePhaseAChanged(float voltagePhaseA);
@@ -233,14 +273,28 @@ signals:
     void currentPhaseBReadFinished(float currentPhaseB);
     void currentPhaseCChanged(float currentPhaseC);
     void currentPhaseCReadFinished(float currentPhaseC);
+    void energyProducedPhaseAChanged(float energyProducedPhaseA);
+    void energyProducedPhaseAReadFinished(float energyProducedPhaseA);
+    void energyProducedPhaseBChanged(float energyProducedPhaseB);
+    void energyProducedPhaseBReadFinished(float energyProducedPhaseB);
+    void energyProducedPhaseCChanged(float energyProducedPhaseC);
+    void energyProducedPhaseCReadFinished(float energyProducedPhaseC);
+    void totalEnergyProducedChanged(float totalEnergyProduced);
+    void totalEnergyProducedReadFinished(float totalEnergyProduced);
+    void energyConsumedPhaseAChanged(float energyConsumedPhaseA);
+    void energyConsumedPhaseAReadFinished(float energyConsumedPhaseA);
+    void energyConsumedPhaseBChanged(float energyConsumedPhaseB);
+    void energyConsumedPhaseBReadFinished(float energyConsumedPhaseB);
+    void energyConsumedPhaseCChanged(float energyConsumedPhaseC);
+    void energyConsumedPhaseCReadFinished(float energyConsumedPhaseC);
+    void totalEnergyConsumedChanged(float totalEnergyConsumed);
+    void totalEnergyConsumedReadFinished(float totalEnergyConsumed);
 
 protected:
     float m_totalCurrentPower = 0;
     float m_powerPhaseA = 0;
     float m_powerPhaseB = 0;
     float m_powerPhaseC = 0;
-    float m_totalEnergyConsumed = 0;
-    float m_totalEnergyProduced = 0;
     float m_frequency = 0;
     float m_voltagePhaseA = 0;
     float m_voltagePhaseB = 0;
@@ -248,13 +302,19 @@ protected:
     float m_currentPhaseA = 0;
     float m_currentPhaseB = 0;
     float m_currentPhaseC = 0;
+    float m_energyProducedPhaseA = 0;
+    float m_energyProducedPhaseB = 0;
+    float m_energyProducedPhaseC = 0;
+    float m_totalEnergyProduced = 0;
+    float m_energyConsumedPhaseA = 0;
+    float m_energyConsumedPhaseB = 0;
+    float m_energyConsumedPhaseC = 0;
+    float m_totalEnergyConsumed = 0;
 
     void processTotalCurrentPowerRegisterValues(const QVector<quint16> values);
     void processPowerPhaseARegisterValues(const QVector<quint16> values);
     void processPowerPhaseBRegisterValues(const QVector<quint16> values);
     void processPowerPhaseCRegisterValues(const QVector<quint16> values);
-    void processTotalEnergyConsumedRegisterValues(const QVector<quint16> values);
-    void processTotalEnergyProducedRegisterValues(const QVector<quint16> values);
 
     void processFrequencyRegisterValues(const QVector<quint16> values);
     void processVoltagePhaseARegisterValues(const QVector<quint16> values);
@@ -265,7 +325,14 @@ protected:
     void processCurrentPhaseBRegisterValues(const QVector<quint16> values);
     void processCurrentPhaseCRegisterValues(const QVector<quint16> values);
 
-
+    void processEnergyProducedPhaseARegisterValues(const QVector<quint16> values);
+    void processEnergyProducedPhaseBRegisterValues(const QVector<quint16> values);
+    void processEnergyProducedPhaseCRegisterValues(const QVector<quint16> values);
+    void processTotalEnergyProducedRegisterValues(const QVector<quint16> values);
+    void processEnergyConsumedPhaseARegisterValues(const QVector<quint16> values);
+    void processEnergyConsumedPhaseBRegisterValues(const QVector<quint16> values);
+    void processEnergyConsumedPhaseCRegisterValues(const QVector<quint16> values);
+    void processTotalEnergyConsumedRegisterValues(const QVector<quint16> values);
 
 
     void handleModbusError(ModbusRtuReply::Error error);
@@ -273,7 +340,7 @@ protected:
 
 private:
     ModbusRtuMaster *m_modbusRtuMaster = nullptr;
-    ModbusDataUtils::ByteOrder m_endianness = ModbusDataUtils::ByteOrderBigEndian;
+    ModbusDataUtils::ByteOrder m_endianness = ModbusDataUtils::ByteOrderLittleEndian;
     quint16 m_slaveId = 1;
 
     bool m_reachable = false;
@@ -298,6 +365,6 @@ private:
 
 };
 
-QDebug operator<<(QDebug debug, a-eberle-pqi-da-smartModbusRtuConnection *a-eberle-pqi-da-smartModbusRtuConnection);
+QDebug operator<<(QDebug debug, PqidaModbusRtuConnection *pqidaModbusRtuConnection);
 
-#endif // A-EBERLE-PQI-DA-SMARTMODBUSRTUCONNECTION_H
+#endif // PQIDAMODBUSRTUCONNECTION_H

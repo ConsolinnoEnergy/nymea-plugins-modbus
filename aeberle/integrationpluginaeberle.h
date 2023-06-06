@@ -28,30 +28,29 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINBGETECH_H
-#define INTEGRATIONPLUGINBGETECH_H
+#ifndef INTEGRATIONPLUGINAEBERLE_H
+#define INTEGRATIONPLUGINAEBERLE_H
 
 #include <integrations/integrationplugin.h>
 #include <hardware/modbus/modbusrtuhardwareresource.h>
 #include <plugintimer.h>
 
-#include "sdm630modbusrtuconnection.h"
-#include "sdm72modbusrtuconnection.h"
+#include "pqidamodbusrtuconnection.h"
 
 #include "extern-plugininfo.h"
 
 #include <QObject>
 #include <QTimer>
 
-class IntegrationPluginBGETech: public IntegrationPlugin
+class IntegrationPluginAEberle: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginbgetech.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginaeberle.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit IntegrationPluginBGETech();
+    explicit IntegrationPluginAEberle();
     void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
@@ -61,8 +60,7 @@ public:
 private:
     PluginTimer *m_refreshTimer = nullptr;
 
-    QHash<Thing *, Sdm630ModbusRtuConnection *> m_sdm630Connections;
-    QHash<Thing *, Sdm72ModbusRtuConnection *> m_sdm72Connections;
+    QHash<Thing *, PqidaModbusRtuConnection *> m_pqidaConnections;
 };
 
-#endif // INTEGRATIONPLUGINBGETECH_H
+#endif // INTEGRATIONPLUGINAEBERLE_H
