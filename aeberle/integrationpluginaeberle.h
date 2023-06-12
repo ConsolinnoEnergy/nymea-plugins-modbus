@@ -61,6 +61,8 @@ private:
     PluginTimer *m_refreshTimer = nullptr;
 
     QHash<Thing *, PqidaModbusRtuConnection *> m_pqidaConnections;
+    QHash<Thing *, PqidaModbusRtuConnection *> m_pqida_inverterConnections;
+    QHash<Thing *, PqidaModbusRtuConnection *> m_pqida_consumerConnections;
 };
 
 #endif // INTEGRATIONPLUGINAEBERLE_H
