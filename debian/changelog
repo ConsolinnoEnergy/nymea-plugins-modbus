@@ -1,8 +1,14 @@
-nymea-plugins-modbus (1.5.103-1) jammy; urgency=medium
+nymea-plugins-modbus (1.5.105-1) jammy; urgency=medium
 
   * Added Azurro inverter integration
 
-   -- Leonhard Heizinger <l.heizinger@consolinno.de>  Wed, 22 Jun 2023 10:28:48 +0100
+ -- Leonhard Heizinger <l.heizinger@consolinno.de>  Thu, 22 Jun 2023 10:28:48 +0100
+
+nymea-plugins-modbus (1.5.104-1) jammy; urgency=medium
+
+  * Added Kaco Sunspec inverter integration
+
+ -- Leonhard Heizinger <l.heizinger@consolinno.de>  Wed, 10 May 2022 10:28:48 +0100
 
 nymea-plugins-modbus (1.5.102-1) jammy; urgency=medium
 
