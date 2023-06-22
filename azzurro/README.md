@@ -1,3 +1,3 @@
-# Sungrow inverter
+# Azzurro hybrid inverter
 
-Connects to a Sungrow inverter using Modbus RTU or TCP.
+Connects to a Azzurro hybrid inverter using Modbus RTU.
