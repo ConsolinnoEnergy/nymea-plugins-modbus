@@ -6,19 +6,21 @@ SUBDIRS += nymea-modbus-cli libnymea-modbus libnymea-sunspec
 
 PLUGIN_DIRS = \
     alphainnotec            \
+    alphatec                \    
     azzurro                 \
     bgetech                 \
     drexelundweiss          \
     huawei                  \
     idm                     \
     inepro                  \
+    kacosunspec             \
     kostal                  \
     mennekes                \
     modbuscommander         \
     mtec                    \
     mypv                    \
     phoenixconnect          \
-    schneiderWallbox        \
+    schneider               \
     schneiderIEM            \
     schrack                 \
     stiebeleltron           \
@@ -27,8 +29,8 @@ PLUGIN_DIRS = \
     technivolt              \
     unipi                   \
     webasto                 \
-    e3dc                    
-    
+    e3dc
+
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
     COMPILER_MAJOR_VERSION = $$str_member($$COMPILER_VERSION)

@@ -1,15 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH
-* Contact: contact@nymea.io
-*
-* This file is part of nymea.
-* This project including source code and documentation is protected by
-* copyright law, and remains the property of nymea GmbH. All rights, including
-* reproduction, publication, editing and translation, are reserved. The use of
-* this project is subject to the terms of a license agreement to be concluded
-* with nymea GmbH in accordance with the terms of use of nymea GmbH, available
-* under https://nymea.io/license
+* Copyright 2022 - 2023, Consolinno Energy GmbH
+* Contact: info@consolinno.de
 *
 * GNU Lesser General Public License Usage
 * Alternatively, this project may be redistributed and/or modified under the
@@ -22,36 +14,34 @@
 * You should have received a copy of the GNU Lesser General Public License
 * along with this project. If not, see <https://www.gnu.org/licenses/>.
 *
-* For any further details and any questions please contact us under
-* contact@nymea.io or see our FAQ/Licensing Information on
-* https://nymea.io/license/faq
-*
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINBGETECH_H
-#define INTEGRATIONPLUGINBGETECH_H
+#ifndef INTEGRATIONPLUGINKACOSUNSPEC_H
+#define INTEGRATIONPLUGINKACOSUNSPEC_H
 
 #include <integrations/integrationplugin.h>
 #include <hardware/modbus/modbusrtuhardwareresource.h>
 #include <plugintimer.h>
 
-#include "sdm630modbusrtuconnection.h"
-#include "sdm72modbusrtuconnection.h"
-
 #include "extern-plugininfo.h"
+#include "kacosunspecmodbustcpconnection.h"
+#include "kacosunspecmodbusrtuconnection.h"
 
 #include <QObject>
+#include <QHostAddress>
 #include <QTimer>
 
-class IntegrationPluginBGETech: public IntegrationPlugin
+class NetworkDeviceMonitor;
+
+class IntegrationPluginKacoSunSpec: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginbgetech.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginkacosunspec.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit IntegrationPluginBGETech();
+    explicit IntegrationPluginKacoSunSpec();
     void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
@@ -59,10 +49,21 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
-    PluginTimer *m_refreshTimer = nullptr;
+    PluginTimer *m_pluginTimer = nullptr;
 
-    QHash<Thing *, Sdm630ModbusRtuConnection *> m_sdm630Connections;
-    QHash<Thing *, Sdm72ModbusRtuConnection *> m_sdm72Connections;
+    struct ScaleFactors {
+        qint16 powerSf {1};
+        qint16 energySf {1};
+    };
+
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    QHash<Thing *, KacoSunSpecModbusTcpConnection *> m_tcpConnections;
+    QHash<Thing *, KacoSunSpecModbusRtuConnection *> m_rtuConnections;
+    QHash<Thing *, ScaleFactors> m_scalefactors;
+
+    void setOperatingState(Thing *thing, KacoSunSpecModbusTcpConnection::OperatingState state);
+    void setOperatingState(Thing *thing, KacoSunSpecModbusRtuConnection::OperatingState state);
 };
 
-#endif // INTEGRATIONPLUGINBGETECH_H
+#endif // INTEGRATIONPLUGINKACOSUNSPEC_H
+

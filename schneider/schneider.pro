@@ -4,9 +4,9 @@ MODBUS_CONNECTIONS += schneiderwallbox-registers.json
 include(../modbus.pri)
 
 SOURCES += \
-    integrationpluginschneiderwallbox.cpp \
+    integrationpluginschneider.cpp \
     schneiderwallbox.cpp
 
 HEADERS += \
-    integrationpluginschneiderwallbox.h \
+    integrationpluginschneider.h \
     schneiderwallbox.h
