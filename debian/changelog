@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.5.105-1) jammy; urgency=medium
+nymea-plugins-modbus (1.5.105-2) jammy; urgency=medium
 
   * Added Azurro inverter integration
 
