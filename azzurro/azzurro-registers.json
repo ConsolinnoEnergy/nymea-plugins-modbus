@@ -1,0 +1,380 @@
+{
+    "className": "Azzurro",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "systemStatus",
+    "enums": [
+        {
+            "name": "SystemStatus",
+            "values": [
+                {
+                    "key": "Waiting",
+                    "value": 0
+                },
+                {
+                    "key": "CheckingGrid",
+                    "value": 1
+                },
+                {
+                    "key": "GridConnected",
+                    "value": 2
+                },
+                {
+                    "key": "GridUFP",
+                    "value": 3
+                },
+                {
+                    "key": "EmergencyPowerSupplyEPS",
+                    "value": 4
+                },
+                {
+                    "key": "RecoverableFault",
+                    "value": 5
+                },
+                {
+                    "key": "PermanentFault",
+                    "value": 6
+                },
+                {
+                    "key": "SelfCharging",
+                    "value": 7
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "phaseR",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currentPccR",
+                    "address": 1170,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase R at PCC (0x0492)",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "activePowerPccR",
+                    "address": 1171,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Active power phase R at PCC (0x0493)",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "staticScaleFactor": 1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "phaseS",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currentPccS",
+                    "address": 1181,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase S at PCC (0x049D)",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "activePowerPccS",
+                    "address": 1182,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Active power phase S at PCC (0x049E)",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "staticScaleFactor": 1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "phaseT",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currentPccT",
+                    "address": 1192,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase T at PCC (0x04A8)",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "activePowerPccT",
+                    "address": 1193,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Active power phase T at PCC (0x04A9)",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "staticScaleFactor": 1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "battery",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "voltageBat1",
+                    "address": 1540,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage battery 1 (0x0604)",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentBat1",
+                    "address": 1541,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current battery 1 (0x0605)",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "powerBat1",
+                    "address": 1542,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Power battery 1 (0x0606)",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "tempBat1",
+                    "address": 1543,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Temperature battery 1 (0x0607)",
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "socBat1",
+                    "address": 1544,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "State of charge battery 1 (0x0608)",
+                    "defaultValue": "0",
+                    "unit": "%",
+                    "access": "RO"
+                },
+                {
+                    "id": "sohBat1",
+                    "address": 1545,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "State of health battery 1 (0x0609)",
+                    "defaultValue": "0",
+                    "unit": "%",
+                    "access": "RO"
+                },
+                {
+                    "id": "cycleBat1",
+                    "address": 1546,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Charge cycles battery 1 (0x060A)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "systemStatus",
+            "address": 1028,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "System status, address is 0x0404",
+            "enum": "SystemStatus",
+            "defaultValue": "SystemStatusWaiting",
+            "access": "RO"
+        },
+        {
+            "id": "frequencyGrid",
+            "address": 1156,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Frequency grid (0x0484)",
+            "defaultValue": "0",
+            "unit": "Hz",
+            "staticScaleFactor": -2,
+            "access": "RO"
+        },
+        {
+            "id": "activePowerPcc",
+            "address": 1160,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Active power at point of common coupling (0x0488)",
+            "defaultValue": "0",
+            "unit": "W",
+            "staticScaleFactor": 1,
+            "access": "RO"
+        },
+        {
+            "id": "voltagePhaseR",
+            "address": 1165,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Voltage phase R (0x048D)",
+            "defaultValue": "0",
+            "unit": "V",
+            "staticScaleFactor": -1,
+            "access": "RO"
+        },
+        {
+            "id": "voltagePhaseS",
+            "address": 1176,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Voltage phase S (0x0498)",
+            "defaultValue": "0",
+            "unit": "V",
+            "staticScaleFactor": -1,
+            "access": "RO"
+        },
+        {
+            "id": "voltagePhaseT",
+            "address": 1187,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Voltage phase T (0x04A3)",
+            "defaultValue": "0",
+            "unit": "V",
+            "staticScaleFactor": -1,
+            "access": "RO"
+        },
+        {
+            "id": "powerPv1",
+            "address": 1414,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Power PV1 (0x0586)",
+            "defaultValue": "0",
+            "unit": "W",
+            "staticScaleFactor": 1,
+            "access": "RO"
+        },
+        {
+            "id": "powerPv2",
+            "address": 1417,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Power PV2 (0x0589)",
+            "defaultValue": "0",
+            "unit": "W",
+            "staticScaleFactor": 1,
+            "access": "RO"
+        },
+        {
+            "id": "pvGenerationTotal",
+            "address": 1670,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "PV generation total (0x0686)",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "staticScaleFactor": -1,
+            "access": "RO"
+        },
+        {
+            "id": "energyPurchaseTotal",
+            "address": 1678,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Energy purchase total (0x068E)",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "staticScaleFactor": -1,
+            "access": "RO"
+        },
+        {
+            "id": "energySellingTotal",
+            "address": 1682,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Energy selling total (0x0692)",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "staticScaleFactor": -1,
+            "access": "RO"
+        }
+    ]
+}
+

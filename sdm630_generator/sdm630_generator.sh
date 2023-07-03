@@ -2,7 +2,7 @@
 cp -r ../bgetech ../bgetech_inverter
 cd ../bgetech_inverter
 rename 's/bgetech/bgetech_inverter/g' ./*
-python3 ../sdm630_generator/patch_json.py integrationpluginbgetech_inverter.json --interfaces solarinverter connectable --output integrationpluginbgetech_inverter.json  --display_name "SDM630 Inverter"
+python3 ../sdm630_generator/patch_json.py integrationpluginbgetech_inverter.json --interfaces solarinverter connectable --output integrationpluginbgetech_inverter.json  --display_name_sdm630 "SDM630 Inverter" --display_name_sdm72 "SDM72 Inverter"
 uuid=$(cat integrationpluginbgetech_inverter.json | grep "id" | head -n 1 | sed 's/"id": "//' | sed 's/",//g' | xargs)
 mv translations/*-de.ts translations/$uuid-de.ts 
 mv translations/*-de_DE.ts translations/$uuid-de_DE.ts 
