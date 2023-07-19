@@ -1,5 +1,5 @@
 {
-    "name": "GoodWe",
+    "name": "Goodwe",
         "displayName": "GoodWe",
         "id": "7932c139-7280-41c4-a451-0a67582f661e",
         "vendors": [
@@ -12,9 +12,9 @@
                     "name": "goodweInverterRTU",
                     "displayName": "GoodWe Inverter (Modbus RTU)",
                     "id": "f889d544-f8aa-4a48-8d63-b608262b1b94",
-                    "createMethods": ["discovery"],
+                    "createMethods": ["discovery", "user"],
                     "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": [ "solarinverter"],
+                    "providedInterfaces": [ "solarinverter", "energymeter", "energystorage"],
                     "discoveryParamTypes": [
                         {
                             "id": "6dae6928-d0b7-47db-80c1-498d59cb29a9",
@@ -84,7 +84,7 @@
                                 "Inverter upgradeing",
                                 "Self check"
                             ],
-                            "defaultValue": "Off",
+                            "defaultValue": "Wait",
                             "displayNameEvent": "Operating state changed",
                             "cached": false
                         }
@@ -249,13 +249,6 @@
                     "createMethods": ["auto"],
                     "interfaces": [ "energystorage", "connectable"],
                     "paramTypes": [
-                        {
-                            "id": "50460afd-3585-4f55-aa17-21f037919381",
-                            "name": "unit",
-                            "displayName": "Unit",
-                            "type": "uint",
-                            "defaultValue": 0
-                        }
                     ],
                     "stateTypes": [
                         {
@@ -304,6 +297,14 @@
                             "type": "QString",
                             "possibleValues": ["idle", "charging", "discharging"],
                             "defaultValue": "idle"
+                        },
+                        {
+                            "id": "d7b7d196-31a9-462d-90f7-c2f0564d3260",
+                            "name": "stateOfHealth",
+                            "displayName": "Battery state of health",
+                            "displayNameEvent": "Battery state of health changed",
+                            "type": "int",
+                            "defaultValue": 0
                         },
                         {
                             "id": "2c470852-02bf-4f78-831a-079471ed2c39",

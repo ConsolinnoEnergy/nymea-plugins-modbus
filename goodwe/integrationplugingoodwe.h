@@ -50,22 +50,24 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
 
-    struct MeterConnected {
+    struct MeterStates {
         bool modbusReachable {false};
         bool meterCommStatus {false};
     };
 
-    struct BatteryPowerSign {
+    struct BatteryStates {
+        bool modbusReachable {false};
         quint32 batteryPower {0};
-        GoodweModbusRtuConnection::BatteryStatus status {GoodweModbusRtuConnection::BatteryStatusNoBattery};
+        GoodweModbusRtuConnection::BatteryStatus mode {GoodweModbusRtuConnection::BatteryStatusNoBattery};
     };
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, GoodweModbusRtuConnection *> m_rtuConnections;
-    QHash<Thing *, MeterConnected> m_meterconnected;
-    QHash<Thing *, BatteryPowerSign> m_batterypowersign;
+    QHash<Thing *, MeterStates> m_meterstates;
+    QHash<Thing *, BatteryStates> m_batterystates;
 
     void setWorkMode(Thing *thing, GoodweModbusRtuConnection::WorkMode state);
+    void setBatteryStates(Thing *thing, GoodweModbusRtuConnection::BatteryStatus mode);
 };
 
 #endif // INTEGRATIONPLUGINGOODWE_H
