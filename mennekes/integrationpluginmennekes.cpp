@@ -61,6 +61,9 @@ void IntegrationPluginMennekes::discoverThings(ThingDiscoveryInfo *info)
                     name = "AMTRON Charge Control";
                 } else if (result.model.startsWith("P")) {
                     name = "AMTRON Professional";
+                } else {
+                    qCWarning(dcMennekes()) << "Unknown Amtron model:" << result.model;
+                    continue;
                 }
                 ThingDescriptor descriptor(amtronECUThingClassId, name, description);
                 qCDebug(dcMennekes()) << "Discovered:" << descriptor.title() << descriptor.description();
@@ -88,6 +91,11 @@ void IntegrationPluginMennekes::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &AmtronHCC3Discovery::discoveryFinished, info, [=](){
             foreach (const AmtronHCC3Discovery::AmtronDiscoveryResult &result, discovery->discoveryResults()) {
 
+                if (result.serialNumber.isEmpty()) {
+                    qCWarning(dcMennekes()) << "Unable to read Amtron serial number:" << result.serialNumber << result.wallboxName;
+                    continue;
+                }
+
                 ThingDescriptor descriptor(amtronHCC3ThingClassId, result.wallboxName, "Serial: " + result.serialNumber + " - " + result.networkDeviceInfo.address().toString());
                 qCDebug(dcMennekes()) << "Discovered:" << descriptor.title() << descriptor.description();
 
@@ -97,6 +105,7 @@ void IntegrationPluginMennekes::discoverThings(ThingDiscoveryInfo *info)
                     qCDebug(dcMennekes()) << "This wallbox already exists in the system:" << result.networkDeviceInfo;
                     descriptor.setThingId(existingThings.first()->id());
                 }
+
 
                 ParamList params;
                 params << Param(amtronHCC3ThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
@@ -389,6 +398,16 @@ void IntegrationPluginMennekes::setupAmtronECUConnection(ThingSetupInfo *info)
         }
 
         qCDebug(dcMennekes()) << "Connection init finished successfully" << amtronECUConnection;
+
+        QString minimumVersion = "5.22";
+        if (!ensureAmtronECUVersion(amtronECUConnection, minimumVersion)) {
+            qCWarning(dcMennekes()) << "Firmware version too old:" << QByteArray::fromHex(QByteArray::number(amtronECUConnection->firmwareVersion(), 16)) << "Minimum required:" << minimumVersion;
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
+            amtronECUConnection->deleteLater();
+            info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The firmware version of this wallbox is too old. Please upgrade the firmware to at least version 5.22."));
+            return;
+        }
+
         m_amtronECUConnections.insert(thing, amtronECUConnection);
         info->finish(Thing::ThingErrorNoError);
 
@@ -404,6 +423,10 @@ void IntegrationPluginMennekes::setupAmtronECUConnection(ThingSetupInfo *info)
 
     connect(amtronECUConnection, &AmtronECUModbusTcpConnection::cpSignalStateChanged, thing, [thing](AmtronECUModbusTcpConnection::CPSignalState cpSignalState) {
         qCDebug(dcMennekes()) << "CP signal state changed" << cpSignalState;
+        if (cpSignalState == AmtronECUModbusTcpConnection::CPSignalStateE) {
+            // State E (Off): don't update as the wallbox goes to this state for a few seconds regardless of the actual plugged in state.
+            return;
+        }
         thing->setStateValue(amtronECUPluggedInStateTypeId, cpSignalState >= AmtronECUModbusTcpConnection::CPSignalStateB);
     });
     connect(amtronECUConnection, &AmtronECUModbusTcpConnection::signalledCurrentChanged, thing, [](quint16 signalledCurrent) {
@@ -413,8 +436,13 @@ void IntegrationPluginMennekes::setupAmtronECUConnection(ThingSetupInfo *info)
         qCDebug(dcMennekes()) << "min current limit changed:" << minCurrentLimit;
         thing->setStateMinValue(amtronECUMaxChargingCurrentStateTypeId, minCurrentLimit);
     });
-    connect(amtronECUConnection, &AmtronECUModbusTcpConnection::maxCurrentLimitChanged, thing, [thing](quint16 maxCurrentLimit) {
+    connect(amtronECUConnection, &AmtronECUModbusTcpConnection::maxCurrentLimitChanged, thing, [this, thing](quint16 maxCurrentLimit) {
         qCDebug(dcMennekes()) << "max current limit changed:" << maxCurrentLimit;
+        // If the vehicle or cable are not capable of reporting the maximum, this will be 0
+        // We'll reset to the max defined in the json file in that case
+        if (maxCurrentLimit == 0) {
+            maxCurrentLimit = supportedThings().findById(amtronECUThingClassId).stateTypes().findById(amtronECUMaxChargingCurrentStateTypeId).maxValue().toUInt();
+        }
         thing->setStateMaxValue(amtronECUMaxChargingCurrentStateTypeId, maxCurrentLimit);
     });
     connect(amtronECUConnection, &AmtronECUModbusTcpConnection::hemsCurrentLimitChanged, thing, [thing](quint16 hemsCurrentLimit) {

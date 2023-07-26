@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,34 +28,44 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "modbushelpers.h"
+#ifndef SUNNYWEBBOXDISCOVERY_H
+#define SUNNYWEBBOXDISCOVERY_H
 
-float ModbusHelpers::convertRegisterToFloat(const quint16 *reg) {
+#include <QObject>
 
-    float result = 0.0;
+#include <network/networkaccessmanager.h>
+#include <network/networkdevicediscovery.h>
 
-    if (reg != nullptr) {
-        /* low-order byte is sent first, so swap order */
-        quint32 tmp = 0;
-
-        tmp |= ((quint32)(reg[1]) << 16) & 0xFFFF0000;
-        tmp |= reg[0];
-
-        /* copy value over to float variable without any conversion */
-        /* needs to be done with char * to avoid pedantic compiler errors */
-        memcpy((char *)&result, (char *)&tmp, sizeof(result));
-    }
-    return result;
-}
-
-QVector<quint16> ModbusHelpers::convertFloatToRegister(float value)
+class SunnyWebBoxDiscovery : public QObject
 {
-    quint32 tmp = 0;
-    memcpy((char *)&tmp, (char *)&value, sizeof(value));
+    Q_OBJECT
+public:
+    explicit SunnyWebBoxDiscovery(NetworkAccessManager *networkAccessManager, NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
 
-    QVector<quint16> reg;
-    reg.append((quint16)(tmp));
-    reg.append((quint16)((tmp & 0xFFFF0000) >> 16));
-    return reg;
-}
+    void startDiscovery();
 
+    NetworkDeviceInfos discoveryResults() const;
+
+signals:
+    void discoveryFinished();
+
+private slots:
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupPendingReplies();
+    void finishDiscovery();
+
+private:
+    NetworkAccessManager *m_networkAccessManager = nullptr;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+    NetworkDeviceDiscoveryReply *m_discoveryReply = nullptr;
+
+    NetworkDeviceInfos m_discoveryResults;
+    NetworkDeviceInfos m_discoveredNetworkDeviceInfos;
+    NetworkDeviceInfos m_verifiedNetworkDeviceInfos;
+
+    QDateTime m_startDateTime;
+    QList<QNetworkReply *> m_pendingReplies;
+
+};
+
+#endif // SUNNYWEBBOXDISCOVERY_H
