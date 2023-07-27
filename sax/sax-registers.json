@@ -1,0 +1,38 @@
+{
+    "className": "Sax",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 20,
+    "checkReachableRegister": "soc",
+    "enums": [
+    ],
+    "blocks": [
+
+    ],
+    "registers":[
+        {
+            "id": "soc",
+            "address": 46,
+            "size": 1,
+            "type": "int16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Battery SoC",
+            "unit": "%",
+            "access": "RO"
+        },
+        {
+            "id": "currentPower",
+            "address": 47,
+            "size": 1,
+            "type": "int16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Battery current power",
+            "unit": "W",
+            "access": "RO"
+        }
+    ]
+
+}
+

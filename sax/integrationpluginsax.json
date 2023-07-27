@@ -1,0 +1,114 @@
+{
+    "name": "Sax",
+    "displayName": "Sax AG",
+    "id": "ce524925-0521-4bdb-8e9b-6d023f8da763",
+    "vendors": [
+        {
+            "name": "sax",
+            "displayName": "Sax",
+            "id": "bb7aa6e5-9628-4992-be0b-791970320209",
+            "thingClasses": [
+                {
+                    "name": "saxPower",
+                    "displayName": "Sax Power Energy Storage",
+                    "id": "f0a04c98-17e2-4017-8e5d-9ce500946783",
+                    "createMethods": ["discovery", "user"],
+                    "interfaces": ["connectable", "battery", "energystorage"],
+                    "paramTypes": [
+                        {
+                          "id": "c2f63a4f-5d90-4456-9fef-6ecd8de4d35f",
+                          "name":"macAddress",
+                          "displayName": "MAC address",
+                          "type": "QString",
+                          "inputType": "MacAddress",
+                          "defaultValue":""
+                        },
+                        {
+                            "id": "a78f4564-76c3-4e4d-be4f-d13a8542e8de",
+                            "name":"port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502
+                        },
+                        {
+                            "id": "d54a69ff-34b6-43de-a214-44c9fb6de3c4",
+                            "name":"slaveId",
+                            "displayName": "Slave ID",
+                            "type": "int",
+                            "defaultValue": 1
+                        },
+                        {
+                            "id": "7ca8ab77-9a0d-47a2-adfc-b515c5445b11",
+                            "name":"capacity",
+                            "displayName": "Capacity in Wh",
+                            "type": "int",
+                            "defaultValue": 5200
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "47638e96-6e92-403b-8dd9-ed6450eae9c8",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "c6ac423c-3027-4478-a3c3-43b754d0ddc0",
+                            "name": "batteryCritical",
+                            "displayName": "Battery critical",
+                            "displayNameEvent": "Battery critical changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "3c6841f5-843b-4e42-b4d7-225db41f6f4b",
+                            "name": "batteryLevel",
+                            "displayName": "Battery level",
+                            "displayNameEvent": "Battery level changed",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 0,
+                            "maxValue": 100,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "900b1df0-b843-4bc4-a2a9-e6a3c48372cd",
+                            "name": "currentPower",
+                            "displayName": "Total real power",
+                            "displayNameEvent": "Total real power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "c44f42a0-9b91-4b44-af7c-2264a09d627e",
+                            "name": "capacity",
+                            "displayName": "Capacity",
+                            "displayNameEvent": "Capacity changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "731ed6a5-f663-4205-aff1-c7f92cc21ed1",
+                            "name": "chargingState",
+                            "displayName": "Charging state",
+                            "displayNameEvent": "Charging state changed",
+                            "type": "QString",
+                            "possibleValues": ["idle", "charging", "discharging"],
+                            "defaultValue": "idle"
+                        }
+                    ],
+                    "actionTypes": [ ]
+                }
+            ]
+        }
+    ]
+}
+
+
+
