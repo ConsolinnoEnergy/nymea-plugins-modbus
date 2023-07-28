@@ -63,9 +63,9 @@
             "registers": [
                 {
                     "id": "batteryPower",
-                    "address": 35182,
-                    "size": 2,
-                    "type": "uint32",
+                    "address": 35183,
+                    "size": 1,
+                    "type": "int16",
                     "registerType": "holdingRegister",
                     "readSchedule": "update",
                     "description": "Battery power",
@@ -501,9 +501,9 @@
     "registers": [
         {
             "id": "totalInvPower",
-            "address": 35137,
-            "size": 2,
-            "type": "int32",
+            "address": 35138,
+            "size": 1,
+            "type": "int16",
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "Total inverter power",

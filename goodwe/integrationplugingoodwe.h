@@ -57,7 +57,6 @@ private:
 
     struct BatteryStates {
         bool modbusReachable {false};
-        quint32 batteryPower {0};
         GoodweModbusRtuConnection::BatteryStatus mode {GoodweModbusRtuConnection::BatteryStatusNoBattery};
     };
 

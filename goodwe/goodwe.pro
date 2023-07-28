@@ -6,7 +6,9 @@ MODBUS_CONNECTIONS += goodwe-registers.json
 include(../modbus.pri)
 
 HEADERS += \
-    integrationplugingoodwe.h
+    integrationplugingoodwe.h \
+    goodwediscovery.h
 
 SOURCES += \
-    integrationplugingoodwe.cpp
+    integrationplugingoodwe.cpp \
+    goodwediscovery.cpp

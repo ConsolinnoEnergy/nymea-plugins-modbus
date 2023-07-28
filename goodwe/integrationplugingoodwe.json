@@ -12,18 +12,9 @@
                     "name": "goodweInverterRTU",
                     "displayName": "GoodWe Inverter (Modbus RTU)",
                     "id": "f889d544-f8aa-4a48-8d63-b608262b1b94",
-                    "createMethods": ["discovery", "user"],
+                    "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],
                     "providedInterfaces": [ "solarinverter", "energymeter", "energystorage"],
-                    "discoveryParamTypes": [
-                        {
-                            "id": "6dae6928-d0b7-47db-80c1-498d59cb29a9",
-                            "name": "slaveAddress",
-                            "displayName": "Slave address",
-                            "type": "int",
-                            "defaultValue": 247
-                        }
-                    ],
                     "paramTypes": [
                         {
                             "id": "7b2e156b-cf20-4dc3-8349-92e7a1263c04",

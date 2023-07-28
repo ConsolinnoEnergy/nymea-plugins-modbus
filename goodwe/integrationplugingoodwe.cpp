@@ -18,6 +18,7 @@
 
 #include "integrationplugingoodwe.h"
 #include "plugininfo.h"
+#include "goodwediscovery.h"
 
 #include <network/networkdevicediscovery.h>
 #include <types/param.h>
@@ -68,6 +69,38 @@ void IntegrationPluginGoodwe::init()
 void IntegrationPluginGoodwe::discoverThings(ThingDiscoveryInfo *info)
 {
     if (info->thingClassId() == goodweInverterRTUThingClassId) {
+        GoodweDiscovery *discovery = new GoodweDiscovery(hardwareManager()->modbusRtuResource(), info);
+
+        connect(discovery, &GoodweDiscovery::discoveryFinished, info, [this, info, discovery](bool modbusMasterAvailable){
+            if (!modbusMasterAvailable) {
+                info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master with appropriate settings found. Please set up a modbus RTU master."));
+                return;
+            }
+
+            qCInfo(dcGoodwe()) << "Discovery results:" << discovery->discoveryResults().count();
+
+            foreach (const GoodweDiscovery::Result &result, discovery->discoveryResults()) {
+                ThingDescriptor descriptor(goodweInverterRTUThingClassId, "Goodwe Inverter", QString("Slave ID: %1").arg(result.slaveId));
+
+                ParamList params{
+                    {goodweInverterRTUThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
+                    {goodweInverterRTUThingSlaveAddressParamTypeId, result.slaveId}
+                };
+                descriptor.setParams(params);
+
+                Thing *existingThing = myThings().findByParams(params);
+                if (existingThing) {
+                    descriptor.setThingId(existingThing->id());
+                }
+                info->addThingDescriptor(descriptor);
+            }
+
+            info->finish(Thing::ThingErrorNoError);
+        });
+
+        discovery->startDiscovery();
+
+        /*
         qCDebug(dcGoodwe()) << "Discovering modbus RTU resources...";
         if (hardwareManager()->modbusRtuResource()->modbusRtuMasters().isEmpty()) {
             info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No Modbus RTU interface available. Please set up a Modbus RTU interface first."));
@@ -94,6 +127,7 @@ void IntegrationPluginGoodwe::discoverThings(ThingDiscoveryInfo *info)
         }
 
         info->finish(Thing::ThingErrorNoError);
+        */
     }
 }
 
@@ -164,9 +198,9 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
 
 
         // Handle property changed signals        
-        connect(connection, &GoodweModbusRtuConnection::totalInvPowerChanged, this, [this, thing](qint32 currentPower){
+        connect(connection, &GoodweModbusRtuConnection::totalInvPowerChanged, this, [this, thing](qint16 currentPower){
             qCDebug(dcGoodwe()) << "Inverter power changed" << currentPower << "W";
-            thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, -currentPower);
+            thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, currentPower);
         });
 
         connect(connection, &GoodweModbusRtuConnection::pvEtotalChanged, this, [this, thing](float totalEnergyProduced){
@@ -337,18 +371,15 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
                     if (m_batterystates.value(thing).modbusReachable) {
                         batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, true);
                     }
-                    quint32 batteryPower{m_batterystates.value(thing).batteryPower};
                     switch (mode) {
                         case GoodweModbusRtuConnection::BatteryStatusStandby:
                             batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "idle");
                             break;
                         case GoodweModbusRtuConnection::BatteryStatusDischarging:
                             batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "discharging");
-                            batteryThings.first()->setStateValue(goodweBatteryCurrentPowerStateTypeId, -batteryPower);
                             break;
                         case GoodweModbusRtuConnection::BatteryStatusCharging:
                             batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "charging");
-                            batteryThings.first()->setStateValue(goodweBatteryCurrentPowerStateTypeId, batteryPower);
                             break;
                         default:
                             break;
@@ -371,20 +402,21 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &GoodweModbusRtuConnection::batteryPowerChanged, thing, [this, thing](quint32 batPower){
+        connect(connection, &GoodweModbusRtuConnection::batteryPowerChanged, thing, [this, thing](qint16 batPower){
             qCDebug(dcGoodwe()) << "Battery power changed" << batPower << "W";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
-                m_batterystates.find(thing)->batteryPower = batPower;
-                GoodweModbusRtuConnection::BatteryStatus mode{m_batterystates.value(thing).mode};
-                // Putting a "-" in front of a quint flips the byte of the sign. But a quint does not have a byte for the sign,
-                // so instead you get a very large number. Convert the quint to a sgined variable first when you want to invert the sign.
-                double batPowerConverted{(double)batPower};
-                if (mode == GoodweModbusRtuConnection::BatteryStatusDischarging) {
-                    batteryThings.first()->setStateValue(goodweBatteryCurrentPowerStateTypeId, -batPowerConverted);
+                // Modbus register batPower is negative when charging. However, Nymea json value is positive when charging.
+                batteryThings.first()->setStateValue(goodweBatteryCurrentPowerStateTypeId, -batPower);
+                /*
+                if (batPower > 0) {
+                    batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "discharging");
+                } else if (batPower < 0) {
+                    batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "charging");
                 } else {
-                    batteryThings.first()->setStateValue(goodweBatteryCurrentPowerStateTypeId, batPowerConverted);
+                    batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "idle");
                 }
+                */
             }
         });
 
