@@ -78,6 +78,126 @@
                             "defaultValue": "Wait",
                             "displayNameEvent": "Operating state changed",
                             "cached": false
+                        },
+                        {
+                            "id": "15956656-a5c6-4468-8754-fb13059917c9",
+                            "name": "pv1Power",
+                            "displayName": "PV1 power",
+                            "displayNameEvent": "PV1 power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "2a9e0e5c-2cb6-4225-be81-79eb18cef56e",
+                            "name": "pv1Voltage",
+                            "displayName": "PV1 voltage",
+                            "displayNameEvent": "PV1 voltage changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "fee69bb5-f422-4101-924b-068293d8a073",
+                            "name": "pv1Current",
+                            "displayName": "PV1 current",
+                            "displayNameEvent": "PV1 current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "0c8923d4-0d57-4c39-8227-d36a95a74411",
+                            "name": "pv2Power",
+                            "displayName": "PV2 power",
+                            "displayNameEvent": "PV2 power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "cd9dcb4c-5e8c-4677-9ef5-02096669a39a",
+                            "name": "pv2Voltage",
+                            "displayName": "PV2 voltage",
+                            "displayNameEvent": "PV2 voltage changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "1905cae9-9ffd-433f-8119-1cf3ae5390ae",
+                            "name": "pv2Current",
+                            "displayName": "PV2 current",
+                            "displayNameEvent": "PV2 current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "ce8db555-6de1-4f27-995e-cd40df98e8e5",
+                            "name": "pv3Power",
+                            "displayName": "PV3 power",
+                            "displayNameEvent": "PV3 power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "9380a128-4c02-4a75-9407-9d697183d6a6",
+                            "name": "pv3Voltage",
+                            "displayName": "PV3 voltage",
+                            "displayNameEvent": "PV3 voltage changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "fcade7a9-933c-4943-a61a-bf27e2353be9",
+                            "name": "pv3Current",
+                            "displayName": "PV3 current",
+                            "displayNameEvent": "PV3 current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "9d57aed9-f7f2-4090-8f30-835ceee95a4e",
+                            "name": "pv4Power",
+                            "displayName": "PV4 power",
+                            "displayNameEvent": "PV4 power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "a6b77873-762d-4d56-8053-1d4994f9b3d3",
+                            "name": "pv4Voltage",
+                            "displayName": "PV4 voltage",
+                            "displayNameEvent": "PV4 voltage changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "d09ff7b4-7794-408c-88ce-d86c4ff71351",
+                            "name": "pv4Current",
+                            "displayName": "PV4 current",
+                            "displayNameEvent": "PV4 current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
                         }
                     ],
                     "actionTypes": [ ]

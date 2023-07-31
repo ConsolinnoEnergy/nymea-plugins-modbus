@@ -197,10 +197,85 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
         });
 
 
-        // Handle property changed signals        
-        connect(connection, &GoodweModbusRtuConnection::totalInvPowerChanged, this, [this, thing](qint16 currentPower){
-            qCDebug(dcGoodwe()) << "Inverter power changed" << currentPower << "W";
-            thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, currentPower);
+        // Handle property changed signals
+        connect(connection, &GoodweModbusRtuConnection::pv1PowerChanged, this, [this, thing](quint32 pv1Power){
+            qCDebug(dcGoodwe()) << "Inverter PV1 power changed" << pv1Power << "W";
+            thing->setStateValue(goodweInverterRTUPv1PowerStateTypeId, pv1Power);
+            double pv2Power = thing->stateValue(goodweInverterRTUPv2PowerStateTypeId).toDouble();
+            double pv3Power = thing->stateValue(goodweInverterRTUPv3PowerStateTypeId).toDouble();
+            double pv4Power = thing->stateValue(goodweInverterRTUPv4PowerStateTypeId).toDouble();
+            double totalPvPower = (double)pv1Power + pv2Power + pv3Power + pv4Power;
+            thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, -totalPvPower);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv1VoltageChanged, this, [this, thing](quint16 pv1Voltage){
+            qCDebug(dcGoodwe()) << "Inverter PV1 voltage changed" << pv1Voltage << "V";
+            thing->setStateValue(goodweInverterRTUPv1VoltageStateTypeId, pv1Voltage);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv1CurrentChanged, this, [this, thing](quint16 pv1Current){
+            qCDebug(dcGoodwe()) << "Inverter PV1 current changed" << pv1Current << "A";
+            thing->setStateValue(goodweInverterRTUPv1CurrentStateTypeId, pv1Current);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv2PowerChanged, this, [this, thing](quint32 pv2Power){
+            qCDebug(dcGoodwe()) << "Inverter PV2 power changed" << pv2Power << "W";
+            thing->setStateValue(goodweInverterRTUPv2PowerStateTypeId, pv2Power);
+            double pv1Power = thing->stateValue(goodweInverterRTUPv1PowerStateTypeId).toDouble();
+            double pv3Power = thing->stateValue(goodweInverterRTUPv3PowerStateTypeId).toDouble();
+            double pv4Power = thing->stateValue(goodweInverterRTUPv4PowerStateTypeId).toDouble();
+            double totalPvPower = pv1Power + (double)pv2Power + pv3Power + pv4Power;
+            thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, -totalPvPower);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv2VoltageChanged, this, [this, thing](quint16 pv2Voltage){
+            qCDebug(dcGoodwe()) << "Inverter PV2 voltage changed" << pv2Voltage << "V";
+            thing->setStateValue(goodweInverterRTUPv2VoltageStateTypeId, pv2Voltage);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv2CurrentChanged, this, [this, thing](quint16 pv2Current){
+            qCDebug(dcGoodwe()) << "Inverter PV2 current changed" << pv2Current << "A";
+            thing->setStateValue(goodweInverterRTUPv2CurrentStateTypeId, pv2Current);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv3PowerChanged, this, [this, thing](quint32 pv3Power){
+            qCDebug(dcGoodwe()) << "Inverter PV3 power changed" << pv3Power << "W";
+            thing->setStateValue(goodweInverterRTUPv3PowerStateTypeId, pv3Power);
+            double pv1Power = thing->stateValue(goodweInverterRTUPv1PowerStateTypeId).toDouble();
+            double pv2Power = thing->stateValue(goodweInverterRTUPv2PowerStateTypeId).toDouble();
+            double pv4Power = thing->stateValue(goodweInverterRTUPv4PowerStateTypeId).toDouble();
+            double totalPvPower = pv1Power + pv2Power + (double)pv3Power + pv4Power;
+            thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, -totalPvPower);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv3VoltageChanged, this, [this, thing](quint16 pv3Voltage){
+            qCDebug(dcGoodwe()) << "Inverter PV3 voltage changed" << pv3Voltage << "V";
+            thing->setStateValue(goodweInverterRTUPv3VoltageStateTypeId, pv3Voltage);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv3CurrentChanged, this, [this, thing](quint16 pv3Current){
+            qCDebug(dcGoodwe()) << "Inverter PV3 current changed" << pv3Current << "A";
+            thing->setStateValue(goodweInverterRTUPv3CurrentStateTypeId, pv3Current);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv4PowerChanged, this, [this, thing](quint32 pv4Power){
+            qCDebug(dcGoodwe()) << "Inverter PV4 power changed" << pv4Power << "W";
+            thing->setStateValue(goodweInverterRTUPv4PowerStateTypeId, pv4Power);
+            double pv1Power = thing->stateValue(goodweInverterRTUPv1PowerStateTypeId).toDouble();
+            double pv2Power = thing->stateValue(goodweInverterRTUPv2PowerStateTypeId).toDouble();
+            double pv3Power = thing->stateValue(goodweInverterRTUPv3PowerStateTypeId).toDouble();
+            double totalPvPower = pv1Power + pv2Power + pv3Power + (double)pv4Power;
+            thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, -totalPvPower);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv4VoltageChanged, this, [this, thing](quint16 pv4Voltage){
+            qCDebug(dcGoodwe()) << "Inverter PV4 voltage changed" << pv4Voltage << "V";
+            thing->setStateValue(goodweInverterRTUPv4VoltageStateTypeId, pv4Voltage);
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::pv4CurrentChanged, this, [this, thing](quint16 pv4Current){
+            qCDebug(dcGoodwe()) << "Inverter PV4 current changed" << pv4Current << "A";
+            thing->setStateValue(goodweInverterRTUPv4CurrentStateTypeId, pv4Current);
         });
 
         connect(connection, &GoodweModbusRtuConnection::pvEtotalChanged, this, [this, thing](float totalEnergyProduced){

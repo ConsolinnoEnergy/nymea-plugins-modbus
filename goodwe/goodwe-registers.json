@@ -3,7 +3,7 @@
     "protocol": "RTU",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 15,
-    "checkReachableRegister": "totalInvPower",
+    "checkReachableRegister": "diagStatusL16to31",
     "enums": [
         {
             "name": "WorkMode",
@@ -57,6 +57,164 @@
         }
     ],
     "blocks": [
+        {
+            "id": "pvStuff",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "pv1Voltage",
+                    "address": 35103,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV1 voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv1Current",
+                    "address": 35104,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV1 current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv1Power",
+                    "address": 35105,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV1 power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv2Voltage",
+                    "address": 35107,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV2 voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv2Current",
+                    "address": 35108,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV2 current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv2Power",
+                    "address": 35109,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV2 power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3Voltage",
+                    "address": 35111,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV3 voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3Current",
+                    "address": 35112,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV3 current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3Power",
+                    "address": 35113,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV3 power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv4Voltage",
+                    "address": 35115,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV4 voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv4Current",
+                    "address": 35116,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV4 current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv4Power",
+                    "address": 35117,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV4 power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                }
+            ]
+        },
         {
             "id": "batteryStuff1",
             "readSchedule": "update",
@@ -499,18 +657,6 @@
         }
     ],
     "registers": [
-        {
-            "id": "totalInvPower",
-            "address": 35138,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Total inverter power",
-            "defaultValue": "0",
-            "unit": "W",
-            "access": "RO"
-        },
         {
             "id": "diagStatusL16to31",
             "address": 35220,
