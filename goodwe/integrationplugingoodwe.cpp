@@ -182,7 +182,7 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 m_batterystates.find(thing)->modbusReachable = reachable;
-                if (reachable && m_batterystates.value(thing).mode) {
+                if (reachable && m_batterystates.value(thing).mode && m_batterystates.value(thing).bmsCommStatus) {
                     batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, true);
                 } else {
                     batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, false);
@@ -208,12 +208,12 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, -totalPvPower);
         });
 
-        connect(connection, &GoodweModbusRtuConnection::pv1VoltageChanged, this, [this, thing](quint16 pv1Voltage){
+        connect(connection, &GoodweModbusRtuConnection::pv1VoltageChanged, this, [this, thing](float pv1Voltage){
             qCDebug(dcGoodwe()) << "Inverter PV1 voltage changed" << pv1Voltage << "V";
             thing->setStateValue(goodweInverterRTUPv1VoltageStateTypeId, pv1Voltage);
         });
 
-        connect(connection, &GoodweModbusRtuConnection::pv1CurrentChanged, this, [this, thing](quint16 pv1Current){
+        connect(connection, &GoodweModbusRtuConnection::pv1CurrentChanged, this, [this, thing](float pv1Current){
             qCDebug(dcGoodwe()) << "Inverter PV1 current changed" << pv1Current << "A";
             thing->setStateValue(goodweInverterRTUPv1CurrentStateTypeId, pv1Current);
         });
@@ -228,12 +228,12 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, -totalPvPower);
         });
 
-        connect(connection, &GoodweModbusRtuConnection::pv2VoltageChanged, this, [this, thing](quint16 pv2Voltage){
+        connect(connection, &GoodweModbusRtuConnection::pv2VoltageChanged, this, [this, thing](float pv2Voltage){
             qCDebug(dcGoodwe()) << "Inverter PV2 voltage changed" << pv2Voltage << "V";
             thing->setStateValue(goodweInverterRTUPv2VoltageStateTypeId, pv2Voltage);
         });
 
-        connect(connection, &GoodweModbusRtuConnection::pv2CurrentChanged, this, [this, thing](quint16 pv2Current){
+        connect(connection, &GoodweModbusRtuConnection::pv2CurrentChanged, this, [this, thing](float pv2Current){
             qCDebug(dcGoodwe()) << "Inverter PV2 current changed" << pv2Current << "A";
             thing->setStateValue(goodweInverterRTUPv2CurrentStateTypeId, pv2Current);
         });
@@ -248,12 +248,12 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, -totalPvPower);
         });
 
-        connect(connection, &GoodweModbusRtuConnection::pv3VoltageChanged, this, [this, thing](quint16 pv3Voltage){
+        connect(connection, &GoodweModbusRtuConnection::pv3VoltageChanged, this, [this, thing](float pv3Voltage){
             qCDebug(dcGoodwe()) << "Inverter PV3 voltage changed" << pv3Voltage << "V";
             thing->setStateValue(goodweInverterRTUPv3VoltageStateTypeId, pv3Voltage);
         });
 
-        connect(connection, &GoodweModbusRtuConnection::pv3CurrentChanged, this, [this, thing](quint16 pv3Current){
+        connect(connection, &GoodweModbusRtuConnection::pv3CurrentChanged, this, [this, thing](float pv3Current){
             qCDebug(dcGoodwe()) << "Inverter PV3 current changed" << pv3Current << "A";
             thing->setStateValue(goodweInverterRTUPv3CurrentStateTypeId, pv3Current);
         });
@@ -268,12 +268,12 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, -totalPvPower);
         });
 
-        connect(connection, &GoodweModbusRtuConnection::pv4VoltageChanged, this, [this, thing](quint16 pv4Voltage){
+        connect(connection, &GoodweModbusRtuConnection::pv4VoltageChanged, this, [this, thing](float pv4Voltage){
             qCDebug(dcGoodwe()) << "Inverter PV4 voltage changed" << pv4Voltage << "V";
             thing->setStateValue(goodweInverterRTUPv4VoltageStateTypeId, pv4Voltage);
         });
 
-        connect(connection, &GoodweModbusRtuConnection::pv4CurrentChanged, this, [this, thing](quint16 pv4Current){
+        connect(connection, &GoodweModbusRtuConnection::pv4CurrentChanged, this, [this, thing](float pv4Current){
             qCDebug(dcGoodwe()) << "Inverter PV4 current changed" << pv4Current << "A";
             thing->setStateValue(goodweInverterRTUPv4CurrentStateTypeId, pv4Current);
         });
@@ -424,66 +424,69 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
 
 
         // Battery
-        connect(connection, &GoodweModbusRtuConnection::batteryModeChanged, thing, [this, thing](GoodweModbusRtuConnection::BatteryStatus mode){
-
-            qCDebug(dcGoodwe()) << "Battery mode changed" << mode;
+        connect(connection, &GoodweModbusRtuConnection::bmsCommStatusChanged, thing, [this, thing](quint16 bmsCommStatus){
+            // Debug output even if there is no battery thing, since this signal creates it.
+            qCDebug(dcGoodwe()) << "Battery BMS comm status changed" << bmsCommStatus;
+            bool bmsCommStatusBool{bmsCommStatus};
+            m_batterystates.find(thing)->bmsCommStatus = bmsCommStatusBool;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
-            // mode = 0 means no battery
-            if (mode) {
-
-                if (batteryThings.isEmpty()) {
-                    // No battery exists yet. Create it.
-                    qCDebug(dcGoodwe()) << "Set up goodwe energy storage for" << thing;
-                    ThingDescriptor descriptor(goodweBatteryThingClassId, "Goodwe battery", QString(), thing->id());
-                    emit autoThingsAppeared(ThingDescriptors() << descriptor);
-                    // Not sure if battery is already available here. Try to set state now, because otherwise have to wait for next change in
-                    // mode before value will be set.
-                    batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                if (bmsCommStatusBool && m_batterystates.value(thing).modbusReachable && m_batterystates.value(thing).mode) {
+                    batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, true);
+                } else {
+                    batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, false);
                 }
+            } else if (bmsCommStatusBool){
+                // Battery detected. No battery exists yet. Create it.
+                qCDebug(dcGoodwe()) << "Set up goodwe energy storage for" << thing;
+                ThingDescriptor descriptor(goodweBatteryThingClassId, "Goodwe battery", QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+        });
 
-                if (!batteryThings.isEmpty()) {
-                    m_batterystates.find(thing)->mode = mode;
-                    if (m_batterystates.value(thing).modbusReachable) {
-                        batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, true);
-                    }
-                    switch (mode) {
-                        case GoodweModbusRtuConnection::BatteryStatusStandby:
-                            batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "idle");
-                            break;
-                        case GoodweModbusRtuConnection::BatteryStatusDischarging:
-                            batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "discharging");
-                            break;
-                        case GoodweModbusRtuConnection::BatteryStatusCharging:
-                            batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "charging");
-                            break;
-                        default:
-                            break;
-                    }
+        connect(connection, &GoodweModbusRtuConnection::batteryModeChanged, thing, [this, thing](GoodweModbusRtuConnection::BatteryStatus mode){            
+            m_batterystates.find(thing)->mode = mode;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcGoodwe()) << "Battery mode changed" << mode;
+                if (mode && m_batterystates.value(thing).modbusReachable && m_batterystates.value(thing).bmsCommStatus) {
+                    batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, true);
+                } else {
+                    // mode = 0 means no battery
+                    batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, false);
                 }
-
-            } else if (!batteryThings.isEmpty()) {
-                m_batterystates.find(thing)->mode = mode;
-                batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, false);
-
-                // Can add code here to remove battery from things.
+                switch (mode) {
+                    case GoodweModbusRtuConnection::BatteryStatusStandby:
+                        batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "idle");
+                        break;
+                    case GoodweModbusRtuConnection::BatteryStatusDischarging:
+                        batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "discharging");
+                        break;
+                    case GoodweModbusRtuConnection::BatteryStatusCharging:
+                        batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "charging");
+                        break;
+                    default:
+                        break;
+                }
             }
         });
 
         connect(connection, &GoodweModbusRtuConnection::batterySohChanged, thing, [this, thing](quint16 batSoh){
-            qCDebug(dcGoodwe()) << "Battery state of health changed" << batSoh << "%";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
+                qCDebug(dcGoodwe()) << "Battery state of health changed" << batSoh << "%";
                 batteryThings.first()->setStateValue(goodweBatteryStateOfHealthStateTypeId, batSoh);
             }
         });
 
         connect(connection, &GoodweModbusRtuConnection::batteryPowerChanged, thing, [this, thing](qint16 batPower){
-            qCDebug(dcGoodwe()) << "Battery power changed" << batPower << "W";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
+                qCDebug(dcGoodwe()) << "Battery power changed" << batPower << "W";
                 // Modbus register batPower is negative when charging. However, Nymea json value is positive when charging.
                 batteryThings.first()->setStateValue(goodweBatteryCurrentPowerStateTypeId, -batPower);
                 /*
+                // There is a register for charging state. Use that instead.
                 if (batPower > 0) {
                     batteryThings.first()->setStateValue(goodweBatteryChargingStateStateTypeId, "discharging");
                 } else if (batPower < 0) {
@@ -496,11 +499,55 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
         });
 
         connect(connection, &GoodweModbusRtuConnection::batterySocChanged, thing, [this, thing](quint16 socBat){
-            qCDebug(dcGoodwe()) << "Battery state of charge changed" << socBat << "%";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
+                qCDebug(dcGoodwe()) << "Battery state of charge changed" << socBat << "%";
                 batteryThings.first()->setStateValue(goodweBatteryBatteryLevelStateTypeId, socBat);
                 batteryThings.first()->setStateValue(goodweBatteryBatteryCriticalStateTypeId, socBat < 10);
+            }
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::batteryTempChanged, thing, [this, thing](float batteryTemp){
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcGoodwe()) << "Battery temperature changed" << batteryTemp << "°C";
+                batteryThings.first()->setStateValue(goodweBatteryTemperatureStateTypeId, batteryTemp);
+            }
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::bmsWarningCodeLChanged, thing, [this, thing](quint16 bmsWarningCodeL){
+            m_batterystates.find(thing)->bmsWarningCodeL = bmsWarningCodeL;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcGoodwe()) << "Battery BMS warning code L changed" << bmsWarningCodeL;
+                setBatteryWarningMessage(thing);
+            }
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::bmsWarningCodeHChanged, thing, [this, thing](quint16 bmsWarningCodeH){
+            m_batterystates.find(thing)->bmsWarningCodeH = bmsWarningCodeH;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcGoodwe()) << "Battery BMS warning code H changed" << bmsWarningCodeH;
+                setBatteryWarningMessage(thing);
+            }
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::bmsErrorCodeLChanged, thing, [this, thing](quint16 bmsErrorCodeL){
+            m_batterystates.find(thing)->bmsErrorCodeL = bmsErrorCodeL;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcGoodwe()) << "Battery BMS error code L changed" << bmsErrorCodeL;
+                setBatteryErrorMessage(thing);
+            }
+        });
+
+        connect(connection, &GoodweModbusRtuConnection::bmsErrorCodeHChanged, thing, [this, thing](quint16 bmsErrorCodeH){
+            m_batterystates.find(thing)->bmsErrorCodeH = bmsErrorCodeH;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcGoodwe()) << "Battery BMS error code H changed" << bmsErrorCodeH;
+                setBatteryErrorMessage(thing);
             }
         });
 
@@ -528,23 +575,10 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
     if (thing->thingClassId() == goodweBatteryThingClassId) {
         // Nothing to do here, we get all information from the inverter connection
         info->finish(Thing::ThingErrorNoError);
-
-        /*
-        // Set battery capacity from settings on restart.
-        thing->setStateValue(goodweBatteryCapacityStateTypeId, thing->setting(goodweBatterySettingsCapacityParamTypeId).toUInt());
-
-        // Set battery capacity on settings change.
-        connect(thing, &Thing::settingChanged, this, [this, thing] (const ParamTypeId &paramTypeId, const QVariant &value) {
-            if (paramTypeId == goodweBatterySettingsCapacityParamTypeId) {
-                qCDebug(dcGoodwe()) << "Battery capacity changed to" << value.toInt() << "kWh";
-                thing->setStateValue(goodweBatteryCapacityStateTypeId, value.toInt());
-            }
-        });
-        */
-
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
             thing->setStateValue(goodweBatteryConnectedStateTypeId, parentThing->stateValue(goodweInverterRTUConnectedStateTypeId).toBool());
+            thing->setStateValue(goodweBatteryCapacityStateTypeId, parentThing->paramValue(goodweInverterRTUThingBatteryCapacityParamTypeId).toUInt());
         }
         return;
     }
@@ -612,5 +646,107 @@ void IntegrationPluginGoodwe::setWorkMode(Thing *thing, GoodweModbusRtuConnectio
         case GoodweModbusRtuConnection::WorkModeSelfCheck:
             thing->setStateValue(goodweInverterRTUOperatingStateStateTypeId, "Self check");
             break;
+    }
+}
+
+void IntegrationPluginGoodwe::setBatteryWarningMessage(Thing *thing)
+{
+    Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
+    if (!batteryThings.isEmpty()) {
+        quint16 warningBitsL = m_batterystates.value(thing).bmsWarningCodeL;
+        quint16 warningBitsH = m_batterystates.value(thing).bmsWarningCodeH;
+        QString warningMessage{""};
+        if (warningBitsL == 0 && warningBitsH == 0) {
+            warningMessage.append("No warning, everything ok.");
+        } else {
+            warningMessage.append("The following warning bits are active: ");
+            quint16 testBit{0b01};
+            for (int var = 0; var < 16; ++var) {
+                if (warningBitsL & (testBit << var)) {
+                    warningMessage.append(QStringLiteral("bit %1").arg(var));
+                    if (var == 3) {
+                        warningMessage.append(" Cell Low temperature1, ");
+                    } else if (var == 4) {
+                        warningMessage.append(" Charge over-current1, ");
+                    } else if (var == 5) {
+                        warningMessage.append(" Discharge over-, ");
+                    } else if (var == 6) {
+                        warningMessage.append(" communication, ");
+                    } else if (var == 7) {
+                        warningMessage.append(" System Reboot, ");
+                    } else if (var == 11) {
+                        warningMessage.append(" System High temperature, ");
+                    } else {
+                        warningMessage.append(", ");
+                    }
+                }
+            }
+            for (int var = 0; var < 16; ++var) {
+                if (warningBitsH & (testBit << var)) {
+                    warningMessage.append(QStringLiteral("bit %1, ").arg(var + 16));
+                }
+            }
+            int stringLength = warningMessage.length();
+            if (stringLength > 1) { // stringLength should be > 1, but just in case.
+                warningMessage.replace(stringLength - 2, 2, "."); // Replace ", " at the end with ".".
+            }
+        }
+        qCDebug(dcGoodwe()) << warningMessage;
+        batteryThings.first()->setStateValue(goodweBatteryWarningMessageStateTypeId, warningMessage);
+    }
+}
+
+void IntegrationPluginGoodwe::setBatteryErrorMessage(Thing *thing)
+{
+    Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
+    if (!batteryThings.isEmpty()) {
+        quint16 errorBitsL = m_batterystates.value(thing).bmsErrorCodeL;
+        quint16 errorBitsH = m_batterystates.value(thing).bmsErrorCodeH;
+        QString errorMessage{""};
+        if (errorBitsL == 0 && errorBitsH == 0) {
+            errorMessage.append("No error, everything ok.");
+        } else {
+            errorMessage.append("The following error bits are active: ");
+            quint16 testBit{0b01};
+            for (int var = 0; var < 16; ++var) {
+                if (errorBitsL & (testBit << var)) {
+                    errorMessage.append(QStringLiteral("bit %1").arg(var));
+                    if (var == 3) {
+                        errorMessage.append(" Cell Low temperature2, ");
+                    } else if (var == 4) {
+                        errorMessage.append(" Charging overcurrent2, ");
+                    } else if (var == 5) {
+                        errorMessage.append(" Discharging, ");
+                    } else if (var == 6) {
+                        errorMessage.append(" Precharge fault, ");
+                    } else if (var == 7) {
+                        errorMessage.append(" DC bus fault, ");
+                    } else if (var == 11) {
+                        errorMessage.append(" Charging circuit Failure, ");
+                    } else if (var == 12) {
+                        errorMessage.append(" Communication failure2, ");
+                    } else if (var == 13) {
+                        errorMessage.append(" Cell High, ");
+                    } else if (var == 14) {
+                        errorMessage.append(" Discharge, ");
+                    } else if (var == 15) {
+                        errorMessage.append(" Charging over-voltage3, ");
+                    } else {
+                        errorMessage.append(", ");
+                    }
+                }
+            }
+            for (int var = 0; var < 16; ++var) {
+                if (errorBitsH & (testBit << var)) {
+                    errorMessage.append(QStringLiteral("bit %1, ").arg(var + 16));
+                }
+            }
+            int stringLength = errorMessage.length();
+            if (stringLength > 1) { // stringLength should be > 1, but just in case.
+                errorMessage.replace(stringLength - 2, 2, "."); // Replace ", " at the end with ".".
+            }
+        }
+        qCDebug(dcGoodwe()) << errorMessage;
+        batteryThings.first()->setStateValue(goodweBatteryErrorMessageStateTypeId, errorMessage);
     }
 }

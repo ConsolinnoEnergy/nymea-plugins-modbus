@@ -30,6 +30,13 @@
                             "displayName": "Modbus slave address",
                             "type": "uint",
                             "defaultValue": 247
+                        },
+                        {
+                            "id": "6cea38ab-a71e-4085-a838-b1297fa3028c",
+                            "name": "batteryCapacity",
+                            "displayName": "Battery capacity (if present) [kWh]",
+                            "type": "uint",
+                            "defaultValue": 0
                         }
                     ],
                     "stateTypes": [
@@ -96,7 +103,7 @@
                             "displayNameEvent": "PV1 voltage changed",
                             "type": "double",
                             "unit": "Volt",
-                            "defaultValue": 0,
+                            "defaultValue": 0.0,
                             "cached": false
                         },
                         {
@@ -106,7 +113,7 @@
                             "displayNameEvent": "PV1 current changed",
                             "type": "double",
                             "unit": "Ampere",
-                            "defaultValue": 0,
+                            "defaultValue": 0.0,
                             "cached": false
                         },
                         {
@@ -126,7 +133,7 @@
                             "displayNameEvent": "PV2 voltage changed",
                             "type": "double",
                             "unit": "Volt",
-                            "defaultValue": 0,
+                            "defaultValue": 0.0,
                             "cached": false
                         },
                         {
@@ -136,7 +143,7 @@
                             "displayNameEvent": "PV2 current changed",
                             "type": "double",
                             "unit": "Ampere",
-                            "defaultValue": 0,
+                            "defaultValue": 0.0,
                             "cached": false
                         },
                         {
@@ -156,7 +163,7 @@
                             "displayNameEvent": "PV3 voltage changed",
                             "type": "double",
                             "unit": "Volt",
-                            "defaultValue": 0,
+                            "defaultValue": 0.0,
                             "cached": false
                         },
                         {
@@ -166,7 +173,7 @@
                             "displayNameEvent": "PV3 current changed",
                             "type": "double",
                             "unit": "Ampere",
-                            "defaultValue": 0,
+                            "defaultValue": 0.0,
                             "cached": false
                         },
                         {
@@ -186,7 +193,7 @@
                             "displayNameEvent": "PV4 voltage changed",
                             "type": "double",
                             "unit": "Volt",
-                            "defaultValue": 0,
+                            "defaultValue": 0.0,
                             "cached": false
                         },
                         {
@@ -196,7 +203,7 @@
                             "displayNameEvent": "PV4 current changed",
                             "type": "double",
                             "unit": "Ampere",
-                            "defaultValue": 0,
+                            "defaultValue": 0.0,
                             "cached": false
                         }
                     ],
@@ -388,7 +395,8 @@
                             "unit": "Percentage",
                             "minValue": 0,
                             "maxValue": 100,
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "bfb8c17e-c39a-49ff-8a61-77c6e358bdc7",
@@ -398,7 +406,7 @@
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00,
-                            "cached": true
+                            "cached": false
                         },
                         {
                             "id": "2ef31a28-c70d-4c82-bae8-c7f8b04f00c2",
@@ -407,7 +415,8 @@
                             "displayNameEvent": "Charging state changed",
                             "type": "QString",
                             "possibleValues": ["idle", "charging", "discharging"],
-                            "defaultValue": "idle"
+                            "defaultValue": "idle",
+                            "cached": false
                         },
                         {
                             "id": "d7b7d196-31a9-462d-90f7-c2f0564d3260",
@@ -415,7 +424,8 @@
                             "displayName": "Battery state of health",
                             "displayNameEvent": "Battery state of health changed",
                             "type": "int",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "2c470852-02bf-4f78-831a-079471ed2c39",
@@ -425,7 +435,37 @@
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
-                            "cached": true
+                            "cached": false
+                        },
+                        {
+                            "id": "73f7db43-5abc-4458-9a34-0cb41c6fe3c0",
+                            "name": "temperature",
+                            "displayName": "Battery temperature",
+                            "displayNameEvent": "Battery temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "4f6dedd6-1b24-418a-b2aa-4ceabc697161",
+                            "name": "warningMessage",
+                            "displayName": "Warning message",
+                            "displayNameEvent": "Warning message changed",
+                            "type": "QString",
+                            "defaultValue": "No warning, everything ok.",
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "3e42bc3c-f73d-4ecb-bfd6-b1daddd6bcf0",
+                            "name": "errorMessage",
+                            "displayName": "Error message",
+                            "displayNameEvent": "Error message changed",
+                            "type": "QString",
+                            "defaultValue": "No error, everything ok.",
+                            "suggestLogging": true,
+                            "cached": false
                         }
                     ],
                     "actionTypes": [ ]

@@ -57,7 +57,12 @@ private:
 
     struct BatteryStates {
         bool modbusReachable {false};
+        bool bmsCommStatus {false};
         GoodweModbusRtuConnection::BatteryStatus mode {GoodweModbusRtuConnection::BatteryStatusNoBattery};
+        quint16 bmsWarningCodeL {0};
+        quint16 bmsWarningCodeH {0};
+        quint16 bmsErrorCodeL {0};
+        quint16 bmsErrorCodeH {0};
     };
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
@@ -66,7 +71,8 @@ private:
     QHash<Thing *, BatteryStates> m_batterystates;
 
     void setWorkMode(Thing *thing, GoodweModbusRtuConnection::WorkMode state);
-    void setBatteryStates(Thing *thing, GoodweModbusRtuConnection::BatteryStatus mode);
+    void setBatteryWarningMessage(Thing *thing);
+    void setBatteryErrorMessage(Thing *thing);
 };
 
 #endif // INTEGRATIONPLUGINGOODWE_H
