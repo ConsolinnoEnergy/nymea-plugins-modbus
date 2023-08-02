@@ -71,6 +71,7 @@ private:
     QHash<Thing *, BatteryStates> m_batterystates;
 
     void setWorkMode(Thing *thing, GoodweModbusRtuConnection::WorkMode state);
+    void setInverterErrorMessage(Thing *thing, quint32 errorBits);
     void setBatteryWarningMessage(Thing *thing);
     void setBatteryErrorMessage(Thing *thing);
 };

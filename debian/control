@@ -114,6 +114,7 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Drexel & Weiss heat pumps
  This package contains the nymea integration plugin for Drexel & Weiss heat pumps.
 
+
 Package: nymea-plugin-e3dc
 Architecture: any
 Section: libs
@@ -121,6 +122,15 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
 Description: nymea integration plugin for E3DC inverters
  This package contains the nymea integration plugin for E3DC inverters.
+
+
+Package: nymea-plugin-goodwe
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for GoodWe inverters
+ This package contains the nymea integration plugin for GoodWe inverters.
 
 
 Package: nymea-plugin-schneider-iem

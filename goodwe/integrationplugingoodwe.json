@@ -87,6 +87,16 @@
                             "cached": false
                         },
                         {
+                            "id": "f4376cef-dd3a-4648-8324-84c49838938d",
+                            "name": "errorMessage",
+                            "displayName": "Error message",
+                            "displayNameEvent": "Error message changed",
+                            "type": "QString",
+                            "defaultValue": "No error, everything ok.",
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
                             "id": "15956656-a5c6-4468-8754-fb13059917c9",
                             "name": "pv1Power",
                             "displayName": "PV1 power",
@@ -354,6 +364,15 @@
                             "displayNameEvent": "Frequency changed",
                             "type": "double",
                             "unit": "Hertz",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "a0130657-7675-4301-9186-7b07463fe22e",
+                            "name": "powerFactor",
+                            "displayName": "Power factor",
+                            "displayNameEvent": "Power factor changed",
+                            "type": "double",
                             "defaultValue": 0.00,
                             "cached": false
                         }
