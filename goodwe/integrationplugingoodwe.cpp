@@ -299,7 +299,7 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcGoodwe()) << "Meter comm status changed" << commStatus;
-                bool commStatusBool{commStatus};
+                bool commStatusBool = (commStatus != 0);
                 m_meterstates.find(thing)->meterCommStatus = commStatusBool;
                 if (commStatusBool && m_meterstates.value(thing).modbusReachable) {
                     meterThings.first()->setStateValue(goodweMeterConnectedStateTypeId, true);
@@ -440,7 +440,7 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
         connect(connection, &GoodweModbusRtuConnection::bmsCommStatusChanged, thing, [this, thing](quint16 bmsCommStatus){
             // Debug output even if there is no battery thing, since this signal creates it.
             qCDebug(dcGoodwe()) << "Battery BMS comm status changed" << bmsCommStatus;
-            bool bmsCommStatusBool{bmsCommStatus};
+            bool bmsCommStatusBool = (bmsCommStatus != 0);
             m_batterystates.find(thing)->bmsCommStatus = bmsCommStatusBool;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
