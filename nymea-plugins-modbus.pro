@@ -11,6 +11,7 @@ PLUGIN_DIRS = \
     amperfied               \
     bgetech                 \
     drexelundweiss          \
+    goodwe                  \
     huawei                  \
     idm                     \
     inepro                  \
