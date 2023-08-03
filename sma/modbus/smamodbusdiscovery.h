@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,52 +28,55 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef IDMINFO_H
-#define IDMINFO_H
+#ifndef SMAMODBUSDISCOVERY_H
+#define SMAMODBUSDISCOVERY_H
 
-#include <QMetaType>
-#include <QString>
+#include <QObject>
+#include <QTimer>
 
-/** This struct holds the status information that is read from the IDM device
- *  and passed to the nymea framework within this plugin.
- */
-struct IdmInfo {
-    /** Set to true, if register values can be read,
-     *  false in case of communication problems */
-    bool connected;
+#include <network/networkdevicediscovery.h>
 
-    bool power;
+#include "smainvertermodbustcpconnection.h"
 
-    /** RegisterList::OutsideTemperature */
-    double roomTemperature;
+class SmaModbusDiscovery : public QObject
+{
+    Q_OBJECT
+public:
+    explicit SmaModbusDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 502, quint16 modbusAddress = 3, QObject *parent = nullptr);
+    typedef struct SmaModbusDiscoveryResult {
+        QString productName;
+        QString deviceName;
+        QString serialNumber;
+        quint16 port;
+        quint16 modbusAddress;
+        QString softwareVersion;
+        NetworkDeviceInfo networkDeviceInfo;
+    } SmaModbusDiscoveryResult;
 
-    /** RegisterList::ExternalOutsideTemperature */
-    double outsideTemperature;
+    void startDiscovery();
 
-    /** RegisterList::HeatStorageTemperature */
-    double waterTemperature;
+    QList<SmaModbusDiscoveryResult> discoveryResults() const;
 
-    /** RegisterList::TargetRoomTemperatureZ1R1 (zone 1, room 1) */
-    double targetRoomTemperature;
+signals:
+    void discoveryFinished();
 
-    /** RegisterList::TargetHotWaterTemperature */
-    double targetWaterTemperature;
+private:
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+    quint16 m_port;
+    quint16 m_modbusAddress;
 
-    /** RegisterList::HumiditySensor */
-    double humidity;
+    QDateTime m_startDateTime;
+    NetworkDeviceInfos m_verifiedNetworkDeviceInfos;
 
-    /** RegisterList::CurrentPowerConsumptionHeatPump */
-    double powerConsumptionHeatPump;
+    QList<SmaInverterModbusTcpConnection *> m_connections;
 
-    /** RegisterList::OperationModeSystem */
-    QString  mode;
+    QList<SmaModbusDiscoveryResult> m_discoveryResults;
 
-    /** True if there is an error code set 
-     *  (RegisterList::CurrentFaultNumber != 0) */
-    bool error;
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SmaInverterModbusTcpConnection *connection);
+
+    void finishDiscovery();
+
 };
 
-Q_DECLARE_METATYPE(IdmInfo);
-
-#endif
-
+#endif // SMAMODBUSDISCOVERY_H

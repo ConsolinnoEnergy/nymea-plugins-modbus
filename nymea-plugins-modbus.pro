@@ -8,8 +8,10 @@ PLUGIN_DIRS = \
     alphainnotec            \
     alphatec                \    
     azzurro                 \
+    amperfied               \
     bgetech                 \
     drexelundweiss          \
+    goodwe                  \
     huawei                  \
     idm                     \
     inepro                  \
@@ -23,6 +25,8 @@ PLUGIN_DIRS = \
     schneider               \
     schneiderIEM            \
     schrack                 \
+    senseair                \
+    sma                     \
     stiebeleltron           \
     sungrow                 \
     sunspec                 \

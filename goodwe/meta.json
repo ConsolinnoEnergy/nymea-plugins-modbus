@@ -1,0 +1,13 @@
+{
+    "title": "GoodWe Inverter",
+    "tagline": "Connect to GoodWe inverters.",
+    "icon": "goodwe.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

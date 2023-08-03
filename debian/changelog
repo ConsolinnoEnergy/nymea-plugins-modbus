@@ -1,3 +1,84 @@
+nymea-plugins-modbus (1.7.0) jammy; urgency=medium
+
+  [ Michael Zanetti ]
+  * New plugin: Senseair S8
+  * Drexel&Weiss: Add min/max values to co2sensor
+
+  [ Simon Stürz ]
+  * ModbusRtu connection: Check reachablility in constructor
+
+  [ Michael Zanetti ]
+  * New plugin: Amperfied/Heidelberg
+
+  [ Bernhard Trinnes ]
+  * Drexel und Weiss: Add smartmeterconsumer interface
+
+  [ Simon Stürz ]
+  * huawei: Set energy states to 0 if not connected and filter invalid
+    energy counter values
+  * SMA: set energy values to 0 on disconnected
+
+  [ Michael Zanetti ]
+  * Schrack: Add firmware version state
+  * Schrack: Rework discovery
+
+ -- jenkins <developer@nymea.io>  Tue, 07 Mar 2023 17:25:40 +0100
+
+nymea-plugins-modbus (1.6.3) jammy; urgency=medium
+
+  [ Michael Zanetti ]
+  * Mennekes: Add firmware version check and workaround erraneously
+    signalled 0A max
+  * Mennekes: Discard unknown discovery results
+
+ -- jenkins <developer@nymea.io>  Wed, 01 Feb 2023 12:18:26 +0100
+
+nymea-plugins-modbus (1.6.2) jammy; urgency=medium
+
+  [ Michael Zanetti ]
+  * Schrack: Fix connection leak on failed setup
+  * Mennekes: Discard unknown discovery results
+
+  [ Simon Stürz ]
+  * SMA: fix power parsing for SunnyWebBox
+  * modbuscommander: update actions and fix RTU crash on resource
+    removal
+
+ -- jenkins <developer@nymea.io>  Tue, 17 Jan 2023 16:38:07 +0100
+
+nymea-plugins-modbus (1.6.1) jammy; urgency=medium
+
+  [ Simon Stürz ]
+  * SMA: Update speedwire discovery
+
+  [ Michael Zanetti ]
+  * Mennekes: Fix CP signal state E handling
+
+ -- jenkins <developer@nymea.io>  Fri, 23 Dec 2022 11:32:54 +0100
+
+nymea-plugins-modbus (1.6.0) jammy; urgency=medium
+
+  [ Michael Zanetti ]
+  * Kostal: Fix state name for total returned energy
+
+  [ Simon Stürz ]
+  * SMA: Import plugin from nymea-plugins and add modbus inverters
+  * SunSpec: Fix storage state and improve overall generic connection
+
+  [ Michael Zanetti ]
+  * Mennekes: Don't filter for MAC address manufacturer during discovery
+
+  [ Simon Stürz ]
+  * iDM: Update to modbus tools and latest interfaces
+  * SMA: Update speedwire discovery
+
+  [ Michael Zanetti ]
+  * Mennekes: Fix CP signal state E handling
+  * Phoenix: Handle emeter register underflow on wallbox and make
+    discovery weak
+
+ -- jenkins <developer@nymea.io>  Wed, 14 Dec 2022 23:59:37 +0100
+
 nymea-plugins-modbus (1.5.105-2) jammy; urgency=medium
 
   * Added Azurro inverter integration
