@@ -137,7 +137,7 @@ void IntegrationPluginMennekes::setupThing(ThingSetupInfo *info)
         }
 
         MacAddress macAddress = MacAddress(thing->paramValue(amtronECUThingMacAddressParamTypeId).toString());
-        if (!macAddress.isValid()) {
+        if (!macAddress.isNull()) {
             qCWarning(dcMennekes()) << "The configured mac address is not valid" << thing->params();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not known. Please reconfigure the thing."));
             return;
@@ -187,7 +187,7 @@ void IntegrationPluginMennekes::setupThing(ThingSetupInfo *info)
         }
 
         MacAddress macAddress = MacAddress(thing->paramValue(amtronHCC3ThingMacAddressParamTypeId).toString());
-        if (!macAddress.isValid()) {
+        if (!macAddress.isNull()) {
             qCWarning(dcMennekes()) << "The configured mac address is not valid" << thing->params();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not known. Please reconfigure the thing."));
             return;
