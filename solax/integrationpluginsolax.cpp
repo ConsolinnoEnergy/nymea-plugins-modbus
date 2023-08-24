@@ -74,7 +74,6 @@ void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
             return;
         }
 
-        /*
         // Create a discovery with the info as parent for auto deleting the object once the discovery info is done
         DiscoveryTcp *discovery = new DiscoveryTcp(hardwareManager()->networkDeviceDiscovery(), info);
         connect(discovery, &DiscoveryTcp::discoveryFinished, info, [=](){
@@ -91,7 +90,7 @@ void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
                 }
 
                 ParamList params;
-                params << Param(solaxX3InverterTCPThingMacAddressParamTypeId, result.networkDeviceInfo.address().toString());
+                params << Param(solaxX3InverterTCPThingIpAddressParamTypeId, result.networkDeviceInfo.address().toString());
                 params << Param(solaxX3InverterTCPThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
                 params << Param(solaxX3InverterTCPThingPortParamTypeId, result.port);
                 params << Param(solaxX3InverterTCPThingModbusIdParamTypeId, result.modbusId);
@@ -104,51 +103,6 @@ void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
 
         // Start the discovery process
         discovery->startDiscovery();
-
-        */
-
-        NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
-
-            foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
-
-                qCDebug(dcSolax()) << "Found" << networkDeviceInfo;
-
-                QString title;
-                if (networkDeviceInfo.hostName().isEmpty()) {
-                    title = networkDeviceInfo.address().toString();
-                } else {
-                    title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
-                }
-
-                QString description;
-                if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
-                    description = networkDeviceInfo.macAddress();
-                } else {
-                    description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
-                }
-
-                ThingDescriptor descriptor(solaxX3InverterTCPThingClassId, title, description);
-                ParamList params;
-                params << Param(solaxX3InverterTCPThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
-                params << Param(solaxX3InverterTCPThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
-                params << Param(solaxX3InverterTCPThingPortParamTypeId, 502);
-                params << Param(solaxX3InverterTCPThingModbusIdParamTypeId, 1);
-                descriptor.setParams(params);
-
-                // Check if we already have set up this device
-                Things existingThings = myThings().filterByParam(solaxX3InverterTCPThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
-                if (existingThings.count() == 1) {
-                    qCDebug(dcSolax()) << "This connection already exists in the system:" << networkDeviceInfo;
-                    descriptor.setThingId(existingThings.first()->id());
-                }
-
-                info->addThingDescriptor(descriptor);
-            }
-
-            info->finish(Thing::ThingErrorNoError);
-        });
 
     } else if (info->thingClassId() == solaxX3InverterRTUThingClassId) {
         qCDebug(dcSolax()) << "Discovering modbus RTU resources...";

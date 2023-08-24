@@ -103,8 +103,8 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
                 Result result;
                 result.port = port;
                 result.modbusId = modbusId;
-                //result.productName = connection->moduleName();
-                //result.manufacturerName = connection->factoryName();
+                result.productName = connection->moduleName();
+                result.manufacturerName = connection->factoryName();
                 result.powerRating = ratedPower;
                 result.networkDeviceInfo = networkDeviceInfo;
                 m_discoveryResults.append(result);
