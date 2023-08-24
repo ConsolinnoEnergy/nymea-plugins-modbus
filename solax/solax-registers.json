@@ -574,7 +574,7 @@
             "access": "RO"
         },
         {
-            "id": "meter1CommunicationSate",
+            "id": "meter1CommunicationState",
             "address": 184,
             "size": 1,
             "type": "uint16",

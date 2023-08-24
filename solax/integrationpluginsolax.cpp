@@ -168,7 +168,8 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             m_batterystates.remove(thing);
 
 
-        // Make sure we have a valid mac address, otherwise no monitor and not auto searching is possible
+        // Make sure we have a valid mac address, otherwise no monitor and no auto searching is possible.
+        // Testing for null is necessary, because registering a monitor with a zero mac adress will cause a segfault.
         MacAddress macAddress = MacAddress(thing->paramValue(solaxX3InverterTCPThingMacAddressParamTypeId).toString());
         if (macAddress.isNull()) {
             qCWarning(dcSolax()) << "Failed to set up Solax inverter because the MAC address is not valid:" << thing->paramValue(solaxX3InverterTCPThingMacAddressParamTypeId).toString() << macAddress.toString();
@@ -176,44 +177,86 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             return;
         }
 
-        // Create a monitor so we always get the correct IP in the network and see if the device is reachable without polling on our own
+        // Create a monitor so we always get the correct IP in the network and see if the device is reachable without polling on our own.
         NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
-        connect(info, &ThingSetupInfo::aborted, monitor, [monitor, this](){
-            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
+        m_monitors.insert(thing, monitor);
+        connect(info, &ThingSetupInfo::aborted, monitor, [=](){
+            // Is this needed? How can setup be aborted at this point?
+
+            // Clean up in case the setup gets aborted.
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcSolax()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
         });
 
         uint port = thing->paramValue(solaxX3InverterTCPThingPortParamTypeId).toUInt();
         quint16 modbusId = thing->paramValue(solaxX3InverterTCPThingModbusIdParamTypeId).toUInt();
-
         SolaxModbusTcpConnection *connection = new SolaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
-        connect(info, &ThingSetupInfo::aborted, connection, &SolaxModbusTcpConnection::deleteLater);
+        m_tcpConnections.insert(thing, connection);
+        MeterStates meterStates{};
+        m_meterstates.insert(thing, meterStates);
+        BatteryStates batteryStates{};
+        m_batterystates.insert(thing, batteryStates);
 
-        connect(connection, &SolaxModbusTcpConnection::reachableChanged, thing, [connection, thing](bool reachable){
-            qCDebug(dcSolax()) << "Reachable state changed" << reachable;
-            if (reachable) {
-                connection->initialize();
-            } else {
-                thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, false);
+        // Reconnect on monitor reachable changed.
+        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
+            qCDebug(dcSolax()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+            if (reachable && !thing->stateValue(solaxX3InverterTCPConnectedStateTypeId).toBool()) {
+                connection->setHostAddress(monitor->networkDeviceInfo().address());
+                connection->reconnectDevice();
+            } else if (!reachable) {
+                // Note: We disable autoreconnect explicitly and we will
+                // connect the device once the monitor says it is reachable again.
+                connection->disconnectDevice();
             }
         });
 
-        connect(connection, &SolaxModbusTcpConnection::initializationFinished, info, [this, thing, connection, monitor, info](bool success){
+        connect(connection, &SolaxModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable){
+            qCDebug(dcSolax()) << "Reachable state changed" << reachable;
+            if (reachable) {
+                // Connected true will be set after successfull init.
+                connection->initialize();
+            } else {
+                thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, false);
+                foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                    childThing->setStateValue("connected", false);
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::initializationFinished, thing, [=](bool success){
+            thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, success);
+
+            // Set connected state for meter
+            m_meterstates.find(thing)->modbusReachable = success;
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                if (success && m_meterstates.value(thing).meterCommStatus) {
+                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
+                } else {
+                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                }
+            }
+
+            // Set connected state for battery
+            m_batterystates.find(thing)->modbusReachable = success;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                if (success && m_batterystates.value(thing).bmsCommStatus) {
+                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, true);
+                } else {
+                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
+                }
+            }
+
             if (success) {
                 qCDebug(dcSolax()) << "Solax inverter initialized.";
-                m_tcpConnections.insert(thing, connection);
-                m_monitors.insert(thing, monitor);
-                MeterStates meterStates{};
-                m_meterstates.insert(thing, meterStates);
-                BatteryStates batteryStates{};
-                m_batterystates.insert(thing, batteryStates);
-                thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, true);
-                connection->update();
-                info->finish(Thing::ThingErrorNoError);
             } else {
-                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
-                connection->deleteLater();
-                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("Could not initialize the communication with the inverter."));
-            }
+                qCDebug(dcSolax()) << "Solax inverter initialization failed.";
+                // Try once to reconnect the device
+                connection->reconnectDevice();
+            } 
         });
 
 
@@ -301,7 +344,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
 
         // Meter
-        connect(connection, &SolaxModbusTcpConnection::meter1CommunicationSateChanged, thing, [this, thing](quint16 commStatus){
+        connect(connection, &SolaxModbusTcpConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
             bool commStatusBool = (commStatus != 0);
             m_meterstates.find(thing)->meterCommStatus = commStatusBool;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
@@ -529,7 +572,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         });
 
 
-        connection->connectDevice();
+        if (monitor->reachable())
+            connection->connectDevice();
+
+        info->finish(Thing::ThingErrorNoError);
 
         return;
     }
@@ -680,7 +726,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
 
         // Meter
-        connect(connection, &SolaxModbusRtuConnection::meter1CommunicationSateChanged, thing, [this, thing](quint16 commStatus){
+        connect(connection, &SolaxModbusRtuConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
             bool commStatusBool = (commStatus != 0);
             m_meterstates.find(thing)->meterCommStatus = commStatusBool;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
@@ -1052,6 +1098,14 @@ void IntegrationPluginSolax::thingRemoved(Thing *thing)
 
     if (m_rtuConnections.contains(thing)) {
         m_rtuConnections.take(thing)->deleteLater();
+    }
+
+    if (m_meterstates.contains(thing)) {
+        m_meterstates.remove(thing);
+    }
+
+    if (m_batterystates.contains(thing)) {
+        m_batterystates.remove(thing);
     }
 
     if (myThings().isEmpty() && m_pluginTimer) {

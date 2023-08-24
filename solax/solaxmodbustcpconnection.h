@@ -91,7 +91,7 @@ public:
         RegisterFirmwareVersion = 125,
         RegisterSolarEnergyTotal = 148,
         RegisterSolarEnergyToday = 150,
-        RegisterMeter1CommunicationSate = 184,
+        RegisterMeter1CommunicationState = 184,
         RegisterInverterType = 186
     };
     Q_ENUM(Registers)
@@ -134,7 +134,7 @@ public:
     quint32 inverterFaultBits() const;
 
     /* Meter 1 communication status (0xB8) - Address: 184, Size: 1 */
-    quint16 meter1CommunicationSate() const;
+    quint16 meter1CommunicationState() const;
 
     /* Active power limit (0x25) [%] - Address: 37, Size: 1 */
     quint16 activePowerLimit() const;
@@ -321,7 +321,7 @@ public:
     void updateBmsWarningLsb();
     void updateBmsWarningMsb();
     void updateInverterFaultBits();
-    void updateMeter1CommunicationSate();
+    void updateMeter1CommunicationState();
     void updateActivePowerLimit();
 
     void updateSerialNumber();
@@ -366,7 +366,7 @@ public:
     QModbusReply *readBmsWarningLsb();
     QModbusReply *readBmsWarningMsb();
     QModbusReply *readInverterFaultBits();
-    QModbusReply *readMeter1CommunicationSate();
+    QModbusReply *readMeter1CommunicationState();
     QModbusReply *readActivePowerLimit();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readInverterType();
@@ -503,8 +503,8 @@ signals:
     void bmsWarningMsbReadFinished(quint16 bmsWarningMsb);
     void inverterFaultBitsChanged(quint32 inverterFaultBits);
     void inverterFaultBitsReadFinished(quint32 inverterFaultBits);
-    void meter1CommunicationSateChanged(quint16 meter1CommunicationSate);
-    void meter1CommunicationSateReadFinished(quint16 meter1CommunicationSate);
+    void meter1CommunicationStateChanged(quint16 meter1CommunicationState);
+    void meter1CommunicationStateReadFinished(quint16 meter1CommunicationState);
     void activePowerLimitChanged(quint16 activePowerLimit);
     void activePowerLimitReadFinished(quint16 activePowerLimit);
     void firmwareVersionChanged(quint16 firmwareVersion);
@@ -592,7 +592,7 @@ protected:
     quint16 m_bmsWarningLsb = 0;
     quint16 m_bmsWarningMsb = 0;
     quint32 m_inverterFaultBits = 0;
-    quint16 m_meter1CommunicationSate = 0;
+    quint16 m_meter1CommunicationState = 0;
     quint16 m_activePowerLimit = 0;
     quint16 m_firmwareVersion = 0;
     quint16 m_inverterType = 0;
@@ -638,7 +638,7 @@ protected:
     void processBmsWarningLsbRegisterValues(const QVector<quint16> values);
     void processBmsWarningMsbRegisterValues(const QVector<quint16> values);
     void processInverterFaultBitsRegisterValues(const QVector<quint16> values);
-    void processMeter1CommunicationSateRegisterValues(const QVector<quint16> values);
+    void processMeter1CommunicationStateRegisterValues(const QVector<quint16> values);
     void processActivePowerLimitRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processInverterTypeRegisterValues(const QVector<quint16> values);

@@ -123,9 +123,9 @@ quint32 SolaxModbusTcpConnection::inverterFaultBits() const
     return m_inverterFaultBits;
 }
 
-quint16 SolaxModbusTcpConnection::meter1CommunicationSate() const
+quint16 SolaxModbusTcpConnection::meter1CommunicationState() const
 {
-    return m_meter1CommunicationSate;
+    return m_meter1CommunicationState;
 }
 
 quint16 SolaxModbusTcpConnection::activePowerLimit() const
@@ -630,7 +630,7 @@ void SolaxModbusTcpConnection::update5()
 
     // Read Meter 1 communication status (0xB8)
     qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Meter 1 communication status (0xB8)\" register:" << 184 << "size:" << 1;
-    reply = readMeter1CommunicationSate();
+    reply = readMeter1CommunicationState();
     if (!reply) {
         qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Meter 1 communication status (0xB8)\" registers from" << hostAddress().toString() << errorString();
         return;
@@ -653,7 +653,7 @@ void SolaxModbusTcpConnection::update5()
 
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Meter 1 communication status (0xB8)\" register" << 184 << "size:" << 1 << unit.values();
-        processMeter1CommunicationSateRegisterValues(unit.values());
+        processMeter1CommunicationStateRegisterValues(unit.values());
         update6();
     });
 
@@ -1044,11 +1044,11 @@ void SolaxModbusTcpConnection::updateInverterFaultBits()
     });
 }
 
-void SolaxModbusTcpConnection::updateMeter1CommunicationSate()
+void SolaxModbusTcpConnection::updateMeter1CommunicationState()
 {
     // Update registers from Meter 1 communication status (0xB8)
     qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Meter 1 communication status (0xB8)\" register:" << 184 << "size:" << 1;
-    QModbusReply *reply = readMeter1CommunicationSate();
+    QModbusReply *reply = readMeter1CommunicationState();
     if (!reply) {
         qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Meter 1 communication status (0xB8)\" registers from" << hostAddress().toString() << errorString();
         return;
@@ -1065,7 +1065,7 @@ void SolaxModbusTcpConnection::updateMeter1CommunicationSate()
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
             qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Meter 1 communication status (0xB8)\" register" << 184 << "size:" << 1 << unit.values();
-            processMeter1CommunicationSateRegisterValues(unit.values());
+            processMeter1CommunicationStateRegisterValues(unit.values());
         }
     });
 
@@ -1825,7 +1825,7 @@ QModbusReply *SolaxModbusTcpConnection::readInverterFaultBits()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *SolaxModbusTcpConnection::readMeter1CommunicationSate()
+QModbusReply *SolaxModbusTcpConnection::readMeter1CommunicationState()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 184, 1);
     return sendReadRequest(request, m_slaveId);
@@ -2151,14 +2151,14 @@ void SolaxModbusTcpConnection::processInverterFaultBitsRegisterValues(const QVec
     }
 }
 
-void SolaxModbusTcpConnection::processMeter1CommunicationSateRegisterValues(const QVector<quint16> values)
+void SolaxModbusTcpConnection::processMeter1CommunicationStateRegisterValues(const QVector<quint16> values)
 {
-    quint16 receivedMeter1CommunicationSate = ModbusDataUtils::convertToUInt16(values);
-    emit meter1CommunicationSateReadFinished(receivedMeter1CommunicationSate);
+    quint16 receivedMeter1CommunicationState = ModbusDataUtils::convertToUInt16(values);
+    emit meter1CommunicationStateReadFinished(receivedMeter1CommunicationState);
 
-    if (m_meter1CommunicationSate != receivedMeter1CommunicationSate) {
-        m_meter1CommunicationSate = receivedMeter1CommunicationSate;
-        emit meter1CommunicationSateChanged(m_meter1CommunicationSate);
+    if (m_meter1CommunicationState != receivedMeter1CommunicationState) {
+        m_meter1CommunicationState = receivedMeter1CommunicationState;
+        emit meter1CommunicationStateChanged(m_meter1CommunicationState);
     }
 }
 
@@ -2719,7 +2719,7 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - BMS warning bits lsb (0x1F): " << solaxModbusTcpConnection->bmsWarningLsb() << "\n";
     debug.nospace().noquote() << "    - BMS warning bits msb (0x26): " << solaxModbusTcpConnection->bmsWarningMsb() << "\n";
     debug.nospace().noquote() << "    - Inverter fault bits (0x40): " << solaxModbusTcpConnection->inverterFaultBits() << "\n";
-    debug.nospace().noquote() << "    - Meter 1 communication status (0xB8): " << solaxModbusTcpConnection->meter1CommunicationSate() << "\n";
+    debug.nospace().noquote() << "    - Meter 1 communication status (0xB8): " << solaxModbusTcpConnection->meter1CommunicationState() << "\n";
     debug.nospace().noquote() << "    - Active power limit (0x25): " << solaxModbusTcpConnection->activePowerLimit() << " [%]" << "\n";
     debug.nospace().noquote() << "    - Firmware version (0x7D): " << solaxModbusTcpConnection->firmwareVersion() << "\n";
     debug.nospace().noquote() << "    - Inverter rated power (0xBA): " << solaxModbusTcpConnection->inverterType() << " [W]" << "\n";
