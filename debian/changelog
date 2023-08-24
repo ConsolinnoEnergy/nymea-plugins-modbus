@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.0-1) dev; urgency=medium
+nymea-plugins-modbus (1.7.001) dev; urgency=medium
 
   * Bugfix Mac address is null
 
