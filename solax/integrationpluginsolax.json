@@ -147,6 +147,15 @@
                             "cached": false
                         },
                         {
+                            "id": "749d3c0d-2102-4f74-852c-2ae2cb7e8f32",
+                            "name": "firmwareVersion",
+                            "displayName": "Firmware version",
+                            "displayNameEvent": "Firmware version changed",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "21d03306-a98e-4973-835c-2d41d3c64573",
                             "name": "pv1Power",
                             "displayName": "PV1 power",
@@ -348,6 +357,15 @@
                             "displayNameEvent": "Rated power changed",
                             "type": "double",
                             "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "eefe145d-04fd-4beb-baaa-a0233cec5f00",
+                            "name": "firmwareVersion",
+                            "displayName": "Firmware version",
+                            "displayNameEvent": "Firmware version changed",
+                            "type": "uint",
                             "defaultValue": 0,
                             "cached": false
                         },

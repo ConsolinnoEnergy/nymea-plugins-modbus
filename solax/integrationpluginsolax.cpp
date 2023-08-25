@@ -79,7 +79,7 @@ void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &DiscoveryTcp::discoveryFinished, info, [=](){
             foreach (const DiscoveryTcp::Result &result, discovery->discoveryResults()) {
 
-                ThingDescriptor descriptor(solaxX3InverterTCPThingClassId, result.manufacturerName + " " + result.productName, QString("rated power: %1").arg(result.powerRating) + " - " + result.networkDeviceInfo.address().toString());
+                ThingDescriptor descriptor(solaxX3InverterTCPThingClassId, result.manufacturerName + " Inverter " + result.productName, QString("rated power: %1").arg(result.powerRating) + "W - " + result.networkDeviceInfo.address().toString());
                 qCInfo(dcSolax()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 // Check if we already have set up this device
@@ -121,7 +121,7 @@ void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
             qCInfo(dcSolax()) << "Discovery results:" << discovery->discoveryResults().count();
 
             foreach (const DiscoveryRtu::Result &result, discovery->discoveryResults()) {
-                ThingDescriptor descriptor(info->thingClassId(), "Solax Inverter", QString("Modbus ID: %1").arg(result.modbusId));
+                ThingDescriptor descriptor(info->thingClassId(), "Solax Inverter ", QString("rated power: %1").arg(result.powerRating) + "W - " + QString("Modbus ID: %1").arg(result.modbusId));
 
                 ParamList params{
                     {solaxX3InverterRTUThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
@@ -153,7 +153,9 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         // Handle reconfigure
         if (m_tcpConnections.contains(thing)) {
             qCDebug(dcSolax()) << "Already have a Solax connection for this thing. Cleaning up old connection and initializing new one...";
-            delete m_tcpConnections.take(thing);
+            SolaxModbusTcpConnection *connection = m_tcpConnections.take(thing);
+            connection->disconnectDevice();
+            connection->deleteLater();
         } else {
             qCDebug(dcSolax()) << "Setting up a new device:" << thing->params();
         }
@@ -252,6 +254,8 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
             if (success) {
                 qCDebug(dcSolax()) << "Solax inverter initialized.";
+                thing->setStateValue(solaxX3InverterTCPFirmwareVersionStateTypeId, connection->firmwareVersion());
+                thing->setStateValue(solaxX3InverterTCPRatedPowerStateTypeId, connection->inverterType());
             } else {
                 qCDebug(dcSolax()) << "Solax inverter initialization failed.";
                 // Try once to reconnect the device
@@ -335,11 +339,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         connect(connection, &SolaxModbusTcpConnection::inverterFaultBitsChanged, thing, [this, thing](quint32 inverterFaultBits){
             qCDebug(dcSolax()) << "Inverter fault bits recieved" << inverterFaultBits;
             setErrorMessage(thing, inverterFaultBits);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::inverterTypeChanged, thing, [thing](quint16 inverterRatedPower){
-            qCDebug(dcSolax()) << "Inverter rated power changed" << inverterRatedPower << "W";
-            thing->setStateValue(solaxX3InverterTCPRatedPowerStateTypeId, inverterRatedPower);
         });
 
 
@@ -643,6 +642,16 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
 
         // Handle property changed signals for inverter
+        connect(connection, &SolaxModbusRtuConnection::initializationFinished, thing, [=](bool success){
+            if (success) {
+                qCDebug(dcSolax()) << "Solax inverter initialized.";
+                thing->setStateValue(solaxX3InverterRTUFirmwareVersionStateTypeId, connection->firmwareVersion());
+                thing->setStateValue(solaxX3InverterRTURatedPowerStateTypeId, connection->inverterType());
+            } else {
+                qCDebug(dcSolax()) << "Solax inverter initialization failed.";
+            }
+        });
+
         connect(connection, &SolaxModbusRtuConnection::inverterPowerChanged, thing, [thing](qint16 inverterPower){
             qCDebug(dcSolax()) << "Inverter power changed" << inverterPower << "W";
             thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -inverterPower);
@@ -717,11 +726,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         connect(connection, &SolaxModbusRtuConnection::inverterFaultBitsChanged, thing, [this, thing](quint32 inverterFaultBits){
             qCDebug(dcSolax()) << "Inverter fault bits recieved" << inverterFaultBits;
             setErrorMessage(thing, inverterFaultBits);
-        });
-
-        connect(connection, &SolaxModbusRtuConnection::inverterTypeChanged, thing, [thing](quint16 inverterRatedPower){
-            qCDebug(dcSolax()) << "Inverter rated power changed" << inverterRatedPower << "W";
-            thing->setStateValue(solaxX3InverterRTURatedPowerStateTypeId, inverterRatedPower);
         });
 
 
@@ -996,7 +1000,13 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
                 }
 
                 foreach(SolaxModbusRtuConnection *connection, m_rtuConnections) {
-                    connection->update();
+                    // Use this register to test if initialization was done.
+                    quint16 ratedPower = connection->inverterType();
+                    if (ratedPower < 600) {
+                        connection->initialize();
+                    } else {
+                        connection->update();
+                    }
                 }
             });
 
@@ -1093,7 +1103,9 @@ void IntegrationPluginSolax::thingRemoved(Thing *thing)
     }
 
     if (m_tcpConnections.contains(thing)) {
-        m_tcpConnections.take(thing)->deleteLater();
+        SolaxModbusTcpConnection *connection = m_tcpConnections.take(thing);
+        connection->disconnectDevice();
+        connection->deleteLater();
     }
 
     if (m_rtuConnections.contains(thing)) {

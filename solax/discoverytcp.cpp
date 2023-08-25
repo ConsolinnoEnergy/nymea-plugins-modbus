@@ -108,7 +108,10 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
                 result.powerRating = ratedPower;
                 result.networkDeviceInfo = networkDeviceInfo;
                 m_discoveryResults.append(result);
-                qCDebug(dcSolax()) << "Discovery: --> Found" << result.networkDeviceInfo << QString(" with rated power of %1").arg(ratedPower);;
+                qCDebug(dcSolax()) << "Discovery: --> Found" << result.networkDeviceInfo
+                                   << ", Manufacturer: " << result.manufacturerName
+                                   << ", Module name: " << result.productName
+                                   << QString(" with rated power of %1").arg(ratedPower);
             } else {
                 qCDebug(dcSolax()) << QString("The value in holding register 0xBA is %1, which does not seem to be a power rating. This is not a Solax inverter.").arg(ratedPower);
             }
