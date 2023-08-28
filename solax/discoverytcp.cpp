@@ -67,6 +67,8 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
     int modbusId = 1;    // The solax responds to any modbus ID on modbus TCP. So the ID does not matter.
     qCDebug(dcSolax()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << modbusId;
 
+    // This can be improved by first checking if port 502 is open. If that port is not open, it is not a modbus device.
+
     SolaxModbusTcpConnection *connection = new SolaxModbusTcpConnection(networkDeviceInfo.address(), port, modbusId, this);
     m_connections.append(connection);
 
