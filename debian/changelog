@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.001) dev; urgency=medium
+
+  * Bugfix Mac address is null
+
+ -- Knab Florian <f.knab@consolinno.de>  Thu, 24 Aug 2023 10:14:48 +0100
+
 nymea-plugins-modbus (1.7.0) jammy; urgency=medium
 
   [ Michael Zanetti ]
