@@ -1,6 +1,6 @@
 nymea-plugins-modbus (1.7.002) dev; urgency=medium
 
-  * Added fix to skip wrong total energy values.
+  * SDM630: Check for decreasing energy values and ignore them .
 
  -- Leonhard Heizinger <l.heizinger@consolinno.de>  Thu, 29 Aug 2023 10:28:48 +0100
 
