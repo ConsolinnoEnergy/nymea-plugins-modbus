@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.002) dev; urgency=medium
+
+  * Added fix to skip wrong total energy values.
+
+ -- Leonhard Heizinger <l.heizinger@consolinno.de>  Thu, 29 Aug 2023 10:28:48 +0100
+
 nymea-plugins-modbus (1.7.001) dev; urgency=medium
 
   * Bugfix Mac address is null
