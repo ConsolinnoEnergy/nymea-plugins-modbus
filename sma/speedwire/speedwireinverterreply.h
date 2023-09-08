@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,17 +28,62 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef MODBUSHELPERS_H
-#define MODBUSHELPERS_H
+#ifndef SPEEDWIREINVERTERREPLY_H
+#define SPEEDWIREINVERTERREPLY_H
 
-#include <QtGlobal>
-#include <QVector>
+#include <QObject>
+#include <QTimer>
 
-class ModbusHelpers {
+#include "speedwireinverterrequest.h"
+
+class SpeedwireInverterReply : public QObject
+{
+    Q_OBJECT
+
+    friend class SpeedwireInverter;
+
 public:
-    static float convertRegisterToFloat(const quint16 *reg);
-    static QVector<quint16> convertFloatToRegister(float value);
+    enum Error {
+        ErrorNoError,       // Response on, no error
+        ErrorInverterError, // Inverter returned error
+        ErrorTimeout        // Request timeouted
+    };
+    Q_ENUM(Error)
+
+    // Request
+    SpeedwireInverterRequest request() const;
+
+    Error error() const;
+
+    // Response
+    QByteArray responseData() const;
+    Speedwire::Header responseHeader() const;
+    Speedwire::InverterPacket responsePacket() const;
+    QByteArray responsePayload() const;
+
+signals:
+    void finished();
+    void timeout();
+
+private:
+    explicit SpeedwireInverterReply(const SpeedwireInverterRequest &request, QObject *parent = nullptr);
+
+    QTimer m_timer;
+    Error m_error = ErrorNoError;
+    SpeedwireInverterRequest m_request;
+    quint8 m_retries = 0;
+    quint8 m_maxRetries = 3;
+    int m_timeout = 3000;
+
+    QByteArray m_responseData;
+    Speedwire::Header m_responseHeader;
+    Speedwire::InverterPacket m_responsePacket;
+    QByteArray m_responsePayload;
+
+
+    void finishReply(Error error);
+    void startWaiting();
+
 };
 
-#endif
-
+#endif // SPEEDWIREINVERTERREPLY_H

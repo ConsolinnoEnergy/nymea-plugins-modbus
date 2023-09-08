@@ -98,7 +98,7 @@ void IntegrationPluginTechnivolt::setupThing(ThingSetupInfo *info)
     }
 
     MacAddress mac = MacAddress(thing->paramValue("mac").toString());
-    if (!mac.isValid()) {
+    if (mac.isNull()) {
         info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The given MAC address is not valid."));
         return;
     }
