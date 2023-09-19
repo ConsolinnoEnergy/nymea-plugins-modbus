@@ -367,18 +367,33 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
     AmperfiedModbusTcpConnection *connection = new AmperfiedModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, info->thing());
 
+    // Reconnect on monitor reachable changed.
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
+        qCDebug(dcAmperfied()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+        if (reachable && !thing->stateValue(connectHomeConnectedStateTypeId).toBool()) {
+            connection->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->reconnectDevice();
+        } else if (!reachable) {
+            // Note: We disable autoreconnect explicitly and we will
+            // connect the device once the monitor says it is reachable again.
+            connection->disconnectDevice();
+        }
+    });
+
     connect(connection, &AmperfiedModbusTcpConnection::reachableChanged, thing, [connection, thing](bool reachable){
+        qCDebug(dcAmperfied()) << "Reachable changed to" << reachable;
+        thing->setStateValue(connectHomeConnectedStateTypeId, reachable);
         if (reachable) {
             connection->initialize();
         } else {
             thing->setStateValue(connectHomeCurrentPowerStateTypeId, 0);
-            thing->setStateValue(connectHomeConnectedStateTypeId, false);
         }
     });
 
 
     connect(connection, &AmperfiedModbusTcpConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
+            qCDebug(dcAmperfied()) << "Initialization finished sucessfully";
             if (connection->version() < 0x0107) {
                 qCWarning(dcAmperfied()) << "We require at least version 1.0.8.";
                 info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware 1.0.7."));
@@ -395,8 +410,6 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &AmperfiedModbusTcpConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAmperfied()) << "Updated:" << connection;
-
-        thing->setStateValue(connectHomeConnectedStateTypeId, true);
 
         if (connection->chargingCurrent() == 0) {
             thing->setStateValue(connectHomePowerStateTypeId, false);
