@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.002-1) buster focal jammy; urgency=medium
+
+* Adapt to new versioning schema
+
+ -- Florian Knab <f.knab@consolinno.de> Thu, 19 Sep 2023 7:50:53 +0200
+
 nymea-plugins-modbus (1.7.002) dev; urgency=medium
 
   * SDM630: Check for decreasing energy values and ignore them .
