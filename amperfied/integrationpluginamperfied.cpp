@@ -44,8 +44,6 @@ IntegrationPluginAmperfied::IntegrationPluginAmperfied()
 
 void IntegrationPluginAmperfied::discoverThings(ThingDiscoveryInfo *info)
 {
-    hardwareManager()->modbusRtuResource();
-
     if (info->thingClassId() == energyControlThingClassId) {
         EnergyControlDiscovery *discovery = new EnergyControlDiscovery(hardwareManager()->modbusRtuResource(), info);
 
@@ -203,7 +201,7 @@ void IntegrationPluginAmperfied::executeAction(ThingActionInfo *info)
             ModbusRtuReply *reply = connection->setChargingCurrent(power ? max : 0);
             connect(reply, &ModbusRtuReply::finished, info, [info, reply, max](){
                 if (reply->error() == ModbusRtuReply::NoError) {
-                    info->thing()->setStateValue(energyControlMaxChargingCurrentStateTypeId, max);
+                    info->thing()->setStateValue(energyControlMaxChargingCurrentStateTypeId, max / 10);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
                     qCWarning(dcAmperfied()) << "Error setting power:" << reply->error() << reply->errorString();
@@ -237,7 +235,7 @@ void IntegrationPluginAmperfied::executeAction(ThingActionInfo *info)
             QModbusReply *reply = connection->setChargingCurrent(power ? max : 0);
             connect(reply, &QModbusReply::finished, info, [info, reply, max](){
                 if (reply->error() == QModbusDevice::NoError) {
-                    info->thing()->setStateValue(connectHomeMaxChargingCurrentStateTypeId, max);
+                    info->thing()->setStateValue(connectHomeMaxChargingCurrentStateTypeId, max / 10);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
                     qCWarning(dcAmperfied()) << "Error setting power:" << reply->error() << reply->errorString();
@@ -270,6 +268,11 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
     ModbusRtuMaster *master = hardwareManager()->modbusRtuResource()->getModbusRtuMaster(thing->paramValue(energyControlThingRtuMasterParamTypeId).toUuid());
+    if (!master) {
+        qCWarning(dcAmperfied()) << "The Modbus Master is not available any more.";
+        info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("The modbus RTU connection is not available."));
+        return;
+    }
     quint16 slaveId = thing->paramValue(energyControlThingSlaveIdParamTypeId).toUInt();
     AmperfiedModbusRtuConnection *connection = new AmperfiedModbusRtuConnection(master, slaveId, thing);
 
@@ -281,9 +284,12 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
             thing->setStateValue(energyControlConnectedStateTypeId, false);
         }
     });
-    connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, thing, [thing](bool success){
+    connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, thing, [connection, thing](bool success){
         if (success) {
             thing->setStateValue(energyControlConnectedStateTypeId, true);
+
+            // Disabling the auto-standby as it will shut down modbus
+            connection->setStandby(AmperfiedModbusRtuConnection::StandbyStandbyDisabled);
         }
     });
 
