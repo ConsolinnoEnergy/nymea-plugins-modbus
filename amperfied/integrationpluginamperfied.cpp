@@ -268,12 +268,11 @@ void IntegrationPluginAmperfied::thingRemoved(Thing *thing)
     }
 
     if (thing->thingClassId() == connectHomeThingClassId) {
+        if (m_monitors.contains(thing)) {
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+        }
         if (m_tcpConnections.contains(thing))
             m_tcpConnections.take(thing)->deleteLater();
-    }
-
-    if (m_monitors.contains(thing)) {
-        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
     }
 
     if (myThings().isEmpty() && m_pluginTimer) {
@@ -321,7 +320,7 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
     connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
             if (connection->version() < 0x0107) {
-                qCWarning(dcAmperfied()) << "We require at least version 1.0.8.";
+                qCWarning(dcAmperfied()) << "We require at least version 1.0.7.";
                 info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware 1.0.7."));
                 return;
             }
@@ -399,31 +398,37 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
         connection->deleteLater();
     });
 
-    // Reconnect on monitor reachable changed. This is needed to reconnect when the device is turned off and on again. Tested, won't work otherwise.
-    // Note: the connect.home wallbox needs to be turned off and on again to change it's IP address, if it was plugged into a different network.
+    // Use a monitor to detect IP address changes. However, the monitor is not reliable and regularly reports 'not reachable' when the modbus connection
+    // is still working. Because of that, check if the modbus connection is working before setting it to disconnect.
     connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [this, thing, monitor](bool reachable){
         // This may trigger before setup finished, but should only execute after setup. Check m_tcpConnections for thing, because that key won't
         // be in there before setup finished.
         if (m_tcpConnections.contains(thing)) {
             qCDebug(dcAmperfied()) << "Network device monitor reachable changed for" << thing->name() << reachable;
-            if (reachable && !thing->stateValue(connectHomeConnectedStateTypeId).toBool()) {
-                m_tcpConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
-                m_tcpConnections.value(thing)->reconnectDevice();
-            } else if (!reachable) {
-                // Note: We disable autoreconnect explicitly and we will
-                // connect the device once the monitor says it is reachable again.
-                m_tcpConnections.value(thing)->disconnectDevice();
+            if (!thing->stateValue(connectHomeConnectedStateTypeId).toBool()) {
+                // connectedState switches to false when modbus calls don't work. This code should not execute when modbus is still working.
+                if (reachable) {
+                    m_tcpConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_tcpConnections.value(thing)->reconnectDevice();
+                } else {
+                    // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    m_tcpConnections.value(thing)->disconnectDevice();
+                }
             }
         }
     });
 
-    connect(connection, &AmperfiedModbusTcpConnection::reachableChanged, thing, [connection, thing](bool reachable){
+    connect(connection, &AmperfiedModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable){
         qCDebug(dcAmperfied()) << "Reachable changed to" << reachable;
         thing->setStateValue(connectHomeConnectedStateTypeId, reachable);
         if (reachable) {
             connection->initialize();
         } else {
             thing->setStateValue(connectHomeCurrentPowerStateTypeId, 0);
+            if (m_monitors.contains(thing) && !m_monitors.value(thing)->reachable()) {
+                // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                connection->disconnectDevice();
+            }
         }
     });
 
@@ -431,7 +436,7 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
         if (success) {
             qCDebug(dcAmperfied()) << "Initialization finished sucessfully";
             if (connection->version() < 0x0107) {
-                qCWarning(dcAmperfied()) << "We require at least version 1.0.8.";
+                qCWarning(dcAmperfied()) << "We require at least version 1.0.7.";
                 info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware 1.0.7."));
                 return;
             }

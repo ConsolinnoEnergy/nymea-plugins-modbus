@@ -85,7 +85,8 @@ void EnergyControlDiscovery::tryConnect(ModbusRtuMaster *master, quint16 slaveId
                 qCDebug(dcAmperfied()) << "Version must be at least 1.0.0 (0x0100)";
             }
         }
-        if (slaveId < 20) {
+        // The possible Modbus IDs of the Energy Control are in the range [0;15].
+        if (slaveId < 15) {
             tryConnect(master, slaveId+1);
         } else {
             emit discoveryFinished(true);

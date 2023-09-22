@@ -12,7 +12,7 @@
                     "name": "energyControl",
                     "displayName": "Energy Control",
                     "id": "5b87b9ab-c78b-48c2-9f5f-5a4efebd2c58",
-                    "createMethods": ["discovery", "user"],
+                    "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {
@@ -20,7 +20,8 @@
                             "name":"rtuMaster",
                             "displayName": "Modbus RTU master",
                             "type": "QString",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "readOnly": true
                         },
                         {
                             "id": "fb3a1559-2fb8-4cc5-9b88-bde1714c746d",
@@ -29,7 +30,8 @@
                             "type": "uint",
                             "minValue": 1,
                             "maxValue": 248,
-                            "defaultValue": 1
+                            "defaultValue": 1,
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [
@@ -119,7 +121,7 @@
                     "name": "connectHome",
                     "displayName": "connect.home",
                     "id": "f8805308-1ddd-496c-bea3-ef9163357bfa",
-                    "createMethods": ["discovery", "user"],
+                    "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {
@@ -127,7 +129,8 @@
                             "name":"macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [
