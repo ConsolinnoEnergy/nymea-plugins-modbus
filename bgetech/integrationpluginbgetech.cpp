@@ -1,4 +1,4 @@
-﻿/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
 * Copyright 2013 - 2021, nymea GmbH
 * Contact: contact@nymea.io
@@ -196,11 +196,19 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::totalEnergyConsumedChanged, this, [=](float totalEnergyConsumed){
-            thing->setStateValue(sdm630TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
+            if (totalEnergyConsumed < thing->stateValue(sdm630TotalEnergyConsumedStateTypeId).toFloat()) {
+                qCWarning(dcBgeTech()) << "Total energy consumed value is smaller than the previous value. Skipping value.";
+                return;
+            }
+        thing->setStateValue(sdm630TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float totalEnergyProduced){
-            thing->setStateValue(sdm630TotalEnergyProducedStateTypeId, totalEnergyProduced);
+            if (totalEnergyProduced < thing->stateValue(sdm630TotalEnergyProducedStateTypeId).toFloat()) {
+                qCWarning(dcBgeTech()) << "Total energy produced value is smaller than the previous value. Skipping value.";
+                return;
+            }
+        thing->setStateValue(sdm630TotalEnergyProducedStateTypeId, totalEnergyProduced);
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::energyProducedPhaseAChanged, this, [=](float energyProducedPhaseA){
