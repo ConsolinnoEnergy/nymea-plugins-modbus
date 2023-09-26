@@ -56,6 +56,7 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
+    bool m_huaweiFusionSetupRunning{false};
     PluginTimer *m_pluginTimer = nullptr;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
