@@ -271,8 +271,11 @@ void IntegrationPluginAmperfied::thingRemoved(Thing *thing)
         if (m_monitors.contains(thing)) {
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         }
-        if (m_tcpConnections.contains(thing))
-            m_tcpConnections.take(thing)->deleteLater();
+        if (m_tcpConnections.contains(thing)) {
+            AmperfiedModbusTcpConnection *connection = m_tcpConnections.take(thing);
+            connection->disconnectDevice(); // This is needed to avoid a segfault.
+            connection->deleteLater();
+        }
     }
 
     if (myThings().isEmpty() && m_pluginTimer) {
@@ -395,6 +398,7 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
     AmperfiedModbusTcpConnection *connection = new AmperfiedModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, thing);
     connect(info, &ThingSetupInfo::aborted, connection, [=](){
         qCDebug(dcAmperfied()) << "Cleaning up ModbusTCP connection because setup has been aborted.";
+        connection->disconnectDevice();
         connection->deleteLater();
     });
 
