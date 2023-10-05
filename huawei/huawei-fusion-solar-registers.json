@@ -181,6 +181,181 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "meterStuff1",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "meterGridVoltageAphase",
+                    "address": 37101,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid voltage A phase",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridVoltageBphase",
+                    "address": 37103,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid voltage B phase",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridVoltageCphase",
+                    "address": 37105,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid voltage C phase",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridCurrentAphase",
+                    "address": 37107,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid current A phase",
+                    "unit": "A",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridCurrentBphase",
+                    "address": 37109,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid current B phase",
+                    "unit": "A",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridCurrentCphase",
+                    "address": 37111,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid current C phase",
+                    "unit": "A",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerMeterActivePower",
+                    "address": 37113,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Power meter active power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterReactivePower",
+                    "address": 37115,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter reactive power",
+                    "unit": "Var",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterPowerFactor",
+                    "address": 37117,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter power factor",
+                    "staticScaleFactor": -3,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridFrequency",
+                    "address": 37118,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid frequency",
+                    "unit": "Hz",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "meterStuff2",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "meterAphaseActivePower",
+                    "address": 37132,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter A phase active power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterBphaseActivePower",
+                    "address": 37134,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter B phase active power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCphaseActivePower",
+                    "address": 37136,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter C phase active power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         }
     ],
     "registers": [
@@ -232,18 +407,6 @@
             "description": "Inverter energy produced",
             "unit": "kWh",
             "staticScaleFactor": -2,
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "powerMeterActivePower",
-            "address": 37113,
-            "size": 2,
-            "type": "int32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Power meter active power",
-            "unit": "W",
             "defaultValue": "0",
             "access": "RO"
         },

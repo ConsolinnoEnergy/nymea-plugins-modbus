@@ -70,7 +70,8 @@ bool HuaweiFusionSolar::update()
     if (m_battery2Available)
         m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery2Power);
 
-    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterPowerMeterActivePower);
+    //m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterPowerMeterActivePower);
+    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterMeterGridVoltageAphase);
     m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterInverterEnergyProduced);
     m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterInverterDeviceStatus);
 
@@ -325,6 +326,60 @@ void HuaweiFusionSolar::readNextRegister()
                 }
             } else {
                 qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Power meter active power\" registers from" << hostAddress().toString() << error << reply->errorString();
+            }
+        });
+
+        break;
+    }
+    case HuaweiFusionModbusTcpConnection::RegisterMeterGridVoltageAphase: {
+        // Read meterStuff1
+        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"meterStuff1\" registers from:" << 37101 << "size:" << 18;
+        QModbusReply *reply = readBlockMeterStuff1();
+        if (!reply) {
+            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"meterStuff1\" registers from" << hostAddress().toString() << errorString();
+            finishRequest();
+            return;
+        }
+
+        if (reply->isFinished()) {
+            reply->deleteLater(); // Broadcast reply returns immediatly
+            finishRequest();
+            return;
+        }
+
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, this, [this, reply](){
+            handleModbusError(reply->error());
+            if (reply->error() == QModbusDevice::NoError) {
+                const QModbusDataUnit unit = reply->result();
+                const QVector<quint16> blockValues = unit.values();
+                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"meterStuff1\" register" << 37101 << "size:" << 18 << blockValues;
+                if (!valuesAreVaild(unit.values(), 18)) {
+                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 18 << "but received" << unit.values();
+                } else {
+                    processMeterGridVoltageAphaseRegisterValues(blockValues.mid(0, 2));
+                    processMeterGridVoltageBphaseRegisterValues(blockValues.mid(2, 2));
+                    processMeterGridVoltageCphaseRegisterValues(blockValues.mid(4, 2));
+                    processMeterGridCurrentAphaseRegisterValues(blockValues.mid(6, 2));
+                    processMeterGridCurrentBphaseRegisterValues(blockValues.mid(8, 2));
+                    processMeterGridCurrentCphaseRegisterValues(blockValues.mid(10, 2));
+                    processPowerMeterActivePowerRegisterValues(blockValues.mid(12, 2));
+                    processMeterReactivePowerRegisterValues(blockValues.mid(14, 2));
+                    processMeterPowerFactorRegisterValues(blockValues.mid(16, 1));
+                    processMeterGridFrequencyRegisterValues(blockValues.mid(17, 1));
+                }
+            }
+            finishRequest();
+        });
+
+        connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+            if (reply->error() == QModbusDevice::ProtocolError) {
+                QModbusResponse response = reply->rawResult();
+                if (response.isException()) {
+                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"meterStuff1\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                }
+            } else {
+                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"meterStuff1\" registers from" << hostAddress().toString() << error << reply->errorString();
             }
         });
 
