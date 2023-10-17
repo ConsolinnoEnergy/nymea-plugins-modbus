@@ -160,8 +160,9 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
             foreach (const EVC04Discovery::Result &result, discovery->discoveryResults()) {
 
                 if (result.brand != "Webasto") {
-                    qCDebug(dcWebasto()) << "Skipping Vestel wallbox without Webasto branding...";
-                    continue;
+                    qCDebug(dcWebasto()) << "Brand is" << result.brand;
+                    //qCDebug(dcWebasto()) << "Skipping Vestel wallbox without Webasto branding...";
+                    //continue;
                 }
                 QString name = result.chargepointId;
                 QString description = result.brand + " " + result.model;
@@ -1208,8 +1209,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         info->finish(Thing::ThingErrorNoError);
 
         thing->setStateValue(webastoUniteConnectedStateTypeId, true);
-//        thing->setStateValue(webastoUniteVersionStateTypeId, QString(QString::fromUtf16(evc04Connection->firmwareVersion().data(), evc04Connection->firmwareVersion().length()).toUtf8()).trimmed());
-        thing->setStateValue(webastoUniteVersionStateTypeId, evc04Connection->firmwareVersion());
+        thing->setStateValue(webastoUniteVersionStateTypeId, QString(QString::fromUtf16(evc04Connection->firmwareVersion().data(), evc04Connection->firmwareVersion().length()).toUtf8()).trimmed());
 
         evc04Connection->update();
     });
@@ -1217,15 +1217,10 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     connect(evc04Connection, &EVC04ModbusTcpConnection::updateFinished, thing, [this, evc04Connection, thing](){
         qCDebug(dcWebasto()) << "EVC04 update finished:" << thing->name() << evc04Connection;
 
-//        qCDebug(dcWebasto()) << "Serial:" << QString(QString::fromUtf16(evc04Connection->serialNumber().data(), evc04Connection->serialNumber().length()).toUtf8()).trimmed();
-//        qCDebug(dcWebasto()) << "ChargePoint ID:" << QString(QString::fromUtf16(evc04Connection->chargepointId().data(), evc04Connection->chargepointId().length()).toUtf8()).trimmed();
-//        qCDebug(dcWebasto()) << "Brand:" << QString(QString::fromUtf16(evc04Connection->brand().data(), evc04Connection->brand().length()).toUtf8()).trimmed();
-//        qCDebug(dcWebasto()) << "Model:" << QString(QString::fromUtf16(evc04Connection->model().data(), evc04Connection->model().length()).toUtf8()).trimmed();
-
-        qCDebug(dcWebasto()) << "Serial:" << evc04Connection->serialNumber();
-        qCDebug(dcWebasto()) << "ChargePoint ID:" << evc04Connection->chargepointId();
-        qCDebug(dcWebasto()) << "Brand:" << evc04Connection->brand();
-        qCDebug(dcWebasto()) << "Model:" << evc04Connection->model();
+        qCDebug(dcWebasto()) << "Serial:" << QString(QString::fromUtf16(evc04Connection->serialNumber().data(), evc04Connection->serialNumber().length()).toUtf8()).trimmed();
+        qCDebug(dcWebasto()) << "ChargePoint ID:" << QString(QString::fromUtf16(evc04Connection->chargepointId().data(), evc04Connection->chargepointId().length()).toUtf8()).trimmed();
+        qCDebug(dcWebasto()) << "Brand:" << QString(QString::fromUtf16(evc04Connection->brand().data(), evc04Connection->brand().length()).toUtf8()).trimmed();
+        qCDebug(dcWebasto()) << "Model:" << QString(QString::fromUtf16(evc04Connection->model().data(), evc04Connection->model().length()).toUtf8()).trimmed();
 
         updateEVC04MaxCurrent(thing);
 

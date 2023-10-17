@@ -87,15 +87,10 @@ void EVC04Discovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceIn
                 return;
             }
             Result result;
-//            result.chargepointId = QString(QString::fromUtf16(connection->chargepointId().data(), connection->chargepointId().length()).toUtf8()).trimmed();
-//            result.brand = QString(QString::fromUtf16(connection->brand().data(), connection->brand().length()).toUtf8()).trimmed();
-//            result.model = QString(QString::fromUtf16(connection->model().data(), connection->model().length()).toUtf8()).trimmed();
-//            result.firmwareVersion = QString(QString::fromUtf16(connection->firmwareVersion().data(), connection->firmwareVersion().length()).toUtf8()).trimmed();
-
-            result.chargepointId = connection->chargepointId();
-            result.brand = connection->brand();
-            result.model = connection->model();
-            result.firmwareVersion = connection->firmwareVersion();
+            result.chargepointId = QString(QString::fromUtf16(connection->chargepointId().data(), connection->chargepointId().length()).toUtf8()).trimmed();
+            result.brand = QString(QString::fromUtf16(connection->brand().data(), connection->brand().length()).toUtf8()).trimmed();
+            result.model = QString(QString::fromUtf16(connection->model().data(), connection->model().length()).toUtf8()).trimmed();
+            result.firmwareVersion = QString(QString::fromUtf16(connection->firmwareVersion().data(), connection->firmwareVersion().length()).toUtf8()).trimmed();
             result.networkDeviceInfo = networkDeviceInfo;
             m_discoveryResults.append(result);
 

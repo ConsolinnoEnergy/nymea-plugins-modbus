@@ -270,8 +270,7 @@ void IntegrationPluginVestel::setupEVC04Connection(ThingSetupInfo *info)
         info->finish(Thing::ThingErrorNoError);
 
         thing->setStateValue(evc04ConnectedStateTypeId, true);
-//        thing->setStateValue(evc04VersionStateTypeId, QString(QString::fromUtf16(evc04Connection->firmwareVersion().data(), evc04Connection->firmwareVersion().length()).toUtf8()).trimmed());
-        thing->setStateValue(evc04VersionStateTypeId, evc04Connection->firmwareVersion());
+        thing->setStateValue(evc04VersionStateTypeId, QString(QString::fromUtf16(evc04Connection->firmwareVersion().data(), evc04Connection->firmwareVersion().length()).toUtf8()).trimmed());
 
         evc04Connection->update();
     });
@@ -279,15 +278,10 @@ void IntegrationPluginVestel::setupEVC04Connection(ThingSetupInfo *info)
     connect(evc04Connection, &EVC04ModbusTcpConnection::updateFinished, thing, [this, evc04Connection, thing](){
         qCDebug(dcVestel()) << "EVC04 update finished:" << thing->name() << evc04Connection;
 
-//        qCDebug(dcVestel()) << "Serial:" << QString(QString::fromUtf16(evc04Connection->serialNumber().data(), evc04Connection->serialNumber().length()).toUtf8()).trimmed();
-//        qCDebug(dcVestel()) << "ChargePoint ID:" << QString(QString::fromUtf16(evc04Connection->chargepointId().data(), evc04Connection->chargepointId().length()).toUtf8()).trimmed();
-//        qCDebug(dcVestel()) << "Brand:" << QString(QString::fromUtf16(evc04Connection->brand().data(), evc04Connection->brand().length()).toUtf8()).trimmed();
-//        qCDebug(dcVestel()) << "Model:" << QString(QString::fromUtf16(evc04Connection->model().data(), evc04Connection->model().length()).toUtf8()).trimmed();
-
-        qCDebug(dcVestel()) << "Serial:" << evc04Connection->serialNumber();
-        qCDebug(dcVestel()) << "ChargePoint ID:" << evc04Connection->chargepointId();
-        qCDebug(dcVestel()) << "Brand:" << evc04Connection->brand();
-        qCDebug(dcVestel()) << "Model:" << evc04Connection->model();
+        qCDebug(dcVestel()) << "Serial:" << QString(QString::fromUtf16(evc04Connection->serialNumber().data(), evc04Connection->serialNumber().length()).toUtf8()).trimmed();
+        qCDebug(dcVestel()) << "ChargePoint ID:" << QString(QString::fromUtf16(evc04Connection->chargepointId().data(), evc04Connection->chargepointId().length()).toUtf8()).trimmed();
+        qCDebug(dcVestel()) << "Brand:" << QString(QString::fromUtf16(evc04Connection->brand().data(), evc04Connection->brand().length()).toUtf8()).trimmed();
+        qCDebug(dcVestel()) << "Model:" << QString(QString::fromUtf16(evc04Connection->model().data(), evc04Connection->model().length()).toUtf8()).trimmed();
 
         updateEVC04MaxCurrent(thing);
 
