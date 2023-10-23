@@ -228,14 +228,13 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
         if (m_webastoNextConnections.contains(thing)) {
             qCDebug(dcWebasto()) << "Reconfiguring existing thing" << thing->name();
             m_webastoNextConnections.take(thing)->deleteLater();
-
-            if (m_monitors.contains(thing)) {
-                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-            }
+        }
+        if (m_monitors.contains(thing)) {
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         }
 
         MacAddress macAddress = MacAddress(thing->paramValue(webastoNextThingMacAddressParamTypeId).toString());
-        if (!macAddress.isValid()) {
+        if (macAddress.isNull()) {
             qCWarning(dcWebasto()) << "The configured mac address is not valid" << thing->params();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not known. Please reconfigure the thing."));
             return;
@@ -289,14 +288,13 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
         if (m_evc04Connections.contains(thing)) {
             qCDebug(dcWebasto()) << "Reconfiguring existing thing" << thing->name();
             m_evc04Connections.take(thing)->deleteLater();
-
-            if (m_monitors.contains(thing)) {
-                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-            }
+        }
+        if (m_monitors.contains(thing)) {
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         }
 
         MacAddress macAddress = MacAddress(thing->paramValue(webastoUniteThingMacAddressParamTypeId).toString());
-        if (!macAddress.isValid()) {
+        if (macAddress.isNull()) {
             qCWarning(dcWebasto()) << "The configured mac address is not valid" << thing->params();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not known. Please reconfigure the thing."));
             return;
@@ -387,7 +385,7 @@ void IntegrationPluginWebasto::thingRemoved(Thing *thing)
 {
     qCDebug(dcWebasto()) << "Delete thing" << thing->name();
 
-    if (thing->thingClassId() == webastoNextThingClassId) {
+    if (thing->thingClassId() == webastoNextThingClassId && m_webastoNextConnections.contains(thing)) {
         WebastoNextModbusTcpConnection *connection = m_webastoNextConnections.take(thing);
         connection->disconnectDevice();
         connection->deleteLater();
@@ -395,9 +393,9 @@ void IntegrationPluginWebasto::thingRemoved(Thing *thing)
 
     if (thing->thingClassId() == webastoUniteThingClassId && m_evc04Connections.contains(thing)) {
         EVC04ModbusTcpConnection *connection = m_evc04Connections.take(thing);
-        delete connection;
+        connection->disconnectDevice();
+        connection->deleteLater();
     }
-
 
     // Unregister related hardware resources
     if (m_monitors.contains(thing))
@@ -590,8 +588,8 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
     Thing *thing = info->thing();
 
     QHostAddress address = m_monitors.value(thing)->networkDeviceInfo().address();
-    uint port = thing->paramValue(webastoNextThingPortParamTypeId).toUInt();
-    quint16 slaveId = thing->paramValue(webastoNextThingSlaveIdParamTypeId).toUInt();
+    uint port = 502;
+    quint16 slaveId = 1;
 
     qCDebug(dcWebasto()) << "Setting up webasto next connection on" << QString("%1:%2").arg(address.toString()).arg(port) << "slave ID:" << slaveId;
     WebastoNextModbusTcpConnection *webastoNextConnection = new WebastoNextModbusTcpConnection(address, port, slaveId, this);

@@ -231,20 +231,6 @@
                             "type": "QString",
                             "defaultValue": "",
                             "readOnly": true
-                        },
-                        {
-                            "id": "be5a0c50-f3ba-4562-b6c0-a0208e2ab118",
-                            "name":"port",
-                            "displayName": "Port",
-                            "type": "uint",
-                            "defaultValue": 502
-                        },
-                        {
-                            "id": "bdb8a7bb-fcfd-4130-b860-ba3eaa3f9932",
-                            "name":"slaveId",
-                            "displayName": "Slave ID",
-                            "type": "uint",
-                            "defaultValue": 1
                         }
                     ],
                     "stateTypes": [
