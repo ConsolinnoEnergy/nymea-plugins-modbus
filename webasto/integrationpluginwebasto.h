@@ -79,6 +79,7 @@ private:
     void setupEVC04Connection(ThingSetupInfo *info);
     void updateEVC04MaxCurrent(Thing *thing);
     QHash<Thing *, quint32> m_lastWallboxTime;
+    QHash<Thing *, quint16> m_timeoutCount;
 
 
 private slots:

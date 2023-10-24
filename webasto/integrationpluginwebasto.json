@@ -219,7 +219,8 @@
                             "displayName": "Communication timeout",
                             "type": "uint",
                             "defaultValue": 60,
-                            "minValue": 1,
+                            "minValue": 10,
+                            "maxValue": 300,
                             "unit": "Seconds"
                         }
                     ],

@@ -53,8 +53,8 @@ void IntegrationPluginVestel::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &EVC04Discovery::discoveryFinished, info, [=](){
             foreach (const EVC04Discovery::Result &result, discovery->discoveryResults()) {
 
-                QString name = result.chargepointId;
-                QString description = result.brand + " " + result.model;
+                QString name = result.brand + " " + result.model;
+                QString description = result.chargepointId;
                 ThingDescriptor descriptor(evc04ThingClassId, name, description);
                 qCDebug(dcVestel()) << "Discovered:" << descriptor.title() << descriptor.description();
 
@@ -190,12 +190,16 @@ void IntegrationPluginVestel::thingRemoved(Thing *thing)
 {
     if (thing->thingClassId() == evc04ThingClassId && m_evc04Connections.contains(thing)) {
         EVC04ModbusTcpConnection *connection = m_evc04Connections.take(thing);
-        delete connection;
+        connection->disconnectDevice();
+        connection->deleteLater();
     }
 
     // Unregister related hardware resources
     if (m_monitors.contains(thing))
         hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+
+    if (m_timeoutCount.contains(thing))
+        m_timeoutCount.remove(thing);
 
     if (myThings().isEmpty() && m_pluginTimer) {
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
@@ -272,6 +276,7 @@ void IntegrationPluginVestel::setupEVC04Connection(ThingSetupInfo *info)
         thing->setStateValue(evc04ConnectedStateTypeId, true);
         thing->setStateValue(evc04VersionStateTypeId, QString(QString::fromUtf16(evc04Connection->firmwareVersion().data(), evc04Connection->firmwareVersion().length()).toUtf8()).trimmed());
 
+        m_timeoutCount[thing] = 0;
         evc04Connection->update();
     });
 
@@ -288,8 +293,16 @@ void IntegrationPluginVestel::setupEVC04Connection(ThingSetupInfo *info)
         // I've been observing the wallbox getting stuck on modbus. It is still functional, but modbus keeps on returning the same old values
         // until the TCP connection is closed and reopened. Checking the wallbox time register to detect that and auto-reconnect.
         if (m_lastWallboxTime[thing] == evc04Connection->time()) {
-            qCWarning(dcVestel()) << "Wallbox seems stuck and returning outdated values. Reconnecting...";
-            evc04Connection->reconnectDevice();
+            quint16 count = m_timeoutCount[thing];
+            count++;
+            m_timeoutCount[thing] = count;
+            qCWarning(dcWebasto()) << "Time value did not update, count" << count;
+            if (count >= 3) {
+                qCWarning(dcWebasto()) << "Time value did not update three times. Wallbox seems stuck and returning outdated values. Reconnecting...";
+                evc04Connection->reconnectDevice();
+            }
+        } else {
+            m_timeoutCount[thing] = 0;
         }
         m_lastWallboxTime[thing] = evc04Connection->time();
     });

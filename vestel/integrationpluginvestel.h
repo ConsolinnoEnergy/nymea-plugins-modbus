@@ -65,6 +65,7 @@ private:
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
 
     QHash<Thing *, quint32> m_lastWallboxTime;
+    QHash<Thing *, quint16> m_timeoutCount;
 
 };
 
