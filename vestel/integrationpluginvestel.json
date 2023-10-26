@@ -21,7 +21,8 @@
                             "displayName": "MAC address",
                             "type": "QString",
                             "inputType": "MacAddress",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [
