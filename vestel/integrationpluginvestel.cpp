@@ -296,7 +296,7 @@ void IntegrationPluginVestel::setupEVC04Connection(ThingSetupInfo *info)
             quint16 count = m_timeoutCount[thing];
             count++;
             m_timeoutCount[thing] = count;
-            qCWarning(dcVestel()) << "Time value did not update, count" << count;
+            qCDebug(dcVestel()) << "Time value did not update, count" << count;
             if (count >= 3) {
                 qCWarning(dcVestel()) << "Time value did not update three times. Wallbox seems stuck and returning outdated values. Reconnecting...";
                 evc04Connection->reconnectDevice();
