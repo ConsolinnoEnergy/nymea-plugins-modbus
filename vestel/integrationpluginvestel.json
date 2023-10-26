@@ -12,7 +12,7 @@
                     "name": "evc04",
                     "displayName": "EVC04",
                     "id": "396de19c-ef2b-4f32-b551-9d0d153304a4",
-                    "createMethods": ["discovery", "user"],
+                    "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {

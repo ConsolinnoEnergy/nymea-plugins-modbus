@@ -423,7 +423,7 @@
                     "name": "webastoUnite",
                     "displayName": "Webasto Unite",
                     "id": "f7598439-a794-44d4-ae51-47ab40189d61",
-                    "createMethods": ["discovery", "user"],
+                    "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {
