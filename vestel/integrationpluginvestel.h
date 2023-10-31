@@ -58,7 +58,7 @@ public:
 private:
     void setupEVC04Connection(ThingSetupInfo *info);
 
-    void updateEVC04MaxCurrent(Thing *thing);
+    void updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTcpConnection *connection);
 
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, EVC04ModbusTcpConnection *> m_evc04Connections;

@@ -555,30 +555,6 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
                 }
             });
         }
-        if (info->action().actionTypeId() == webastoUniteDesiredPhaseCountActionTypeId) {
-            quint8 desiredPhaseCount = info->action().paramValue(webastoUniteDesiredPhaseCountActionDesiredPhaseCountParamTypeId).toUInt();
-            QUrl url;
-            url.setHost(evc04Connection->hostAddress().toString());
-            url.setScheme("http");
-            url.setPath("/api/configuration-updates");
-            QNetworkRequest request(url);
-            QVariantList data = {
-                QVariantMap {
-                    {"fieldKey", "installationSettings.currentLimiterPhase"},
-                    {"value", desiredPhaseCount == 3 ? 1 : 0}
-                }
-            };
-            QNetworkReply *reply = hardwareManager()->networkManager()->post(request, QJsonDocument::fromVariant(data).toJson());
-            connect(reply, &QNetworkReply::finished, info, [=](){
-                if (reply->error() != QNetworkReply::NoError) {
-                    qCWarning(dcWebasto()) << "Error setting desired phase count:" << reply->error() << reply->errorString();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                    return;
-                }
-                thing->setStateValue(webastoUniteDesiredPhaseCountStateTypeId, desiredPhaseCount);
-                info->finish(Thing::ThingErrorNoError);
-            });
-        }
         return;
     }
 
@@ -1150,7 +1126,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     QHostAddress address = m_monitors.value(thing)->networkDeviceInfo().address();
 
     qCDebug(dcWebasto()) << "Setting up EVC04 wallbox on" << address.toString();
-    EVC04ModbusTcpConnection *evc04Connection = new EVC04ModbusTcpConnection(address, 502, 0xff, this);
+    EVC04ModbusTcpConnection *evc04Connection = new EVC04ModbusTcpConnection(address, 502, 0x1f, this);
     connect(info, &ThingSetupInfo::aborted, evc04Connection, &EVC04ModbusTcpConnection::deleteLater);
 
     // Reconnect on monitor reachable changed
@@ -1217,6 +1193,11 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     });
 
     connect(evc04Connection, &EVC04ModbusTcpConnection::updateFinished, thing, [this, evc04Connection, thing](){
+        if (!evc04Connection->connected()) {
+            qCDebug(dcWebasto()) << "Skipping EVC04 updateFinished, device is not connected.";
+            return;
+        }
+
         qCDebug(dcWebasto()) << "EVC04 update finished:" << thing->name() << evc04Connection;
 
         qCDebug(dcWebasto()) << "Serial:" << QString(QString::fromUtf16(evc04Connection->serialNumber().data(), evc04Connection->serialNumber().length()).toUtf8()).trimmed();
@@ -1224,7 +1205,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         qCDebug(dcWebasto()) << "Brand:" << QString(QString::fromUtf16(evc04Connection->brand().data(), evc04Connection->brand().length()).toUtf8()).trimmed();
         qCDebug(dcWebasto()) << "Model:" << QString(QString::fromUtf16(evc04Connection->model().data(), evc04Connection->model().length()).toUtf8()).trimmed();
 
-        updateEVC04MaxCurrent(thing);
+        updateEVC04MaxCurrent(thing, evc04Connection);
 
         // I've been observing the wallbox getting stuck on modbus. It is still functional, but modbus keeps on returning the same old values
         // until the TCP connection is closed and reopened. Checking the wallbox time register to detect that and auto-reconnect.
@@ -1282,17 +1263,17 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         // This mostly just reflects what we've been writing to cargingCurrent, so not of much use...
         qCDebug(dcWebasto()) << "Session max current changed:" << sessionMaxCurrent;
     });
-    connect(evc04Connection, &EVC04ModbusTcpConnection::cableMaxCurrentChanged, thing, [this, thing](quint16 cableMaxCurrent) {
+    connect(evc04Connection, &EVC04ModbusTcpConnection::cableMaxCurrentChanged, thing, [this, evc04Connection, thing](quint16 cableMaxCurrent) {
         qCDebug(dcWebasto()) << "Cable max current changed:" << cableMaxCurrent;
-        updateEVC04MaxCurrent(thing);
+        updateEVC04MaxCurrent(thing, evc04Connection);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::evseMinCurrentChanged, thing, [thing](quint16 evseMinCurrent) {
         qCDebug(dcWebasto()) << "EVSE min current changed:" << evseMinCurrent;
         thing->setStateMinValue(webastoUniteMaxChargingCurrentStateTypeId, evseMinCurrent);
     });
-    connect(evc04Connection, &EVC04ModbusTcpConnection::evseMaxCurrentChanged, thing, [this, thing](quint16 evseMaxCurrent) {
+    connect(evc04Connection, &EVC04ModbusTcpConnection::evseMaxCurrentChanged, thing, [this, evc04Connection, thing](quint16 evseMaxCurrent) {
         qCDebug(dcWebasto()) << "EVSE max current changed:" << evseMaxCurrent;
-        updateEVC04MaxCurrent(thing);
+        updateEVC04MaxCurrent(thing, evc04Connection);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::sessionEnergyChanged, thing, [thing](quint32 sessionEnergy) {
         qCDebug(dcWebasto()) << "Session energy changed:" << sessionEnergy;
@@ -1340,9 +1321,8 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     evc04Connection->connectDevice();
 }
 
-void IntegrationPluginWebasto::updateEVC04MaxCurrent(Thing *thing)
+void IntegrationPluginWebasto::updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTcpConnection *connection)
 {
-    EVC04ModbusTcpConnection *connection = m_evc04Connections.value(thing);
     quint16 wallboxMax = connection->maxChargePointPower() > 0 ? connection->maxChargePointPower() / 230 : 32;
     quint16 evseMax = connection->evseMaxCurrent() > 0 ? connection->evseMaxCurrent() : wallboxMax;
     quint16 cableMax = connection->cableMaxCurrent() > 0 ? connection->cableMaxCurrent() : wallboxMax;

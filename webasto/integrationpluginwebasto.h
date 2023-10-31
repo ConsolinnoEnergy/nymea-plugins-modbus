@@ -77,7 +77,7 @@ private:
     void executeWebastoNextPowerAction(ThingActionInfo *info, bool power);
 
     void setupEVC04Connection(ThingSetupInfo *info);
-    void updateEVC04MaxCurrent(Thing *thing);
+    void updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTcpConnection *connection);
     QHash<Thing *, quint32> m_lastWallboxTime;
     QHash<Thing *, quint16> m_timeoutCount;
 

@@ -66,7 +66,11 @@ QList<EVC04Discovery::Result> EVC04Discovery::discoveryResults() const
 void EVC04Discovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo)
 {
     int port = 502;
-    int slaveId = 0xff;
+    // Modbus IDs 248 to 255 are reserved. It's ok to use that ID to talk to one device if you know the device supports it.
+    // But don't do discovery with that ID, as there might be devices in the network that use this ID for special functions
+    // that you don't want to accidentally trigger.
+    //int slaveId = 0xff;
+    int slaveId = 0x1f;
     qCDebug(m_dc()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << slaveId;
 
     EVC04ModbusTcpConnection *connection = new EVC04ModbusTcpConnection(networkDeviceInfo.address(), port, slaveId, this);
