@@ -35,7 +35,6 @@
 #include <integrations/integrationplugin.h>
 #include <network/networkdevicemonitor.h>
 
-#include "webasto.h"
 #include "webastonextmodbustcpconnection.h"
 #include "evc04modbustcpconnection.h"
 
@@ -62,32 +61,16 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
 
-    QHash<QUuid, ThingActionInfo *> m_asyncActions;
-
-    QHash<Thing *, Webasto *> m_webastoLiveConnections;
     QHash<Thing *, WebastoNextModbusTcpConnection *> m_webastoNextConnections;
     QHash<Thing *, EVC04ModbusTcpConnection *> m_evc04Connections;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
 
     void setupWebastoNextConnection(ThingSetupInfo *info);
-
-    void update(Webasto *webasto);
-    void evaluatePhaseCount(Thing *thing);
-
     void executeWebastoNextPowerAction(ThingActionInfo *info, bool power);
-
     void setupEVC04Connection(ThingSetupInfo *info);
     void updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTcpConnection *connection);
     QHash<Thing *, quint32> m_lastWallboxTime;
     QHash<Thing *, quint16> m_timeoutCount;
-
-
-private slots:
-    void onConnectionChanged(bool connected);
-    void onWriteRequestExecuted(const QUuid &requestId, bool success);
-    void onWriteRequestError(const QUuid &requestId, const QString &error);
-
-    void onReceivedRegister(Webasto::TqModbusRegister registerAddress, const QVector<quint16> &data);
 };
 
 #endif // INTEGRATIONPLUGINWEBASTO_H

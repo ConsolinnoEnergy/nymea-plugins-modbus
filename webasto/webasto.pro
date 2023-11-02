@@ -7,12 +7,10 @@ include(../modbus.pri)
 
 SOURCES += \
     integrationpluginwebasto.cpp \
-    webasto.cpp \
     webastodiscovery.cpp \
     ../vestel/evc04discovery.cpp
 
 HEADERS += \
     integrationpluginwebasto.h \
-    webasto.h \
     webastodiscovery.h \
     ../vestel/evc04discovery.h

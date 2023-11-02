@@ -9,221 +9,11 @@
             "displayName": "Webasto",
             "thingClasses": [
                 {
-                    "id": "48472124-3199-4827-990a-b72069bd5658",
-                    "displayName": "Webasto Live",
-                    "name": "webastoLive",
-                    "createMethods": ["discovery"],
-                    "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
-                    "paramTypes": [
-                        {
-                            "id": "51fa3ea8-e819-46ca-b975-1bee6285441c",
-                            "name": "ipAddress",
-                            "displayName": "IP address",
-                            "type": "QString",
-                            "defaultValue": "0.0.0.0"
-                        },
-                        {
-                            "id": "4aa97965-fc1c-488a-92a6-848c214564bc",
-                            "name": "macAddress",
-                            "displayName": "MAC address",
-                            "type": "QString",
-                            "defaultValue": "",
-                            "readOnly": true
-                        }
-                    ],
-                    "stateTypes":[
-                        {
-                            "id": "7e6ed2b4-aa8a-4bf6-b20b-84ecc6cc1508",
-                            "displayName": "Connected",
-                            "name": "connected",
-                            "type": "bool",
-                            "defaultValue": false,
-                            "cached": false
-                        },
-                        {
-                            "id": "b076353b-e911-444f-80ad-3f78c4075d1a",
-                            "name": "chargePointState",
-                            "displayName": "Charge point state",
-                            "type": "QString",
-                            "possibleValues": [
-                                "No vehicle attached",
-                                "Vehicle attached, no permission",
-                                "Charging authorized",
-                                "Charging",
-                                "Charging paused",
-                                "Charge successful (car still attached)",
-                                "Charging stopped by user (car still attached)",
-                                "Charging error (car still attached)",
-                                "Charging station reserved (No car attached)",
-                                "User not authorized (car attached)"
-                            ],
-                            "defaultValue": "No vehicle attached"
-                        },
-                        {
-                            "id": "a1a452f9-de93-4c31-b71b-c74264f85a3e",
-                            "name": "cableState",
-                            "displayName": "Cable state",
-                            "type": "QString",
-                            "possibleValues": [
-                                "No cable attached",
-                                "Cable attached but no car attached)",
-                                "Cable attached and car attached",
-                                "Cable attached, car attached and lock active"
-                            ],
-                            "defaultValue": "No cable attached"
-                        },
-                        {
-                            "id": "3c054603-d933-4e30-a2cc-2177beaaffdb",
-                            "name": "power",
-                            "displayName": "Charging",
-                            "type": "bool",
-                            "defaultValue": false,
-                            "displayNameAction": "Start charging",
-                            "writable": true
-                        },
-                        {
-                            "id": "96ed77ce-c5cf-4981-8a72-b619f5702724",
-                            "name": "maxChargingCurrent",
-                            "displayName": "Charging current",
-                            "displayNameAction": "Set charging current",
-                            "type": "uint",
-                            "unit": "Ampere",
-                            "minValue": 6,
-                            "maxValue": 80,
-                            "defaultValue": 6,
-                            "writable": true
-                        },
-                        {
-                            "id": "0e15e78e-a233-4026-a0fd-f65edc824f1e",
-                            "name": "pluggedIn",
-                            "displayName": "Car plugged in",
-                            "type": "bool",
-                            "defaultValue": false
-                        },
-                        {
-                            "id": "8f35404d-8237-4ff8-8774-9ad10ceee5c3",
-                            "name": "charging",
-                            "displayName": "Charging",
-                            "type": "bool",
-                            "defaultValue": false
-                        },
-                        {
-                            "id": "179e6136-2ac1-4247-b457-f804e2212293",
-                            "name": "phaseCount",
-                            "displayName": "Number of connected phases",
-                            "type": "uint",
-                            "minValue": 1,
-                            "maxValue": 3,
-                            "defaultValue": 1
-                        },
-                        {
-                            "id": "2027fbb6-c9d2-4a75-bdd0-a3ad3785cdc6",
-                            "name": "currentPhase1",
-                            "displayName": "Current phase 1",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0.00
-                        },
-                        {
-                            "id": "1793f645-d7db-4e99-af92-3587aa3069f3",
-                            "name": "currentPhase2",
-                            "displayName": "Current phase 2",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0.00
-                        },
-                        {
-                            "id": "feb8c5da-91a7-45f9-acc3-c1b61478c3d2",
-                            "name": "currentPhase3",
-                            "displayName": "Current phase 3",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0.00
-                        },
-                        {
-                            "id": "b20a46ee-0f22-4096-a348-34e68e99e0be",
-                            "name": "currentPower",
-                            "displayName": "Current power consumption",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0.00
-                        },
-                        {
-                            "id": "80568c51-054c-4351-b9d2-e875fee4cc1f",
-                            "name": "totalEnergyConsumed",
-                            "displayName": "Total energy consumed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "87c70567-794e-4af2-916c-b34cf864afcf",
-                            "name": "sessionTime",
-                            "displayName": "Session time",
-                            "type": "int",
-                            "unit": "Minutes",
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "b9b46920-55c1-4bfa-9200-acdc9c0a2471",
-                            "name": "sessionEnergy",
-                            "displayName": "Session energy",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "56d31fd1-5cfb-42dd-8181-e6b0d0ca9c8a",
-                            "name": "error",
-                            "displayName": "Error ",
-                            "type": "int",
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "0e60b15d-2b0c-4672-960e-7c6ea67bf7ea",
-                            "name": "maxPossibleChargingCurrent",
-                            "displayName": "Maximum possible charging current",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 6.00
-                        },
-                        {
-                            "id": "48b62082-f286-433e-9cf8-2dcf6c0ea248",
-                            "name": "userId",
-                            "displayName": "User ID",
-                            "type": "QString",
-                            "defaultValue": ""
-                        }
-                    ]
-                },
-                {
                     "id": "1dddfbf4-a49d-4e28-8cbc-108547a369a2",
                     "displayName": "Webasto NEXT",
                     "name": "webastoNext",
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
-                    "settingsTypes": [
-                        {
-                            "id": "5292e079-515c-47ae-9117-6a70d5c02566",
-                            "name": "safeCurrent",
-                            "displayName": "Maximum current on communication failure",
-                            "type": "uint",
-                            "defaultValue": "6",
-                            "minValue": 6,
-                            "maxValue": 16,
-                            "unit": "Ampere"
-                        },
-                        {
-                            "id": "20710f47-d585-40fa-a9bd-8b586711966e",
-                            "name": "communicationTimeout",
-                            "displayName": "Communication timeout",
-                            "type": "uint",
-                            "defaultValue": 60,
-                            "minValue": 10,
-                            "maxValue": 300,
-                            "unit": "Seconds"
-                        }
-                    ],
                     "paramTypes": [
                         {
                             "id": "882b662f-ec7c-4134-be31-5d36567b9fc2",
@@ -409,6 +199,22 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.0,
                             "suggestLogging": true
+                        },
+                        {
+                            "id": "10ef29ff-1af9-4f55-a5ed-4d6029030b53",
+                            "name": "safeCurrent",
+                            "displayName": "Maximum current on communication failure",
+                            "type": "uint",
+                            "unit": "Ampere",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "f0d81fc5-bf27-4a9a-9f35-8f994cee1d4b",
+                            "name": "communicationTimeout",
+                            "displayName": "Communication timeout",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "defaultValue": 0
                         },
                         {
                             "id": "54feab4b-3134-4968-bfec-d2d656cc4ad6",
