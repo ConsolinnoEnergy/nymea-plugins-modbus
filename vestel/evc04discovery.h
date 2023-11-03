@@ -63,7 +63,6 @@ private:
     NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
 
     QLoggingCategory m_dc;
-    QTimer m_gracePeriodTimer;
     QDateTime m_startDateTime;
 
     QList<EVC04ModbusTcpConnection*> m_connections;

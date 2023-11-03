@@ -42,14 +42,11 @@ WebastoDiscovery::WebastoDiscovery(NetworkDeviceDiscovery *networkDeviceDiscover
 
 void WebastoDiscovery::startDiscovery()
 {
-    // TODO: add parameter for searching WebastoNext or WebastoLive, for now the discovery searches only for WebastoNext
-
     m_startDateTime = QDateTime::currentDateTime();
 
     qCInfo(dcWebasto()) << "Discovery: Starting to search for WebastoNext wallboxes in the network...";
     NetworkDeviceDiscoveryReply *discoveryReply = m_networkDeviceDiscovery->discover();
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::networkDeviceInfoAdded, this, &WebastoDiscovery::checkNetworkDevice);
-    connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
         qCDebug(dcWebasto()) << "Discovery: Network discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "network devices";
         // Give the last connections added right before the network discovery finished a chance to check the device...
@@ -57,6 +54,7 @@ void WebastoDiscovery::startDiscovery()
             qCDebug(dcWebasto()) << "Discovery: Grace period timer triggered.";
             finishDiscovery();
         });
+        discoveryReply->deleteLater();
     });
 }
 
@@ -67,6 +65,7 @@ QList<WebastoDiscovery::Result> WebastoDiscovery::results() const
 
 void WebastoDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo)
 {
+    // First, check if the port is open. That fails faster than trying to set up a modbus connection.
     QTcpSocket *socket = new QTcpSocket(this);
     socket->connectToHost(networkDeviceInfo.address(), 502, QIODevice::ReadWrite);
 
