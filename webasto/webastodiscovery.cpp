@@ -65,27 +65,39 @@ QList<WebastoDiscovery::Result> WebastoDiscovery::results() const
 
 void WebastoDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo)
 {
-    // First, check if the port is open. That fails faster than trying to set up a modbus connection.
-    QTcpSocket *socket = new QTcpSocket(this);
-    socket->connectToHost(networkDeviceInfo.address(), 502, QIODevice::ReadWrite);
+    WebastoNextModbusTcpConnection *connection = new WebastoNextModbusTcpConnection(networkDeviceInfo.address(), 502, 1, this);
+    m_connections.append(connection);
 
-    if (socket->waitForConnected(200)) {
-        socket->disconnectFromHost();
+    connect(connection, &WebastoNextModbusTcpConnection::reachableChanged, this, [=](bool reachable){
+        if (!reachable) {
+            // Disconnected ... done with this connection
+            cleanupConnection(connection);
+            return;
+        }
 
-        qCDebug(dcWebasto()) << "Discovery: port 502 of address" << networkDeviceInfo.address().toString() << "is open. Proceeding to start Modbus communication.";
+        // Read some well known registers to verify if the register exist and make sense...
+        QModbusReply *reply = connection->readMaxChargingCurrent();
+        connect(reply, &QModbusReply::finished, this, [=](){
 
-        WebastoNextModbusTcpConnection *connection = new WebastoNextModbusTcpConnection(networkDeviceInfo.address(), 502, 1, this);
-        m_connections.append(connection);
+            reply->deleteLater();
 
-        connect(connection, &WebastoNextModbusTcpConnection::reachableChanged, this, [=](bool reachable){
-            if (!reachable) {
-                // Disconnected ... done with this connection
+            if (reply->error() != QModbusDevice::NoError) {
+                // Something went wrong...probably not the device we are searching for
                 cleanupConnection(connection);
                 return;
             }
 
-            // Read some well known registers to verify if the register exist and make sense...
-            QModbusReply *reply = connection->readMaxChargingCurrent();
+            // Check if the value makes sense.
+            const QModbusDataUnit unit = reply->result();
+            quint16 maxChargingCurrent = ModbusDataUtils::convertToUInt16(unit.values());
+            qCDebug(dcWebasto()) << "Discovery: reading register maxChargingCurrent from" << networkDeviceInfo.address().toString() << ", result is" << maxChargingCurrent;
+            if (maxChargingCurrent < 1 || maxChargingCurrent > 32) {
+                qCDebug(dcWebasto()) << "Discovery: expected a value between 1 and 32 in register maxChargingCurrent, but the value is" << maxChargingCurrent << ". This is not a Webasto Next wallbox.";
+                cleanupConnection(connection);
+                return;
+            }
+
+            QModbusReply *reply = connection->readMinChargingCurrent();
             connect(reply, &QModbusReply::finished, this, [=](){
 
                 reply->deleteLater();
@@ -98,15 +110,15 @@ void WebastoDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
 
                 // Check if the value makes sense.
                 const QModbusDataUnit unit = reply->result();
-                quint16 maxChargingCurrent = ModbusDataUtils::convertToUInt16(unit.values());
-                qCDebug(dcWebasto()) << "Discovery: reading register maxChargingCurrent from" << networkDeviceInfo.address().toString() << ", result is" << maxChargingCurrent;
-                if (maxChargingCurrent < 1 || maxChargingCurrent > 32) {
-                    qCDebug(dcWebasto()) << "Discovery: expected a value between 1 and 32 in register maxChargingCurrent, but the value is" << maxChargingCurrent << ". This is not a Webasto Next wallbox.";
+                quint16 minChargingCurrent = ModbusDataUtils::convertToUInt16(unit.values());
+                qCDebug(dcWebasto()) << "Discovery: reading register minChargingCurrent from" << networkDeviceInfo.address().toString() << ", result is" << minChargingCurrent;
+                if (minChargingCurrent < 1 || minChargingCurrent > 32) {
+                    qCDebug(dcWebasto()) << "Discovery: expected a value between 1 and 32 in register minChargingCurrent, but the value is" << minChargingCurrent << ". This is not a Webasto Next wallbox.";
                     cleanupConnection(connection);
                     return;
                 }
 
-                QModbusReply *reply = connection->readMinChargingCurrent();
+                QModbusReply *reply = connection->readComTimeout();
                 connect(reply, &QModbusReply::finished, this, [=](){
 
                     reply->deleteLater();
@@ -119,72 +131,47 @@ void WebastoDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
 
                     // Check if the value makes sense.
                     const QModbusDataUnit unit = reply->result();
-                    quint16 minChargingCurrent = ModbusDataUtils::convertToUInt16(unit.values());
-                    qCDebug(dcWebasto()) << "Discovery: reading register minChargingCurrent from" << networkDeviceInfo.address().toString() << ", result is" << minChargingCurrent;
-                    if (minChargingCurrent < 1 || minChargingCurrent > 32) {
-                        qCDebug(dcWebasto()) << "Discovery: expected a value between 1 and 32 in register minChargingCurrent, but the value is" << minChargingCurrent << ". This is not a Webasto Next wallbox.";
+                    quint16 comTimeout = ModbusDataUtils::convertToUInt16(unit.values());
+                    qCDebug(dcWebasto()) << "Discovery: reading register comTimeout from" << networkDeviceInfo.address().toString() << ", result is" << comTimeout;
+                    if (minChargingCurrent < 1) {
+                        qCDebug(dcWebasto()) << "Discovery: expected a value >0 in register comTimeout, but the value is" << comTimeout << ". This is not a Webasto Next wallbox.";
                         cleanupConnection(connection);
                         return;
                     }
 
-                    QModbusReply *reply = connection->readComTimeout();
-                    connect(reply, &QModbusReply::finished, this, [=](){
+                    // All values good so far, let's assume this is a Webasto NEXT
 
-                        reply->deleteLater();
+                    Result result;
+                    result.productName = "Webasto NEXT";
+                    result.type = TypeWebastoNext;
+                    result.networkDeviceInfo = networkDeviceInfo;
+                    m_results.append(result);
 
-                        if (reply->error() != QModbusDevice::NoError) {
-                            // Something went wrong...probably not the device we are searching for
-                            cleanupConnection(connection);
-                            return;
-                        }
+                    qCDebug(dcWebasto()) << "Discovery: --> Found" << result.productName << result.networkDeviceInfo;
 
-                        // Check if the value makes sense.
-                        const QModbusDataUnit unit = reply->result();
-                        quint16 comTimeout = ModbusDataUtils::convertToUInt16(unit.values());
-                        qCDebug(dcWebasto()) << "Discovery: reading register comTimeout from" << networkDeviceInfo.address().toString() << ", result is" << comTimeout;
-                        if (minChargingCurrent < 1) {
-                            qCDebug(dcWebasto()) << "Discovery: expected a value >0 in register comTimeout, but the value is" << comTimeout << ". This is not a Webasto Next wallbox.";
-                            cleanupConnection(connection);
-                            return;
-                        }
-
-                        // All values good so far, let's assume this is a Webasto NEXT
-
-                        Result result;
-                        result.productName = "Webasto NEXT";
-                        result.type = TypeWebastoNext;
-                        result.networkDeviceInfo = networkDeviceInfo;
-                        m_results.append(result);
-
-                        qCDebug(dcWebasto()) << "Discovery: --> Found" << result.productName << result.networkDeviceInfo;
-
-                        // Done with this connection
-                        cleanupConnection(connection);
-                    });
+                    // Done with this connection
+                    cleanupConnection(connection);
                 });
             });
         });
+    });
 
-        // If we get any error...skip this host...
-        connect(connection, &ModbusTCPMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
-            if (error != QModbusDevice::NoError) {
-                qCDebug(dcWebasto()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";;
-                cleanupConnection(connection);
-            }
-        });
-
-        // If check reachability failed...skip this host...
-        connect(connection, &WebastoNextModbusTcpConnection::checkReachabilityFailed, this, [=](){
-            qCDebug(dcWebasto()) << "Discovery: Check reachability failed on" << networkDeviceInfo.address().toString() << "Continue...";;
+    // If we get any error...skip this host...
+    connect(connection, &ModbusTCPMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
+        if (error != QModbusDevice::NoError) {
+            qCDebug(dcWebasto()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";;
             cleanupConnection(connection);
-        });
+        }
+    });
 
-        // Try to connect, maybe it works, maybe not...
-        connection->connectDevice();
-    } else {
-        qCDebug(dcWebasto()) << "Discovery: port 502 of address" << networkDeviceInfo.address().toString() << "is closed. This device does not have Modbus enabled.";
-    }
-    socket->deleteLater();
+    // If check reachability failed...skip this host...
+    connect(connection, &WebastoNextModbusTcpConnection::checkReachabilityFailed, this, [=](){
+        qCDebug(dcWebasto()) << "Discovery: Check reachability failed on" << networkDeviceInfo.address().toString() << "Continue...";;
+        cleanupConnection(connection);
+    });
+
+    // Try to connect, maybe it works, maybe not...
+    connection->connectDevice();
 }
 
 void WebastoDiscovery::cleanupConnection(WebastoNextModbusTcpConnection *connection)
