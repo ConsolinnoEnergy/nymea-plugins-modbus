@@ -500,6 +500,20 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
         }
     });
 
+    connect(webastoNextConnection, &WebastoNextModbusTcpConnection::checkReachabilityFailed, thing, [webastoNextConnection, monitor, thing](){
+        // If the reachability failed, try again 10 seconds later. This is needed to reconnect to the device after it was turned off.
+        // After startup, apparently the ModbusMaster can connecte to the device long before it will actually answer a modbus call. The
+        // modbus call will return an error and the reachability will fail. After a while the device will answer modbus calls, so just try
+        // again a bit later.
+        qCDebug(dcWebasto()) << "Failed communication attempt with" << thing << ". Trying again in 10 seconds.";
+        QTimer::singleShot(10000, thing, [webastoNextConnection, monitor, thing](){
+            if (monitor->reachable() && !webastoNextConnection->reachable()) {
+                qCDebug(dcWebasto()) << "Next communication attempt with" << thing;
+                webastoNextConnection->reconnectDevice();
+            }
+        });
+    });
+
     connect(webastoNextConnection, &WebastoNextModbusTcpConnection::updateFinished, thing, [thing, webastoNextConnection](){
 
         // Note: we get the update finished also if all calles failed...
