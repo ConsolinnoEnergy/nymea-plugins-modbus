@@ -535,6 +535,8 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             break;
         }
 
+        // Set states only from one input. So we don't need this.
+        /*
         switch (webastoNextConnection->chargerState()) {
         case WebastoNextModbusTcpConnection::ChargerStateNoVehicle:
             thing->setStateValue(webastoNextChargingStateTypeId, false);
@@ -548,6 +550,24 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             thing->setStateValue(webastoNextPluggedInStateTypeId, true);
             break;
         case WebastoNextModbusTcpConnection::ChargerStateChargingPaused:
+            thing->setStateValue(webastoNextPluggedInStateTypeId, true);
+            break;
+        default:
+            break;
+        }
+        */
+
+        switch (webastoNextConnection->cableState()) {
+        case WebastoNextModbusTcpConnection::CableStateNoCableAttached:
+            thing->setStateValue(webastoNextPluggedInStateTypeId, false);
+            break;
+        case WebastoNextModbusTcpConnection::CableStateCableAttachedNoCar:
+            thing->setStateValue(webastoNextPluggedInStateTypeId, false);
+            break;
+        case WebastoNextModbusTcpConnection::CableStateCableAttachedCarAttached:
+            thing->setStateValue(webastoNextPluggedInStateTypeId, true);
+            break;
+        case WebastoNextModbusTcpConnection::CableStateCableAttachedCarAttachedLocked:
             thing->setStateValue(webastoNextPluggedInStateTypeId, true);
             break;
         default:
