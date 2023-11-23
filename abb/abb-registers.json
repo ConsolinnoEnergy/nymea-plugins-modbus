@@ -3,34 +3,38 @@
     "protocol": "BOTH",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 2,
-    "checkReachableRegister": "chargingCurrent",
+    "checkReachableRegister": "chargingCurrentLimit",
     "enums": [
         {
             "name": "ChargingState",
             "values": [
                 {
+                    "key": "Undefined",
+                    "value": 11
+                },
+                {
                     "key": "A",
-                    "value": 8000
+                    "value": 32768
                 },
                 {
                     "key": "B1",
-                    "value": 8100
+                    "value": 33024
                 },
                 {
                     "key": "B2",
-                    "value": 8200
+                    "value": 33280
                 },
                 {
                     "key": "C1",
-                    "value": 8300
+                    "value": 33536
                 },
                 {
                     "key": "C2",
-                    "value": 8400
+                    "value": 33792
                 },
                 {
                     "key": "others",
-                    "value": 8500
+                    "value": 34048
                 }
             ]
         }
@@ -211,12 +215,12 @@
             "address": 16640,
             "size": 2,
             "type": "uint32",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "registerType": "holdingRegister",
             "description": "Set Charging current Limit",
             "unit": "mA",
             "defaultValue": "0",
-            "access": "WO"
+            "access": "WR"
         }
     ]
 }

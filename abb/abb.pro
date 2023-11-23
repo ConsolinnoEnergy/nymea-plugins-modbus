@@ -1,5 +1,5 @@
 include(../plugins.pri)
-
+MODBUS_TOOLS_CONFIG += VERBOSE
 MODBUS_CONNECTIONS += abb-registers.json
 
 MODBUS_TOOLS_CONFIG += VERBOSE

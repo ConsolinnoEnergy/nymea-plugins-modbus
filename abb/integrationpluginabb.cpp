@@ -43,7 +43,7 @@ void IntegrationPluginABB::discoverThings(ThingDiscoveryInfo *info)
                 return;
             }
 
-            qCInfo(dcABB()) << "Discovery results:" << discovery->discoveryResults().count();
+            qCInfo(dcAbb()) << "Discovery results:" << discovery->discoveryResults().count();
 
             foreach (const TerraRTUDiscovery::Result &result, discovery->discoveryResults()) {
                 ThingDescriptor descriptor(TerraRTUThingClassId, "ABB Terra", QString("Slave ID: %1").arg(result.slaveId));
@@ -72,7 +72,7 @@ void IntegrationPluginABB::discoverThings(ThingDiscoveryInfo *info)
     if (info->thingClassId() == TerraTCPThingClassId) {
         TerraTCPDiscovery *discovery = new TerraTCPDiscovery(hardwareManager()->networkDeviceDiscovery(), info);
         connect(discovery, &TerraTCPDiscovery::discoveryFinished, info, [this, info, discovery](){
-            qCInfo(dcABB()) << "Discovery results:" << discovery->discoveryResults().count();
+            qCInfo(dcAbb()) << "Discovery results:" << discovery->discoveryResults().count();
 
             foreach (const TerraTCPDiscovery::Result &result, discovery->discoveryResults()) {
                 ThingDescriptor descriptor(TerraTCPThingClassId, "ABB Terra", QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
@@ -99,12 +99,12 @@ void IntegrationPluginABB::discoverThings(ThingDiscoveryInfo *info)
 void IntegrationPluginABB::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
-    qCDebug(dcABB()) << "Setup" << thing << thing->params();
+    qCDebug(dcAbb()) << "Setup" << thing << thing->params();
 
     if (thing->thingClassId() == TerraRTUThingClassId) {
 
         if (m_rtuConnections.contains(thing)) {
-            qCDebug(dcABB()) << "Reconfiguring existing thing" << thing->name();
+            qCDebug(dcAbb()) << "Reconfiguring existing thing" << thing->name();
             m_rtuConnections.take(thing)->deleteLater();
         }
 
@@ -126,17 +126,17 @@ void IntegrationPluginABB::setupThing(ThingSetupInfo *info)
 
         connect(info, &ThingSetupInfo::aborted, monitor, [=](){
             if (m_monitors.contains(thing)) {
-                qCDebug(dcABB()) << "Unregistering monitor because setup has been aborted.";
+                qCDebug(dcAbb()) << "Unregistering monitor because setup has been aborted.";
                 hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
             }
         });
 
-        qCDebug(dcABB()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(TerraTCPThingMacAddressParamTypeId).toString();
+        qCDebug(dcAbb()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(TerraTCPThingMacAddressParamTypeId).toString();
         if (monitor->reachable()) {
             setupTcpConnection(info);
         } else {
             connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [this, info](bool reachable){
-                qCDebug(dcABB()) << "Monitor reachable changed!" << reachable;
+                qCDebug(dcAbb()) << "Monitor reachable changed!" << reachable;
                 if (reachable) {
                     setupTcpConnection(info);
                 }
@@ -149,15 +149,15 @@ void IntegrationPluginABB::postSetupThing(Thing *thing)
 {
     Q_UNUSED(thing)
     if (!m_pluginTimer) {
-        qCDebug(dcABB()) << "Starting plugin timer...";
+        qCDebug(dcAbb()) << "Starting plugin timer...";
         m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             foreach(ABBModbusRtuConnection *connection, m_rtuConnections) {
-                qCDebug(dcABB()) << "Updating connection" << connection->modbusRtuMaster() << connection->slaveId();
+                qCDebug(dcAbb()) << "Updating connection" << connection->modbusRtuMaster() << connection->slaveId();
                 connection->update();
             }
             foreach(ABBModbusTcpConnection *connection, m_tcpConnections) {
-                qCDebug(dcABB()) << "Updating connection" << connection->hostAddress();
+                qCDebug(dcAbb()) << "Updating connection" << connection->hostAddress();
                 connection->update();
             }
         });
@@ -178,7 +178,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(TerraRTUPowerStateTypeId, power);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcABB()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcAbb()) << "Error setting power:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -194,7 +194,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, max);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcABB()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcAbb()) << "Error setting power:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -213,7 +213,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(TerraTCPPowerStateTypeId, power);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcABB()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcAbb()) << "Error setting power:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -228,7 +228,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, max);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcABB()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcAbb()) << "Error setting power:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -279,8 +279,8 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
         if (success) {
             if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
                 //TODO: trasform firmware to readable string
-                qCWarning(dcABB()) << "We require at least version " << MIN_FIRMWARE_VERSION_MAJOR.toString() << ".xx.xx";
-                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware "+MIN_FIRMWARE_VERSION_MAJOR.toString()+".xx.xx"));
+                qCWarning(dcAbb()) << "We require at least version " << QString::number(MIN_FIRMWARE_VERSION_MAJOR) << ".xx.xx";
+                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware "+QString::number(MIN_FIRMWARE_VERSION_MAJOR)+".xx.xx"));
                 delete connection;
                 return;
             }
@@ -292,36 +292,32 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &ABBModbusRtuConnection::updateFinished, thing, [connection, thing](){
-        qCDebug(dcABB()) << "Updated:" << connection;
+        qCDebug(dcAbb()) << "Updated:" << connection;
 
-        if (connection->chargingCurrent() == 0) {
+        if (connection->chargingCurrentLimit() == 0) {
             thing->setStateValue(TerraRTUPowerStateTypeId, false);
         } else {
             thing->setStateValue(TerraRTUPowerStateTypeId, true);
-            thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, connection->chargingCurrent() / 10);
+            thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, connection->chargingCurrentLimit() / 10);
         }
-        thing->setStateMinMaxValues(TerraRTUMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());
+        //TODO manage TerraTCPMaxChargingCurrentStateTypeId, as minChargingCurrent and maxChargingCurrent are not available
+        // thing->setStateMinMaxValues(TerraRTUMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());
         thing->setStateValue(TerraRTUCurrentPowerStateTypeId, connection->currentPower());
-        thing->setStateValue(TerraRTUTotalEnergyConsumedStateTypeId, connection->totalEnergy() / 1000.0);
         thing->setStateValue(TerraRTUSessionEnergyStateTypeId, connection->sessionEnergy() / 1000.0);
         switch (connection->chargingState()) {
             //TODO interpret states
         case ABBModbusRtuConnection::ChargingStateUndefined:
-        case ABBModbusRtuConnection::ChargingStateA1:
-        case ABBModbusRtuConnection::ChargingStateA2:
+        case ABBModbusRtuConnection::ChargingStateA:
+        case ABBModbusRtuConnection::ChargingStateB1:
             thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
             break;
-        case ABBModbusRtuConnection::ChargingStateB1:
         case ABBModbusRtuConnection::ChargingStateB2:
         case ABBModbusRtuConnection::ChargingStateC1:
         case ABBModbusRtuConnection::ChargingStateC2:
             thing->setStateValue(TerraRTUPluggedInStateTypeId, true);
             break;
-        case ABBModbusRtuConnection::ChargingStateDerating:
-        case ABBModbusRtuConnection::ChargingStateE:
-        case ABBModbusRtuConnection::ChargingStateError:
-        case ABBModbusRtuConnection::ChargingStateF:
-            qCWarning(dcABB()) << "Unhandled charging state:" << connection->chargingState();
+        case ABBModbusRtuConnection::ChargingStateothers:
+            qCWarning(dcAbb()) << "Unhandled charging state:" << connection->chargingState();
         }
 
         int phaseCount = 0;
@@ -346,7 +342,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
 
 void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
 {
-    qCDebug(dcABB()) << "setting up TCP connection";
+    qCDebug(dcAbb()) << "setting up TCP connection";
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
     ABBModbusTcpConnection *connection = new ABBModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, info->thing());
@@ -365,8 +361,8 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         if (success) {
             if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
                 //TODO: trasform firmware to readable string
-                qCWarning(dcABB()) << "We require at least version " << MIN_FIRMWARE_VERSION_MAJOR.toString() << ".xx.xx";
-                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware "+MIN_FIRMWARE_VERSION_MAJOR.toString()+".xx.xx"));
+                qCWarning(dcAbb()) << "We require at least version " << QString::number(MIN_FIRMWARE_VERSION_MAJOR) << ".xx.xx";
+                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware "+QString::number(MIN_FIRMWARE_VERSION_MAJOR)+".xx.xx"));
                 delete connection;
                 return;
             }
@@ -379,38 +375,34 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &ABBModbusTcpConnection::updateFinished, thing, [connection, thing](){
-        qCDebug(dcABB()) << "Updated:" << connection;
+        qCDebug(dcAbb()) << "Updated:" << connection;
 
         thing->setStateValue(TerraTCPConnectedStateTypeId, true);
 
-        if (connection->chargingCurrent() == 0) {
+        if (connection->chargingCurrentLimit() == 0) {
             thing->setStateValue(TerraTCPPowerStateTypeId, false);
         } else {
             thing->setStateValue(TerraTCPPowerStateTypeId, true);
-            thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, connection->chargingCurrent() / 10);
+            thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, connection->chargingCurrentLimit() / 10);
         }
         //TODO manage TerraTCPMaxChargingCurrentStateTypeId, as minChargingCurrent and maxChargingCurrent are not available
-        // thing->setStateMinMaxValues(TerraTCPMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());
-        thing->setStateValue(TerraTCPCurrentPowerStateTypeId, connection->currentPower());
-        thing->setStateValue(TerraTCPTotalEnergyConsumedStateTypeId, connection->totalEnergy() / 1000.0);
-        thing->setStateValue(TerraTCPSessionEnergyStateTypeId, connection->sessionEnergy() / 1000.0);
+        // thing->setStateMinMaxValues(TerraRTUMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());
+        thing->setStateValue(TerraRTUCurrentPowerStateTypeId, connection->currentPower());
+        thing->setStateValue(TerraRTUSessionEnergyStateTypeId, connection->sessionEnergy() / 1000.0);
         switch (connection->chargingState()) {
-        case ABBModbusTcpConnection::ChargingStateUndefined:
-        case ABBModbusTcpConnection::ChargingStateA1:
-        case ABBModbusTcpConnection::ChargingStateA2:
-            thing->setStateValue(TerraTCPPluggedInStateTypeId, false);
+            //TODO interpret states
+        case ABBModbusRtuConnection::ChargingStateUndefined:
+        case ABBModbusRtuConnection::ChargingStateA:
+        case ABBModbusRtuConnection::ChargingStateB1:
+            thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
             break;
-        case ABBModbusTcpConnection::ChargingStateB1:
-        case ABBModbusTcpConnection::ChargingStateB2:
-        case ABBModbusTcpConnection::ChargingStateC1:
-        case ABBModbusTcpConnection::ChargingStateC2:
-            thing->setStateValue(TerraTCPPluggedInStateTypeId, true);
+        case ABBModbusRtuConnection::ChargingStateB2:
+        case ABBModbusRtuConnection::ChargingStateC1:
+        case ABBModbusRtuConnection::ChargingStateC2:
+            thing->setStateValue(TerraRTUPluggedInStateTypeId, true);
             break;
-        case ABBModbusTcpConnection::ChargingStateDerating:
-        case ABBModbusTcpConnection::ChargingStateE:
-        case ABBModbusTcpConnection::ChargingStateError:
-        case ABBModbusTcpConnection::ChargingStateF:
-            qCWarning(dcABB()) << "Unhandled charging state:" << connection->chargingState();
+        case ABBModbusRtuConnection::ChargingStateothers:
+            qCWarning(dcAbb()) << "Unhandled charging state:" << connection->chargingState();
         }
 
         int phaseCount = 0;

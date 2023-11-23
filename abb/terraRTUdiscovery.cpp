@@ -27,7 +27,7 @@ TerraRTUDiscovery::TerraRTUDiscovery(ModbusRtuHardwareResource *modbusRtuResourc
 
 void TerraRTUDiscovery::startDiscovery()
 {
-    qCInfo(dcABB()) << "Discovery: Searching for ABB Terra wallboxes on modbus RTU...";
+    qCInfo(dcAbb()) << "Discovery: Searching for ABB Terra wallboxes on modbus RTU...";
 
     QList<ModbusRtuMaster*> candidateMasters;
     foreach (ModbusRtuMaster *master, m_modbusRtuResource->modbusRtuMasters()) {
@@ -37,7 +37,7 @@ void TerraRTUDiscovery::startDiscovery()
     }
 
     if (candidateMasters.isEmpty()) {
-        qCWarning(dcABB()) << "No usable modbus RTU master found.";
+        qCWarning(dcAbb()) << "No usable modbus RTU master found.";
         emit discoveryFinished(false);
         return;
     }
@@ -46,7 +46,7 @@ void TerraRTUDiscovery::startDiscovery()
         if (master->connected()) {
             tryConnect(master, 1);
         } else {
-            qCWarning(dcABB()) << "Modbus RTU master" << master->modbusUuid().toString() << "is not connected.";
+            qCWarning(dcAbb()) << "Modbus RTU master" << master->modbusUuid().toString() << "is not connected.";
         }
     }
 }
@@ -58,20 +58,20 @@ QList<TerraRTUDiscovery::Result> TerraRTUDiscovery::discoveryResults() const
 
 void TerraRTUDiscovery::tryConnect(ModbusRtuMaster *master, quint16 slaveId)
 {
-    qCDebug(dcABB()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << slaveId;
+    qCDebug(dcAbb()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << slaveId;
 
     ModbusRtuReply *reply = master->readInputRegister(slaveId, 4);
     connect(reply, &ModbusRtuReply::finished, this, [=](){
-        qCDebug(dcABB()) << "Test reply finished!" << reply->error() << reply->result();
+        qCDebug(dcAbb()) << "Test reply finished!" << reply->error() << reply->result();
         if (reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
             quint16 version = reply->result().first();
             // TODO Versioncontrol not sure if this is necessary like this
             if (version >= 0x0100) {
-                qCDebug(dcABB()) << QString("Version is 0x%1").arg(version, 0, 16);
+                qCDebug(dcAbb()) << QString("Version is 0x%1").arg(version, 0, 16);
                 Result result {master->modbusUuid(), version, slaveId};
                 m_discoveryResults.append(result);
             } else {
-                qCDebug(dcABB()) << "Version must be at least 1.0.0 (0x0100)";
+                qCDebug(dcAbb()) << "Version must be at least 1.0.0 (0x0100)";
             }
         }
         if (slaveId < 20) {

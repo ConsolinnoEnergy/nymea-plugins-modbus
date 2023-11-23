@@ -26,20 +26,20 @@ TerraTCPDiscovery::TerraTCPDiscovery(NetworkDeviceDiscovery *networkDeviceDiscov
     m_gracePeriodTimer.setSingleShot(true);
     m_gracePeriodTimer.setInterval(3000);
     connect(&m_gracePeriodTimer, &QTimer::timeout, this, [this](){
-        qCDebug(dcAmperfied()) << "Discovery: Grace period timer triggered.";
+        qCDebug(dcAbb()) << "Discovery: Grace period timer triggered.";
         finishDiscovery();
     });
 }
 
 void TerraTCPDiscovery::startDiscovery()
 {
-    qCInfo(dcAmperfied()) << "Discovery: Searching for ABB wallboxes in the network...";
+    qCInfo(dcAbb()) << "Discovery: Searching for ABB wallboxes in the network...";
     NetworkDeviceDiscoveryReply *discoveryReply = m_networkDeviceDiscovery->discover();
 
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::networkDeviceInfoAdded, this, &TerraTCPDiscovery::checkNetworkDevice);
 
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
-        qCDebug(dcAmperfied()) << "Discovery: Network discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "network devices";
+        qCDebug(dcAbb()) << "Discovery: Network discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "network devices";
         m_gracePeriodTimer.start();
         discoveryReply->deleteLater();
     });
@@ -54,12 +54,12 @@ void TerraTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevic
 {
     int port = 502;
     int slaveId = 1;
-    qCDebug(dcAmperfied()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << slaveId;
+    qCDebug(dcAbb()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << slaveId;
 
-    TerraModbusTcpConnection *connection = new TerraModbusTcpConnection(networkDeviceInfo.address(), port, slaveId, this);
+    ABBModbusTcpConnection *connection = new ABBModbusTcpConnection(networkDeviceInfo.address(), port, slaveId, this);
     m_connections.append(connection);
 
-    connect(connection, &TerraModbusTcpConnection::reachableChanged, this, [=](bool reachable){
+    connect(connection, &ABBModbusTcpConnection::reachableChanged, this, [=](bool reachable){
         if (!reachable) {
             // Disconnected ... done with this connection
             cleanupConnection(connection);
@@ -67,18 +67,18 @@ void TerraTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevic
         }
 
         // Modbus TCP connected...ok, let's try to initialize it!
-        connect(connection, &TerraModbusTcpConnection::initializationFinished, this, [=](bool success){
+        connect(connection, &ABBModbusTcpConnection::initializationFinished, this, [=](bool success){
             if (!success) {
-                qCDebug(dcAmperfied()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString();
+                qCDebug(dcAbb()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString();
                 cleanupConnection(connection);
                 return;
             }
             Result result;
-            result.firmwareVersion = connection->version();
+            result.firmwareVersion = connection->fwversion();
             result.networkDeviceInfo = networkDeviceInfo;
             m_discoveryResults.append(result);
 
-            qCDebug(dcAmperfied()) << "Discovery: --> Found"
+            qCDebug(dcAbb()) << "Discovery: --> Found"
                                 << "Version:" << result.firmwareVersion
                                 << result.networkDeviceInfo;
 
@@ -88,14 +88,14 @@ void TerraTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevic
         });
 
         if (!connection->initialize()) {
-            qCDebug(dcAmperfied()) << "Discovery: Unable to initialize connection on" << networkDeviceInfo.address().toString();
+            qCDebug(dcAbb()) << "Discovery: Unable to initialize connection on" << networkDeviceInfo.address().toString();
             cleanupConnection(connection);
         }
     });
 
     // If check reachability failed...skip this host...
-    connect(connection, &TerraModbusTcpConnection::checkReachabilityFailed, this, [=](){
-        qCDebug(dcAmperfied()) << "Discovery: Checking reachability failed on" << networkDeviceInfo.address().toString();
+    connect(connection, &ABBModbusTcpConnection::checkReachabilityFailed, this, [=](){
+        qCDebug(dcAbb()) << "Discovery: Checking reachability failed on" << networkDeviceInfo.address().toString();
         cleanupConnection(connection);
     });
 
@@ -103,7 +103,7 @@ void TerraTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevic
     connection->connectDevice();
 }
 
-void TerraTCPDiscovery::cleanupConnection(TerraModbusTcpConnection *connection)
+void TerraTCPDiscovery::cleanupConnection(ABBModbusTcpConnection *connection)
 {
     m_connections.removeAll(connection);
     connection->disconnectDevice();
@@ -115,10 +115,10 @@ void TerraTCPDiscovery::finishDiscovery()
     qint64 durationMilliSeconds = QDateTime::currentMSecsSinceEpoch() - m_startDateTime.toMSecsSinceEpoch();
 
     // Cleanup any leftovers...we don't care any more
-    foreach (TerraModbusTcpConnection *connection, m_connections)
+    foreach (ABBModbusTcpConnection *connection, m_connections)
         cleanupConnection(connection);
 
-    qCInfo(dcAmperfied()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count()
+    qCInfo(dcAbb()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count()
                        << "ABB wallboxes in" << QTime::fromMSecsSinceStartOfDay(durationMilliSeconds).toString("mm:ss.zzz");
     m_gracePeriodTimer.stop();
 

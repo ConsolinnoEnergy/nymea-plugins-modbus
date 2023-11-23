@@ -464,7 +464,7 @@ def writeUpdateMethodRtu(fileDescriptor, className, registerDefinitions, blockDe
     # First check if there are any init registers
     updateRequired = False
     for registerDefinition in registerDefinitions:
-        if registerDefinition['readSchedule'] == 'update':
+        if 'readSchedule' in registerDefinitions and registerDefinitions['readSchedule'] == 'update':
             updateRequired = True
             break
 
