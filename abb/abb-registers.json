@@ -39,155 +39,162 @@
             ]
         }
     ],
-    "blocks": [
-        {
-            "id": "consumptions",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "settableMaxCurrent",
-                    "address": 16390,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "User Settable Max Current",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "errorCode",
-                    "address": 16392,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Error Code",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "socketLock",
-                    "address": 16394,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Socket Lock State",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "chargingState",
-                    "address": 16396,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "ChargingState",
-                    "enum": "ChargingState",
-                    "defaultValue": "ChargingStateUndefined",
-                    "access": "RO"
-                },
-                {
-                    "id": "chargingCurrentLimit",
-                    "address": 16398,
-                    "size": 2,
-                    "type": "uint32",
-                    "unit": "mA",
-                    "registerType": "inputRegister",
-                    "description": "Charging Current Limit",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "currentL1",
-                    "address": 16400,
-                    "size": 2,
-                    "type": "uint32",
-                    "unit": "mA",
-                    "registerType": "inputRegister",
-                    "description": "Current L1",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "currentL2",
-                    "address": 16402,
-                    "size": 2,
-                    "type": "uint32",
-                    "unit": "mA",
-                    "registerType": "inputRegister",
-                    "description": "Current L2",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "currentL3",
-                    "address": 16404,
-                    "size": 2,
-                    "type": "uint32",
-                    "unit": "mA",
-                    "registerType": "inputRegister",
-                    "description": "Current L3",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "voltageL1",
-                    "address": 16406,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Voltage L1",
-                    "unit": "dV",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "voltageL2",
-                    "address": 16408,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Voltage L2",
-                    "unit": "dV",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "voltageL3",
-                    "address": 16410,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Voltage L3",
-                    "unit": "dV",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "currentPower",
-                    "address": 16412,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Active Power (L1+L2+L3)",
-                    "unit": "W",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "sessionEnergy",
-                    "address": 16414,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Energy since PowerOn",
-                    "unit": "Wh",
-                    "defaultValue": 0,
-                    "access": "RO"
-                }
-            ]
-        }
-    ],
     "registers": [
+        {
+            "id": "settableMaxCurrent",
+            "address": 16390,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "User Settable Max Current",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "errorCode",
+            "address": 16392,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Error Code",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "socketLock",
+            "address": 16394,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Socket Lock State",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "chargingState",
+            "address": 16396,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "ChargingState",
+            "enum": "ChargingState",
+            "defaultValue": "ChargingStateUndefined",
+            "access": "RO"
+        },
+        {
+            "id": "chargingCurrentLimit",
+            "address": 16398,
+            "size": 2,
+            "type": "uint32",
+            "unit": "mA",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Charging Current Limit",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "currentL1",
+            "address": 16400,
+            "size": 2,
+            "type": "uint32",
+            "unit": "mA",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Current L1",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "currentL2",
+            "address": 16402,
+            "size": 2,
+            "type": "uint32",
+            "unit": "mA",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Current L2",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "currentL3",
+            "address": 16404,
+            "size": 2,
+            "type": "uint32",
+            "unit": "mA",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Current L3",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "voltageL1",
+            "address": 16406,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Voltage L1",
+            "unit": "dV",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "voltageL2",
+            "address": 16408,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Voltage L2",
+            "unit": "dV",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "voltageL3",
+            "address": 16410,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Voltage L3",
+            "unit": "dV",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "currentPower",
+            "address": 16412,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Active Power (L1+L2+L3)",
+            "unit": "W",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "sessionEnergy",
+            "address": 16414,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Energy since PowerOn",
+            "unit": "Wh",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+
+
         {
             "id": "serialnumber",
             "address": 16384,
@@ -215,12 +222,11 @@
             "address": 16640,
             "size": 2,
             "type": "uint32",
-            "readSchedule": "init",
             "registerType": "holdingRegister",
             "description": "Set Charging current Limit",
             "unit": "mA",
             "defaultValue": "0",
-            "access": "WR"
+            "access": "WO"
         }
     ]
 }
