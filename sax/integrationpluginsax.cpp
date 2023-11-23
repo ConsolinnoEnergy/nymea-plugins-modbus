@@ -33,7 +33,7 @@ IntegrationPluginSax::IntegrationPluginSax()
 }
 void IntegrationPluginSax::discoverThings(ThingDiscoveryInfo *info)
 {
-    if (info->thingClassId() == saxPowerThingClassId) {
+    if (info->thingClassId() == saxStorageThingClassId) {
         if (!hardwareManager()->networkDeviceDiscovery()->available()) {
             qCWarning(dcSax()) << "The network discovery is not available on this platform.";
             info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
@@ -64,7 +64,7 @@ void IntegrationPluginSax::discoverThings(ThingDiscoveryInfo *info)
 
                 ThingDescriptor descriptor(info->thingClassId(), title, description);
                 ParamList params;
-                params << Param(saxPowerThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                params << Param(saxStorageThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
                 descriptor.setParams(params);
 
                 // Check if we already have set up this device
@@ -89,7 +89,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
     Thing *thing = info->thing();
     qCDebug(dcSax()) << "Setup" << thing << thing->params();
 
-    if (thing->thingClassId() == saxPowerThingClassId) {
+    if (thing->thingClassId() == saxStorageThingClassId) {
 
         // Handle reconfigure
         if (m_tcpConnections.contains(thing)) {
@@ -104,9 +104,9 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
 
 
         // Make sure we have a valid mac address, otherwise no monitor and not auto searching is possible
-        MacAddress macAddress = MacAddress(thing->paramValue(saxPowerThingMacAddressParamTypeId).toString());
+        MacAddress macAddress = MacAddress(thing->paramValue(saxStorageThingMacAddressParamTypeId).toString());
         if (!macAddress.isValid()) {
-            qCWarning(dcSax()) << "Failed to set up Sax Battery because the MAC address is not valid:" << thing->paramValue(saxPowerThingMacAddressParamTypeId).toString() << macAddress.toString();
+            qCWarning(dcSax()) << "Failed to set up Sax Battery because the MAC address is not valid:" << thing->paramValue(saxStorageThingMacAddressParamTypeId).toString() << macAddress.toString();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
             return;
         }
@@ -117,10 +117,10 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
         });
 
-        qint16 port = thing->paramValue(saxPowerThingPortParamTypeId).toUInt();
-        qint16 slaveId = thing->paramValue(saxPowerThingSlaveIdParamTypeId).toUInt();
-        double capacityDouble = thing->paramValue(saxPowerThingCapacityParamTypeId).toUInt() / 1000.0;
-        thing->setStateValue(saxPowerCapacityStateTypeId, capacityDouble);
+        qint16 port = thing->paramValue(saxStorageThingPortParamTypeId).toUInt();
+        qint16 slaveId = thing->paramValue(saxStorageThingSlaveIdParamTypeId).toUInt();
+        double capacityDouble = thing->paramValue(saxStorageThingCapacityParamTypeId).toUInt() / 1000.0;
+        thing->setStateValue(saxStorageCapacityStateTypeId, capacityDouble);
 
         SaxModbusTcpConnection *connection = new SaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
         connect(info, &ThingSetupInfo::aborted, connection, &SaxModbusTcpConnection::deleteLater);
@@ -130,7 +130,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             if (reachable) {
                 connection->initialize();
             } else {
-                thing->setStateValue(saxPowerConnectedStateTypeId, false);
+                thing->setStateValue(saxStorageConnectedStateTypeId, false);
             }
         });
 
@@ -149,31 +149,31 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
 
         connect(connection, &SaxModbusTcpConnection::initializationFinished, thing, [this, thing, connection](bool success){
             if (success) {
-                thing->setStateValue(saxPowerConnectedStateTypeId, true);
+                thing->setStateValue(saxStorageConnectedStateTypeId, true);
                 connection->update();
             }
         });
         // Handle property changed signals
         connect(connection, &SaxModbusTcpConnection::currentPowerChanged, thing, [thing](qint16 currentPower){
             qCDebug(dcSax()) << "Battery power changed" << -currentPower << "W";
-            thing->setStateValue(saxPowerCurrentPowerStateTypeId, -double(currentPower));
+            thing->setStateValue(saxStorageCurrentPowerStateTypeId, -double(currentPower));
             if (currentPower < 0) {
-                thing->setStateValue(saxPowerChargingStateStateTypeId, "discharging");
+                thing->setStateValue(saxStorageChargingStateStateTypeId, "discharging");
             } else if (currentPower > 0) {
-                thing->setStateValue(saxPowerChargingStateStateTypeId, "charging");
+                thing->setStateValue(saxStorageChargingStateStateTypeId, "charging");
             } else {
-                thing->setStateValue(saxPowerChargingStateStateTypeId, "idle");
+                thing->setStateValue(saxStorageChargingStateStateTypeId, "idle");
             }
         });
 
         connect(connection, &SaxModbusTcpConnection::socChanged, thing, [thing](qint16 soc){
             qCDebug(dcSax()) << "Battery SoC changed" << soc << "%";
             if(soc < 20){
-                thing->setStateValue(saxPowerBatteryCriticalStateTypeId, true);
+                thing->setStateValue(saxStorageBatteryCriticalStateTypeId, true);
             } else {
-                thing->setStateValue(saxPowerBatteryCriticalStateTypeId, false);
+                thing->setStateValue(saxStorageBatteryCriticalStateTypeId, false);
             }
-            thing->setStateValue(saxPowerBatteryLevelStateTypeId, soc);
+            thing->setStateValue(saxStorageBatteryLevelStateTypeId, soc);
         });
 
         connection->connectDevice();
@@ -184,7 +184,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
 
 void IntegrationPluginSax::postSetupThing(Thing *thing)
 {
-    if (thing->thingClassId() == saxPowerThingClassId) {
+    if (thing->thingClassId() == saxStorageThingClassId) {
         if (!m_pluginTimer) {
             qCDebug(dcSax()) << "Starting plugin timer...";
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);

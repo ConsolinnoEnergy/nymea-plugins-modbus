@@ -3,7 +3,15 @@
 
 Connect nymea to sax battery storage over Modbus TCP and get soc and power values.
 
-TODO: what port? the datasheet says port 3600, seems a bin unusual
+
+## Notes
+
+* what port? the datasheet says port 3600, seems a bin unusual
+* the following statetypes might be not availabel:
+    + connected
+    + batteryCritical
+    
+
 
 ## Supported Things
 

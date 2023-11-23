@@ -1,15 +1,15 @@
 {
-    "name": "Sax",
-    "displayName": "Sax AG",
+    "name": "sax",
+    "displayName": "Sax",
     "id": "ce524925-0521-4bdb-8e9b-6d023f8da763",
     "vendors": [
         {
             "name": "sax",
-            "displayName": "Sax",
+            "displayName": "Sax Power",
             "id": "bb7aa6e5-9628-4992-be0b-791970320209",
             "thingClasses": [
                 {
-                    "name": "saxPower",
+                    "name": "saxStorage",
                     "displayName": "Sax Power Energy Storage",
                     "id": "f0a04c98-17e2-4017-8e5d-9ce500946783",
                     "createMethods": ["discovery", "user"],
