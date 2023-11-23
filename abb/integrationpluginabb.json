@@ -1,29 +1,29 @@
 {
     "name": "abb",
     "displayName": "ABB",
-    "id": "",
+    "id": "25eabafa-efc4-44d0-abc7-477cbc62c6ed",
     "vendors": [
         {
             "name": "abb",
             "displayName": "ABB",
-            "id": "",
+            "id": "b590342a-538a-4d0f-a2bf-4d5132679b67",
             "thingClasses": [
                 {
                     "name": "TerraRTU",
                     "displayName": "ABB Terra (Modbus RTU)",
-                    "id": "",
+                    "id": "f38a0734-ad09-44a1-9fcb-0c9bdc0d1be6",
                     "createMethods": ["discovery", "user"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {
-                            "id": "",
+                            "id": "31651b2a-f632-4e6b-abd3-2b15c4dffbe8",
                             "name":"rtuMaster",
                             "displayName": "Modbus RTU master",
                             "type": "QString",
                             "defaultValue": ""
                         },
                         {
-                            "id": "",
+                            "id": "9d0b0ec2-9bc9-4b76-9506-dae94c5beeac",
                             "name":"slaveId",
                             "displayName": "Modbus slave ID",
                             "type": "uint",
@@ -34,7 +34,7 @@
                     ],
                     "stateTypes": [
                         {
-                            "id": "",
+                            "id": "8fb3c9af-e6ac-4632-8dc4-37d0bb1ad874",
                             "name": "connected",
                             "displayName": "Connected",
                             "type": "bool",
@@ -42,7 +42,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "53d590bc-fe0b-469c-972d-cfa1cf5131f0",
                             "name": "pluggedIn",
                             "displayName": "Plugged in",
                             "type": "bool",
@@ -50,7 +50,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "3cb4ed76-9fda-4148-9738-b9ac7ff84425",
                             "name": "charging",
                             "displayName": "Charging",
                             "type": "bool",
@@ -58,7 +58,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "b0e9ba0e-05e6-437e-b1e7-712050fab1ca",
                             "name": "phaseCount",
                             "displayName": "Connected phases",
                             "type": "uint",
@@ -67,7 +67,7 @@
                             "defaultValue": 1
                         },
                         {
-                            "id": "",
+                            "id": "277e7d7f-3e1e-49bc-8005-80e5229ed680",
                             "name": "currentPower",
                             "displayName": "Active power",
                             "type": "double",
@@ -76,7 +76,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "039deb9e-c0e6-484d-a2c8-154ac14825f4",
                             "name": "totalEnergyConsumed",
                             "displayName": "Total consumed energy",
                             "type": "double",
@@ -85,7 +85,7 @@
                             "cached": true
                         },
                         {
-                            "id": "",
+                            "id": "f3d9351a-2d9d-4546-90e7-1cc7464f9e13",
                             "name": "power",
                             "displayName": "Charging enabled",
                             "displayNameAction": "Set charging enabled",
@@ -94,7 +94,7 @@
                             "writable": true
                         },
                         {
-                            "id": "",
+                            "id": "13278596-5bd0-467e-a8d2-c0dcea31d543",
                             "name": "maxChargingCurrent",
                             "displayName": "Maximum charging current",
                             "displayNameAction": "Set maximum charging current",
@@ -106,7 +106,7 @@
                             "writable": true
                         },
                         {
-                            "id": "",
+                            "id": "b20e21fd-8131-430c-9557-7d24d65f333a",
                             "name": "sessionEnergy",
                             "displayName": "Session energy",
                             "type": "double",
@@ -118,12 +118,12 @@
                 {
                     "name": "TerraTCP",
                     "displayName": "ABB Terra (Modbus TCP)",
-                    "id": "",
+                    "id": "910fddb2-989d-4c6c-8264-cf877c1e53e4",
                     "createMethods": ["discovery", "user"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {
-                            "id": "",
+                            "id": "db04b058-1c43-4f77-847b-b4e24f9a7055",
                             "name":"macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
@@ -132,7 +132,7 @@
                     ],
                     "stateTypes": [
                         {
-                            "id": "",
+                            "id": "839a2735-b7c4-4ff6-aa97-9a45f6782973",
                             "name": "connected",
                             "displayName": "Connected",
                             "type": "bool",
@@ -140,7 +140,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "4c04af82-1af9-45ed-8544-71caf3497daa",
                             "name": "pluggedIn",
                             "displayName": "Plugged in",
                             "type": "bool",
@@ -148,7 +148,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "e3e2ec3a-8111-4351-a615-1cfb6d5d3f5e",
                             "name": "charging",
                             "displayName": "Charging",
                             "type": "bool",
@@ -156,7 +156,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "191d3b3c-e791-4ad1-b9d9-e743a3cf9d7e",
                             "name": "phaseCount",
                             "displayName": "Connected phases",
                             "type": "uint",
@@ -165,7 +165,7 @@
                             "defaultValue": 1
                         },
                         {
-                            "id": "",
+                            "id": "2c17eab8-7014-455e-bc5e-e1143c767c81",
                             "name": "currentPower",
                             "displayName": "Active power",
                             "type": "double",
@@ -174,7 +174,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "ad4c7532-99b8-4e7f-b294-5e80ba76bebd",
                             "name": "totalEnergyConsumed",
                             "displayName": "Total consumed energy",
                             "type": "double",
@@ -183,7 +183,7 @@
                             "cached": true
                         },
                         {
-                            "id": "",
+                            "id": "446d5d23-b7d8-465e-b8a8-afd91144f4f3",
                             "name": "power",
                             "displayName": "Charging enabled",
                             "displayNameAction": "Set charging enabled",
@@ -192,7 +192,7 @@
                             "writable": true
                         },
                         {
-                            "id": "",
+                            "id": "f22f30d5-ce90-4317-8e98-2c26a8d6f367",
                             "name": "maxChargingCurrent",
                             "displayName": "Maximum charging current",
                             "displayNameAction": "Set maximum charging current",
@@ -204,7 +204,7 @@
                             "writable": true
                         },
                         {
-                            "id": "",
+                            "id": "9eb04066-430a-44b7-b1a8-71246935a654",
                             "name": "sessionEnergy",
                             "displayName": "Session energy",
                             "type": "double",
