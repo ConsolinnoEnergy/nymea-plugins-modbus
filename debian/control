@@ -68,6 +68,14 @@ Depends: ${shlibs:Depends},
 Description: nymea modbus command line tool for testing modbus TCP communication
  This package contains the nymea modbus command line tool for testing modbus TCP communication.
 
+Package: nymea-plugin-abb
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for abb wallboxes
+ This package contains the nymea integration plugin for a abb wallbox.
+
 
 Package: nymea-plugin-alphainnotec
 Architecture: any

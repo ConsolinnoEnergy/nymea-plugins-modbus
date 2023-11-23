@@ -5,6 +5,7 @@ TEMPLATE = subdirs
 SUBDIRS += nymea-modbus-cli libnymea-modbus libnymea-sunspec
 
 PLUGIN_DIRS = \
+    abb                     \
     alphainnotec            \
     alphatec                \    
     azzurro                 \

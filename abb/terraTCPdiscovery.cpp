@@ -56,10 +56,10 @@ void TerraTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevic
     int slaveId = 1;
     qCDebug(dcAmperfied()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << slaveId;
 
-    AmperfiedModbusTcpConnection *connection = new AmperfiedModbusTcpConnection(networkDeviceInfo.address(), port, slaveId, this);
+    TerraModbusTcpConnection *connection = new TerraModbusTcpConnection(networkDeviceInfo.address(), port, slaveId, this);
     m_connections.append(connection);
 
-    connect(connection, &AmperfiedModbusTcpConnection::reachableChanged, this, [=](bool reachable){
+    connect(connection, &TerraModbusTcpConnection::reachableChanged, this, [=](bool reachable){
         if (!reachable) {
             // Disconnected ... done with this connection
             cleanupConnection(connection);
@@ -67,7 +67,7 @@ void TerraTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevic
         }
 
         // Modbus TCP connected...ok, let's try to initialize it!
-        connect(connection, &AmperfiedModbusTcpConnection::initializationFinished, this, [=](bool success){
+        connect(connection, &TerraModbusTcpConnection::initializationFinished, this, [=](bool success){
             if (!success) {
                 qCDebug(dcAmperfied()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString();
                 cleanupConnection(connection);
@@ -94,7 +94,7 @@ void TerraTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevic
     });
 
     // If check reachability failed...skip this host...
-    connect(connection, &AmperfiedModbusTcpConnection::checkReachabilityFailed, this, [=](){
+    connect(connection, &TerraModbusTcpConnection::checkReachabilityFailed, this, [=](){
         qCDebug(dcAmperfied()) << "Discovery: Checking reachability failed on" << networkDeviceInfo.address().toString();
         cleanupConnection(connection);
     });
@@ -103,7 +103,7 @@ void TerraTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevic
     connection->connectDevice();
 }
 
-void TerraTCPDiscovery::cleanupConnection(AmperfiedModbusTcpConnection *connection)
+void TerraTCPDiscovery::cleanupConnection(TerraModbusTcpConnection *connection)
 {
     m_connections.removeAll(connection);
     connection->disconnectDevice();
@@ -115,7 +115,7 @@ void TerraTCPDiscovery::finishDiscovery()
     qint64 durationMilliSeconds = QDateTime::currentMSecsSinceEpoch() - m_startDateTime.toMSecsSinceEpoch();
 
     // Cleanup any leftovers...we don't care any more
-    foreach (AmperfiedModbusTcpConnection *connection, m_connections)
+    foreach (TerraModbusTcpConnection *connection, m_connections)
         cleanupConnection(connection);
 
     qCInfo(dcAmperfied()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count()

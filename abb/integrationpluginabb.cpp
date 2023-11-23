@@ -277,13 +277,13 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
-            // TODO draft from amperfied, not sure if there is a req like this with ABB terra 
-            // if (connection->version() < 0x0107) {
-            //     qCWarning(dcABB()) << "We require at least version 1.0.8.";
-            //     info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware 1.0.7."));
-            //     delete connection;
-            //     return;
-            // }
+            if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
+                //TODO: trasform firmware to readable string
+                qCWarning(dcABB()) << "We require at least version " << MIN_FIRMWARE_VERSION_MAJOR.toString() << ".xx.xx";
+                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware "+MIN_FIRMWARE_VERSION_MAJOR.toString()+".xx.xx"));
+                delete connection;
+                return;
+            }
             m_rtuConnections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
         } else {
@@ -305,6 +305,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
         thing->setStateValue(TerraRTUTotalEnergyConsumedStateTypeId, connection->totalEnergy() / 1000.0);
         thing->setStateValue(TerraRTUSessionEnergyStateTypeId, connection->sessionEnergy() / 1000.0);
         switch (connection->chargingState()) {
+            //TODO interpret states
         case ABBModbusRtuConnection::ChargingStateUndefined:
         case ABBModbusRtuConnection::ChargingStateA1:
         case ABBModbusRtuConnection::ChargingStateA2:
@@ -362,13 +363,13 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusTcpConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
-            // TODO draft from amperfied, not sure if there is a req like this with ABB terra 
-            // if (connection->version() < 0x0107) {
-            //     qCWarning(dcABB()) << "We require at least version 1.0.8.";
-            //     info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware 1.0.7."));
-            //     delete connection;
-            //     return;
-            // }
+            if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
+                //TODO: trasform firmware to readable string
+                qCWarning(dcABB()) << "We require at least version " << MIN_FIRMWARE_VERSION_MAJOR.toString() << ".xx.xx";
+                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware "+MIN_FIRMWARE_VERSION_MAJOR.toString()+".xx.xx"));
+                delete connection;
+                return;
+            }
             m_tcpConnections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
             connection->update();
@@ -388,7 +389,8 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(TerraTCPPowerStateTypeId, true);
             thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, connection->chargingCurrent() / 10);
         }
-        thing->setStateMinMaxValues(TerraTCPMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());
+        //TODO manage TerraTCPMaxChargingCurrentStateTypeId, as minChargingCurrent and maxChargingCurrent are not available
+        // thing->setStateMinMaxValues(TerraTCPMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());
         thing->setStateValue(TerraTCPCurrentPowerStateTypeId, connection->currentPower());
         thing->setStateValue(TerraTCPTotalEnergyConsumedStateTypeId, connection->totalEnergy() / 1000.0);
         thing->setStateValue(TerraTCPSessionEnergyStateTypeId, connection->sessionEnergy() / 1000.0);

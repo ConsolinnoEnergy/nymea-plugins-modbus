@@ -50,12 +50,12 @@ private:
     QTimer m_gracePeriodTimer;
     QDateTime m_startDateTime;
 
-    QList<AmperfiedModbusTcpConnection *> m_connections;
+    QList<TerraModbusTcpConnection *> m_connections;
 
     QList<Result> m_discoveryResults;
 
     void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
-    void cleanupConnection(AmperfiedModbusTcpConnection *connection);
+    void cleanupConnection(TerraModbusTcpConnection *connection);
 
     void finishDiscovery();
 };

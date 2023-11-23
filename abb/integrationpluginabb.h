@@ -27,6 +27,13 @@
 #include "abbmodbusrtuconnection.h"
 #include "abbmodbustcpconnection.h"
 
+#define MIN_FIRMWARE_VERSION_MAJOR      0x00
+#define MIN_FIRMWARE_VERSION_MINOR      0x00
+#define MIN_FIRMWARE_VERSION_REVISION   0x00
+
+#define MIN_FIRMWARE_VERSION ((MIN_FIRMWARE_VERSION_MAJOR << 16) | (MIN_FIRMWARE_VERSION_MINOR << 8) | MIN_FIRMWARE_VERSION_REVISION)
+
+
 class IntegrationPluginABB: public IntegrationPlugin
 {
     Q_OBJECT
