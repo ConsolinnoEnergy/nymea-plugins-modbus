@@ -222,11 +222,12 @@
             "address": 16640,
             "size": 2,
             "type": "uint32",
+            "readSchedule": "init",
             "registerType": "holdingRegister",
             "description": "Set Charging current Limit",
             "unit": "mA",
             "defaultValue": "0",
-            "access": "WO"
+            "access": "WR"
         }
     ]
 }
