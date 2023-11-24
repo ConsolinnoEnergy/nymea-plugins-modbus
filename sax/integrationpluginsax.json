@@ -36,13 +36,6 @@
                             "displayName": "Slave ID",
                             "type": "int",
                             "defaultValue": 1
-                        },
-                        {
-                            "id": "7ca8ab77-9a0d-47a2-adfc-b515c5445b11",
-                            "name":"capacity",
-                            "displayName": "Capacity in Wh",
-                            "type": "int",
-                            "defaultValue": 5200
                         }
                     ],
                     "stateTypes": [
@@ -65,10 +58,10 @@
                         },
                         {
                             "id": "3c6841f5-843b-4e42-b4d7-225db41f6f4b",
-                            "name": "batteryLevel",
-                            "displayName": "Battery level",
-                            "displayNameEvent": "Battery level changed",
-                            "type": "int",
+                            "name": "SoC",
+                            "displayName": "State of Charge",
+                            "displayNameEvent": "State of Charge changed",
+                            "type": "uint",
                             "unit": "Percentage",
                             "minValue": 0,
                             "maxValue": 100,

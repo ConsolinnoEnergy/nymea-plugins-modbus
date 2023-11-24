@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                         *
- *  Copyright (C) 2020 Felix Stoecker <f.stoecker@consolinno.de>                 *
+ *  Copyright (C) 2020 Felix Stoecker <f.stoecker@consolinno.de>           *
  *                                                                         *
  *  This library is free software; you can redistribute it and/or          *
  *  modify it under the terms of the GNU Lesser General Public             *
@@ -119,8 +119,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
 
         qint16 port = thing->paramValue(saxStorageThingPortParamTypeId).toUInt();
         qint16 slaveId = thing->paramValue(saxStorageThingSlaveIdParamTypeId).toUInt();
-        double capacityDouble = thing->paramValue(saxStorageThingCapacityParamTypeId).toUInt() / 1000.0;
-        thing->setStateValue(saxStorageCapacityStateTypeId, capacityDouble);
+
 
         SaxModbusTcpConnection *connection = new SaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
         connect(info, &ThingSetupInfo::aborted, connection, &SaxModbusTcpConnection::deleteLater);
@@ -153,8 +152,15 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
                 connection->update();
             }
         });
+        // Read Battery capacity directly via modbus
+        double capacityDouble = connection->capacity()/ 1000.0;
+        qCDebug(dcSax()) << "Battery capacity" << -capacityDouble << "kWh";
+        thing->setStateValue(saxStorageCapacityStateTypeId, capacityDouble);
+
+
+
         // Handle property changed signals
-        connect(connection, &SaxModbusTcpConnection::currentPowerChanged, thing, [thing](qint16 currentPower){
+        connect(connection, &SaxModbusTcpConnection::powerBatteryChanged, thing, [thing](qint16 currentPower){
             qCDebug(dcSax()) << "Battery power changed" << -currentPower << "W";
             thing->setStateValue(saxStorageCurrentPowerStateTypeId, -double(currentPower));
             if (currentPower < 0) {
@@ -166,14 +172,14 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &SaxModbusTcpConnection::socChanged, thing, [thing](qint16 soc){
+        connect(connection, &SaxModbusTcpConnection::socBatteryChanged, thing, [thing](quint16 soc){
             qCDebug(dcSax()) << "Battery SoC changed" << soc << "%";
             if(soc < 20){
                 thing->setStateValue(saxStorageBatteryCriticalStateTypeId, true);
             } else {
                 thing->setStateValue(saxStorageBatteryCriticalStateTypeId, false);
             }
-            thing->setStateValue(saxStorageBatteryLevelStateTypeId, soc);
+            thing->setStateValue(saxStorageSoCStateTypeId, soc);
         });
 
         connection->connectDevice();

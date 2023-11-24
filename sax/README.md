@@ -11,6 +11,21 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
     + connected
     + batteryCritical
     
+### Used states so far in plugin
+
++ Capacity
+
++ Connected
+
++ CurrentPower
+
++ ChargingState
+
++ BatteryCritical
+
++ SoC
+
+
 
 
 ## Supported Things
