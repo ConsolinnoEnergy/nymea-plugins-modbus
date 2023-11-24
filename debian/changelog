@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.003) buster focal jammy; urgency=medium
+
+* GoodWe: fixed some meter values sign and scaling.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Fri, 24 Nov 2023 13:40:53 +0200
+
 nymea-plugins-modbus (1.7.002-1) buster focal jammy; urgency=medium
 
 * Adapt to new versioning schema

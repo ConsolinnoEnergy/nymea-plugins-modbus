@@ -29,7 +29,8 @@
                             "name": "slaveAddress",
                             "displayName": "Modbus slave address",
                             "type": "uint",
-                            "defaultValue": 247
+                            "defaultValue": 247,
+                            "readOnly": true
                         },
                         {
                             "id": "6cea38ab-a71e-4085-a838-b1297fa3028c",
