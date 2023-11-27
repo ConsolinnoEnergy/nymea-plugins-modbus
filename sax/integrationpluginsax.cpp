@@ -154,12 +154,13 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
         });
         // Read Battery capacity directly via modbus
         double capacityDouble = connection->capacity()/ 1000.0;
-        qCDebug(dcSax()) << "Battery capacity" << -capacityDouble << "kWh";
+        qCDebug(dcSax()) << "Battery capacity" << capacityDouble << "kWh";
         thing->setStateValue(saxStorageCapacityStateTypeId, capacityDouble);
 
 
 
         // Handle property changed signals
+        /*current Power battery*/
         connect(connection, &SaxModbusTcpConnection::powerBatteryChanged, thing, [thing](qint16 currentPower){
             qCDebug(dcSax()) << "Battery power changed" << -currentPower << "W";
             thing->setStateValue(saxStorageCurrentPowerStateTypeId, -double(currentPower));
@@ -172,6 +173,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             }
         });
 
+        /*battery SoC*/
         connect(connection, &SaxModbusTcpConnection::socBatteryChanged, thing, [thing](quint16 soc){
             qCDebug(dcSax()) << "Battery SoC changed" << soc << "%";
             if(soc < 20){
@@ -180,6 +182,12 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(saxStorageBatteryCriticalStateTypeId, false);
             }
             thing->setStateValue(saxStorageSoCStateTypeId, soc);
+        });
+
+        /*battery current [A]*/
+        connect(connection, &SaxModbusTcpConnection::currentBatteryChanged, thing, [thing](quint16 current){
+            qCDebug(dcSax()) << "Battery current changed" << current << "A",
+            thing->setStateValue(saxStorageCurrentStateTypeId, current);
         });
 
         connection->connectDevice();

@@ -6,10 +6,11 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 
 ## Notes
 
-* what port? the datasheet says port 3600, seems a bin unusual
 * the following statetypes might be not availabel:
     + connected
     + batteryCritical
+
+* what means "cached": true in integrationpluginsax.json?
     
 ### Used states so far in plugin
 
@@ -18,6 +19,7 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 + Connected
 
 + CurrentPower
+    * MINUS or PLUS?
 
 + ChargingState
 
@@ -25,6 +27,7 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 
 + SoC
 
++ battery current
 
 
 

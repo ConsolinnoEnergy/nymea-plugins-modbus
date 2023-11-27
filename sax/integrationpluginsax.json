@@ -94,6 +94,24 @@
                             "type": "QString",
                             "possibleValues": ["idle", "charging", "discharging"],
                             "defaultValue": "idle"
+                        },
+                        {
+                            "id": "e9dbef17-76ef-4902-8764-50679f8cb433",
+                            "name": "current",
+                            "displayName": "current battery",
+                            "displayNameEvent": "current battery changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "2be13d66-7a64-48ed-b079-ab6c55782942",
+                            "name": "voltage",
+                            "displayName": "voltage battery",
+                            "displayNameEvent": "voltage battery changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00
                         }
                     ],
                     "actionTypes": [ ]

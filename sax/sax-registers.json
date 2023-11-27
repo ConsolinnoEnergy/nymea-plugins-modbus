@@ -34,7 +34,7 @@
             "type": "uint16",
             "readSchedule": "update",
             "registerType": "holdingRegister",
-            "description": "Battery current",
+            "description": "Battery current (single phase)",
             "defaultValue": "0",
             "unit": "A",
             "access": "RO"
@@ -292,7 +292,7 @@
             "address": 40115,
             "size": 1,
             "type": "uint16",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "registerType": "holdingRegister",
             "description": "Capacity of Battery",
             "defaultValue": "0",
