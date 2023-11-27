@@ -57,17 +57,6 @@
                             "defaultValue": false
                         },
                         {
-                            "id": "3c6841f5-843b-4e42-b4d7-225db41f6f4b",
-                            "name": "SoC",
-                            "displayName": "State of Charge",
-                            "displayNameEvent": "State of Charge changed",
-                            "type": "uint",
-                            "unit": "Percentage",
-                            "minValue": 0,
-                            "maxValue": 100,
-                            "defaultValue": 0
-                        },
-                        {
                             "id": "900b1df0-b843-4bc4-a2a9-e6a3c48372cd",
                             "name": "currentPower",
                             "displayName": "Total real power",
@@ -76,15 +65,6 @@
                             "unit": "Watt",
                             "defaultValue": 0.00,
                             "cached": true
-                        },
-                        {
-                            "id": "c44f42a0-9b91-4b44-af7c-2264a09d627e",
-                            "name": "capacity",
-                            "displayName": "Capacity",
-                            "displayNameEvent": "Capacity changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0.00
                         },
                         {
                             "id": "731ed6a5-f663-4205-aff1-c7f92cc21ed1",
@@ -112,6 +92,208 @@
                             "type": "double",
                             "unit": "Volt",
                             "defaultValue": 0.00
+                        },
+                        {
+                            "id": "c234ca9c-a94c-436b-b0c2-ca706bb075dc",
+                            "name": "powerFactor",
+                            "displayName": "power factor battery",
+                            "displayNameEvent": "power factor battery changed",
+                            "type": "double",
+                            "unit": "None",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "52aa70cf-4fd2-4405-82fd-83b0bc0a4f27",
+                            "name": "frequency",
+                            "displayName": "frequency smartmeter",
+                            "displayNameEvent": "frequency smartmeter changed",
+                            "type": "double",
+                            "unit": "Hertz",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "818eb2ea-4ddb-4bfd-95d9-583a3a37c460",
+                            "name": "frequencyFactor",
+                            "displayName": "frequency factor smartmeter",
+                            "displayNameEvent": "frequency factor smartmeter changed",
+                            "type": "double",
+                            "unit": "None",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "7700f732-e4c0-4947-8392-dcb8be51f608",
+                            "name": "stateOfHealth",
+                            "displayName": "state of health battery",
+                            "displayNameEvent": "state of health battery changed",
+                            "type": "double",
+                            "unit": "Percentage",
+                            "minValue": 0,
+                            "maxValue": 100,
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "312dd470-10dc-48b9-9af8-829df5eb4482",
+                            "name": "totalEnergyProduced",
+                            "displayName": "total energy produced",
+                            "displayNameEvent": "total energy produced changed",
+                            "type": "uint",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "81404c8b-5fa0-4d0f-b508-927222afb749",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "total energy consumed",
+                            "displayNameEvent": "total energy consumed changed",
+                            "type": "uint",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "4e26e538-7147-4dfd-9f0c-c32808066ff6",
+                            "name": "energyFactorSmartmeter",
+                            "displayName": "energy factor smartmeter",
+                            "displayNameEvent": "energy factor smartmeter changed",
+                            "type": "double",
+                            "unit": "None",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "77097ec9-498f-4c62-8143-0d11368ef73c",
+                            "name": "stateBattery",
+                            "displayName": "state battery",
+                            "displayNameEvent": "state battery changed",
+                            "type": "QString",
+                            "possibleValues": ["On", "Off", "Standby"],
+                            "defaultValue": "Off"
+                        },
+                        {
+                            "id": "07fadd03-ad87-4857-a0bb-c020f9551051",
+                            "name": "currentPhaseA",
+                            "displayName": "current phase A",
+                            "displayNameEvent": "current phase A changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "de1a1f7a-0041-46c1-a74d-bd8dca825c9b",
+                            "name": "currentPhaseB",
+                            "displayName": "current phase B",
+                            "displayNameEvent": "current phase B changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "7c1d2837-e508-4709-b07f-3e4033c0f604",
+                            "name": "currentPhaseC",
+                            "displayName": "current phase C",
+                            "displayNameEvent": "current phase C changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "787ac047-da83-404f-ac50-2a7fe7147a22",
+                            "name": "powerPhaseA",
+                            "displayName": "power phase A",
+                            "displayNameEvent": "power phase A changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "a8ea06e7-652b-4129-b113-fb594db9fad1",
+                            "name": "powerPhaseB",
+                            "displayName": "power phase B",
+                            "displayNameEvent": "power phase B changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "20af4810-6f98-4627-b19d-14e557607234",
+                            "name": "powerPhaseC",
+                            "displayName": "current phase C",
+                            "displayNameEvent": "current phase C changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "3e881240-c513-46b0-b1fd-c75943ce10aa",
+                            "name": "powerFactorSmartmeter",
+                            "displayName": "power factor smartmeter",
+                            "displayNameEvent": "power factor smartmeter changed",
+                            "type": "int",
+                            "unit": "None",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "7ea5c1ef-17b3-4451-b99c-f24356ab2537",
+                            "name": "voltagePhaseA",
+                            "displayName": "voltage phase A",
+                            "displayNameEvent": "voltage phase A changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "e2550088-8a00-49cc-bc84-c7c2093992bb",
+                            "name": "voltagePhaseB",
+                            "displayName": "voltage phase B",
+                            "displayNameEvent": "voltage phase B changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "bf366879-ada5-4c2e-bd89-e9e9b66952de",
+                            "name": "voltagePhaseC",
+                            "displayName": "voltage phase C",
+                            "displayNameEvent": "voltage phase C changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "3c6841f5-843b-4e42-b4d7-225db41f6f4b",
+                            "name": "SoC",
+                            "displayName": "State of Charge",
+                            "displayNameEvent": "State of Charge changed",
+                            "type": "uint",
+                            "unit": "Percentage",
+                            "minValue": 0,
+                            "maxValue": 100,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "c44f42a0-9b91-4b44-af7c-2264a09d627e",
+                            "name": "capacity",
+                            "displayName": "Capacity",
+                            "displayNameEvent": "Capacity changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "d269ec2a-6977-4128-b6d0-b4adb87afaf1",
+                            "name": "cyclesBattery",
+                            "displayName": "cycles battery",
+                            "displayNameEvent": "cycles battery changed",
+                            "type": "uint",
+                            "unit": "None",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "2bc76bc8-2f1d-4620-8d7b-bf1ff93e69ad",
+                            "name": "tempBattery",
+                            "displayName": "temperature battery",
+                            "displayNameEvent": "temperature battery changed",
+                            "type": "uint",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0
                         }
                     ],
                     "actionTypes": [ ]

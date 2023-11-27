@@ -11,10 +11,14 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
     + batteryCritical
 
 * what means "cached": true in integrationpluginsax.json?
-    
+    -> state is cached in a file and available after reboot again
+
+### ToDo 
++ convert type:sunssf
+
 ### Used states so far in plugin
 
-+ Capacity
+
 
 + Connected
 
@@ -25,10 +29,40 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 
 + BatteryCritical
 
-+ SoC
-
 + battery current
 
++ battery voltage
+
++ battery power factor
+    * factor for CurrentPower?
+
++ smartmeter frequency
++ smartmeter frequency factor
+
++ battery stateOfHealth
+
++ smartmeter totalEnergyProduced
++ smartmeter totalEnergyConsumed
++ smartmeter energyFactor
+
++ battery state
+
++ currentPhaseA
++ currentPhaseB
++ currentPhaseC
+
++ powerPhaseA
++ powerPhaseB
++ powerPhaseC
++ powerFactorSmartmeter
+
++ voltagePhaseA
++ voltagePhaseB
++ voltagePhaseC
+
++ Soc
+
++ Capacity
 
 
 ## Supported Things

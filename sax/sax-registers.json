@@ -75,7 +75,7 @@
             "access": "RO"
         },
         {
-            "id": "frequencySmartmeter",
+            "id": "frequency",
             "address": 40087,
             "size": 1,
             "type": "int16",
@@ -137,7 +137,7 @@
             "id": "energyFactor",
             "address": 40098,
             "size": 1,
-            "type": "uint16",
+            "type": "int16",
             "readSchedule": "update",
             "registerType": "holdingRegister",
             "description": "energyFactor (Smartmeter) (type:sunssf)",
@@ -229,10 +229,10 @@
             "access": "RO"
         },
         {
-            "id": "powerFactor",
+            "id": "powerFactorSmartmeter",
             "address": 40106,
             "size": 1,
-            "type": "uint16",
+            "type": "int16",
             "readSchedule": "update",
             "registerType": "holdingRegister",
             "description": "Power Factor (Smartmeter) (type:sunssf)",
