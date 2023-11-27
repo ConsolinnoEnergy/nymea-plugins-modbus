@@ -227,7 +227,7 @@
             "description": "Set Charging current Limit",
             "unit": "mA",
             "defaultValue": "0",
-            "access": "WR"
+            "access": "RW"
         }
     ]
 }
