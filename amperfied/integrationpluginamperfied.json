@@ -1,16 +1,16 @@
 {
     "name": "amperfied",
-    "displayName": "Amperfied",
+    "displayName": "Heidelberg Amperfied",
     "id": "2c463ff6-eea8-4977-a0b7-28b70399925b",
     "vendors": [
         {
             "name": "amperfied",
-            "displayName": "Amperfied",
+            "displayName": "Heidelberg Amperfied",
             "id": "0f1d4317-fd3d-4f1e-b92a-d48df03d94e9",
             "thingClasses": [
                 {
                     "name": "energyControl",
-                    "displayName": "Energy Control",
+                    "displayName": "Amperfied Energy Control",
                     "id": "5b87b9ab-c78b-48c2-9f5f-5a4efebd2c58",
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
@@ -25,8 +25,8 @@
                         },
                         {
                             "id": "fb3a1559-2fb8-4cc5-9b88-bde1714c746d",
-                            "name":"slaveId",
-                            "displayName": "Modbus slave ID",
+                            "name":"modbusId",
+                            "displayName": "Modbus ID",
                             "type": "uint",
                             "minValue": 1,
                             "maxValue": 248,
@@ -66,7 +66,8 @@
                             "type": "uint",
                             "minValue": 1,
                             "maxValue": 3,
-                            "defaultValue": 1
+                            "defaultValue": 1,
+                            "cached": false
                         },
                         {
                             "id": "b7ea8449-c76f-4d42-8433-505f542abfd4",
@@ -113,13 +114,14 @@
                             "displayName": "Session energy",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         }
                     ]
                 },
                 {
                     "name": "connectHome",
-                    "displayName": "connect.home",
+                    "displayName": "Amperfied connect.home",
                     "id": "f8805308-1ddd-496c-bea3-ef9163357bfa",
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
@@ -165,7 +167,8 @@
                             "type": "uint",
                             "minValue": 1,
                             "maxValue": 3,
-                            "defaultValue": 1
+                            "defaultValue": 1,
+                            "cached": false
                         },
                         {
                             "id": "6221212e-e21d-4006-bfdc-90a8a50b2587",
@@ -212,7 +215,8 @@
                             "displayName": "Session energy",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         }
                     ]
                 }

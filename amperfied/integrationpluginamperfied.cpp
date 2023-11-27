@@ -56,11 +56,11 @@ void IntegrationPluginAmperfied::discoverThings(ThingDiscoveryInfo *info)
             qCInfo(dcAmperfied()) << "Discovery results:" << discovery->discoveryResults().count();
 
             foreach (const EnergyControlDiscovery::Result &result, discovery->discoveryResults()) {
-                ThingDescriptor descriptor(energyControlThingClassId, "Amperfied Energy Control", QString("Slave ID: %1").arg(result.slaveId));
+                ThingDescriptor descriptor(energyControlThingClassId, "Amperfied Energy Control", QString("Modbus ID: %1").arg(result.modbusId));
 
                 ParamList params{
                     {energyControlThingRtuMasterParamTypeId, result.modbusRtuMasterId},
-                    {energyControlThingSlaveIdParamTypeId, result.slaveId}
+                    {energyControlThingModbusIdParamTypeId, result.modbusId}
                 };
                 descriptor.setParams(params);
 
@@ -296,8 +296,8 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
         info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("The modbus RTU connection is not available."));
         return;
     }
-    quint16 slaveId = thing->paramValue(energyControlThingSlaveIdParamTypeId).toUInt();
-    AmperfiedModbusRtuConnection *connection = new AmperfiedModbusRtuConnection(master, slaveId, thing);
+    quint16 modbusId = thing->paramValue(energyControlThingModbusIdParamTypeId).toUInt();
+    AmperfiedModbusRtuConnection *connection = new AmperfiedModbusRtuConnection(master, modbusId, thing);
     connect(info, &ThingSetupInfo::aborted, connection, [=](){
         qCDebug(dcAmperfied()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
         connection->deleteLater();
@@ -377,10 +377,12 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
         if (connection->currentL3() > 1) {
             phaseCount++;
         }
-        if (phaseCount > 0) {
-            thing->setStateValue(energyControlPhaseCountStateTypeId, phaseCount);
-        }
         thing->setStateValue(energyControlChargingStateTypeId, phaseCount > 0);
+        if (phaseCount == 0) {
+            // Not allowed to set phasecount to 0;
+            phaseCount = 1;
+        }
+        thing->setStateValue(energyControlPhaseCountStateTypeId, phaseCount);
     });
 
     connection->update();
@@ -494,10 +496,12 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
         if (connection->currentL3() > 1) {
             phaseCount++;
         }
-        if (phaseCount > 0) {
-            thing->setStateValue(connectHomePhaseCountStateTypeId, phaseCount);
-        }
         thing->setStateValue(connectHomeChargingStateTypeId, phaseCount > 0);
+        if (phaseCount == 0) {
+            // Not allowed to set phasecount to 0;
+            phaseCount = 1;
+        }
+        thing->setStateValue(connectHomePhaseCountStateTypeId, phaseCount);
     });
 
     connection->connectDevice();
