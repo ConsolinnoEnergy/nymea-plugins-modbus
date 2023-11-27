@@ -18,23 +18,19 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 
 ### Used states so far in plugin
 
++ battery current
 
++ battery voltage
 
 + Connected
 
 + CurrentPower
     * MINUS or PLUS?
++ battery power factor
 
 + ChargingState
 
 + BatteryCritical
-
-+ battery current
-
-+ battery voltage
-
-+ battery power factor
-    * factor for CurrentPower?
 
 + smartmeter frequency
 + smartmeter frequency factor

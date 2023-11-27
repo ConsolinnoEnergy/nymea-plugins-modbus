@@ -98,9 +98,9 @@
                             "name": "powerFactor",
                             "displayName": "power factor battery",
                             "displayNameEvent": "power factor battery changed",
-                            "type": "double",
+                            "type": "int",
                             "unit": "None",
-                            "defaultValue": 0.00
+                            "defaultValue": 0
                         },
                         {
                             "id": "52aa70cf-4fd2-4405-82fd-83b0bc0a4f27",
@@ -116,16 +116,16 @@
                             "name": "frequencyFactor",
                             "displayName": "frequency factor smartmeter",
                             "displayNameEvent": "frequency factor smartmeter changed",
-                            "type": "double",
+                            "type": "int",
                             "unit": "None",
-                            "defaultValue": 0.00
+                            "defaultValue": 0
                         },
                         {
                             "id": "7700f732-e4c0-4947-8392-dcb8be51f608",
                             "name": "stateOfHealth",
                             "displayName": "state of health battery",
                             "displayNameEvent": "state of health battery changed",
-                            "type": "double",
+                            "type": "uint",
                             "unit": "Percentage",
                             "minValue": 0,
                             "maxValue": 100,
@@ -154,9 +154,9 @@
                             "name": "energyFactorSmartmeter",
                             "displayName": "energy factor smartmeter",
                             "displayNameEvent": "energy factor smartmeter changed",
-                            "type": "double",
+                            "type": "int",
                             "unit": "None",
-                            "defaultValue": 0.00
+                            "defaultValue": 0
                         },
                         {
                             "id": "77097ec9-498f-4c62-8143-0d11368ef73c",
