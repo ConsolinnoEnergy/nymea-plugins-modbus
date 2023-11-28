@@ -15,8 +15,19 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 * where do i put macros?
     + refreshTime
 
-* connect(kostalConnection, &KostalModbusTcpConnection::updateFinished, thing, [=](){
-    V.S.
+* how to update registers?
+```
+connect(kostalConnection, &KostalModbusTcpConnection::updateFinished, thing, [=](){
+```
+
+V.S.
+```
+connect(connection, &SaxModbusTcpConnection::powerBatteryChanged, thing, [thing](quint16 currentPower){
+```
+    
+
+
+* ask Sax Power for version register
 
 
 

@@ -18,6 +18,8 @@
 #include "integrationpluginsax.h"
 #include "plugininfo.h"
 
+#include "saxstoragediscovery.h"
+
 #include "saxmodbustcpconnection.h"
 
 #include <network/networkdevicediscovery.h>
@@ -31,52 +33,29 @@ IntegrationPluginSax::IntegrationPluginSax()
 void IntegrationPluginSax::discoverThings(ThingDiscoveryInfo *info)
 {
     if (info->thingClassId() == saxStorageThingClassId) {
-        if (!hardwareManager()->networkDeviceDiscovery()->available()) {
-            qCWarning(dcSax()) << "The network discovery is not available on this platform.";
-            info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
-            return;
-        }
-        ThingClass thingClass = supportedThings().findById(info->thingClassId()); // TODO can this be done easier?
-        qCDebug(dcSax()) << "Starting network discovery...";
-        NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, info, [=](){
-            qCDebug(dcSax()) << "Discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "devices";
-            foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
-                qCDebug(dcSax()) << networkDeviceInfo;
+        SaxStorageDiscovery *discovery = new SaxStorageDiscovery(hardwareManager()->networkDeviceDiscovery(), info);
+        connect(discovery, &SaxStorageDiscovery::discoveryFinished, info, [this, info, discovery](){
+            qCInfo(dcSax()) << "Discovery results:" << discovery->discoveryResults().count();
 
-                QString title;
-                if (networkDeviceInfo.hostName().isEmpty()) {
-                    title = networkDeviceInfo.address().toString();
-                } else {
-                    title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
-                }
+            foreach (const SaxStorageDiscovery::Result &result, discovery->discoveryResults()) {
+                ThingDescriptor descriptor(saxStorageThingClassId, "Sax storage", QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
 
-                QString description;
-                if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
-                    description = networkDeviceInfo.macAddress();
-                } else {
-                    description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
-                }
-
-                ThingDescriptor descriptor(info->thingClassId(), title, description);
-                ParamList params;
-                params << Param(saxStorageThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                ParamList params{
+                    {saxStorageThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress()}
+                };
                 descriptor.setParams(params);
 
-                // Check if we already have set up this device
-                Thing *existingThing = myThings().findByParams(descriptor.params());
+                Thing *existingThing = myThings().findByParams(params);
                 if (existingThing) {
-                    qCDebug(dcSax()) << "Found already existing" << thingClass.name() << "battery:" << existingThing->name() << networkDeviceInfo;
                     descriptor.setThingId(existingThing->id());
-                } else {
-                    qCDebug(dcSax()) << "Found new" << thingClass.name() << "battery";
                 }
-
                 info->addThingDescriptor(descriptor);
             }
+
             info->finish(Thing::ThingErrorNoError);
+
         });
+        discovery->startDiscovery();
 
     }
 }
