@@ -68,25 +68,26 @@ QList<EnergyControlDiscovery::Result> EnergyControlDiscovery::discoveryResults()
     return m_discoveryResults;
 }
 
-void EnergyControlDiscovery::tryConnect(ModbusRtuMaster *master, quint16 slaveId)
+void EnergyControlDiscovery::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
 {
-    qCDebug(dcAmperfied()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << slaveId;
+    qCDebug(dcAmperfied()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << modbusId;
 
-    ModbusRtuReply *reply = master->readInputRegister(slaveId, 4);
+    ModbusRtuReply *reply = master->readInputRegister(modbusId, 4);
     connect(reply, &ModbusRtuReply::finished, this, [=](){
         qCDebug(dcAmperfied()) << "Test reply finished!" << reply->error() << reply->result();
         if (reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
             quint16 version = reply->result().first();
             if (version >= 0x0100) {
                 qCDebug(dcAmperfied()) << QString("Version is 0x%1").arg(version, 0, 16);
-                Result result {master->modbusUuid(), version, slaveId};
+                Result result {master->modbusUuid(), version, modbusId};
                 m_discoveryResults.append(result);
             } else {
                 qCDebug(dcAmperfied()) << "Version must be at least 1.0.0 (0x0100)";
             }
         }
-        if (slaveId < 20) {
-            tryConnect(master, slaveId+1);
+        // The possible Modbus IDs of the Energy Control are in the range [0;15].
+        if (modbusId < 15) {
+            tryConnect(master, modbusId+1);
         } else {
             emit discoveryFinished(true);
         }

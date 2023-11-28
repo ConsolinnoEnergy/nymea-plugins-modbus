@@ -44,7 +44,7 @@ public:
     struct Result {
         QUuid modbusRtuMasterId;
         quint16 firmwareVersion;
-        quint16 slaveId;
+        quint16 modbusId;
     };
 
     void startDiscovery();
@@ -55,7 +55,7 @@ signals:
     void discoveryFinished(bool modbusRtuMasterAvailable);
 
 private slots:
-    void tryConnect(ModbusRtuMaster *master, quint16 slaveId);
+    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
 
 private:
     ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
