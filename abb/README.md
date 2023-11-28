@@ -60,8 +60,7 @@ Connects nymea to a ABB wallboxes. Currently supported models are:
     ],
 ```
 - chargingCurrent in abb-registers.json: is actually "access": "WO" (was not compilable)
-    + is read during init, might cause problems
-
+    -> available from nymea 1.8
 
 
 - Registers maxChargingCurrent and minChargingCurrent not available
