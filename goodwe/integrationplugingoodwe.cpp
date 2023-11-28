@@ -335,6 +335,18 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 double totalEnergyProducedKwh = totalEnergyProduced / 1000.0;
                 qCDebug(dcGoodwe()) << "Meter total energy produced (eTotalSell) changed" << totalEnergyProducedKwh << "kWh";
+                double lastValue = meterThings.first()->stateValue(goodweMeterTotalEnergyProducedStateTypeId).toDouble();
+                if (totalEnergyProducedKwh < lastValue) {
+                    // This is a fix for the problem that it might be possible to receive a value of 0 because of a modbus error.
+                    // However, this fix introduces the problem that if the erronous value received is really high, then this value
+                    // will stop updating and be stuck on that erronous high value. Hard to mitigate, since it is entirely possible
+                    // that on startup this value is 0 and then jumps to a really high value. Would need to do complicated analysis
+                    // over several received values.
+
+                    qCDebug(dcGoodwe()) << "Received value for meter total energy produced (eTotalSell) " << totalEnergyProducedKwh
+                                        << "kWh is lower than last value" << lastValue << "kWh. This does not make sense, skipping this value";
+                    return;
+                }
                 meterThings.first()->setStateValue(goodweMeterTotalEnergyProducedStateTypeId, totalEnergyProducedKwh);
             }
         });
@@ -344,6 +356,18 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 double totalEnergyConsumedKwh = totalEnergyConsumed / 1000.0;
                 qCDebug(dcGoodwe()) << "Meter total energy consumed (eTotalBuy) changed" << totalEnergyConsumedKwh << "kWh";
+                double lastValue = meterThings.first()->stateValue(goodweMeterTotalEnergyConsumedStateTypeId).toDouble();
+                if (totalEnergyConsumedKwh < lastValue) {
+                    // This is a fix for the problem that it might be possible to receive a value of 0 because of a modbus error.
+                    // However, this fix introduces the problem that if the erronous value received is really high, then this value
+                    // will stop updating and be stuck on that erronous high value. Hard to mitigate, since it is entirely possible
+                    // that on startup this value is 0 and then jumps to a really high value. Would need to do complicated analysis
+                    // over several received values.
+
+                    qCDebug(dcGoodwe()) << "Received value for meter total energy consumed (eTotalSell) " << totalEnergyConsumedKwh
+                                        << "kWh is lower than last value" << lastValue << "kWh. This does not make sense, skipping this value";
+                    return;
+                }
                 meterThings.first()->setStateValue(goodweMeterTotalEnergyConsumedStateTypeId, totalEnergyConsumedKwh);
             }
         });
