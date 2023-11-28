@@ -291,7 +291,7 @@
                             "name": "tempBattery",
                             "displayName": "temperature battery",
                             "displayNameEvent": "temperature battery changed",
-                            "type": "uint",
+                            "type": "double",
                             "unit": "DegreeCelsius",
                             "defaultValue": 0
                         }
