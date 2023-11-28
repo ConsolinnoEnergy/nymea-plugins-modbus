@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "saxStorage",
-                    "displayName": "Sax Power Energy Storage",
+                    "displayName": "Sax Power Home",
                     "id": "f0a04c98-17e2-4017-8e5d-9ce500946783",
                     "createMethods": ["discovery", "user"],
                     "interfaces": ["connectable", "battery", "energystorage"],

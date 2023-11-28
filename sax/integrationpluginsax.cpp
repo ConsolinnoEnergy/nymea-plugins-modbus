@@ -36,10 +36,10 @@ void IntegrationPluginSax::discoverThings(ThingDiscoveryInfo *info)
         SaxStorageDiscovery *discovery = new SaxStorageDiscovery(hardwareManager()->networkDeviceDiscovery(), info);
         connect(discovery, &SaxStorageDiscovery::discoveryFinished, info, [this, info, discovery](){
             qCInfo(dcSax()) << "Discovery results:" << discovery->discoveryResults().count();
-
+            ThingClass thingClass = supportedThings().findById(info->thingClassId());
             foreach (const SaxStorageDiscovery::Result &result, discovery->discoveryResults()) {
-                ThingDescriptor descriptor(saxStorageThingClassId, "Sax storage", QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
-
+                // ThingDescriptor descriptor(saxStorageThingClassId, "Sax Power Home", QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
+                ThingDescriptor descriptor(info->thingClassId(), thingClass.displayName(), QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
                 ParamList params{
                     {saxStorageThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress()}
                 };
