@@ -9,9 +9,16 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 * refreh values:
     + done via of m_pluginTimer?
     + refreshTime as parameter necessary?
+        -> nope
+        
 
 * where do i put macros?
     + refreshTime
+
+* connect(kostalConnection, &KostalModbusTcpConnection::updateFinished, thing, [=](){
+    V.S.
+
+
 
 ### Used states so far in plugin
 
