@@ -6,15 +6,12 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 
 ## Notes
 
-* the following statetypes might be not availabel:
-    + connected
-    + batteryCritical
+* refreh values:
+    + done via of m_pluginTimer?
+    + refreshTime as parameter necessary?
 
-* what means "cached": true in integrationpluginsax.json?
-    -> state is cached in a file and available after reboot again
-
-### ToDo 
-+ convert type:sunssf
+* where do i put macros?
+    + refreshTime
 
 ### Used states so far in plugin
 

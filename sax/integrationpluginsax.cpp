@@ -84,7 +84,7 @@ void IntegrationPluginSax::discoverThings(ThingDiscoveryInfo *info)
 void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
-    qCDebug(dcSax()) << "Setup" << thing << thing->params();
+    qCDebug(dcSax()) << "Setup" << thing;
 
     if (thing->thingClassId() == saxStorageThingClassId) {
 
@@ -361,11 +361,12 @@ void IntegrationPluginSax::postSetupThing(Thing *thing)
     if (thing->thingClassId() == saxStorageThingClassId) {
         if (!m_pluginTimer) {
             qCDebug(dcSax()) << "Starting plugin timer...";
+            // set refreshTime
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(SaxModbusTcpConnection *connection, m_tcpConnections) {
-                    if (connection->connected()) {
-                        connection->update();
+                    if (connection->update() == false) {
+                        qCWarning(dcSax()) << "Update failed, could not connect via Modbus to Sax storage";
                     }
                 }
             });
