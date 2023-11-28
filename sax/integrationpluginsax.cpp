@@ -137,6 +137,11 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
 
         // Handle property changed signals
 
+        /*Debug message for update message*/
+        connect(connection, &SaxModbusTcpConnection::updateFinished, thing, [connection, thing](){
+            qCDebug(dcSax()) << "Updated:" << connection;
+        });
+
         /*battery power factor*/
         connect(connection, &SaxModbusTcpConnection::powerFactorBatteryChanged, thing, [thing](quint16 powerFactor){
             qCDebug(dcSax()) << "Battery powerFactor changed" << powerFactor;

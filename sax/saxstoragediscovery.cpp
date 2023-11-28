@@ -80,8 +80,8 @@ void SaxStorageDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDev
             result.networkDeviceInfo = networkDeviceInfo;
             m_discoveryResults.append(result);
 
-            qCDebug(dcSax()) << "Discovery: --> Found"
-                                << "Version:" << result.firmwareVersion
+            qCDebug(dcSax()) << "Discovery: --> Found Version:" 
+                                << result.firmwareVersion
                                 << result.networkDeviceInfo;
 
 
