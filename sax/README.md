@@ -6,74 +6,12 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 
 ## Notes
         
-
-* where do i put macros?
-    + refreshTime
-
-* how to update registers?
-```
-connect(kostalConnection, &KostalModbusTcpConnection::updateFinished, thing, [=](){
-```
-
-V.S.
-```
-connect(connection, &SaxModbusTcpConnection::powerBatteryChanged, thing, [thing](quint16 currentPower){
-```
-    
-
-
 * ask Sax Power for version register
-
-
-
-### Used states so far in plugin
-
-+ battery current
-
-+ battery voltage
-
-+ Connected
-
-+ CurrentPower
-    * MINUS or PLUS?
-+ battery power factor
-
-+ ChargingState
-
-+ BatteryCritical
-
-+ smartmeter frequency
-+ smartmeter frequency factor
-
-+ battery stateOfHealth
-
-+ smartmeter totalEnergyProduced
-+ smartmeter totalEnergyConsumed
-+ smartmeter energyFactor
-
-+ battery state
-
-+ currentPhaseA
-+ currentPhaseB
-+ currentPhaseC
-
-+ powerPhaseA
-+ powerPhaseB
-+ powerPhaseC
-+ powerFactorSmartmeter
-
-+ voltagePhaseA
-+ voltagePhaseB
-+ voltagePhaseC
-
-+ Soc
-
-+ Capacity
 
 
 ## Supported Things
 
-* SAX Homespeicher (bis zu drei zusammengeschaltet)
+* SAX Power Home (up to three modules together)
     * 5,2 kWh
     * 10,4 kWh
     * 15,6 kWh
