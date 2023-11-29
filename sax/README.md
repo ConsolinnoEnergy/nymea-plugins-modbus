@@ -5,11 +5,6 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 
 
 ## Notes
-
-* refreh values:
-    + done via of m_pluginTimer?
-    + refreshTime as parameter necessary?
-        -> nope
         
 
 * where do i put macros?

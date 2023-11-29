@@ -349,7 +349,7 @@ void IntegrationPluginSax::postSetupThing(Thing *thing)
         if (!m_pluginTimer) {
             qCDebug(dcSax()) << "Starting plugin timer...";
             // set refreshTime
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(REFRESH_TIME_MB_VALUES);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(SaxModbusTcpConnection *connection, m_tcpConnections) {
                     if (connection->update() == false) {
