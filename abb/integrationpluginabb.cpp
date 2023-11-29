@@ -75,6 +75,8 @@ void IntegrationPluginABB::discoverThings(ThingDiscoveryInfo *info)
             qCInfo(dcAbb()) << "Discovery results:" << discovery->discoveryResults().count();
 
             foreach (const TerraTCPDiscovery::Result &result, discovery->discoveryResults()) {
+                // verify firmware version
+                
                 ThingDescriptor descriptor(TerraTCPThingClassId, "ABB Terra", QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
 
                 ParamList params{

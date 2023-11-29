@@ -78,8 +78,8 @@ void TerraTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevic
             result.networkDeviceInfo = networkDeviceInfo;
             m_discoveryResults.append(result);
 
-            qCDebug(dcAbb()) << "Discovery: --> Found"
-                                << "Version:" << result.firmwareVersion
+            qCDebug(dcAbb()) << "Discovery: --> Found Version:" 
+                                << result.firmwareVersion
                                 << result.networkDeviceInfo;
 
 
