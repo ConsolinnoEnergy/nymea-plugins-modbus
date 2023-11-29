@@ -75,7 +75,22 @@ void IntegrationPluginABB::discoverThings(ThingDiscoveryInfo *info)
             qCInfo(dcAbb()) << "Discovery results:" << discovery->discoveryResults().count();
 
             foreach (const TerraTCPDiscovery::Result &result, discovery->discoveryResults()) {
-                // verify firmware version
+                qCDebug(dcAbb()) << "Discovery result:" << result.networkDeviceInfo.address().toString() + " (" + result.networkDeviceInfo.macAddress() + ", " + result.networkDeviceInfo.macAddressManufacturer() + ")";
+
+                //draft: check if found devices have a valid capacity register
+                if (result.firmwareVersion >= MIN_FIRMWARE_VERSION){   
+                    qCDebug(dcAbb()) << "Discovery: --> Found Version:" 
+                                        << result.firmwareVersion;                      
+                }
+                else{
+                    qCDebug(dcAbb()) << "Discovery: --> Found wrong modbus-device, version-register:" 
+                                        << result.firmwareVersion;   
+                    qCDebug(dcAbb()) << "Discovery: Minimum required firmware:" 
+                                        << MIN_FIRMWARE_VERSION_MAJOR << "."
+                                        << MIN_FIRMWARE_VERSION_MINOR << "."
+                                        << MIN_FIRMWARE_VERSION_REVISION;   
+                    continue;
+                }
                 
                 ThingDescriptor descriptor(TerraTCPThingClassId, "ABB Terra", QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
 
