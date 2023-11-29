@@ -41,6 +41,17 @@ void IntegrationPluginSax::discoverThings(ThingDiscoveryInfo *info)
             foreach (const SaxStorageDiscovery::Result &result, discovery->discoveryResults()) {
                 qCDebug(dcSax()) << "Discovery result:" << result.networkDeviceInfo.address().toString() + " (" + result.networkDeviceInfo.macAddress() + ", " + result.networkDeviceInfo.macAddressManufacturer() + ")";
 
+                //draft: check if found devices have a valid capacity register
+                if (result.capacity_register == 5200 || result.capacity_register == 10400 || result.capacity_register == 15600){   
+                    qCDebug(dcSax()) << "Discovery: --> Found Version with capacity:" 
+                                        << result.capacity_register << "Wh";                      
+                }
+                else{
+                    qCDebug(dcSax()) << "Discovery: --> Found wrong Version, no valid capacity register (" 
+                                        << result.capacity_register << ")";  
+                    continue;
+                }
+
                 ThingDescriptor descriptor(info->thingClassId(), thingClass.displayName(), result.networkDeviceInfo.address().toString());
                 
                 ParamList params{

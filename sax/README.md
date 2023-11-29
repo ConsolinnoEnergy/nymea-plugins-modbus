@@ -73,7 +73,10 @@ connect(connection, &SaxModbusTcpConnection::powerBatteryChanged, thing, [thing]
 
 ## Supported Things
 
-* SAX Homespeicher
+* SAX Homespeicher (bis zu drei zusammengeschaltet)
+    * 5,2 kWh
+    * 10,4 kWh
+    * 15,6 kWh
 
 ## Tested connections
 

@@ -34,6 +34,7 @@ public:
     struct Result {
         quint16 firmwareVersion;
         quint16 slaveId;
+        quint16 capacity_register;
         NetworkDeviceInfo networkDeviceInfo;
     };
 

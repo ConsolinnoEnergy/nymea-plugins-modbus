@@ -74,15 +74,14 @@ void SaxStorageDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDev
                 return;
             }
             Result result;
-            result.firmwareVersion = connection->currentBattery(); // test with other register
-            //TODO ask Sax Power for version register
-            // result.firmwareVersion = connection->version();
-            result.networkDeviceInfo = networkDeviceInfo;
-            m_discoveryResults.append(result);
 
-            qCDebug(dcSax()) << "Discovery: --> Found Version:" 
-                                << result.firmwareVersion
-                                << result.networkDeviceInfo;
+            result.capacity_register = connection->capacity();
+
+            result.networkDeviceInfo = networkDeviceInfo;
+            m_discoveryResults.append(result);         
+            qCDebug(dcSax()) << "Discovery: --> Found Modbus Device:" 
+                                << result.networkDeviceInfo;         
+
 
 
             // Done with this connection
