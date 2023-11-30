@@ -295,8 +295,9 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
         }
     });
 
-    connect(connection, &ABBModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
+    connect(connection, &ABBModbusRtuConnection::initializationFinished, info, [this, info, connection, thing](bool success){
         if (success) {
+
             if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
                 qCWarning(dcAbb()) << "We require at least version "           
                                     << MIN_FIRMWARE_VERSION_MAJOR << "."
@@ -309,6 +310,9 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
                 delete connection;
                 return;
             }
+
+            thing->setStateValue(TerraRTUFirmwareVersionStateTypeId, QString::number(connection->fwversion()));
+
             m_rtuConnections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
         } else {
@@ -323,7 +327,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
             thing->setStateValue(TerraRTUPowerStateTypeId, false);
         } else {
             thing->setStateValue(TerraRTUPowerStateTypeId, true);
-            thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, connection->chargingCurrentLimit() / 10);
+            thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, connection->chargingCurrentLimit() / 1000);
         }
         //TODO manage TerraTCPMaxChargingCurrentStateTypeId, as minChargingCurrent and maxChargingCurrent are not available
         // thing->setStateMinMaxValues(TerraRTUMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());
@@ -382,7 +386,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
     });
 
 
-    connect(connection, &ABBModbusTcpConnection::initializationFinished, info, [this, info, connection](bool success){
+    connect(connection, &ABBModbusTcpConnection::initializationFinished, info, [this, info, connection, thing](bool success){
         if (success) {
             if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
                 qCWarning(dcAbb()) << "We require at least version "           
@@ -396,6 +400,9 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
                 delete connection;
                 return;
             }
+
+            thing->setStateValue(TerraRTUFirmwareVersionStateTypeId, QString::number(connection->fwversion()));
+
             m_tcpConnections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
             connection->update();
@@ -413,7 +420,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(TerraTCPPowerStateTypeId, false);
         } else {
             thing->setStateValue(TerraTCPPowerStateTypeId, true);
-            thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, connection->chargingCurrentLimit() / 10);
+            thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, connection->chargingCurrentLimit() / 1000);
         }
         //TODO manage TerraTCPMaxChargingCurrentStateTypeId, as minChargingCurrent and maxChargingCurrent are not available
         // thing->setStateMinMaxValues(TerraRTUMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());

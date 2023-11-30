@@ -17,7 +17,12 @@ Connects nymea to a ABB wallboxes. Currently supported models are:
 
 - check states
 
-- Versioncontrol in *discovery.cpp and *pluginabb.cpp: info-message
+- fix state types `sessionEnergy` 
+```
+Nov 30 16:28:40 1u0022-co-testChristian nymead[10017]:  W | Thing: No such state type "{277e7d7f-3e1e-49bc-8005-80e5229ed680}" in Thing(ABB Terra, id: {0c25aa5a-da0b-48d4-9867-0bbc35f449bb}, ThingClassId: {910fddb2-989d-4c6c-8264-cf877c1e53e4})
+Nov 30 16:28:40 1u0022-co-testChristian nymead[10017]:  W | Thing: No such state type "{b20e21fd-8131-430c-9557-7d24d65f333a}" in Thing(ABB Terra, id: {0c25aa5a-da0b-48d4-9867-0bbc35f449bb}, ThingClassId: {910fddb2-989d-4c6c-8264-cf877c1e53e4})
+```
+
 
 - ChargingState in abb-registers.json: Interprete Byte 1 (see 5.6 in ABB_Terra_AC_Charger_ModbusCommunication_v1.7.pdf)
     + check if Spare-Bytes are 0
