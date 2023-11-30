@@ -77,7 +77,9 @@ void IntegrationPluginABB::discoverThings(ThingDiscoveryInfo *info)
             foreach (const TerraTCPDiscovery::Result &result, discovery->discoveryResults()) {
                 qCDebug(dcAbb()) << "Discovery result:" << result.networkDeviceInfo.address().toString() + " (" + result.networkDeviceInfo.macAddress() + ", " + result.networkDeviceInfo.macAddressManufacturer() + ")";
 
-                //draft: check if found devices have a valid capacity register
+                //draft: check if found modbus device is actually ABB terra wallbox
+                //here as draft: check fw_version register
+                //firmware version is validated later as well
                 if (result.firmwareVersion >= MIN_FIRMWARE_VERSION){   
                     qCDebug(dcAbb()) << "Discovery: --> Found Version:" 
                                         << result.firmwareVersion;                      
@@ -89,7 +91,8 @@ void IntegrationPluginABB::discoverThings(ThingDiscoveryInfo *info)
                                         << MIN_FIRMWARE_VERSION_MAJOR << "."
                                         << MIN_FIRMWARE_VERSION_MINOR << "."
                                         << MIN_FIRMWARE_VERSION_REVISION;   
-                    continue;
+                    // draft: skip device if fw version is wrong
+                    // continue;
                 }
                 
                 ThingDescriptor descriptor(TerraTCPThingClassId, "ABB Terra", QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
@@ -295,9 +298,14 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
     connect(connection, &ABBModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
             if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
-                //TODO: trasform firmware to readable string
-                qCWarning(dcAbb()) << "We require at least version " << QString::number(MIN_FIRMWARE_VERSION_MAJOR) << ".xx.xx";
-                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware "+QString::number(MIN_FIRMWARE_VERSION_MAJOR)+".xx.xx"));
+                qCWarning(dcAbb()) << "We require at least version "           
+                                    << MIN_FIRMWARE_VERSION_MAJOR << "."
+                                    << MIN_FIRMWARE_VERSION_MINOR << "."
+                                    << MIN_FIRMWARE_VERSION_REVISION;
+                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware version "
+                                + QString::number(MIN_FIRMWARE_VERSION_MAJOR)+"."
+                                + QString::number(MIN_FIRMWARE_VERSION_MINOR)+"."
+                                + QString::number(MIN_FIRMWARE_VERSION_REVISION)+"."));
                 delete connection;
                 return;
             }
@@ -377,9 +385,14 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
     connect(connection, &ABBModbusTcpConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
             if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
-                //TODO: trasform firmware to readable string
-                qCWarning(dcAbb()) << "We require at least version " << QString::number(MIN_FIRMWARE_VERSION_MAJOR) << ".xx.xx";
-                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware "+QString::number(MIN_FIRMWARE_VERSION_MAJOR)+".xx.xx"));
+                qCWarning(dcAbb()) << "We require at least version "           
+                                    << MIN_FIRMWARE_VERSION_MAJOR << "."
+                                    << MIN_FIRMWARE_VERSION_MINOR << "."
+                                    << MIN_FIRMWARE_VERSION_REVISION;
+                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware version "
+                                + QString::number(MIN_FIRMWARE_VERSION_MAJOR)+"."
+                                + QString::number(MIN_FIRMWARE_VERSION_MINOR)+"."
+                                + QString::number(MIN_FIRMWARE_VERSION_REVISION)+"."));
                 delete connection;
                 return;
             }
