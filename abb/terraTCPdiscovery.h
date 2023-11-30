@@ -32,7 +32,7 @@ class TerraTCPDiscovery : public QObject
 public:
     explicit TerraTCPDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
     struct Result {
-        quint16 firmwareVersion;
+        quint32 firmwareVersion;
         quint16 slaveId;
         NetworkDeviceInfo networkDeviceInfo;
     };
