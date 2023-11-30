@@ -28,8 +28,9 @@ nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
 nymea-plugins-modbus (1.7.004) buster focal jammy; urgency=medium
 
   * Amperfied Energy Control discovery improved.
+  * Removed caching of unnecessary states for SDM630 & SDM72.
 
- -- Sebastian Ringer <s.ringer@consolinno.de> Fr, 1 Dec 2023 16:46:53 +0200
+ -- Sebastian Ringer <s.ringer@consolinno.de> Thu, 30 Nov 2023 14:08:53 +0200
 
 nymea-plugins-modbus (1.7.003) buster focal jammy; urgency=medium
 
