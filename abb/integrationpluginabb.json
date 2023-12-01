@@ -39,7 +39,8 @@
                             "displayNameEvent": "Firmware version changed",
                             "name": "firmwareVersion",
                             "type": "QString",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "cached": false
                         },
                         {
                             "id": "8fb3c9af-e6ac-4632-8dc4-37d0bb1ad874",
@@ -72,7 +73,8 @@
                             "type": "uint",
                             "minValue": 1,
                             "maxValue": 3,
-                            "defaultValue": 1
+                            "defaultValue": 1,
+                            "cached": false
                         },
                         {
                             "id": "277e7d7f-3e1e-49bc-8005-80e5229ed680",
@@ -119,7 +121,8 @@
                             "displayName": "Session energy",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         }
                     ]
                 },
@@ -139,6 +142,15 @@
                         }
                     ],
                     "stateTypes": [
+                        {
+                            "id": "d92c1062-3ffd-450c-bd1f-f8a2eb49151a",
+                            "displayName": "Firmware version",
+                            "displayNameEvent": "Firmware version changed",
+                            "name": "firmwareVersion",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
                         {
                             "id": "839a2735-b7c4-4ff6-aa97-9a45f6782973",
                             "name": "connected",
@@ -170,7 +182,8 @@
                             "type": "uint",
                             "minValue": 1,
                             "maxValue": 3,
-                            "defaultValue": 1
+                            "defaultValue": 1,
+                            "cached": false
                         },
                         {
                             "id": "2c17eab8-7014-455e-bc5e-e1143c767c81",
@@ -217,7 +230,8 @@
                             "displayName": "Session energy",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         }
                     ]
                 }

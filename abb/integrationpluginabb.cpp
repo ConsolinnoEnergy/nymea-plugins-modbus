@@ -401,7 +401,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
                 return;
             }
 
-            thing->setStateValue(TerraRTUFirmwareVersionStateTypeId, QString::number(connection->fwversion()));
+            thing->setStateValue(TerraTCPFirmwareVersionStateTypeId, QString::number(connection->fwversion()));
 
             m_tcpConnections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
