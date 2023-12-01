@@ -13,6 +13,9 @@ Connects nymea to a ABB wallboxes. Currently supported models are:
 * [ABB terra AC homepage](https://new.abb.com/ev-charging/de/terra-ac-wandladestation)
 
 # ToDo
+- set state `"cached": false,`  
+    + check which states need to be cached
+
 - translationfile
 
 - check states

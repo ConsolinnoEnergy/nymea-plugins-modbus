@@ -142,6 +142,7 @@
             "registerType": "holdingRegister",
             "description": "Voltage L1",
             "unit": "dV",
+            "cached": false,
             "defaultValue": 0,
             "access": "RO"
         },
