@@ -215,7 +215,7 @@
             "readSchedule": "init",
             "registerType": "holdingRegister",
             "description": "Firmware Version",
-            "defaultValue": 0,
+            "defaultValue": 268435456,
             "access": "RO"
         },
         {

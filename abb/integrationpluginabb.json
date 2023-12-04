@@ -123,6 +123,15 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0,
                             "cached": false
+                        },
+                        {
+                            "id": "b11aa2be-5384-4ec9-861f-27e0930ce3f6",
+                            "name": "settableMaxCurrent",
+                            "displayName": "Settable Max Current",
+                            "type": "uint",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
                         }
                     ]
                 },
@@ -230,6 +239,15 @@
                             "displayName": "Session energy",
                             "type": "double",
                             "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "527ea63d-3a39-4af5-8a05-c182fdfaaa1d",
+                            "name": "settableMaxCurrent",
+                            "displayName": "Settable Max Current",
+                            "type": "uint",
+                            "unit": "Ampere",
                             "defaultValue": 0,
                             "cached": false
                         }

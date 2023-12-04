@@ -208,6 +208,9 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
         if (info->action().actionTypeId() == TerraRTUMaxChargingCurrentActionTypeId) {
             bool power = info->thing()->stateValue(TerraRTUPowerStateTypeId).toBool();
             uint max = info->action().paramValue(TerraRTUMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt() * 10;
+            if(thing->stateValeu(TerraRTUSettableMaxCurrentStateTypeId).toUInt() > max){
+                max = thing->stateValeu(TerraRTUSettableMaxCurrentStateTypeId).toUInt();
+            }
             ModbusRtuReply *reply = connection->setChargingCurrent(power ? max : 0);
             connect(reply, &ModbusRtuReply::finished, info, [info, reply, max](){
                 if (reply->error() == ModbusRtuReply::NoError) {
@@ -242,6 +245,9 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
         if (info->action().actionTypeId() == TerraTCPMaxChargingCurrentActionTypeId) {
             bool power = info->thing()->stateValue(TerraTCPPowerStateTypeId).toBool();
             uint max = info->action().paramValue(TerraTCPMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt() * 10;
+            if(thing->stateValeu(TerraTCPSettableMaxCurrentStateTypeId).toUInt() > max){
+                max = thing->stateValeu(TerraTCPSettableMaxCurrentStateTypeId).toUInt();
+            }
             QModbusReply *reply = connection->setChargingCurrent(power ? max : 0);
             connect(reply, &QModbusReply::finished, info, [info, reply, max](){
                 if (reply->error() == QModbusDevice::NoError) {
@@ -320,6 +326,24 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
         }
     });
 
+
+    connect(connection, &ABBModbusRtuConnection::currentPowerChanged, thing, [thing](float currentPower){
+        qCDebug(dcAbb()) << "Wallbox currentPower changed" << currentPower << "W";
+        thing->setStateValue(TerraRTUCurrentPowerStateTypeId, currentPower);
+    });
+
+    connect(connection, &ABBModbusRtuConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
+        qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
+        thing->setStateValue(TerraRTUSessionEnergyStateTypeId, sessionEnergy / 1000.0);
+    });
+
+    connect(connection, &ABBModbusRtuConnection::settableMaxCurrentChanged, thing, [thing](quint32 settableMaxCurrent){
+        qCDebug(dcAbb()) << "Wallbox settableMaxCurrent changed" << settableMaxCurrent << "A";
+        thing->setStateValue(TerraRTUSettableMaxCurrentStateTypeId, settableMaxCurrent);
+    });
+
+settableMaxCurrent
+
     connect(connection, &ABBModbusRtuConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAbb()) << "Updated:" << connection;
 
@@ -327,26 +351,24 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
             thing->setStateValue(TerraRTUPowerStateTypeId, false);
         } else {
             thing->setStateValue(TerraRTUPowerStateTypeId, true);
+
             thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, connection->chargingCurrentLimit() / 1000);
         }
-        //TODO manage TerraTCPMaxChargingCurrentStateTypeId, as minChargingCurrent and maxChargingCurrent are not available
-        // thing->setStateMinMaxValues(TerraRTUMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());
-        thing->setStateValue(TerraRTUCurrentPowerStateTypeId, connection->currentPower());
-        thing->setStateValue(TerraRTUSessionEnergyStateTypeId, connection->sessionEnergy() / 1000.0);
+
         switch (connection->chargingState()) {
             //TODO interpret states
-        case ABBModbusRtuConnection::ChargingStateUndefined:
-        case ABBModbusRtuConnection::ChargingStateA:
-        case ABBModbusRtuConnection::ChargingStateB1:
-            thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
-            break;
-        case ABBModbusRtuConnection::ChargingStateB2:
-        case ABBModbusRtuConnection::ChargingStateC1:
-        case ABBModbusRtuConnection::ChargingStateC2:
-            thing->setStateValue(TerraRTUPluggedInStateTypeId, true);
-            break;
-        case ABBModbusRtuConnection::ChargingStateothers:
-            qCWarning(dcAbb()) << "Unhandled charging state:" << connection->chargingState();
+            case ABBModbusRtuConnection::ChargingStateUndefined:
+            case ABBModbusRtuConnection::ChargingStateA:
+            case ABBModbusRtuConnection::ChargingStateB1:
+                thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
+                break;
+            case ABBModbusRtuConnection::ChargingStateB2:
+            case ABBModbusRtuConnection::ChargingStateC1:
+            case ABBModbusRtuConnection::ChargingStateC2:
+                thing->setStateValue(TerraRTUPluggedInStateTypeId, true);
+                break;
+            case ABBModbusRtuConnection::ChargingStateothers:
+                qCWarning(dcAbb()) << "Unhandled charging state:" << connection->chargingState();
         }
 
         int phaseCount = 0;
@@ -411,6 +433,23 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+
+    connect(connection, &ABBModbusTcpConnection::currentPowerChanged, thing, [thing](float currentPower){
+        qCDebug(dcAbb()) << "Wallbox currentPower changed" << currentPower << "W";
+        thing->setStateValue(TerraTCPCurrentPowerStateTypeId, currentPower);
+    });
+
+    connect(connection, &ABBModbusTcpConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
+        qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
+        thing->setStateValue(TerraTCPSessionEnergyStateTypeId, sessionEnergy / 1000.0);
+    });
+
+    connect(connection, &ABBModbusTcpConnection::settableMaxCurrentChanged, thing, [thing](quint32 settableMaxCurrent){
+        qCDebug(dcAbb()) << "Wallbox settableMaxCurrent changed" << settableMaxCurrent << "A";
+        thing->setStateValue(TerraRTUSettableMaxCurrentStateTypeId, settableMaxCurrent);
+    });
+
+
     connect(connection, &ABBModbusTcpConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAbb()) << "Updated:" << connection;
 
@@ -422,24 +461,21 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(TerraTCPPowerStateTypeId, true);
             thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, connection->chargingCurrentLimit() / 1000);
         }
-        //TODO manage TerraTCPMaxChargingCurrentStateTypeId, as minChargingCurrent and maxChargingCurrent are not available
-        // thing->setStateMinMaxValues(TerraRTUMaxChargingCurrentStateTypeId, connection->minChargingCurrent(), connection->maxChargingCurrent());
-        thing->setStateValue(TerraRTUCurrentPowerStateTypeId, connection->currentPower());
-        thing->setStateValue(TerraRTUSessionEnergyStateTypeId, connection->sessionEnergy() / 1000.0);
+
         switch (connection->chargingState()) {
             //TODO interpret states
-        case ABBModbusRtuConnection::ChargingStateUndefined:
-        case ABBModbusRtuConnection::ChargingStateA:
-        case ABBModbusRtuConnection::ChargingStateB1:
-            thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
-            break;
-        case ABBModbusRtuConnection::ChargingStateB2:
-        case ABBModbusRtuConnection::ChargingStateC1:
-        case ABBModbusRtuConnection::ChargingStateC2:
-            thing->setStateValue(TerraRTUPluggedInStateTypeId, true);
-            break;
-        case ABBModbusRtuConnection::ChargingStateothers:
-            qCWarning(dcAbb()) << "Unhandled charging state:" << connection->chargingState();
+            case ABBModbusRtuConnection::ChargingStateUndefined:
+            case ABBModbusRtuConnection::ChargingStateA:
+            case ABBModbusRtuConnection::ChargingStateB1:
+                thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
+                break;
+            case ABBModbusRtuConnection::ChargingStateB2:
+            case ABBModbusRtuConnection::ChargingStateC1:
+            case ABBModbusRtuConnection::ChargingStateC2:
+                thing->setStateValue(TerraRTUPluggedInStateTypeId, true);
+                break;
+            case ABBModbusRtuConnection::ChargingStateothers:
+                qCWarning(dcAbb()) << "Unhandled charging state:" << connection->chargingState();
         }
 
         int phaseCount = 0;
