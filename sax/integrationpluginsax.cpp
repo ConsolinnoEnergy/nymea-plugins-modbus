@@ -49,7 +49,7 @@ void IntegrationPluginSax::discoverThings(ThingDiscoveryInfo *info)
                 else{
                     qCDebug(dcSax()) << "Discovery: --> Found wrong Version, no valid capacity register (" 
                                         << result.capacity_register << ")";  
-                    continue;
+                    // continue;
                 }
 
                 ThingDescriptor descriptor(info->thingClassId(), thingClass.displayName(), result.networkDeviceInfo.address().toString());
@@ -142,10 +142,6 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
                 connection->update();
             }
         });
-        // Read Battery capacity directly via modbus
-        double capacityDouble = connection->capacity()/ 1000.0;
-        qCDebug(dcSax()) << "Battery capacity" << capacityDouble << "kWh";
-        thing->setStateValue(saxStorageCapacityStateTypeId, capacityDouble);
 
 
 
@@ -334,6 +330,12 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(saxStorageBatteryCriticalStateTypeId, false);
             }
             thing->setStateValue(saxStorageSoCStateTypeId, soc);
+        });
+
+        /*battery capacity*/
+        connect(connection, &SaxModbusTcpConnection::capacityChanged, thing, [thing](float capacity){
+            qCDebug(dcSax()) << "Battery capacity changed" << capacity/1000 << "kWh";
+            thing->setStateValue(saxStorageCapacityStateTypeId, capacity/1000);
         });
 
         /*battery cycles*/

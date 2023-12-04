@@ -8,6 +8,14 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
         
 * ask Sax Power for version register
 
+* modpoll cmd
+```
+modpoll -0 -1 -a0x40 -r 40115 -c 1 -t4 -p 502 192.168.179.33
+# noch nicht getestet
+nymea-modbus-cli -a 192.168.179.33  -m 64 -r 40115 -t holding -d
+# noch nicht getestet
+```
+
 
 ## Supported Things
 

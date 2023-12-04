@@ -91,7 +91,8 @@
                             "displayNameEvent": "voltage battery changed",
                             "type": "double",
                             "unit": "Volt",
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "c234ca9c-a94c-436b-b0c2-ca706bb075dc",
@@ -100,7 +101,8 @@
                             "displayNameEvent": "power factor battery changed",
                             "type": "int",
                             "unit": "None",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "52aa70cf-4fd2-4405-82fd-83b0bc0a4f27",
@@ -109,7 +111,8 @@
                             "displayNameEvent": "frequency smartmeter changed",
                             "type": "double",
                             "unit": "Hertz",
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "818eb2ea-4ddb-4bfd-95d9-583a3a37c460",
@@ -118,7 +121,8 @@
                             "displayNameEvent": "frequency factor smartmeter changed",
                             "type": "int",
                             "unit": "None",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "7700f732-e4c0-4947-8392-dcb8be51f608",
@@ -129,7 +133,8 @@
                             "unit": "Percentage",
                             "minValue": 0,
                             "maxValue": 100,
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "312dd470-10dc-48b9-9af8-829df5eb4482",
@@ -138,7 +143,8 @@
                             "displayNameEvent": "total energy produced changed",
                             "type": "uint",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "81404c8b-5fa0-4d0f-b508-927222afb749",
@@ -147,7 +153,8 @@
                             "displayNameEvent": "total energy consumed changed",
                             "type": "uint",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "4e26e538-7147-4dfd-9f0c-c32808066ff6",
@@ -156,7 +163,8 @@
                             "displayNameEvent": "energy factor smartmeter changed",
                             "type": "int",
                             "unit": "None",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "77097ec9-498f-4c62-8143-0d11368ef73c",
@@ -174,7 +182,8 @@
                             "displayNameEvent": "current phase A changed",
                             "type": "double",
                             "unit": "Ampere",
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "de1a1f7a-0041-46c1-a74d-bd8dca825c9b",
@@ -183,7 +192,8 @@
                             "displayNameEvent": "current phase B changed",
                             "type": "double",
                             "unit": "Ampere",
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "7c1d2837-e508-4709-b07f-3e4033c0f604",
@@ -192,7 +202,8 @@
                             "displayNameEvent": "current phase C changed",
                             "type": "double",
                             "unit": "Ampere",
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "787ac047-da83-404f-ac50-2a7fe7147a22",
@@ -200,7 +211,7 @@
                             "displayName": "power phase A",
                             "displayNameEvent": "power phase A changed",
                             "type": "double",
-                            "unit": "Ampere",
+                            "unit": "Watt",
                             "defaultValue": 0.00
                         },
                         {
@@ -209,7 +220,7 @@
                             "displayName": "power phase B",
                             "displayNameEvent": "power phase B changed",
                             "type": "double",
-                            "unit": "Ampere",
+                            "unit": "Watt",
                             "defaultValue": 0.00
                         },
                         {
@@ -218,7 +229,7 @@
                             "displayName": "current phase C",
                             "displayNameEvent": "current phase C changed",
                             "type": "double",
-                            "unit": "Ampere",
+                            "unit": "Watt",
                             "defaultValue": 0.00
                         },
                         {
@@ -237,7 +248,8 @@
                             "displayNameEvent": "voltage phase A changed",
                             "type": "double",
                             "unit": "Volt",
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "e2550088-8a00-49cc-bc84-c7c2093992bb",
@@ -246,7 +258,8 @@
                             "displayNameEvent": "voltage phase B changed",
                             "type": "double",
                             "unit": "Volt",
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "bf366879-ada5-4c2e-bd89-e9e9b66952de",
@@ -255,7 +268,8 @@
                             "displayNameEvent": "voltage phase C changed",
                             "type": "double",
                             "unit": "Volt",
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "3c6841f5-843b-4e42-b4d7-225db41f6f4b",
@@ -275,7 +289,8 @@
                             "displayNameEvent": "Capacity changed",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0.00
+                            "defaultValue": 0.00,
+                            "cached": false
                         },
                         {
                             "id": "d269ec2a-6977-4128-b6d0-b4adb87afaf1",
@@ -284,7 +299,8 @@
                             "displayNameEvent": "cycles battery changed",
                             "type": "uint",
                             "unit": "None",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "2bc76bc8-2f1d-4620-8d7b-bf1ff93e69ad",
@@ -293,7 +309,8 @@
                             "displayNameEvent": "temperature battery changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         }
                     ],
                     "actionTypes": [ ]
