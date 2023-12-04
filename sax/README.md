@@ -16,6 +16,8 @@ nymea-modbus-cli -a 192.168.179.33  -m 64 -r 40115 -t holding -d
 # noch nicht getestet
 ```
 
+* noch unklar ob BigEndian oder LittleEndian
+
 
 ## Supported Things
 
