@@ -153,7 +153,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
         });
 
         /*current Power battery*/
-        connect(connection, &SaxModbusTcpConnection::powerBatteryChanged, thing, [connection, thing](quint16 currentPower){
+        connect(connection, &SaxModbusTcpConnection::powerBatteryChanged, thing, [connection, thing](qint16 currentPower){
             qint16 powerfactor = connection->powerFactorBattery();
             double powerConverted = -1.0 * currentPower * qPow(10, powerfactor);
 
