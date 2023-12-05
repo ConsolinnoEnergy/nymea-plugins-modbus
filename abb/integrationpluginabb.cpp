@@ -297,8 +297,13 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
         }
     });
 
+    connect(connection, &ABBModbusRtuConnection::initializationFinished, thing, [thing](bool success){
+        if (success) {
+            thing->setStateValue(TerraRTUConnectedStateTypeId, true);
+        }
+    });
 
-    connect(connection, &ABBModbusRtuConnection::initializationFinished, info, [this, info, connection, thing](bool success){
+    connect(connection, &ABBModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
             if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
                 qCWarning(dcAbb()) << "We require at least version "           
@@ -313,9 +318,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
                 return;
             }
 
-            thing->setStateValue(TerraRTUConnectedStateTypeId, true);
-
-            thing->setStateValue(TerraRTUFirmwareVersionStateTypeId, QString::number(connection->fwversion()));
+            info->thing()->setStateValue(TerraRTUFirmwareVersionStateTypeId, QString::number(connection->fwversion()));
 
             m_rtuConnections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
@@ -411,7 +414,13 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
     });
 
 
-    connect(connection, &ABBModbusTcpConnection::initializationFinished, info, [this, info, connection, thing](bool success){
+    connect(connection, &ABBModbusTcpConnection::initializationFinished, thing, [thing](bool success){
+        if (success) {
+            thing->setStateValue(TerraTCPConnectedStateTypeId, true);
+        }
+    });
+
+    connect(connection, &ABBModbusTcpConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
             if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
                 qCWarning(dcAbb()) << "We require at least version "           
@@ -426,14 +435,11 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
                 return;
             }
 
-            qCDebug(dcAbb()) << "set Connected state to true";
-            thing->setStateValue(TerraTCPConnectedStateTypeId, true);
-
-            thing->setStateValue(TerraTCPFirmwareVersionStateTypeId, QString::number(connection->fwversion()));
+            info->thing()->setStateValue(TerraTCPFirmwareVersionStateTypeId, QString::number(connection->fwversion()));
 
             m_tcpConnections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
-            connection->update(); // TODO necessary?
+            connection->update();
         } else {
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The wallbox is not responding"));
         }
