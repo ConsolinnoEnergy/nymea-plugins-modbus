@@ -40,15 +40,50 @@
             "access": "RO"
         },
         {
-            "id": "voltageBattery",
+            "id": "voltagePhaseABattery",
             "address": 40081,
             "size": 1,
             "type": "uint16",
             "readSchedule": "update",
             "registerType": "holdingRegister",
-            "description": "Battery voltage",
+            "description": "Battery Voltage Phase A",
             "defaultValue": "0",
             "unit": "V",
+            "access": "RO"
+        },
+        {
+            "id": "voltagePhaseBBattery",
+            "address": 40082,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Battery Voltage Phase B",
+            "defaultValue": "0",
+            "unit": "V",
+            "access": "RO"
+        },
+        {
+            "id": "voltagePhaseCBattery",
+            "address": 40083,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Battery Voltage Phase C",
+            "defaultValue": "0",
+            "unit": "V",
+            "access": "RO"
+        },
+        {
+            "id": "voltageFactorBattery",
+            "address": 40084,
+            "size": 1,
+            "type": "int16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Battery Voltage Factor",
+            "defaultValue": "0",
             "access": "RO"
         },
         {

@@ -10,10 +10,8 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 
 * modpoll cmd
 ```
-modpoll -0 -1 -a0x40 -r 40115 -c 1 -t4 -p 502 192.168.179.33
-# noch nicht getestet
-nymea-modbus-cli -a 192.168.179.33  -m 64 -r 40115 -t holding -d
-# noch nicht getestet
+modpoll -0 -1 -a40 -r 40071 -c 50 -t4 -p 502 192.168.179.33
+nymea-modbus-cli -a 192.168.179.33  -m 40 -r 40115 -t holding -d
 ```
 
 * noch unklar ob BigEndian oder LittleEndian

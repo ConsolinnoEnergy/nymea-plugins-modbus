@@ -107,8 +107,8 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
         });
 
-        qint16 port = thing->paramValue(saxStorageThingPortParamTypeId).toUInt();
-        qint16 slaveId = thing->paramValue(saxStorageThingSlaveIdParamTypeId).toUInt();
+        qint16 port = MODBUS_PORT;
+        qint16 slaveId = SLAVE_ID;
 
 
         SaxModbusTcpConnection *connection = new SaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
@@ -152,15 +152,9 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             qCDebug(dcSax()) << "Updated:" << connection;
         });
 
-        /*battery power factor*/
-        connect(connection, &SaxModbusTcpConnection::powerFactorBatteryChanged, thing, [thing](quint16 powerFactor){
-            qCDebug(dcSax()) << "Battery powerFactor changed" << powerFactor;
-            thing->setStateValue(saxStoragePowerFactorStateTypeId, powerFactor);
-        });
-
         /*current Power battery*/
-        connect(connection, &SaxModbusTcpConnection::powerBatteryChanged, thing, [thing](quint16 currentPower){
-            qint16 powerfactor = thing->stateValue(saxStoragePowerFactorStateTypeId).toInt();
+        connect(connection, &SaxModbusTcpConnection::powerBatteryChanged, thing, [connection, thing](quint16 currentPower){
+            qint16 powerfactor = connection->powerFactorBattery();
             double powerConverted = -1.0 * currentPower * qPow(10, powerfactor);
 
             qCDebug(dcSax()) << "Battery power changed" << powerConverted << "W";
@@ -182,21 +176,33 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             thing->setStateValue(saxStorageCurrentStateTypeId, current);
         });
 
-        /*battery voltage[V]*/
-        connect(connection, &SaxModbusTcpConnection::voltageBatteryChanged, thing, [thing](quint16 voltage){
-            qCDebug(dcSax()) << "Battery voltage changed" << voltage << "V";
-            thing->setStateValue(saxStorageVoltageStateTypeId, voltage);
+        /*battery voltage phase A [V]*/
+        connect(connection, &SaxModbusTcpConnection::voltagePhaseABatteryChanged, thing, [connection, thing](quint16 voltage){
+            qint16 voltagefactor = connection->voltageFactorBattery();
+            double voltageConverted = voltage * qPow(10, voltagefactor);
+            qCDebug(dcSax()) << "Battery voltage phase A changed" << voltageConverted << "V";
+            thing->setStateValue(saxStorageVoltagePhaseABatteryStateTypeId, voltageConverted);
         });
 
-        /*smartmeter frequency factor*/
-        connect(connection, &SaxModbusTcpConnection::frequencyFactorChanged, thing, [thing](qint16 frequencyFactor){
-            qCDebug(dcSax()) << "Smartmeter frequencyFactor changed" << frequencyFactor;
-            thing->setStateValue(saxStorageFrequencyFactorStateTypeId, frequencyFactor);
+        /*battery voltage phase B [V]*/
+        connect(connection, &SaxModbusTcpConnection::voltagePhaseBBatteryChanged, thing, [connection, thing](quint16 voltage){
+            qint16 voltagefactor = connection->voltageFactorBattery();
+            double voltageConverted = voltage * qPow(10, voltagefactor);
+            qCDebug(dcSax()) << "Battery voltage phase B changed" << voltageConverted << "V";
+            thing->setStateValue(saxStorageVoltagePhaseBBatteryStateTypeId, voltageConverted);
+        });
+
+        /*battery voltage phase C [V]*/
+        connect(connection, &SaxModbusTcpConnection::voltagePhaseCBatteryChanged, thing, [connection, thing](quint16 voltage){
+            qint16 voltagefactor = connection->voltageFactorBattery();
+            double voltageConverted = voltage * qPow(10, voltagefactor);
+            qCDebug(dcSax()) << "Battery voltage phase C changed" << voltageConverted << "V";
+            thing->setStateValue(saxStorageVoltagePhaseCBatteryStateTypeId, voltageConverted);
         });
 
         /*smartmeter frequency*/
-        connect(connection, &SaxModbusTcpConnection::frequencyChanged, thing, [thing](quint16 frequency){
-            qint16 frequencyfactor = thing->stateValue(saxStorageFrequencyFactorStateTypeId).toInt();
+        connect(connection, &SaxModbusTcpConnection::frequencyChanged, thing, [connection, thing](quint16 frequency){
+            qint16 frequencyfactor = connection->frequencyFactor();
             double frequencyConverted = frequency * qPow(10, frequencyfactor);
 
             qCDebug(dcSax()) << "Smartmeter frequency changed" << frequencyConverted << "Hz";
@@ -209,15 +215,10 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             thing->setStateValue(saxStorageStateOfHealthStateTypeId, stateOfHealth);
         });
 
-        /*smartmeter energy factor*/
-        connect(connection, &SaxModbusTcpConnection::energyFactorChanged, thing, [thing](qint16 energyFactor){
-            qCDebug(dcSax()) << "Smartmeter energyFactor changed" << energyFactor;
-            thing->setStateValue(saxStorageEnergyFactorSmartmeterStateTypeId, energyFactor);
-        });
 
         /*smartmeter total energy produced*/
-        connect(connection, &SaxModbusTcpConnection::totalEnergyProducedChanged, thing, [thing](quint16 totalEnergyProduced){
-            qint16 energyfactor = thing->stateValue(saxStorageEnergyFactorSmartmeterStateTypeId).toInt();
+        connect(connection, &SaxModbusTcpConnection::totalEnergyProducedChanged, thing, [connection, thing](quint16 totalEnergyProduced){
+            qint16 energyfactor = connection->energyFactor();
             double energyConverted = totalEnergyProduced * qPow(10, energyfactor);
 
             qCDebug(dcSax()) << "Smartmeter totalEnergyProduced changed" << energyConverted;
@@ -225,8 +226,8 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
         });
 
         /*smartmeter total energy consumed*/
-        connect(connection, &SaxModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](quint16 totalEnergyConsumed){
-            qint16 energyfactor = thing->stateValue(saxStorageEnergyFactorSmartmeterStateTypeId).toInt();
+        connect(connection, &SaxModbusTcpConnection::totalEnergyConsumedChanged, thing, [connection, thing](quint16 totalEnergyConsumed){
+            qint16 energyfactor = connection->energyFactor();
             double energyConverted = totalEnergyConsumed * qPow(10, energyfactor);
 
             qCDebug(dcSax()) << "Smartmeter totalEnergyConsumed changed" << energyConverted;
@@ -270,15 +271,9 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             thing->setStateValue(saxStorageCurrentPhaseCStateTypeId, currentPhaseC);
         });
 
-        /*smartmeter power factor*/
-        connect(connection, &SaxModbusTcpConnection::powerFactorSmartmeterChanged, thing, [thing](qint16 powerFactorSmartmeter){
-            qCDebug(dcSax()) << "Smartmeter powerFactorSmartmeter changed" << powerFactorSmartmeter;
-            thing->setStateValue(saxStoragePowerFactorSmartmeterStateTypeId, powerFactorSmartmeter);
-        });
-
         /*smartmeter power phase A*/
-        connect(connection, &SaxModbusTcpConnection::powerPhaseAChanged, thing, [thing](quint16 powerPhaseA){
-            qint16 powerfactor = thing->stateValue(saxStoragePowerFactorSmartmeterStateTypeId).toInt();
+        connect(connection, &SaxModbusTcpConnection::powerPhaseAChanged, thing, [connection, thing](quint16 powerPhaseA){
+            qint16 powerfactor = connection->powerFactorSmartmeter();
             double powerConverted = powerPhaseA * qPow(10, powerfactor);
 
             qCDebug(dcSax()) << "Smartmeter powerPhaseA changed" << powerConverted << "W";
@@ -286,8 +281,8 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
         });
 
         /*smartmeter power phase B*/
-        connect(connection, &SaxModbusTcpConnection::powerPhaseBChanged, thing, [thing](quint16 powerPhaseB){
-            qint16 powerfactor = thing->stateValue(saxStoragePowerFactorSmartmeterStateTypeId).toInt();
+        connect(connection, &SaxModbusTcpConnection::powerPhaseBChanged, thing, [connection, thing](quint16 powerPhaseB){
+            qint16 powerfactor = connection->powerFactorSmartmeter();
             double powerConverted = powerPhaseB * qPow(10, powerfactor);
 
             qCDebug(dcSax()) << "Smartmeter powerPhaseB changed" << powerConverted << "W";
@@ -295,8 +290,8 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
         });
 
         /*smartmeter power phase C*/
-        connect(connection, &SaxModbusTcpConnection::powerPhaseCChanged, thing, [thing](quint16 powerPhaseC){
-            qint16 powerfactor = thing->stateValue(saxStoragePowerFactorSmartmeterStateTypeId).toInt();
+        connect(connection, &SaxModbusTcpConnection::powerPhaseCChanged, thing, [connection, thing](quint16 powerPhaseC){
+            qint16 powerfactor = connection->powerFactorSmartmeter();
             double powerConverted = powerPhaseC * qPow(10, powerfactor);
 
             qCDebug(dcSax()) << "Smartmeter powerPhaseC changed" << powerConverted << "W";

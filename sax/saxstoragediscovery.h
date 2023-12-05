@@ -26,6 +26,10 @@
 
 #include "saxmodbustcpconnection.h"
 
+
+#define SLAVE_ID 40
+#define MODBUS_PORT 502
+
 class SaxStorageDiscovery : public QObject
 {
     Q_OBJECT
