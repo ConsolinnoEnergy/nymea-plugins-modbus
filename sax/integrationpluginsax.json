@@ -38,16 +38,16 @@
                         {
                             "id": "c6ac423c-3027-4478-a3c3-43b754d0ddc0",
                             "name": "batteryCritical",
-                            "displayName": "Battery critical",
-                            "displayNameEvent": "Battery critical changed",
+                            "displayName": "Critical",
+                            "displayNameEvent": "Critical changed",
                             "type": "bool",
                             "defaultValue": false
                         },
                         {
                             "id": "900b1df0-b843-4bc4-a2a9-e6a3c48372cd",
                             "name": "currentPower",
-                            "displayName": "Battery current power",
-                            "displayNameEvent": "Battery current power changed",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Current power changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00,
@@ -65,8 +65,8 @@
                         {
                             "id": "e9dbef17-76ef-4902-8764-50679f8cb433",
                             "name": "current",
-                            "displayName": "Battery Current (sum of active phases)",
-                            "displayNameEvent": "Battery Current (sum of active phases) changed",
+                            "displayName": "Current (sum of active phases)",
+                            "displayNameEvent": "Current (sum of active phases) changed",
                             "type": "double",
                             "unit": "Ampere",
                             "defaultValue": 0.00
@@ -74,8 +74,8 @@
                         {
                             "id": "c237355b-b122-401a-bf87-3c6562e5f315",
                             "name": "currentPhaseABattery",
-                            "displayName": "Battery Current (Phase A)",
-                            "displayNameEvent": "Battery Current (Phase A) changed",
+                            "displayName": "Current (Phase A)",
+                            "displayNameEvent": "Current (Phase A) changed",
                             "type": "double",
                             "unit": "Ampere",
                             "defaultValue": 0.00,
@@ -84,8 +84,8 @@
                         {
                             "id": "39f62805-e29c-4110-b01b-dd175393c510",
                             "name": "currentPhaseBBattery",
-                            "displayName": "Battery Current (Phase B)",
-                            "displayNameEvent": "Battery Current (Phase B) changed",
+                            "displayName": "Current (Phase B)",
+                            "displayNameEvent": "Current (Phase B) changed",
                             "type": "double",
                             "unit": "Ampere",
                             "defaultValue": 0.00,
@@ -94,8 +94,8 @@
                         {
                             "id": "026cb5c9-095a-4c50-ad71-d3eab7db51c5",
                             "name": "currentPhaseCBattery",
-                            "displayName": "Battery Current (Phase C)",
-                            "displayNameEvent": "Battery Current (Phase C) changed",
+                            "displayName": "Current (Phase C)",
+                            "displayNameEvent": "Current (Phase C) changed",
                             "type": "double",
                             "unit": "Ampere",
                             "defaultValue": 0.00,
@@ -104,8 +104,8 @@
                         {
                             "id": "2be13d66-7a64-48ed-b079-ab6c55782942",
                             "name": "voltagePhaseABattery",
-                            "displayName": "Battery Voltage (Phase A)",
-                            "displayNameEvent": "Battery Voltage (Phase A) changed",
+                            "displayName": "Voltage (Phase A)",
+                            "displayNameEvent": "Voltage (Phase A) changed",
                             "type": "double",
                             "unit": "Volt",
                             "defaultValue": 0.00,
@@ -114,8 +114,8 @@
                         {
                             "id": "31c03510-0841-467e-8cc3-dfafcf0768a0",
                             "name": "voltagePhaseBBattery",
-                            "displayName": "Battery Voltage (Phase B)",
-                            "displayNameEvent": "Battery Voltage (Phase B) changed",
+                            "displayName": "Voltage (Phase B)",
+                            "displayNameEvent": "Voltage (Phase B) changed",
                             "type": "double",
                             "unit": "Volt",
                             "defaultValue": 0.00,
@@ -124,8 +124,8 @@
                         {
                             "id": "0af6ca2a-6849-4d1c-8606-e6038131068c",
                             "name": "voltagePhaseCBattery",
-                            "displayName": "Battery Voltage (Phase C)",
-                            "displayNameEvent": "Battery Voltage (Phase C) changed",
+                            "displayName": "Voltage (Phase C)",
+                            "displayNameEvent": "Voltage (Phase C) changed",
                             "type": "double",
                             "unit": "Volt",
                             "defaultValue": 0.00,
@@ -135,8 +135,8 @@
                         {
                             "id": "7700f732-e4c0-4947-8392-dcb8be51f608",
                             "name": "stateOfHealth",
-                            "displayName": "Battery State of Health",
-                            "displayNameEvent": "Battery State of Health changed",
+                            "displayName": "State of Health",
+                            "displayNameEvent": "State of Health changed",
                             "type": "uint",
                             "unit": "Percentage",
                             "minValue": 0,
@@ -148,8 +148,8 @@
                         {
                             "id": "77097ec9-498f-4c62-8143-0d11368ef73c",
                             "name": "stateBattery",
-                            "displayName": "Battery State",
-                            "displayNameEvent": "Battery State changed",
+                            "displayName": "State",
+                            "displayNameEvent": "State changed",
                             "type": "QString",
                             "possibleValues": ["On", "Off", "Standby"],
                             "defaultValue": "Off"
@@ -157,8 +157,8 @@
                         {
                             "id": "3c6841f5-843b-4e42-b4d7-225db41f6f4b",
                             "name": "batteryLevel",
-                            "displayName": "Battery State of Charge",
-                            "displayNameEvent": "Battery State of Charge changed",
+                            "displayName": "State of Charge",
+                            "displayNameEvent": "State of Charge changed",
                             "type": "int",
                             "unit": "Percentage",
                             "minValue": 0,
@@ -168,8 +168,8 @@
                         {
                             "id": "c44f42a0-9b91-4b44-af7c-2264a09d627e",
                             "name": "capacity",
-                            "displayName": "Battery Capacity",
-                            "displayNameEvent": "Battery Capacity changed",
+                            "displayName": "Capacity",
+                            "displayNameEvent": "Capacity changed",
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
@@ -178,8 +178,8 @@
                         {
                             "id": "d269ec2a-6977-4128-b6d0-b4adb87afaf1",
                             "name": "cyclesBattery",
-                            "displayName": "Battery Cycles",
-                            "displayNameEvent": "Battery Cycles changed",
+                            "displayName": "Cycles",
+                            "displayNameEvent": "Cycles changed",
                             "type": "uint",
                             "unit": "None",
                             "defaultValue": 0,
@@ -188,8 +188,8 @@
                         {
                             "id": "2bc76bc8-2f1d-4620-8d7b-bf1ff93e69ad",
                             "name": "tempBattery",
-                            "displayName": "Battery Temperature",
-                            "displayNameEvent": "Battery Temperature changed",
+                            "displayName": "Temperature",
+                            "displayNameEvent": "Temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "defaultValue": 0,
@@ -210,8 +210,8 @@
                         {
                             "id": "73ae5694-dd38-4d25-97be-eddb800d4c95",
                             "name": "connected",
-                            "displayName": "Smartmeter Connected",
-                            "displayNameEvent": "Smartmeter Connected changed",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
                             "type": "bool",
                             "defaultValue": false,
                             "cached": false
@@ -219,8 +219,8 @@
                         {
                             "id": "e3e9a311-c946-43b6-b75d-260d93cbc0cd",
                             "name": "currentPower",
-                            "displayName": "Smartmeter current power",
-                            "displayNameEvent": "Smartmeter current power changed",
+                            "displayName": "current power",
+                            "displayNameEvent": "current power changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00,
@@ -229,8 +229,8 @@
                         {
                             "id": "52aa70cf-4fd2-4405-82fd-83b0bc0a4f27",
                             "name": "frequency",
-                            "displayName": "Smartmeter Frequency",
-                            "displayNameEvent": "Smartmeter Frequency changed",
+                            "displayName": "Frequency",
+                            "displayNameEvent": "Frequency changed",
                             "type": "double",
                             "unit": "Hertz",
                             "defaultValue": 0.00,
@@ -239,8 +239,8 @@
                         {
                             "id": "312dd470-10dc-48b9-9af8-829df5eb4482",
                             "name": "totalEnergyProduced",
-                            "displayName": "Produced Energy Smartmeter (total)",
-                            "displayNameEvent": "Produced Energy Smartmeter (total) changed",
+                            "displayName": "Produced Energy (total)",
+                            "displayNameEvent": "Produced Energy (total) changed",
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0,
@@ -249,8 +249,8 @@
                         {
                             "id": "81404c8b-5fa0-4d0f-b508-927222afb749",
                             "name": "totalEnergyConsumed",
-                            "displayName": "Consumed Energy Smartmeter (total)",
-                            "displayNameEvent": "Consumed Energy Smartmeter (total) changed",
+                            "displayName": "Consumed Energy (total)",
+                            "displayNameEvent": "Consumed Energy (total) changed",
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0,
@@ -259,8 +259,8 @@
                         {
                             "id": "07fadd03-ad87-4857-a0bb-c020f9551051",
                             "name": "currentPhaseA",
-                            "displayName": "Smartmeter Current (Phase A)",
-                            "displayNameEvent": "Smartmeter Current (Phase A) changed",
+                            "displayName": "Current (Phase A)",
+                            "displayNameEvent": "Current (Phase A) changed",
                             "type": "double",
                             "unit": "Ampere",
                             "defaultValue": 0.00,
@@ -269,8 +269,8 @@
                         {
                             "id": "de1a1f7a-0041-46c1-a74d-bd8dca825c9b",
                             "name": "currentPhaseB",
-                            "displayName": "Smartmeter Current (Phase B)",
-                            "displayNameEvent": "Smartmeter Current (Phase B) changed",
+                            "displayName": "Current (Phase B)",
+                            "displayNameEvent": "Current (Phase B) changed",
                             "type": "double",
                             "unit": "Ampere",
                             "defaultValue": 0.00,
@@ -279,8 +279,8 @@
                         {
                             "id": "7c1d2837-e508-4709-b07f-3e4033c0f604",
                             "name": "currentPhaseC",
-                            "displayName": "Smartmeter Current (Phase C)",
-                            "displayNameEvent": "Smartmeter Current (Phase C) changed",
+                            "displayName": "Current (Phase C)",
+                            "displayNameEvent": "Current (Phase C) changed",
                             "type": "double",
                             "unit": "Ampere",
                             "defaultValue": 0.00,
@@ -289,8 +289,8 @@
                         {
                             "id": "787ac047-da83-404f-ac50-2a7fe7147a22",
                             "name": "currentPowerPhaseA",
-                            "displayName": "Smartmeter Power (Phase A)",
-                            "displayNameEvent": "Smartmeter Power (Phase A) changed",
+                            "displayName": "Power (Phase A)",
+                            "displayNameEvent": "Power (Phase A) changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00
@@ -298,8 +298,8 @@
                         {
                             "id": "a8ea06e7-652b-4129-b113-fb594db9fad1",
                             "name": "currentPowerPhaseB",
-                            "displayName": "Smartmeter Power (Phase B)",
-                            "displayNameEvent": "Smartmeter Power (Phase B) changed",
+                            "displayName": "Power (Phase B)",
+                            "displayNameEvent": "Power (Phase B) changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00
@@ -307,8 +307,8 @@
                         {
                             "id": "20af4810-6f98-4627-b19d-14e557607234",
                             "name": "currentPowerPhaseC",
-                            "displayName": "Smartmeter Power (Phase C)",
-                            "displayNameEvent": "Smartmeter Power (Phase C) changed",
+                            "displayName": "Power (Phase C)",
+                            "displayNameEvent": "Power (Phase C) changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00
@@ -316,8 +316,8 @@
                         {
                             "id": "7ea5c1ef-17b3-4451-b99c-f24356ab2537",
                             "name": "voltagePhaseA",
-                            "displayName": "Smartmeter Voltage (Phase A)",
-                            "displayNameEvent": "Smartmeter Voltage (Phase A) changed",
+                            "displayName": "Voltage (Phase A)",
+                            "displayNameEvent": "Voltage (Phase A) changed",
                             "type": "double",
                             "unit": "Volt",
                             "defaultValue": 0.00,
@@ -326,8 +326,8 @@
                         {
                             "id": "e2550088-8a00-49cc-bc84-c7c2093992bb",
                             "name": "voltagePhaseB",
-                            "displayName": "Smartmeter Voltage (Phase B)",
-                            "displayNameEvent": "Smartmeter Voltage (Phase B) changed",
+                            "displayName": "Voltage (Phase B)",
+                            "displayNameEvent": "Voltage (Phase B) changed",
                             "type": "double",
                             "unit": "Volt",
                             "defaultValue": 0.00,
@@ -336,8 +336,8 @@
                         {
                             "id": "bf366879-ada5-4c2e-bd89-e9e9b66952de",
                             "name": "voltagePhaseC",
-                            "displayName": "Smartmeter Voltage (Phase C)",
-                            "displayNameEvent": "Smartmeter Voltage (Phase C) changed",
+                            "displayName": "Voltage (Phase C)",
+                            "displayNameEvent": "Voltage (Phase C) changed",
                             "type": "double",
                             "unit": "Volt",
                             "defaultValue": 0.00,
