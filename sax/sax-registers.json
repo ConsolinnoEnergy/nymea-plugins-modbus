@@ -3,7 +3,7 @@
     "protocol": "TCP",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 20,
-    "checkReachableRegister": "powerBattery",
+    "checkReachableRegister": "testReg",
     "enums": [
         {
             "name": "StateBattery",
@@ -452,5 +452,17 @@
             ]
         }
     ],
-    "registers": []
+    "registers": [
+        {
+            "id": "testReg",
+            "address": 40072,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "init",
+            "registerType": "holdingRegister",
+            "description": "Testregister",
+            "defaultValue": "0",
+            "access": "RO"
+        }
+    ]
 }
