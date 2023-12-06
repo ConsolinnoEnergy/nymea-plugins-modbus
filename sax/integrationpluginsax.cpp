@@ -115,13 +115,16 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
         SaxModbusTcpConnection *connection = new SaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
         connect(info, &ThingSetupInfo::aborted, connection, &SaxModbusTcpConnection::deleteLater);
 
-        connect(connection, &SaxModbusTcpConnection::reachableChanged, thing, [connection, thing](bool reachable){
+        connect(connection, &SaxModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable){
             qCDebug(dcSax()) << "Reachable state changed" << reachable;
             if (reachable) {
                 connection->initialize();
             } else {
                 thing->setStateValue(saxStorageConnectedStateTypeId, false);
-                // thing->setStateValue(saxMeterConnectedStateTypeId, false);
+                Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+                if (!meterThings.isEmpty()) {
+                    meterThings.first()->setStateValue(saxMeterConnectedStateTypeId, false);
+                }
             }
         });
 
@@ -141,7 +144,10 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
         connect(connection, &SaxModbusTcpConnection::initializationFinished, thing, [this, thing, connection](bool success){
             if (success) {
                 thing->setStateValue(saxStorageConnectedStateTypeId, true);
-                // thing->setStateValue(saxMeterConnectedStateTypeId, true);
+                Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);        
+                if (!meterThings.isEmpty()) {
+                    meterThings.first()->setStateValue(saxMeterConnectedStateTypeId, true);
+                }
                 connection->update();
             }
         });
@@ -239,7 +245,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
                 qint16 frequencyfactor = connection->frequencyFactor();
                 double frequencyConverted = frequency * qPow(10, frequencyfactor);
 
-                qCDebug(dcSax()) << "Smartmeter frequency changed" << frequencyConverted << "Hz";
+                qCDebug(dcSax()) << "Smartmeter frequency changed" << frequencyConverted << "Hz" << "( Factor"<< frequencyfactor << ")";
                 meterThings.first()->setStateValue(saxMeterFrequencyStateTypeId, frequencyConverted);
             }
         });
@@ -249,25 +255,6 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             qCDebug(dcSax()) << "Battery stateOfHealth changed" << stateOfHealth << "%";
             thing->setStateValue(saxStorageStateOfHealthStateTypeId, stateOfHealth);
         });
-
-
-        // /*smartmeter total energy produced*/
-        // connect(connection, &SaxModbusTcpConnection::totalEnergyProducedChanged, thing, [connection, thing](quint16 totalEnergyProduced){
-        //     qint16 energyfactor = connection->energyFactor();
-        //     double energyConverted = totalEnergyProduced * qPow(10, energyfactor);
-
-        //     qCDebug(dcSax()) << "Smartmeter totalEnergyProduced changed" << energyConverted;
-        //     thing->setStateValue(saxMeterTotalEnergyProducedStateTypeId, energyConverted);
-        // });
-
-        // /*smartmeter total energy consumed*/
-        // connect(connection, &SaxModbusTcpConnection::totalEnergyConsumedChanged, thing, [connection, thing](quint16 totalEnergyConsumed){
-        //     qint16 energyfactor = connection->energyFactor();
-        //     double energyConverted = totalEnergyConsumed * qPow(10, energyfactor);
-
-        //     qCDebug(dcSax()) << "Smartmeter totalEnergyConsumed changed" << energyConverted;
-        //     thing->setStateValue(saxMeterTotalEnergyConsumedStateTypeId, energyConverted);
-        // });
 
         /*battery state*/
         connect(connection, &SaxModbusTcpConnection::stateBatteryChanged, thing, [thing](SaxModbusTcpConnection::StateBattery stateBattery){
@@ -288,23 +275,90 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             }
         });
 
-        // /*smartmeter current phase A*/
-        // connect(connection, &SaxModbusTcpConnection::currentPhaseAChanged, thing, [thing](qint16 currentPhaseA){
-        //     qCDebug(dcSax()) << "Smartmeter currentPhaseA changed" << currentPhaseA << "A";
-        //     thing->setStateValue(saxMeterCurrentPhaseAStateTypeId, currentPhaseA);
-        // });
 
-        // /*smartmeter current phase B*/
-        // connect(connection, &SaxModbusTcpConnection::currentPhaseBChanged, thing, [thing](qint16 currentPhaseB){
-        //     qCDebug(dcSax()) << "Smartmeter currentPhaseB changed" << currentPhaseB << "A";
-        //     thing->setStateValue(saxMeterCurrentPhaseBStateTypeId, currentPhaseB);
-        // });
+        /*battery SoC*/
+        connect(connection, &SaxModbusTcpConnection::socBatteryChanged, thing, [thing](quint16 soc){
+            qCDebug(dcSax()) << "Battery SoC changed" << soc << "%";
+            if(soc < 20){
+                thing->setStateValue(saxStorageBatteryCriticalStateTypeId, true);
+            } else {
+                thing->setStateValue(saxStorageBatteryCriticalStateTypeId, false);
+            }
+            thing->setStateValue(saxStorageBatteryLevelStateTypeId, soc);
+        });
 
-        // /*smartmeter current phase C*/
-        // connect(connection, &SaxModbusTcpConnection::currentPhaseCChanged, thing, [thing](qint16 currentPhaseC){
-        //     qCDebug(dcSax()) << "Smartmeter currentPhaseC changed" << currentPhaseC << "A";
-        //     thing->setStateValue(saxMeterCurrentPhaseCStateTypeId, currentPhaseC);
-        // });
+        /*battery capacity*/
+        connect(connection, &SaxModbusTcpConnection::capacityChanged, thing, [thing](float capacity){
+            qCDebug(dcSax()) << "Battery capacity changed" << capacity/1000 << "kWh";
+            thing->setStateValue(saxStorageCapacityStateTypeId, capacity/1000);
+        });
+
+        /*battery cycles*/
+        connect(connection, &SaxModbusTcpConnection::cyclesBatteryChanged, thing, [thing](quint16 cyclesBattery){
+            qCDebug(dcSax()) << "Battery cyclesBattery changed" << cyclesBattery;
+            thing->setStateValue(saxStorageCyclesBatteryStateTypeId, cyclesBattery);
+        });
+
+        /*battery temperature*/
+        connect(connection, &SaxModbusTcpConnection::tempBatteryChanged, thing, [thing](quint16 tempBattery){
+            qCDebug(dcSax()) << "Battery tempBattery changed" << tempBattery << "°C";
+            thing->setStateValue(saxStorageTempBatteryStateTypeId, tempBattery);
+        });
+
+
+        /*Smartmeter connects*/
+        /*smartmeter total energy produced*/
+        connect(connection, &SaxModbusTcpConnection::totalEnergyProducedChanged, thing, [this, connection, thing](quint16 totalEnergyProduced){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qint16 energyfactor = connection->energyFactor();
+                double energyConverted = totalEnergyProduced * qPow(10, energyfactor);
+
+                qCDebug(dcSax()) << "Smartmeter totalEnergyProduced changed" << energyConverted;
+                meterThings.first()->setStateValue(saxMeterTotalEnergyProducedStateTypeId, energyConverted);
+            }
+        });
+
+        /*smartmeter total energy consumed*/
+        connect(connection, &SaxModbusTcpConnection::totalEnergyConsumedChanged, thing, [this, connection, thing](quint16 totalEnergyConsumed){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qint16 energyfactor = connection->energyFactor();
+                double energyConverted = totalEnergyConsumed * qPow(10, energyfactor);
+
+                qCDebug(dcSax()) << "Smartmeter totalEnergyConsumed changed" << energyConverted;
+                meterThings.first()->setStateValue(saxMeterTotalEnergyConsumedStateTypeId, energyConverted);
+            }
+        });
+
+
+
+        /*smartmeter current phase A*/
+        connect(connection, &SaxModbusTcpConnection::currentPhaseAChanged, thing, [this, thing](qint16 currentPhase){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSax()) << "Smartmeter currentPhaseA changed" << currentPhase << "A";
+                meterThings.first()->setStateValue(saxMeterCurrentPhaseAStateTypeId, currentPhase);
+            }
+        });
+
+        /*smartmeter current phase B*/
+        connect(connection, &SaxModbusTcpConnection::currentPhaseBChanged, thing, [this, thing](qint16 currentPhase){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSax()) << "Smartmeter currentPhaseB changed" << currentPhase << "A";
+                meterThings.first()->setStateValue(saxMeterCurrentPhaseBStateTypeId, currentPhase);
+            }
+        });
+
+        /*smartmeter current phase C*/
+        connect(connection, &SaxModbusTcpConnection::currentPhaseCChanged, thing, [this, thing](qint16 currentPhase){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSax()) << "Smartmeter currentPhaseC changed" << currentPhase << "A";
+                meterThings.first()->setStateValue(saxMeterCurrentPhaseCStateTypeId, currentPhase);
+            }
+        });
 
         // /*smartmeter power phase A*/
         // connect(connection, &SaxModbusTcpConnection::powerPhaseAChanged, thing, [connection, thing](quint16 powerPhaseA){
@@ -351,34 +405,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
         //     thing->setStateValue(saxMeterVoltagePhaseCStateTypeId, voltagePhaseC);
         // });
 
-        /*battery SoC*/
-        connect(connection, &SaxModbusTcpConnection::socBatteryChanged, thing, [thing](quint16 soc){
-            qCDebug(dcSax()) << "Battery SoC changed" << soc << "%";
-            if(soc < 20){
-                thing->setStateValue(saxStorageBatteryCriticalStateTypeId, true);
-            } else {
-                thing->setStateValue(saxStorageBatteryCriticalStateTypeId, false);
-            }
-            thing->setStateValue(saxStorageBatteryLevelStateTypeId, soc);
-        });
 
-        /*battery capacity*/
-        connect(connection, &SaxModbusTcpConnection::capacityChanged, thing, [thing](float capacity){
-            qCDebug(dcSax()) << "Battery capacity changed" << capacity/1000 << "kWh";
-            thing->setStateValue(saxStorageCapacityStateTypeId, capacity/1000);
-        });
-
-        /*battery cycles*/
-        connect(connection, &SaxModbusTcpConnection::cyclesBatteryChanged, thing, [thing](quint16 cyclesBattery){
-            qCDebug(dcSax()) << "Battery cyclesBattery changed" << cyclesBattery;
-            thing->setStateValue(saxStorageCyclesBatteryStateTypeId, cyclesBattery);
-        });
-
-        /*battery temperature*/
-        connect(connection, &SaxModbusTcpConnection::tempBatteryChanged, thing, [thing](quint16 tempBattery){
-            qCDebug(dcSax()) << "Battery tempBattery changed" << tempBattery << "°C";
-            thing->setStateValue(saxStorageTempBatteryStateTypeId, tempBattery);
-        });
 
         connection->connectDevice();
 

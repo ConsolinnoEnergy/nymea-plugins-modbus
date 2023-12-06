@@ -208,8 +208,8 @@
                     "type": "int16",
                     "readSchedule": "update",
                     "registerType": "holdingRegister",
-                    "description": "frequency Facotor (Smartmeter) (type:sunssf)",
-                    "defaultValue": "0",
+                    "description": "frequency Factor (Smartmeter) (type:sunssf)",
+                    "defaultValue": "-1",
                     "access": "RO"
                 }
             ]
