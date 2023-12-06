@@ -232,17 +232,17 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             thing->setStateValue(saxStorageVoltagePhaseCBatteryStateTypeId, voltageConverted);
         });
 
-        // /*smartmeter frequency*/
-        // connect(connection, &SaxModbusTcpConnection::frequencyChanged, thing, [this, connection, thing](quint16 frequency){
-        //     Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
-        //     if (!meterThings.isEmpty()) {
-        //         qint16 frequencyfactor = connection->frequencyFactor();
-        //         double frequencyConverted = frequency * qPow(10, frequencyfactor);
+        /*smartmeter frequency*/
+        connect(connection, &SaxModbusTcpConnection::frequencyChanged, thing, [this, connection, thing](quint16 frequency){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qint16 frequencyfactor = connection->frequencyFactor();
+                double frequencyConverted = frequency * qPow(10, frequencyfactor);
 
-        //         qCDebug(dcSax()) << "Smartmeter frequency changed" << frequencyConverted << "Hz";
-        //         meterThings.first()->setStateValue(saxMeterFrequencyStateTypeId, frequencyConverted);
-        //     }
-        // });
+                qCDebug(dcSax()) << "Smartmeter frequency changed" << frequencyConverted << "Hz";
+                meterThings.first()->setStateValue(saxMeterFrequencyStateTypeId, frequencyConverted);
+            }
+        });
 
         /*battery state of health*/
         connect(connection, &SaxModbusTcpConnection::stateOfHealthChanged, thing, [thing](quint16 stateOfHealth){
@@ -384,6 +384,18 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
 
         return;
     }
+
+    if (thing->thingClassId() == saxMeterThingClassId) {
+        qCDebug(dcSax()) << "SetUp Sax Meter";
+        // Nothing to do here, we get all information from the inverter connection
+        info->finish(Thing::ThingErrorNoError);
+        Thing *parentThing = myThings().findById(thing->parentId());
+        if (parentThing) {
+            thing->setStateValue(saxMeterConnectedStateTypeId, parentThing->stateValue(saxStorageConnectedStateTypeId).toBool());
+        }
+        return;
+    }
+
 }
 
 void IntegrationPluginSax::postSetupThing(Thing *thing)
@@ -402,6 +414,12 @@ void IntegrationPluginSax::postSetupThing(Thing *thing)
             });
 
             m_pluginTimer->start();
+        }
+
+        // Check if w have to set up a child meter for this inverter connection
+        if (myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId).isEmpty()) {
+            qCDebug(dcSax()) << "(Post) Set up sax meter for" << thing;
+            emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(saxMeterThingClassId, "Sax Power Meter", QString(), thing->id()));
         }
     }
 }
