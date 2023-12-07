@@ -11,6 +11,8 @@ Connect nymea to sax battery storage over Modbus TCP and get soc and power value
 
 * currentPower Smartmert Register oder aus Phasenleistungen summieren?
 
+
+*  fix `"enums": ...  "name": "StateBattery",`, ausgelesen wird value=3, welcher aktuell nicht definiert wurde
 ## Supported Things
 
 * SAX Power Home (up to three modules together)

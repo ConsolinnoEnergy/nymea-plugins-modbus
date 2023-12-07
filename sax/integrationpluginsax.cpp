@@ -360,51 +360,68 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             }
         });
 
-        // /*smartmeter power phase A*/
-        // connect(connection, &SaxModbusTcpConnection::powerPhaseAChanged, thing, [connection, thing](quint16 powerPhaseA){
-        //     qint16 powerfactor = connection->powerFactorSmartmeter();
-        //     double powerConverted = powerPhaseA * qPow(10, powerfactor);
+        /*smartmeter power phase A*/
+        connect(connection, &SaxModbusTcpConnection::powerPhaseAChanged, thing, [this, connection, thing](quint16 powerPhase){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qint16 powerfactor = connection->powerFactorSmartmeter();
+                double powerConverted = powerPhase * qPow(10, powerfactor);
 
-        //     qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseA changed" << powerConverted << "W";
-        //     thing->setStateValue(saxMeterCurrentPowerPhaseAStateTypeId, powerConverted);
-        // });
+                qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseA changed" << powerConverted << "W";
+                meterThings.first()->setStateValue(saxMeterCurrentPowerPhaseAStateTypeId, powerConverted);
+            }
+        });
 
-        // /*smartmeter power phase B*/
-        // connect(connection, &SaxModbusTcpConnection::powerPhaseBChanged, thing, [connection, thing](quint16 powerPhaseB){
-        //     qint16 powerfactor = connection->powerFactorSmartmeter();
-        //     double powerConverted = powerPhaseB * qPow(10, powerfactor);
+        /*smartmeter power phase B*/
+        connect(connection, &SaxModbusTcpConnection::powerPhaseBChanged, thing, [this, connection, thing](quint16 powerPhase){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qint16 powerfactor = connection->powerFactorSmartmeter();
+                double powerConverted = powerPhase * qPow(10, powerfactor);
 
-        //     qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseB changed" << powerConverted << "W";
-        //     thing->setStateValue(saxMeterCurrentPowerPhaseBStateTypeId, powerConverted);
-        // });
+                qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseB changed" << powerConverted << "W";
+                meterThings.first()->setStateValue(saxMeterCurrentPowerPhaseBStateTypeId, powerConverted);
+            }
+        });
 
-        // /*smartmeter power phase C*/
-        // connect(connection, &SaxModbusTcpConnection::powerPhaseCChanged, thing, [connection, thing](quint16 powerPhaseC){
-        //     qint16 powerfactor = connection->powerFactorSmartmeter();
-        //     double powerConverted = powerPhaseC * qPow(10, powerfactor);
+        /*smartmeter power phase C*/
+        connect(connection, &SaxModbusTcpConnection::powerPhaseCChanged, thing, [this, connection, thing](quint16 powerPhase){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qint16 powerfactor = connection->powerFactorSmartmeter();
+                double powerConverted = powerPhase * qPow(10, powerfactor);
 
-        //     qCDebug(dcSax()) << "Smartmeter currentPowerPhaseC changed" << powerConverted << "W";
-        //     thing->setStateValue(saxMeterCurrentPowerPhaseCStateTypeId, powerConverted);
-        // });
+                qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseC changed" << powerConverted << "W";
+                meterThings.first()->setStateValue(saxMeterCurrentPowerPhaseCStateTypeId, powerConverted);
+            }
+        });
 
-        // /*smartmeter voltage phase A*/
-        // connect(connection, &SaxModbusTcpConnection::voltagePhaseAChanged, thing, [thing](qint16 voltagePhaseA){
-        //     qCDebug(dcSax()) << "Smartmeter voltagePhaseA changed" << voltagePhaseA << "V";
-        //     thing->setStateValue(saxMeterVoltagePhaseAStateTypeId, voltagePhaseA);
-        // });
+        /*smartmeter voltage phase A*/
+        connect(connection, &SaxModbusTcpConnection::voltagePhaseAChanged, thing, [this, thing](qint16 voltagePhase){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSax()) << "Smartmeter voltagePhaseA changed" << voltagePhase << "V";
+                meterThings.first()->setStateValue(saxMeterVoltagePhaseAStateTypeId, voltagePhase);
+            }
+        });
 
-        // /*smartmeter voltage phase B*/
-        // connect(connection, &SaxModbusTcpConnection::voltagePhaseBChanged, thing, [thing](qint16 voltagePhaseB){
-        //     qCDebug(dcSax()) << "Smartmeter voltagePhaseB changed" << voltagePhaseB << "V";
-        //     thing->setStateValue(saxMeterVoltagePhaseBStateTypeId, voltagePhaseB);
-        // });
+        /*smartmeter voltage phase B*/
+        connect(connection, &SaxModbusTcpConnection::voltagePhaseBChanged, thing, [this, thing](qint16 voltagePhase){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSax()) << "Smartmeter voltagePhaseB changed" << voltagePhase << "V";
+                meterThings.first()->setStateValue(saxMeterVoltagePhaseBStateTypeId, voltagePhase);
+            }
+        });
 
-        // /*smartmeter voltage phase C*/
-        // connect(connection, &SaxModbusTcpConnection::voltagePhaseCChanged, thing, [thing](qint16 voltagePhaseC){
-        //     qCDebug(dcSax()) << "Smartmeter voltagePhaseC changed" << voltagePhaseC << "V";
-        //     thing->setStateValue(saxMeterVoltagePhaseCStateTypeId, voltagePhaseC);
-        // });
-
+        /*smartmeter voltage phase C*/
+        connect(connection, &SaxModbusTcpConnection::voltagePhaseCChanged, thing, [this, thing](qint16 voltagePhase){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSax()) << "Smartmeter voltagePhaseC changed" << voltagePhase << "V";
+                meterThings.first()->setStateValue(saxMeterVoltagePhaseCStateTypeId, voltagePhase);
+            }
+        });
 
 
         connection->connectDevice();
