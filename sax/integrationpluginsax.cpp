@@ -260,14 +260,17 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
         connect(connection, &SaxModbusTcpConnection::stateBatteryChanged, thing, [thing](SaxModbusTcpConnection::StateBattery stateBattery){
             qCDebug(dcSax()) << "Battery stateBattery changed" << stateBattery;
             switch (stateBattery) {
+                case SaxModbusTcpConnection::StateBatteryOff:
+                    thing->setStateValue(saxStorageStateBatteryStateTypeId, "Off");
+                    break;
                 case SaxModbusTcpConnection::StateBatteryOn:
                     thing->setStateValue(saxStorageStateBatteryStateTypeId, "On");
                     break;
+                case SaxModbusTcpConnection::StateBatteryVerbund:
+                    thing->setStateValue(saxStorageStateBatteryStateTypeId, "Verbund");
+                    break;
                 case SaxModbusTcpConnection::StateBatteryStandby:
                     thing->setStateValue(saxStorageStateBatteryStateTypeId, "Standby");
-                    break;
-                case SaxModbusTcpConnection::StateBatteryOff:
-                    thing->setStateValue(saxStorageStateBatteryStateTypeId, "Off");
                     break;
                 default:
                     thing->setStateValue(saxStorageStateBatteryStateTypeId, "Off");

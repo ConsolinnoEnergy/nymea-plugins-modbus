@@ -9,16 +9,20 @@
             "name": "StateBattery",
             "values": [
                 {
-                    "key": "On",
-                    "value": 0
-                },
-                {
                     "key": "Off",
                     "value": 1
                 },
                 {
-                    "key": "Standby",
+                    "key": "On",
                     "value": 2
+                },
+                {
+                    "key": "Verbund",
+                    "value": 3
+                },
+                {
+                    "key": "Standby",
+                    "value": 4
                 }
             ]
         }
