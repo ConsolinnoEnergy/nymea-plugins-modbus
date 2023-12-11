@@ -528,6 +528,20 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
                 meterThings.first()->setStateValue(huaweiMeterCurrentPowerStateTypeId, -powerMeterActivePower);
             }
         });
+        connect(connection, &HuaweiFusionSolar::powerMeterEnergyReturnedReadFinished, thing, [this, thing](float powerMeterEnergyReturned){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcHuawei()) << "Meter power Returned changed" << powerMeterEnergyReturned << "kWh";
+                meterThings.first()->setStateValue(huaweiMeterTotalEnergyProducedStateTypeId, powerMeterEnergyReturned);
+            }
+        });
+        connect(connection, &HuaweiFusionSolar::powerMeterEnergyAquiredReadFinished, thing, [this, thing](float powerMeterEnergyAquired){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcHuawei()) << "Meter power Aquired changed" << powerMeterEnergyAquired << "kWh";
+                meterThings.first()->setStateValue(huaweiMeterTotalEnergyConsumedStateTypeId, powerMeterEnergyAquired);
+            }
+        });
 
         // Battery 1
         connect(connection, &HuaweiFusionSolar::lunaBattery1StatusReadFinished, thing, [this, thing](HuaweiFusionSolar::BatteryDeviceStatus lunaBattery1Status){

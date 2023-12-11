@@ -333,7 +333,7 @@ void HuaweiFusionSolar::readNextRegister()
     }
     case HuaweiFusionModbusTcpConnection::RegisterMeterGridVoltageAphase: {
         // Read meterStuff1
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"meterStuff1\" registers from:" << 37101 << "size:" << 18;
+        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"meterStuff1\" registers from:" << 37101 << "size:" << 22;
         QModbusReply *reply = readBlockMeterStuff1();
         if (!reply) {
             qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"meterStuff1\" registers from" << hostAddress().toString() << errorString();
@@ -353,9 +353,9 @@ void HuaweiFusionSolar::readNextRegister()
             if (reply->error() == QModbusDevice::NoError) {
                 const QModbusDataUnit unit = reply->result();
                 const QVector<quint16> blockValues = unit.values();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"meterStuff1\" register" << 37101 << "size:" << 18 << blockValues;
-                if (!valuesAreVaild(unit.values(), 18)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 18 << "but received" << unit.values();
+                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"meterStuff1\" register" << 37101 << "size:" << 22 << blockValues;
+                if (!valuesAreVaild(unit.values(), 22)) {
+                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 22 << "but received" << unit.values();
                 } else {
                     processMeterGridVoltageAphaseRegisterValues(blockValues.mid(0, 2));
                     processMeterGridVoltageBphaseRegisterValues(blockValues.mid(2, 2));
@@ -367,6 +367,8 @@ void HuaweiFusionSolar::readNextRegister()
                     processMeterReactivePowerRegisterValues(blockValues.mid(14, 2));
                     processMeterPowerFactorRegisterValues(blockValues.mid(16, 1));
                     processMeterGridFrequencyRegisterValues(blockValues.mid(17, 1));
+                    processPowerMeterEnergyReturnedRegisterValues(blockValues.mid(18, 2));
+                    processPowerMeterEnergyAquiredRegisterValues(blockValues.mid(20, 2));
                 }
             }
             finishRequest();
@@ -411,6 +413,19 @@ void HuaweiFusionSolar::readNextRegister()
                     qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 1 << "but received" << unit.values();
                 } else {
                     processLunaBattery1StatusRegisterValues(unit.values());
+                    switch (m_lunaBattery1Status) {
+                    case HuaweiFusionSolar::BatteryDeviceStatusFault:
+                    case HuaweiFusionSolar::BatteryDeviceStatusStandby:
+                    case HuaweiFusionSolar::BatteryDeviceStatusOffline:
+                    case HuaweiFusionSolar::BatteryDeviceStatusSleepMode:
+                        m_battery1Available = false;
+                        m_lunaBattery1Power = 0;
+                        emit lunaBattery1PowerChanged(m_lunaBattery1Power);
+                        break;
+                    case HuaweiFusionSolar::BatteryDeviceStatusRunning:
+                        m_battery1Available = true;
+                        break;
+                    }
                 }
             }
             finishRequest();
@@ -541,6 +556,19 @@ void HuaweiFusionSolar::readNextRegister()
                     qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values count. Requested" << 1 << "but received" << unit.values();
                 } else {
                     processLunaBattery2StatusRegisterValues(unit.values());
+                    switch (m_lunaBattery2Status) {
+                    case HuaweiFusionSolar::BatteryDeviceStatusFault:
+                    case HuaweiFusionSolar::BatteryDeviceStatusStandby:
+                    case HuaweiFusionSolar::BatteryDeviceStatusOffline:
+                    case HuaweiFusionSolar::BatteryDeviceStatusSleepMode:
+                        m_battery2Available = false;
+                        m_lunaBattery2Power = 0;
+                        emit lunaBattery2PowerChanged(m_lunaBattery2Power);
+                        break;
+                    case HuaweiFusionSolar::BatteryDeviceStatusRunning:
+                        m_battery2Available = true;
+                        break;
+                    }
                 }
             }
             finishRequest();
