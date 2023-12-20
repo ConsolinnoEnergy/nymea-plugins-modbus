@@ -29,6 +29,7 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "huaweifusionsolardiscovery.h"
+#include "discoveryrtu.h"
 #include "integrationpluginhuawei.h"
 #include "plugininfo.h"
 
@@ -39,6 +40,27 @@ IntegrationPluginHuawei::IntegrationPluginHuawei()
 {
 
 }
+
+void IntegrationPluginHuawei::init()
+{
+    connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=] (const QUuid &modbusUuid){
+        qCDebug(dcHuawei()) << "Modbus RTU master has been removed" << modbusUuid.toString();
+
+        foreach (Thing *thing, myThings()) {
+            if (thing->paramValue(solaxX3InverterRTUThingModbusMasterUuidParamTypeId) == modbusUuid) {
+                qCWarning(dcHuawei()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
+                thing->setStateValue(huaweiRtuInverterConnectedStateTypeId, false);
+
+                foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                    childThing->setStateValue("connected", false);
+                }
+
+                delete m_rtuConnections.take(thing);
+            }
+        }
+    });
+}
+
 
 void IntegrationPluginHuawei::discoverThings(ThingDiscoveryInfo *info)
 {
@@ -94,26 +116,35 @@ void IntegrationPluginHuawei::discoverThings(ThingDiscoveryInfo *info)
             return;
         }
 
-        uint slaveAddress = info->params().paramValue(huaweiRtuInverterThingSlaveAddressParamTypeId).toUInt();
-        if (slaveAddress > 254 || slaveAddress == 0) {
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The Modbus slave address must be a value between 1 and 254."));
-            return;
-        }
+        DiscoveryRtu *discovery = new DiscoveryRtu(hardwareManager()->modbusRtuResource(), info);
+        connect(discovery, &DiscoveryRtu::discoveryFinished, info, [this, info, discovery](bool modbusMasterAvailable){
+            if (!modbusMasterAvailable) {
+                info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master with the required setting found (8 data bits, 1 stop bit, even parity)."));
+                return;
+            }
 
-        foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
-            qCDebug(dcHuawei()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
-            if (!modbusMaster->connected())
-                continue;
+            qCInfo(dcHuawei()) << "Discovery results:" << discovery->discoveryResults().count();
 
-            ThingDescriptor descriptor(info->thingClassId(), "Huawei Inverter", QString::number(slaveAddress) + " " + modbusMaster->serialPort());
-            ParamList params;
-            params << Param(huaweiRtuInverterThingSlaveAddressParamTypeId, slaveAddress);
-            params << Param(huaweiRtuInverterThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
-            descriptor.setParams(params);
-            info->addThingDescriptor(descriptor);
-        }
+            foreach (const DiscoveryRtu::Result &result, discovery->discoveryResults()) {
+                ThingDescriptor descriptor(info->thingClassId(), "Huawei Inverter ", QString("Modbus ID: %1").arg(result.modbusId) + " " + result.serialPort);
 
-        info->finish(Thing::ThingErrorNoError);
+                ParamList params{
+                    {solaxX3InverterRTUThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
+                    {solaxX3InverterRTUThingModbusIdParamTypeId, result.modbusId}
+                };
+                descriptor.setParams(params);
+
+                Thing *existingThing = myThings().findByParams(params);
+                if (existingThing) {
+                    descriptor.setThingId(existingThing->id());
+                }
+                info->addThingDescriptor(descriptor);
+            }
+
+            info->finish(Thing::ThingErrorNoError);
+        });
+
+        discovery->startDiscovery();
     }
 }
 
@@ -173,9 +204,9 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
     if (thing->thingClassId() == huaweiRtuInverterThingClassId) {
 
         uint address = thing->paramValue(huaweiRtuInverterThingSlaveAddressParamTypeId).toUInt();
-        if (address > 254 || address == 0) {
+        if (address > 247 || address == 0) {
             qCWarning(dcHuawei()) << "Setup failed, slave address is not valid" << address;
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 254."));
+            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
             return;
         }
 
@@ -191,36 +222,43 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
             delete m_rtuConnections.take(thing);
         }
 
-        ModbusRtuMaster *rtuMaster = hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid);
-        HuaweiModbusRtuConnection *connection = new HuaweiModbusRtuConnection(rtuMaster, address, this);
 
+        HuaweiModbusRtuConnection *connection = new HuaweiModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
         connect(connection, &HuaweiModbusRtuConnection::reachableChanged, thing, [this, thing, connection](bool reachable){
             qCDebug(dcHuawei()) << thing->name() << "reachable changed" << reachable;
+            thing->setStateValue(huaweiRtuInverterConnectedStateTypeId, reachable);
+
+            foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                childThing->setStateValue("connected", reachable);
+            }
+
             if (reachable) {
-                // Connected true will be set after successfull init
-                connection->initialize();
+                qCDebug(dcHuawei()) << "Device" << thing << "is reachable via Modbus RTU on" << connection->modbusRtuMaster()->serialPort();
+
+                // Reset history, just incase
+                m_inverterEnergyProducedHistory[thing].clear();
+
+                // Add the current value to the history
+                checkEnergyValueReasonable(thing, thing->stateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId).toFloat(), 0.0);
             } else {
-                thing->setStateValue("connected", false);
-                foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
-                    childThing->setStateValue("connected", false);
-                }
+                qCWarning(dcHuawei()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
             }
         });
 
         connect(connection, &HuaweiModbusRtuConnection::initializationFinished, thing, [this, thing, connection](bool success){
             if (success) {
-                thing->setStateValue("connected", true);
-                foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
-                    childThing->setStateValue("connected", true);
-                }
-
-                connection->update();
+                qCDebug(dcHuawei()) << "Huawei inverter initialized." << connection->model() << connection->serialNumber() << connection->productNumber();
+                thing->setStateValue(huaweiRtuInverterModelStateTypeId, connection->model());
+                thing->setStateValue(huaweiRtuInverterSerialNumberStateTypeId, connection->serialNumber());
+                thing->setStateValue(huaweiRtuInverterProductNumberStateTypeId, connection->productNumber());
+            } else {
+                qCWarning(dcHuawei()) << "Huawei inverter initialization failed.";
             }
         });
 
-        connect(connection, &HuaweiModbusRtuConnection::inverterActivePowerChanged, thing, [thing](float inverterActivePower){
-            qCDebug(dcHuawei()) << "Inverter power changed" << inverterActivePower * -1000.0 << "W";
-            thing->setStateValue(huaweiRtuInverterCurrentPowerStateTypeId, inverterActivePower * -1000.0);
+        connect(connection, &HuaweiModbusRtuConnection::inverterInputPowerChanged, thing, [thing](float inverterInputPower){
+            qCDebug(dcHuawei()) << "Inverter PV power changed" << inverterInputPower * -1000.0 << "W";
+            thing->setStateValue(huaweiRtuInverterCurrentPowerStateTypeId, inverterInputPower * -1000.0);
         });
 
         connect(connection, &HuaweiModbusRtuConnection::inverterDeviceStatusChanged, thing, [thing](HuaweiModbusRtuConnection::InverterDeviceStatus inverterDeviceStatus){
@@ -230,7 +268,11 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
 
         connect(connection, &HuaweiModbusRtuConnection::inverterEnergyProducedChanged, thing, [thing](float inverterEnergyProduced){
             qCDebug(dcHuawei()) << "Inverter total energy produced changed" << inverterEnergyProduced << "kWh";
-            thing->setStateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId, inverterEnergyProduced);
+
+            // Test value first, to avoid jitter.
+            if (checkEnergyValueReasonable(thing, inverterEnergyProduced, thing->stateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId).toFloat())) {
+                thing->setStateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId, inverterEnergyProduced);
+            }
         });
 
         // Meter
@@ -382,7 +424,13 @@ void IntegrationPluginHuawei::postSetupThing(Thing *thing)
                 }
 
                 foreach(HuaweiModbusRtuConnection *connection, m_rtuConnections) {
-                    connection->update();
+                    // Use this register to test if initialization was done.
+                    QString model = connection->model();
+                    if (model.isEmpty()) {
+                        connection->initialize();
+                    } else {
+                        connection->update();
+                    }
                 }
             });
 
@@ -646,6 +694,79 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
 
     if (monitor->reachable())
         connection->connectDevice();
+}
+
+// This function checks if a value seems legit (return true) or is significantly different to the previous values that it seems
+// to be an error and should be discarded (return false).
+bool IntegrationPluginHuawei::checkEnergyValueReasonable(Thing *inverterThing, float newValue, float lastLegitValue)
+{
+    // Add the value to our small history
+    m_inverterEnergyProducedHistory[inverterThing].append(newValue);
+
+    int historyMaxSize  = 3;
+    int historySize = m_inverterEnergyProducedHistory.value(inverterThing).count();
+
+    if (historySize > historyMaxSize) {
+        m_inverterEnergyProducedHistory[inverterThing].removeFirst();
+    }
+
+    if (historySize == 1) {
+        // When this function is called for the first time, the sole purpose is to put the default or cached value of the state in the history.
+        // Since that values is already in the state, no need to decide if the value should be put in the state or not. Hence, the return value
+        // is not used and it does not matter what is returned.
+        return true;
+    }
+
+    // Check if the new value is smaller than the current one. If yes, we have either a counter reset or an invalid value we want to filter out.
+    // Test if this is a counter reset. If not, discard the value.
+    // The test for a counter reset is:
+    // - lastLegitValue is not in the history anymore. When a counter reset occurs, all new values will be smaller than lastLegitValue and hence discaded.
+    // The history will fill up with discarded values until lastLegitValue is pushed out.
+    // - all the values in the history are monotonically increasing and the difference between them will be small (<5%).
+    if (newValue < lastLegitValue) {
+
+        // Not enough values in history, can't evaluate. Discard this value, just to be save.
+        if (historySize < historyMaxSize) {
+            qCWarning(dcHuawei()) << "Energyfilter: Energy value" << newValue << "is smaller than the last one. Still collecting history data" << m_inverterEnergyProducedHistory.value(inverterThing);
+            return false;
+        }
+
+        // Test if lastLegitValue has been pushed out of history yet. Test every value but the last one, because the last one is newValue.
+        for (int i = 0; i < historySize - 1; i++) {
+            // Comparing floats is tricky. Need to allow for some leeway.
+            if (m_inverterEnergyProducedHistory.value(inverterThing).at(i) <= (lastLegitValue * 1,0001)
+                    || m_inverterEnergyProducedHistory.value(inverterThing).at(i) >= (lastLegitValue * 0,9999)) {
+
+                // lastLegitValue (or a value very similar to it) is still in the history. Threshold for counter reset not reached yet. Discard this value.
+                return false;
+            }
+        }
+
+        // Only discarded values are in the history. Proceed with "monotonically increasing with small steps" test.
+    }
+
+    // Test if the values in the history are monotonically increasing and the difference between them is small (<5%).
+    for (int i = 0; i < historySize - 1; i++) {
+        float thisValue = m_inverterEnergyProducedHistory.value(inverterThing).at(i);
+        float nextValue = m_inverterEnergyProducedHistory.value(inverterThing).at(i + 1);
+
+        // Comparing floats is tricky. Make nextValue a tiny bit bigger, to make sure this if is not true when thisValue and nextValue are nearly identical.
+        if (thisValue > (nextValue * 1,0001)) {
+            // Not monotonically increasing.
+            qCWarning(dcHuawei()) << "Jitter detected in recently transmitted values" << m_inverterEnergyProducedHistory.value(inverterThing) << ", discarding values until jitter stops.";
+            return false;
+        }
+
+        float increaseInPercent = 100 * (nextValue - thisValue) / thisValue;
+        if (increaseInPercent > 5) {
+            // Difference is too large. Incoming values jitter too much.
+            qCWarning(dcHuawei()) << "Jitter detected in recently transmitted values" << m_inverterEnergyProducedHistory.value(inverterThing) << ", discarding values until jitter stops.";
+            return false;
+        }
+    }
+
+    // All tests sucessful, the value is legit.
+    return true;
 }
 
 void IntegrationPluginHuawei::evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced)

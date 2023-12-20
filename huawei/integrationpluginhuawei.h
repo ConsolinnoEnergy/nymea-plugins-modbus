@@ -50,6 +50,7 @@ class IntegrationPluginHuawei: public IntegrationPlugin
 public:
     explicit IntegrationPluginHuawei();
 
+    void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
@@ -67,6 +68,7 @@ private:
 
     QHash<Thing *, QList<float>> m_inverterEnergyProducedHistory;
     void evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced);
+    bool checkEnergyValueReasonable(Thing *inverterThing, float newValue, float lastLegitValue);
 };
 
 #endif // INTEGRATIONPLUGINHUAWEI_H
