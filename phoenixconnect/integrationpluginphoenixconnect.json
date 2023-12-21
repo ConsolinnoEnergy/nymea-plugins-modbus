@@ -108,7 +108,7 @@
                             "displayName": "Phase count",
                             "displayNameEvent": "Phase count changed",
                             "type": "uint",
-                            "minValue": 1,
+                            "minValue": 0,
                             "maxValue": 3,
                             "defaultValue": 1
                         }
@@ -223,7 +223,7 @@
                             "displayName": "Phase count",
                             "displayNameEvent": "Phase count changed",
                             "type": "uint",
-                            "minValue": 1,
+                            "minValue": 0,
                             "maxValue": 3,
                             "defaultValue": 1
                         }
@@ -336,7 +336,7 @@
                             "displayName": "Phase count",
                             "displayNameEvent": "Phase count changed",
                             "type": "uint",
-                            "minValue": 1,
+                            "minValue": 0,
                             "maxValue": 3,
                             "defaultValue": 1
                         }
@@ -451,7 +451,7 @@
                             "displayName": "Phase count",
                             "displayNameEvent": "Phase count changed",
                             "type": "uint",
-                            "minValue": 1,
+                            "minValue": 0,
                             "maxValue": 3,
                             "defaultValue": 1
                         }
@@ -564,7 +564,7 @@
                             "displayName": "Phase count",
                             "displayNameEvent": "Phase count changed",
                             "type": "uint",
-                            "minValue": 1,
+                            "minValue": 0,
                             "maxValue": 3,
                             "defaultValue": 1
                         }
@@ -669,7 +669,7 @@
                             "displayName": "Phase count",
                             "displayNameEvent": "Phase count changed",
                             "type": "uint",
-                            "minValue": 1,
+                            "minValue": 0,
                             "maxValue": 3,
                             "defaultValue": 1
                         }
