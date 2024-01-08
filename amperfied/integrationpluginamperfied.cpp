@@ -44,8 +44,6 @@ IntegrationPluginAmperfied::IntegrationPluginAmperfied()
 
 void IntegrationPluginAmperfied::discoverThings(ThingDiscoveryInfo *info)
 {
-    hardwareManager()->modbusRtuResource();
-
     if (info->thingClassId() == energyControlThingClassId) {
         EnergyControlDiscovery *discovery = new EnergyControlDiscovery(hardwareManager()->modbusRtuResource(), info);
 
@@ -58,11 +56,11 @@ void IntegrationPluginAmperfied::discoverThings(ThingDiscoveryInfo *info)
             qCInfo(dcAmperfied()) << "Discovery results:" << discovery->discoveryResults().count();
 
             foreach (const EnergyControlDiscovery::Result &result, discovery->discoveryResults()) {
-                ThingDescriptor descriptor(energyControlThingClassId, "Amperfied Energy Control", QString("Slave ID: %1").arg(result.slaveId));
+                ThingDescriptor descriptor(energyControlThingClassId, "Amperfied Energy Control", QString("Modbus ID: %1").arg(result.modbusId));
 
                 ParamList params{
                     {energyControlThingRtuMasterParamTypeId, result.modbusRtuMasterId},
-                    {energyControlThingSlaveIdParamTypeId, result.slaveId}
+                    {energyControlThingModbusIdParamTypeId, result.modbusId}
                 };
                 descriptor.setParams(params);
 
@@ -125,17 +123,29 @@ void IntegrationPluginAmperfied::setupThing(ThingSetupInfo *info)
     }
 
 
-    if (info->thing()->thingClassId() == connectHomeThingClassId) {
-        if (m_tcpConnections.contains(info->thing())) {
-            delete m_tcpConnections.take(info->thing());
+    if (thing->thingClassId() == connectHomeThingClassId) {
+        m_setupTcpConnectionRunning = false;
+
+        if (m_tcpConnections.contains(thing)) {
+            qCDebug(dcAmperfied()) << "Reconfiguring existing thing" << thing->name();
+            AmperfiedModbusTcpConnection *connection = m_tcpConnections.take(thing);
+            connection->disconnectDevice(); // Make sure it does not interfere with new connection we are about to create.
+            connection->deleteLater();
         }
 
-        NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
-        if (!monitor) {
-            monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(MacAddress(thing->paramValue(connectHomeThingMacAddressParamTypeId).toString()));
-            m_monitors.insert(thing, monitor);
+        if (m_monitors.contains(thing))
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+
+        // Test for null, because registering a monitor with null will cause a segfault. Mac is loaded from config, you can't be sure config contains a valid mac.
+        MacAddress macAddress = MacAddress(thing->paramValue(connectHomeThingMacAddressParamTypeId).toString());
+        if (macAddress.isNull()) {
+            qCWarning(dcAmperfied()) << "Failed to set up Amperfied connect.home because the MAC address is not valid:" << thing->paramValue(connectHomeThingMacAddressParamTypeId).toString() << macAddress.toString();
+            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
+            return;
         }
 
+        NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        m_monitors.insert(thing, monitor);
         connect(info, &ThingSetupInfo::aborted, monitor, [=](){
             if (m_monitors.contains(thing)) {
                 qCDebug(dcAmperfied()) << "Unregistering monitor because setup has been aborted.";
@@ -149,7 +159,9 @@ void IntegrationPluginAmperfied::setupThing(ThingSetupInfo *info)
         } else {
             connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [this, info](bool reachable){
                 qCDebug(dcAmperfied()) << "Monitor reachable changed!" << reachable;
-                if (reachable) {
+                if (reachable && !m_setupTcpConnectionRunning) {
+                    // The monitor is unreliable and can change reachable true->false->true before setup is done. Make sure this runs only once.
+                    m_setupTcpConnectionRunning = true;
                     setupTcpConnection(info);
                 }
             });
@@ -203,7 +215,7 @@ void IntegrationPluginAmperfied::executeAction(ThingActionInfo *info)
             ModbusRtuReply *reply = connection->setChargingCurrent(power ? max : 0);
             connect(reply, &ModbusRtuReply::finished, info, [info, reply, max](){
                 if (reply->error() == ModbusRtuReply::NoError) {
-                    info->thing()->setStateValue(energyControlMaxChargingCurrentStateTypeId, max);
+                    info->thing()->setStateValue(energyControlMaxChargingCurrentStateTypeId, max / 10);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
                     qCWarning(dcAmperfied()) << "Error setting power:" << reply->error() << reply->errorString();
@@ -211,7 +223,6 @@ void IntegrationPluginAmperfied::executeAction(ThingActionInfo *info)
                 }
             });
         }
-
     }
 
     if (info->thing()->thingClassId() == connectHomeThingClassId) {
@@ -229,6 +240,7 @@ void IntegrationPluginAmperfied::executeAction(ThingActionInfo *info)
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
+            return;
         }
 
         if (info->action().actionTypeId() == connectHomeMaxChargingCurrentActionTypeId) {
@@ -237,7 +249,7 @@ void IntegrationPluginAmperfied::executeAction(ThingActionInfo *info)
             QModbusReply *reply = connection->setChargingCurrent(power ? max : 0);
             connect(reply, &QModbusReply::finished, info, [info, reply, max](){
                 if (reply->error() == QModbusDevice::NoError) {
-                    info->thing()->setStateValue(connectHomeMaxChargingCurrentStateTypeId, max);
+                    info->thing()->setStateValue(connectHomeMaxChargingCurrentStateTypeId, max / 10);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
                     qCWarning(dcAmperfied()) << "Error setting power:" << reply->error() << reply->errorString();
@@ -245,19 +257,25 @@ void IntegrationPluginAmperfied::executeAction(ThingActionInfo *info)
                 }
             });
         }
-
     }
-
 }
 
 void IntegrationPluginAmperfied::thingRemoved(Thing *thing)
 {
     if (thing->thingClassId() == energyControlThingClassId) {
-        delete m_rtuConnections.take(thing);
+        if (m_rtuConnections.contains(thing))
+            m_rtuConnections.take(thing)->deleteLater();
     }
 
     if (thing->thingClassId() == connectHomeThingClassId) {
-        delete m_tcpConnections.take(thing);
+        if (m_monitors.contains(thing)) {
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+        }
+        if (m_tcpConnections.contains(thing)) {
+            AmperfiedModbusTcpConnection *connection = m_tcpConnections.take(thing);
+            connection->disconnectDevice(); // This is needed to avoid a segfault.
+            connection->deleteLater();
+        }
     }
 
     if (myThings().isEmpty() && m_pluginTimer) {
@@ -268,10 +286,22 @@ void IntegrationPluginAmperfied::thingRemoved(Thing *thing)
 
 void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
 {
+    // This setup method checks the version number of the wallbox before giving the signal that info finished successfully. The version number is read
+    // from a modbus register. Modbus calls can fail, making the setup fail. As a result, care needs to be taken to clean up all objects that were created.
+
     Thing *thing = info->thing();
     ModbusRtuMaster *master = hardwareManager()->modbusRtuResource()->getModbusRtuMaster(thing->paramValue(energyControlThingRtuMasterParamTypeId).toUuid());
-    quint16 slaveId = thing->paramValue(energyControlThingSlaveIdParamTypeId).toUInt();
-    AmperfiedModbusRtuConnection *connection = new AmperfiedModbusRtuConnection(master, slaveId, thing);
+    if (!master) {
+        qCWarning(dcAmperfied()) << "The Modbus Master is not available any more.";
+        info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("The modbus RTU connection is not available."));
+        return;
+    }
+    quint16 modbusId = thing->paramValue(energyControlThingModbusIdParamTypeId).toUInt();
+    AmperfiedModbusRtuConnection *connection = new AmperfiedModbusRtuConnection(master, modbusId, thing);
+    connect(info, &ThingSetupInfo::aborted, connection, [=](){
+        qCDebug(dcAmperfied()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
+        connection->deleteLater();
+    });
 
     connect(connection, &AmperfiedModbusRtuConnection::reachableChanged, thing, [connection, thing](bool reachable){
         if (reachable) {
@@ -281,22 +311,25 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
             thing->setStateValue(energyControlConnectedStateTypeId, false);
         }
     });
-    connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, thing, [thing](bool success){
+    connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, thing, [connection, thing](bool success){
         if (success) {
             thing->setStateValue(energyControlConnectedStateTypeId, true);
+
+            // Disabling the auto-standby as it will shut down modbus
+            connection->setStandby(AmperfiedModbusRtuConnection::StandbyStandbyDisabled);
         }
     });
 
     connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
             if (connection->version() < 0x0107) {
-                qCWarning(dcAmperfied()) << "We require at least version 1.0.8.";
+                qCWarning(dcAmperfied()) << "We require at least version 1.0.7.";
                 info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware 1.0.7."));
-                delete connection;
                 return;
             }
             m_rtuConnections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
+            connection->update();
         } else {
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The wallbox is not responding"));
         }
@@ -344,10 +377,12 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
         if (connection->currentL3() > 1) {
             phaseCount++;
         }
-        if (phaseCount > 0) {
-            thing->setStateValue(energyControlPhaseCountStateTypeId, phaseCount);
-        }
         thing->setStateValue(energyControlChargingStateTypeId, phaseCount > 0);
+        if (phaseCount == 0) {
+            // Not allowed to set phasecount to 0;
+            phaseCount = 1;
+        }
+        thing->setStateValue(energyControlPhaseCountStateTypeId, phaseCount);
     });
 
     connection->update();
@@ -356,27 +391,59 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
 
 void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
 {
+    // This setup method checks the version number of the wallbox before giving the signal that info finished successfully. The version number is read
+    // from a modbus register. Modbus calls can fail, making the setup fail. As a result, care needs to be taken to clean up all objects that were created.
+
     qCDebug(dcAmperfied()) << "setting up TCP connection";
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
-    AmperfiedModbusTcpConnection *connection = new AmperfiedModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, info->thing());
+    AmperfiedModbusTcpConnection *connection = new AmperfiedModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, thing);
+    connect(info, &ThingSetupInfo::aborted, connection, [=](){
+        qCDebug(dcAmperfied()) << "Cleaning up ModbusTCP connection because setup has been aborted.";
+        connection->disconnectDevice();
+        connection->deleteLater();
+    });
 
-    connect(connection, &AmperfiedModbusTcpConnection::reachableChanged, thing, [connection, thing](bool reachable){
+    // Use a monitor to detect IP address changes. However, the monitor is not reliable and regularly reports 'not reachable' when the modbus connection
+    // is still working. Because of that, check if the modbus connection is working before setting it to disconnect.
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [this, thing, monitor](bool reachable){
+        // This may trigger before setup finished, but should only execute after setup. Check m_tcpConnections for thing, because that key won't
+        // be in there before setup finished.
+        if (m_tcpConnections.contains(thing)) {
+            qCDebug(dcAmperfied()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+            if (!thing->stateValue(connectHomeConnectedStateTypeId).toBool()) {
+                // connectedState switches to false when modbus calls don't work. This code should not execute when modbus is still working.
+                if (reachable) {
+                    m_tcpConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_tcpConnections.value(thing)->reconnectDevice();
+                } else {
+                    // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    m_tcpConnections.value(thing)->disconnectDevice();
+                }
+            }
+        }
+    });
+
+    connect(connection, &AmperfiedModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable){
+        qCDebug(dcAmperfied()) << "Reachable changed to" << reachable;
+        thing->setStateValue(connectHomeConnectedStateTypeId, reachable);
         if (reachable) {
             connection->initialize();
         } else {
             thing->setStateValue(connectHomeCurrentPowerStateTypeId, 0);
-            thing->setStateValue(connectHomeConnectedStateTypeId, false);
+            if (m_monitors.contains(thing) && !m_monitors.value(thing)->reachable()) {
+                // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                connection->disconnectDevice();
+            }
         }
     });
 
-
     connect(connection, &AmperfiedModbusTcpConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
+            qCDebug(dcAmperfied()) << "Initialization finished sucessfully";
             if (connection->version() < 0x0107) {
-                qCWarning(dcAmperfied()) << "We require at least version 1.0.8.";
+                qCWarning(dcAmperfied()) << "We require at least version 1.0.7.";
                 info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware 1.0.7."));
-                delete connection;
                 return;
             }
             m_tcpConnections.insert(info->thing(), connection);
@@ -389,8 +456,6 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &AmperfiedModbusTcpConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAmperfied()) << "Updated:" << connection;
-
-        thing->setStateValue(connectHomeConnectedStateTypeId, true);
 
         if (connection->chargingCurrent() == 0) {
             thing->setStateValue(connectHomePowerStateTypeId, false);
@@ -431,10 +496,12 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
         if (connection->currentL3() > 1) {
             phaseCount++;
         }
-        if (phaseCount > 0) {
-            thing->setStateValue(connectHomePhaseCountStateTypeId, phaseCount);
-        }
         thing->setStateValue(connectHomeChargingStateTypeId, phaseCount > 0);
+        if (phaseCount == 0) {
+            // Not allowed to set phasecount to 0;
+            phaseCount = 1;
+        }
+        thing->setStateValue(connectHomePhaseCountStateTypeId, phaseCount);
     });
 
     connection->connectDevice();
