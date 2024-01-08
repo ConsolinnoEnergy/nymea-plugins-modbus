@@ -364,7 +364,7 @@
                     "readSchedule": "update",
                     "description": "E-Total-Sell",
                     "defaultValue": "0",
-                    "unit": "kWh",
+                    "unit": "Wh",
                     "access": "RO"
                 },
                 {
@@ -376,7 +376,7 @@
                     "readSchedule": "update",
                     "description": "E-Total-Buy",
                     "defaultValue": "0",
-                    "unit": "kWh",
+                    "unit": "Wh",
                     "access": "RO"
                 },
                 {
