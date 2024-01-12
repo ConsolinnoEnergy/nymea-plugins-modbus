@@ -423,7 +423,7 @@
                     "address": 40115,
                     "size": 1,
                     "type": "uint16",
-                    "readSchedule": "init",
+                    "readSchedule": "update",
                     "registerType": "holdingRegister",
                     "description": "Capacity of Battery",
                     "defaultValue": "0",

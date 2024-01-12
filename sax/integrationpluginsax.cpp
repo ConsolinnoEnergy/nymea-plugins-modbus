@@ -96,7 +96,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
 
         // Make sure we have a valid mac address, otherwise no monitor and not auto searching is possible
         MacAddress macAddress = MacAddress(thing->paramValue(saxStorageThingMacAddressParamTypeId).toString());
-        if (!macAddress.isValid()) {
+        if (macAddress.isNull()) {
             qCWarning(dcSax()) << "Failed to set up Sax Battery because the MAC address is not valid:" << thing->paramValue(saxStorageThingMacAddressParamTypeId).toString() << macAddress.toString();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
             return;
