@@ -61,6 +61,7 @@ private:
     void setupTcpConnection(ThingSetupInfo *info);
 
 private:
+    bool m_setupTcpConnectionRunning{false};
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, AmperfiedModbusRtuConnection*> m_rtuConnections;
     QHash<Thing *, AmperfiedModbusTcpConnection*> m_tcpConnections;
