@@ -68,7 +68,7 @@ private:
 
     QHash<Thing *, QList<float>> m_inverterEnergyProducedHistory;
     void evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced);
-    bool checkEnergyValueReasonable(Thing *inverterThing, float newValue, float lastLegitValue);
+    bool checkEnergyValueReasonable(Thing *inverterThing, float newValue);
 };
 
 #endif // INTEGRATIONPLUGINHUAWEI_H

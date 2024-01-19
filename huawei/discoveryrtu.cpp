@@ -73,22 +73,22 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
     qCDebug(dcHuawei()) << "Scanning modbus RTU master" << master->modbusUuid().toString() << "Modbus ID:" << modbusId;
 
     // Get the "meterGridFrequency" register. If this is a Huawei, a value close to 5000 must be in this register.
-    ModbusRtuReply *reply = master->readHoldingRegister(modbusId, 37118);
+    // Nope, bad idea. Meter could be disconnected, then register for frequency will have value 0.
+    ModbusRtuReply *reply = master->readHoldingRegister(modbusId, 30070);   // Temporary solution. This is model ID, just a value >0.
     connect(reply, &ModbusRtuReply::finished, this, [=](){
         qCDebug(dcHuawei()) << "Test reply finished!" << reply->error() << reply->result();
         if (reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
-            quint16 gridFrequency = reply->result().first();
+            quint16 modelId = reply->result().first();
 
-            if (gridFrequency > 4900 && gridFrequency < 5100) {
-                double frequencyHz = gridFrequency / 100.0;
-                qCDebug(dcHuawei()) << QString("Grid frequency is %1, this is a Huawei inverter").arg(frequencyHz);
+            if (modelId > 0) {
+                qCDebug(dcHuawei()) << "Test register is Model ID, result is" << modelId;
                 Result result;
                 result.modbusId = modbusId;
                 result.serialPort = QString(master->serialPort());
                 result.modbusRtuMasterId = master->modbusUuid();
                 m_discoveryResults.append(result);
             } else {
-                qCDebug(dcHuawei()) << QString("The value in holding register 37118 is %1, which does not seem to be the grid frequency (~5000). This is not a Huawei inverter.").arg(gridFrequency);
+                qCDebug(dcHuawei()) << "Value in test register 30070 should not be 0 but it is" << modelId << ". This is not a Huawei inverter.";
             }
         }
         if (modbusId < 20) {

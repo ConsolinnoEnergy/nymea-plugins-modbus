@@ -47,7 +47,7 @@ void IntegrationPluginHuawei::init()
         qCDebug(dcHuawei()) << "Modbus RTU master has been removed" << modbusUuid.toString();
 
         foreach (Thing *thing, myThings()) {
-            if (thing->paramValue(solaxX3InverterRTUThingModbusMasterUuidParamTypeId) == modbusUuid) {
+            if (thing->paramValue(huaweiRtuInverterThingModbusMasterUuidParamTypeId) == modbusUuid) {
                 qCWarning(dcHuawei()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
                 thing->setStateValue(huaweiRtuInverterConnectedStateTypeId, false);
 
@@ -129,8 +129,8 @@ void IntegrationPluginHuawei::discoverThings(ThingDiscoveryInfo *info)
                 ThingDescriptor descriptor(info->thingClassId(), "Huawei Inverter ", QString("Modbus ID: %1").arg(result.modbusId) + " " + result.serialPort);
 
                 ParamList params{
-                    {solaxX3InverterRTUThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
-                    {solaxX3InverterRTUThingModbusIdParamTypeId, result.modbusId}
+                    {huaweiRtuInverterThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
+                    {huaweiRtuInverterThingModbusIdParamTypeId, result.modbusId}
                 };
                 descriptor.setParams(params);
 
@@ -203,27 +203,30 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
 
     if (thing->thingClassId() == huaweiRtuInverterThingClassId) {
 
-        uint address = thing->paramValue(huaweiRtuInverterThingSlaveAddressParamTypeId).toUInt();
-        if (address > 247 || address == 0) {
-            qCWarning(dcHuawei()) << "Setup failed, slave address is not valid" << address;
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
-            return;
-        }
-
-        QUuid uuid = thing->paramValue(huaweiRtuInverterThingModbusMasterUuidParamTypeId).toUuid();
-        if (!hardwareManager()->modbusRtuResource()->hasModbusRtuMaster(uuid)) {
-            qCWarning(dcHuawei()) << "Setup failed, hardware manager not available";
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus RTU resource is not available."));
-            return;
-        }
-
         if (m_rtuConnections.contains(thing)) {
-            qCDebug(dcHuawei()) << "Already have a Huawei connection for this thing. Cleaning up old connection and initializing new one...";
-            delete m_rtuConnections.take(thing);
+            qCDebug(dcHuawei()) << "Reconfiguring existing thing" << thing->name();
+            m_rtuConnections.take(thing)->deleteLater();
         }
 
+        quint16 modbusId = thing->paramValue(huaweiRtuInverterThingModbusIdParamTypeId).toUInt();
+        if (modbusId > 247 || modbusId == 0) {
+            qCWarning(dcHuawei()) << "Setup failed, modbus ID is not valid" << modbusId;
+            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The modbus ID is not valid. It must be a value between 1 and 247."));
+            return;
+        }
 
-        HuaweiModbusRtuConnection *connection = new HuaweiModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
+        ModbusRtuMaster *master = hardwareManager()->modbusRtuResource()->getModbusRtuMaster(thing->paramValue(huaweiRtuInverterThingModbusMasterUuidParamTypeId).toUuid());
+        if (!master) {
+            qCWarning(dcHuawei()) << "The Modbus Master is not available any more.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("The modbus RTU connection is not available."));
+            return;
+        }
+        HuaweiModbusRtuConnection *connection = new HuaweiModbusRtuConnection(master, modbusId, thing);
+        connect(info, &ThingSetupInfo::aborted, connection, [=](){
+            qCDebug(dcHuawei()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
+            connection->deleteLater();
+        });
+
         connect(connection, &HuaweiModbusRtuConnection::reachableChanged, thing, [this, thing, connection](bool reachable){
             qCDebug(dcHuawei()) << thing->name() << "reachable changed" << reachable;
             thing->setStateValue(huaweiRtuInverterConnectedStateTypeId, reachable);
@@ -239,7 +242,7 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
                 m_inverterEnergyProducedHistory[thing].clear();
 
                 // Add the current value to the history
-                checkEnergyValueReasonable(thing, thing->stateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId).toFloat(), 0.0);
+                checkEnergyValueReasonable(thing, thing->stateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId).toFloat());
             } else {
                 qCWarning(dcHuawei()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
             }
@@ -270,7 +273,7 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
             qCDebug(dcHuawei()) << "Inverter total energy produced changed" << inverterEnergyProduced << "kWh";
 
             // Test value first, to avoid jitter.
-            if (checkEnergyValueReasonable(thing, inverterEnergyProduced, thing->stateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId).toFloat())) {
+            if (checkEnergyValueReasonable(thing, inverterEnergyProduced)) {
                 thing->setStateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId, inverterEnergyProduced);
             }
         });
@@ -696,76 +699,43 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
         connection->connectDevice();
 }
 
-// This function checks if a value seems legit (return true) or is significantly different to the previous values that it seems
-// to be an error and should be discarded (return false).
-bool IntegrationPluginHuawei::checkEnergyValueReasonable(Thing *inverterThing, float newValue, float lastLegitValue)
+// This function checks if a value seems legit (return true) or appears to be an error (return false) based on analysis of past values.
+// The analysis is to look at the rate (change of one value to the next), and assume the rate should not change by more than x% (value of "percentLimit") over the timeframe of the
+// analysed values, if they are legit.
+bool IntegrationPluginHuawei::checkEnergyValueReasonable(Thing *inverterThing, float newValue)
 {
-    // Add the value to our small history
+    const int percentLimit = 10; // Change this if needed.
+
+    // Add the value to the history
     m_inverterEnergyProducedHistory[inverterThing].append(newValue);
 
-    int historyMaxSize  = 3;
+    int historyMaxSize = 3; // Don't change this.
     int historySize = m_inverterEnergyProducedHistory.value(inverterThing).count();
+
+    if (historySize < historyMaxSize) {
+        // Not enough values in history to do proper analysis. Declare current value as not legit (return false), since we don't know, and that is the save thing to do.
+        return false;
+    }
 
     if (historySize > historyMaxSize) {
         m_inverterEnergyProducedHistory[inverterThing].removeFirst();
     }
 
-    if (historySize == 1) {
-        // When this function is called for the first time, the sole purpose is to put the default or cached value of the state in the history.
-        // Since that values is already in the state, no need to decide if the value should be put in the state or not. Hence, the return value
-        // is not used and it does not matter what is returned.
-        return true;
+    // This code is specific to a historyMaxSize of 3.
+    // How this works: Say the history has the following enties (oldest are first) [10, 11, 13].
+    // "deltaLast" is 11 - 10 = 1
+    // "deltaCurrent" is 13 - 11 = 2
+    // "differenceInPercent" is then 100 * (2 - 1) / 1 = 100
+    // This means the rate increased by 100%. Depending on the percentLimit variable, this is considered ok or not ok.
+    float deltaLast = m_inverterEnergyProducedHistory.value(inverterThing).at(1) - m_inverterEnergyProducedHistory.value(inverterThing).at(0);
+    float deltaCurrent = m_inverterEnergyProducedHistory.value(inverterThing).at(2) - m_inverterEnergyProducedHistory.value(inverterThing).at(1);
+    float differenceInPercent = 100 * (deltaCurrent - deltaLast) / deltaLast;
+    if ((differenceInPercent < -percentLimit) || (differenceInPercent > percentLimit)) {
+        // Jitter detected.
+        return false;
     }
 
-    // Check if the new value is smaller than the current one. If yes, we have either a counter reset or an invalid value we want to filter out.
-    // Test if this is a counter reset. If not, discard the value.
-    // The test for a counter reset is:
-    // - lastLegitValue is not in the history anymore. When a counter reset occurs, all new values will be smaller than lastLegitValue and hence discaded.
-    // The history will fill up with discarded values until lastLegitValue is pushed out.
-    // - all the values in the history are monotonically increasing and the difference between them will be small (<5%).
-    if (newValue < lastLegitValue) {
-
-        // Not enough values in history, can't evaluate. Discard this value, just to be save.
-        if (historySize < historyMaxSize) {
-            qCWarning(dcHuawei()) << "Energyfilter: Energy value" << newValue << "is smaller than the last one. Still collecting history data" << m_inverterEnergyProducedHistory.value(inverterThing);
-            return false;
-        }
-
-        // Test if lastLegitValue has been pushed out of history yet. Test every value but the last one, because the last one is newValue.
-        for (int i = 0; i < historySize - 1; i++) {
-            // Comparing floats is tricky. Need to allow for some leeway.
-            if (m_inverterEnergyProducedHistory.value(inverterThing).at(i) <= (lastLegitValue * 1,0001)
-                    || m_inverterEnergyProducedHistory.value(inverterThing).at(i) >= (lastLegitValue * 0,9999)) {
-
-                // lastLegitValue (or a value very similar to it) is still in the history. Threshold for counter reset not reached yet. Discard this value.
-                return false;
-            }
-        }
-
-        // Only discarded values are in the history. Proceed with "monotonically increasing with small steps" test.
-    }
-
-    // Test if the values in the history are monotonically increasing and the difference between them is small (<5%).
-    for (int i = 0; i < historySize - 1; i++) {
-        float thisValue = m_inverterEnergyProducedHistory.value(inverterThing).at(i);
-        float nextValue = m_inverterEnergyProducedHistory.value(inverterThing).at(i + 1);
-
-        // Comparing floats is tricky. Make nextValue a tiny bit bigger, to make sure this if is not true when thisValue and nextValue are nearly identical.
-        if (thisValue > (nextValue * 1,0001)) {
-            // Not monotonically increasing.
-            qCWarning(dcHuawei()) << "Jitter detected in recently transmitted values" << m_inverterEnergyProducedHistory.value(inverterThing) << ", discarding values until jitter stops.";
-            return false;
-        }
-
-        float increaseInPercent = 100 * (nextValue - thisValue) / thisValue;
-        if (increaseInPercent > 5) {
-            // Difference is too large. Incoming values jitter too much.
-            qCWarning(dcHuawei()) << "Jitter detected in recently transmitted values" << m_inverterEnergyProducedHistory.value(inverterThing) << ", discarding values until jitter stops.";
-            return false;
-        }
-    }
-
-    // All tests sucessful, the value is legit.
+    // Jitter test passed. The value is ok.
     return true;
 }
 
