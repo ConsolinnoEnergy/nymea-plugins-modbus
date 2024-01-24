@@ -56,7 +56,9 @@ void IntegrationPluginSax::discoverThings(ThingDiscoveryInfo *info)
                 ThingDescriptor descriptor(info->thingClassId(), thingClass.displayName(), result.networkDeviceInfo.address().toString());
                 
                 ParamList params{
-                    {saxStorageThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress()}
+                    {saxStorageThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress()},
+                    {saxStorageThingModbusIdParamTypeId, result.modbusId},
+                    {saxStorageThingPortParamTypeId, result.port}
                 };
                 descriptor.setParams(params);
 
@@ -108,11 +110,7 @@ void IntegrationPluginSax::setupThing(ThingSetupInfo *info)
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
         });
 
-        qint16 port = MODBUS_PORT;
-        qint16 slaveId = SLAVE_ID;
-
-
-        SaxModbusTcpConnection *connection = new SaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
+        SaxModbusTcpConnection *connection = new SaxModbusTcpConnection(monitor->networkDeviceInfo().address(), thing->paramValue(saxStorageThingPortParamTypeId).toUInt(), thing->paramValue(saxStorageThingModbusIdParamTypeId).toUInt(), thing);
         connect(info, &ThingSetupInfo::aborted, connection, &SaxModbusTcpConnection::deleteLater);
 
         connect(connection, &SaxModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable){
@@ -451,7 +449,7 @@ void IntegrationPluginSax::postSetupThing(Thing *thing)
         if (!m_pluginTimer) {
             qCDebug(dcSax()) << "Starting plugin timer...";
             // set refreshTime
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(REFRESH_TIME_MB_VALUES);
+            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(SaxModbusTcpConnection *connection, m_tcpConnections) {
                     if (connection->update() == false) {

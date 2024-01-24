@@ -27,17 +27,14 @@
 #include "saxmodbustcpconnection.h"
 
 
-#define SLAVE_ID 40
-#define MODBUS_PORT 502
-
 class SaxStorageDiscovery : public QObject
 {
     Q_OBJECT
 public:
     explicit SaxStorageDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
     struct Result {
-        quint16 firmwareVersion;
-        quint16 slaveId;
+        quint16 modbusId;
+        quint16 port;
         quint16 capacity_register;
         NetworkDeviceInfo networkDeviceInfo;
     };

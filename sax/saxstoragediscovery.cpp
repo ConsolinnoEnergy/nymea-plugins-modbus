@@ -52,11 +52,11 @@ QList<SaxStorageDiscovery::Result> SaxStorageDiscovery::discoveryResults() const
 
 void SaxStorageDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo)
 {
-    int port = MODBUS_PORT;
-    int slaveId = SLAVE_ID;
-    qCDebug(dcSax()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << slaveId;
+    const int port = 502;
+    const int modbusId = 40;
+    qCDebug(dcSax()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Modbus ID:" << modbusId;
 
-    SaxModbusTcpConnection *connection = new SaxModbusTcpConnection(networkDeviceInfo.address(), port, slaveId, this);
+    SaxModbusTcpConnection *connection = new SaxModbusTcpConnection(networkDeviceInfo.address(), port, modbusId, this);
     m_connections.append(connection);
 
     connect(connection, &SaxModbusTcpConnection::reachableChanged, this, [=](bool reachable){
@@ -74,9 +74,9 @@ void SaxStorageDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDev
                 return;
             }
             Result result;
-
+            result.modbusId = modbusId;
+            result.port = port;
             result.capacity_register = connection->capacity();
-
             result.networkDeviceInfo = networkDeviceInfo;
             m_discoveryResults.append(result);         
             qCDebug(dcSax()) << "Discovery: --> Found Modbus Device:" 

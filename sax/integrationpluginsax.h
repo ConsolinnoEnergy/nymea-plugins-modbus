@@ -24,8 +24,6 @@
 
 #include <QObject>
 
-#define REFRESH_TIME_MB_VALUES 2
-
 class SaxModbusTcpConnection;
 class NetworkDeviceMonitor;
 class PluginTimer;

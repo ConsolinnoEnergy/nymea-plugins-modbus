@@ -21,8 +21,23 @@
                           "name":"macAddress",
                           "displayName": "MAC address",
                           "type": "QString",
-                          "inputType": "MacAddress",
                           "defaultValue":"",
+                          "readOnly": true
+                        },
+                        {
+                          "id": "47adffba-d95e-40b5-9a80-fa12aee57585",
+                          "name":"modbusId",
+                          "displayName": "Modbus Id",
+                          "type": "uint",
+                          "defaultValue": 40,
+                          "readOnly": true
+                        },
+                        {
+                          "id": "6ac9619d-5aed-4bfc-b924-d478663890c9",
+                          "name":"port",
+                          "displayName": "Port",
+                          "type": "uint",
+                          "defaultValue": 502,
                           "readOnly": true
                         }
                     ],
