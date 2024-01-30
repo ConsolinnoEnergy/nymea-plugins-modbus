@@ -305,18 +305,19 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
-            if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
-                qCWarning(dcAbb()) << "We require at least version "           
-                                    << MIN_FIRMWARE_VERSION_MAJOR << "."
-                                    << MIN_FIRMWARE_VERSION_MINOR << "."
-                                    << MIN_FIRMWARE_VERSION_REVISION;
-                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware version "
-                                + QString::number(MIN_FIRMWARE_VERSION_MAJOR)+"."
-                                + QString::number(MIN_FIRMWARE_VERSION_MINOR)+"."
-                                + QString::number(MIN_FIRMWARE_VERSION_REVISION)+"."));
-                delete connection;
-                return;
-            }
+            qCDebug(dcAbb()) << "FW version " << connection->fw_version();
+            // if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
+            //     qCWarning(dcAbb()) << "We require at least version "           
+            //                         << MIN_FIRMWARE_VERSION_MAJOR << "."
+            //                         << MIN_FIRMWARE_VERSION_MINOR << "."
+            //                         << MIN_FIRMWARE_VERSION_REVISION;
+            //     info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware version "
+            //                     + QString::number(MIN_FIRMWARE_VERSION_MAJOR)+"."
+            //                     + QString::number(MIN_FIRMWARE_VERSION_MINOR)+"."
+            //                     + QString::number(MIN_FIRMWARE_VERSION_REVISION)+"."));
+            //     delete connection;
+            //     return;
+            // }
 
             info->thing()->setStateValue(TerraRTUFirmwareVersionStateTypeId, QString::number(connection->fwversion()));
 
