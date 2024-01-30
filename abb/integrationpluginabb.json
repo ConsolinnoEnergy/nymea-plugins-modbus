@@ -71,9 +71,9 @@
                             "name": "phaseCount",
                             "displayName": "Connected phases",
                             "type": "uint",
-                            "minValue": 0,
+                            "minValue": 1,
                             "maxValue": 3,
-                            "defaultValue": 0,
+                            "defaultValue": 1,
                             "cached": false
                         },
                         {

@@ -305,7 +305,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
-            qCDebug(dcAbb()) << "FW version " << connection->fw_version();
+            qCDebug(dcAbb()) << "FW version " << connection->fwversion();
             // if (connection->fwversion() < MIN_FIRMWARE_VERSION) {
             //     qCWarning(dcAbb()) << "We require at least version "           
             //                         << MIN_FIRMWARE_VERSION_MAJOR << "."
