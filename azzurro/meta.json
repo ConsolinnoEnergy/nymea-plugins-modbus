@@ -1,0 +1,13 @@
+{
+    "title": "Azzurro Inverter",
+    "tagline": "Connect to Azzurro inverters.",
+    "icon": "azzurro.jpeg",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

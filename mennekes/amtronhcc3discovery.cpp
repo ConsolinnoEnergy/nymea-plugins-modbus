@@ -64,10 +64,6 @@ QList<AmtronHCC3Discovery::AmtronDiscoveryResult> AmtronHCC3Discovery::discovery
 
 void AmtronHCC3Discovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo)
 {
-    if (networkDeviceInfo.macAddressManufacturer() != "GIGA-BYTE TECHNOLOGY CO.,LTD.") {
-        return;
-    }
-
     int port = 502;
     int slaveId = 0xff;
     qCDebug(dcMennekes()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << slaveId;
@@ -89,6 +85,12 @@ void AmtronHCC3Discovery::checkNetworkDevice(const NetworkDeviceInfo &networkDev
                 cleanupConnection(connection);
                 return;
             }
+            if (connection->serialNumber() == 0 || connection->name().isEmpty()) {
+                qCDebug(dcMennekes()) << "Serial number or name invalid. Skipping" << networkDeviceInfo.address();
+                cleanupConnection(connection);
+                return;
+            }
+
             AmtronDiscoveryResult result;
             result.wallboxName = connection->name();
             result.serialNumber = connection->serialNumber();
