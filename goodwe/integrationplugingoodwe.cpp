@@ -326,23 +326,25 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 qCDebug(dcGoodwe()) << "Meter power (meterTotalActivePower) changed" << currentPower << "W";
                 // Check if sign is correct for power to grid and power from grid.
-                meterThings.first()->setStateValue(goodweMeterCurrentPowerStateTypeId, currentPower);
+                meterThings.first()->setStateValue(goodweMeterCurrentPowerStateTypeId, -currentPower);
             }
         });
 
         connect(connection, &GoodweModbusRtuConnection::eTotalSellChanged, thing, [this, thing](float totalEnergyProduced){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                qCDebug(dcGoodwe()) << "Meter total energy produced (eTotalSell) changed" << totalEnergyProduced << "kWh";
-                meterThings.first()->setStateValue(goodweMeterTotalEnergyProducedStateTypeId, totalEnergyProduced);
+                double totalEnergyProducedKwh = totalEnergyProduced / 1000.0;
+                qCDebug(dcGoodwe()) << "Meter total energy produced (eTotalSell) changed" << totalEnergyProducedKwh << "kWh";
+                meterThings.first()->setStateValue(goodweMeterTotalEnergyProducedStateTypeId, totalEnergyProducedKwh);
             }
         });
 
         connect(connection, &GoodweModbusRtuConnection::eTotalBuyChanged, thing, [this, thing](float totalEnergyConsumed){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                qCDebug(dcGoodwe()) << "Meter total energy consumed (eTotalBuy) changed" << totalEnergyConsumed << "kWh";
-                meterThings.first()->setStateValue(goodweMeterTotalEnergyConsumedStateTypeId, totalEnergyConsumed);
+                double totalEnergyConsumedKwh = totalEnergyConsumed / 1000.0;
+                qCDebug(dcGoodwe()) << "Meter total energy consumed (eTotalBuy) changed" << totalEnergyConsumedKwh << "kWh";
+                meterThings.first()->setStateValue(goodweMeterTotalEnergyConsumedStateTypeId, totalEnergyConsumedKwh);
             }
         });
 
