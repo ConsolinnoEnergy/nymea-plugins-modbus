@@ -270,27 +270,30 @@ void IntegrationPluginWebasto::postSetupThing(Thing *thing)
 
             foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
                 qCDebug(dcWebasto()) << "Updating connection" << connection->hostAddress().toString();
-                connection->update();
-                connection->setAliveRegister(1);
+                if (connection->reachable()) {
+                    connection->update();
+                    connection->setAliveRegister(1);
+                }
             }
-
         });
 
         m_pluginTimer->start();
     }
 
     if (thing->thingClassId() == webastoNextThingClassId) {
-        WebastoNextModbusTcpConnection *connection = m_webastoNextConnections.value(thing);
-        if (connection->reachable()) {
-            thing->setStateValue(webastoNextConnectedStateTypeId, true);
-            connection->update();
-        } else {
-            // We start the connection mechanism only if the monitor says the thing is reachable
-            if (m_monitors.value(thing)->reachable()) {
-                connection->connectDevice();
+        if (m_webastoNextConnections.contains(thing)) {
+            WebastoNextModbusTcpConnection *connection = m_webastoNextConnections.value(thing);
+            if (connection->reachable()) {
+                thing->setStateValue(webastoNextConnectedStateTypeId, true);
+                connection->update();
+            } else {
+                // We start the connection mechanism only if the monitor says the thing is reachable
+                if (m_monitors.value(thing)->reachable()) {
+                    connection->connectDevice();
+                }
             }
+            return;
         }
-        return;
     }
 }
 
@@ -458,9 +461,9 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
 
     // Reconnect on monitor reachable changed
     NetworkDeviceMonitor *monitor = m_monitors.value(thing);
-    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool monitorReachable){
 
-        if (reachable) {
+        if (monitorReachable) {
             qCDebug(dcWebasto()) << "Network device is now reachable for" << thing << monitor->networkDeviceInfo();
         } else {
             qCDebug(dcWebasto()) << "Network device not reachable any more" << thing;
@@ -469,13 +472,20 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
         if (!thing->setupComplete())
             return;
 
-        if (reachable) {
-            webastoNextConnection->setHostAddress(monitor->networkDeviceInfo().address());
-            webastoNextConnection->reconnectDevice();
-        } else {
-            // Note: We disable autoreconnect explicitly and we will
-            // connect the device once the monitor says it is reachable again
-            webastoNextConnection->disconnectDevice();
+        if (m_webastoNextConnections.contains(thing)) {
+            // The monitor is not very reliable. Sometimes it says monitor is not reachable, even when the connection ist still working.
+            // So we need to test if the connection is actually not working before triggering a reconnect. Don't reconnect when the connection is actually working.
+            if (!thing->stateValue(webastoNextConnectedStateTypeId).toBool()) {
+                // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
+                if (monitorReachable) {
+                    // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
+                    m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_webastoNextConnections.value(thing)->reconnectDevice();
+                } else {
+                    // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    m_webastoNextConnections.value(thing)->disconnectDevice();
+                }
+            }
         }
     });
 
@@ -483,7 +493,6 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
         qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing;
         thing->setStateValue(webastoNextConnectedStateTypeId, reachable);
         if (reachable) {
-            // Connected true will be set after successfull init
             webastoNextConnection->update();
         } else {
             thing->setStateValue(webastoNextCurrentPowerStateTypeId, 0);
@@ -495,6 +504,7 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             thing->setStateValue(webastoNextCurrentPhaseCStateTypeId, 0);
 
             if (monitor->reachable()) {
+                m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
                 webastoNextConnection->reconnectDevice();
             }
         }
@@ -516,14 +526,6 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
 
     connect(webastoNextConnection, &WebastoNextModbusTcpConnection::updateFinished, thing, [thing, webastoNextConnection](){
 
-        // Note: we get the update finished also if all calles failed...
-        if (!webastoNextConnection->reachable()) {
-            thing->setStateValue(webastoNextConnectedStateTypeId, false);
-            return;
-        }
-
-        thing->setStateValue(webastoNextConnectedStateTypeId, true);
-
         qCDebug(dcWebasto()) << "Update finished" << webastoNextConnection;
         // States
         switch (webastoNextConnection->chargeState()) {
@@ -532,6 +534,21 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             break;
         case WebastoNextModbusTcpConnection::ChargeStateCharging:
             thing->setStateValue(webastoNextChargingStateTypeId, true);
+
+            // The wallbox starts charging without user input when a car is plugged in. We don't want that.
+            // Make sure the wallbox is only charging when the power state is set to true.
+            if (!thing->stateValue(webastoNextPowerStateTypeId).toBool()) {
+                QModbusReply *reply = webastoNextConnection->setChargingAction(WebastoNextModbusTcpConnection::ChargingActionCancelSession);
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+                connect(reply, &QModbusReply::finished, webastoNextConnection, [reply, webastoNextConnection](){
+                    if (reply->error() == QModbusDevice::NoError) {
+                        qCDebug(dcWebasto()) << "Wallbox" << webastoNextConnection->hostAddress() << "should not be charging. Sent stop charging command.";
+                    } else {
+                        qCWarning(dcWebasto()) << "Tried to send stop charging command to wallbox" << webastoNextConnection->hostAddress() << ", got error:" << reply->errorString();
+                    }
+                });
+            }
+
             break;
         }
 
@@ -586,14 +603,16 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
         thing->setStateValue(webastoNextCurrentPhaseBStateTypeId, currentPhaseB);
         thing->setStateValue(webastoNextCurrentPhaseCStateTypeId, currentPhaseC);
 
-        // Note: we do not use the active phase power, because we have sometimes a few watts on inactive phases
+        // Note: we do not use the active phase power, because we have sometimes a few watts on inactive phases.
         Electricity::Phases phases = Electricity::PhaseNone;
-        phases.setFlag(Electricity::PhaseA, currentPhaseA > 0);
-        phases.setFlag(Electricity::PhaseB, currentPhaseB > 0);
-        phases.setFlag(Electricity::PhaseC, currentPhaseC > 0);
+        phases.setFlag(Electricity::PhaseA, currentPhaseA > 1);
+        phases.setFlag(Electricity::PhaseB, currentPhaseB > 1);
+        phases.setFlag(Electricity::PhaseC, currentPhaseC > 1);
         if (phases != Electricity::PhaseNone) {
             thing->setStateValue(webastoNextUsedPhasesStateTypeId, Electricity::convertPhasesToString(phases));
             thing->setStateValue(webastoNextPhaseCountStateTypeId, Electricity::getPhaseCount(phases));
+        } else {
+            thing->setStateValue(webastoNextPhaseCountStateTypeId, 0);
         }
 
 
@@ -602,9 +621,10 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
         thing->setStateValue(webastoNextTotalEnergyConsumedStateTypeId, webastoNextConnection->energyConsumed() / 1000.0);
         thing->setStateValue(webastoNextSessionEnergyStateTypeId, webastoNextConnection->sessionEnergy() / 1000.0);
 
-        // Min / Max charging current^
+        // Min / Max charging current
         thing->setStateValue(webastoNextMinCurrentTotalStateTypeId, webastoNextConnection->minChargingCurrent());
         thing->setStateValue(webastoNextMaxCurrentTotalStateTypeId, webastoNextConnection->maxChargingCurrent());
+
         thing->setStateMinValue(webastoNextMaxChargingCurrentStateTypeId, webastoNextConnection->minChargingCurrent());
         thing->setStateMaxValue(webastoNextMaxChargingCurrentStateTypeId, webastoNextConnection->maxChargingCurrent());
 
@@ -681,9 +701,9 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, webastoNextConnection, [reply, webastoNextConnection](){
                 if (reply->error() == QModbusDevice::NoError) {
-                    qCDebug(dcWebasto()) << "Resetted life bit watchdog on" << webastoNextConnection << "finished successfully";
+                    qCDebug(dcWebasto()) << "Resetted life bit watchdog on" << webastoNextConnection->hostAddress() << "finished successfully";
                 } else {
-                    qCWarning(dcWebasto()) << "Resetted life bit watchdog on" << webastoNextConnection << "finished with error:" << reply->errorString();
+                    qCWarning(dcWebasto()) << "Resetted life bit watchdog on" << webastoNextConnection->hostAddress() << "finished with error:" << reply->errorString();
                 }
             });
         }

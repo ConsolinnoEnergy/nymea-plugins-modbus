@@ -55,9 +55,9 @@
                             "name": "phaseCount",
                             "displayName": "Connected phases",
                             "type": "uint",
-                            "minValue": 1,
+                            "minValue": 0,
                             "maxValue": 3,
-                            "defaultValue": 1
+                            "defaultValue": 0
                         },
                         {
                             "id": "4646932a-a1f4-4b21-919e-a8c393f4e801",
