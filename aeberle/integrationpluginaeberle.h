@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2023, nymea GmbH
+* Copyright 2013 - 2021, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,47 +28,41 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINHEIDELBERG_H
-#define INTEGRATIONPLUGINHEIDELBERG_H
+#ifndef INTEGRATIONPLUGINAEBERLE_H
+#define INTEGRATIONPLUGINAEBERLE_H
 
-#include <plugintimer.h>
 #include <integrations/integrationplugin.h>
-#include <network/networkdevicemonitor.h>
+#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <plugintimer.h>
+
+#include "pqidamodbusrtuconnection.h"
 
 #include "extern-plugininfo.h"
 
-#include "amperfiedmodbusrtuconnection.h"
-#include "amperfiedmodbustcpconnection.h"
+#include <QObject>
+#include <QTimer>
 
-class IntegrationPluginAmperfied: public IntegrationPlugin
+class IntegrationPluginAEberle: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginamperfied.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginaeberle.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit IntegrationPluginAmperfied();
-
+    explicit IntegrationPluginAEberle();
+    void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
     void thingRemoved(Thing *thing) override;
 
 private:
-    void setupRtuConnection(ThingSetupInfo *info);
-    void setupTcpConnection(ThingSetupInfo *info);
+    PluginTimer *m_refreshTimer = nullptr;
 
-private:
-    bool m_setupTcpConnectionRunning{false};
-    PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, AmperfiedModbusRtuConnection*> m_rtuConnections;
-    QHash<Thing *, AmperfiedModbusTcpConnection*> m_tcpConnections;
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-
+    QHash<Thing *, PqidaModbusRtuConnection *> m_pqidaConnections;
+    QHash<Thing *, PqidaModbusRtuConnection *> m_pqida_inverterConnections;
+    QHash<Thing *, PqidaModbusRtuConnection *> m_pqida_consumerConnections;
 };
 
-#endif // INTEGRATIONPLUGINHEIDELBERG_H
-
-
+#endif // INTEGRATIONPLUGINAEBERLE_H

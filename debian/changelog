@@ -1,3 +1,22 @@
+nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
+
+* GoodWe: fixed some meter values sign and scaling.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Wed, 20 Dec 2023 17:21:53 +0200
+
+nymea-plugins-modbus (1.7.004) buster focal jammy; urgency=medium
+
+* Removed caching of unnecessary states for SDM630 & SDM72.
+* Amperfied Energy Control discovery improved.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Fr, 1 Dec 2023 16:46:53 +0200
+
+nymea-plugins-modbus (1.7.003) buster focal jammy; urgency=medium
+
+* Amperfied bugfixes & improvements.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Mon, 27 Nov 2023 16:13:53 +0200
+
 nymea-plugins-modbus (1.7.002-1) buster focal jammy; urgency=medium
 
 * Adapt to new versioning schema

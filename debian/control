@@ -77,6 +77,17 @@ Description: nymea integration plugin for abb wallboxes
  This package contains the nymea integration plugin for a abb wallbox.
 
 
+Package: nymea-plugin-aeberle
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for A-Eberle Modbus RTU based energy meters (e.g. PQI-DA smart)
+ This package contains the nymea integration plugin for Modbus RTU based energy meters
+ made by A-Eberle.
+
+
 Package: nymea-plugin-alphainnotec
 Architecture: any
 Section: libs
