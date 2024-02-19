@@ -360,9 +360,11 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusRtuConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAbb()) << "Updated:" << connection;
-
         switch (connection->chargingState()) {
             //TODO interpret states
+            case ABBModbusRtuConnection::ChargingStateUndefined:
+                qCWarning(dcAbb()) << "Undefined charging state:" << connection->chargingState();
+                break;
             case ABBModbusRtuConnection::ChargingStateA:
                 thing->setStateValue(TerraRTUChargingStateTypeId, false);
                 thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
@@ -486,7 +488,6 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusTcpConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAbb()) << "Updated:" << connection;
-
         switch (connection->chargingState()) {
             //TODO interpret states
             case ABBModbusRtuConnection::ChargingStateUndefined:

@@ -9,6 +9,10 @@
             "name": "ChargingState",
             "values": [
                 {
+                    "key": "Undefined",
+                    "value": 11
+                },
+                {
                     "key": "A",
                     "value": 0
                 },
