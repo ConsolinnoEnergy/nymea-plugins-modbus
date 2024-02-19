@@ -9,12 +9,8 @@
             "name": "ChargingState",
             "values": [
                 {
-                    "key": "Undefined",
-                    "value": 11
-                },
-                {
                     "key": "A",
-                    "value": 32768
+                    "value": 0
                 },
                 {
                     "key": "B1",

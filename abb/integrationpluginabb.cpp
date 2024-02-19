@@ -218,7 +218,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, max);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcAbb()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcAbb()) << "Error maximum charging current:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -255,7 +255,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, max);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcAbb()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcAbb()) << "Error maximum charging current:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -363,18 +363,26 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
 
         switch (connection->chargingState()) {
             //TODO interpret states
-            case ABBModbusRtuConnection::ChargingStateUndefined:
             case ABBModbusRtuConnection::ChargingStateA:
-            case ABBModbusRtuConnection::ChargingStateB1:
+                thing->setStateValue(TerraRTUChargingStateTypeId, false);
                 thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
                 break;
+            case ABBModbusRtuConnection::ChargingStateB1:
             case ABBModbusRtuConnection::ChargingStateB2:
             case ABBModbusRtuConnection::ChargingStateC1:
+                thing->setStateValue(TerraRTUChargingStateTypeId, false);
+                thing->setStateValue(TerraRTUPluggedInStateTypeId, true);
+                break;
             case ABBModbusRtuConnection::ChargingStateC2:
+                thing->setStateValue(TerraRTUChargingStateTypeId, true);
                 thing->setStateValue(TerraRTUPluggedInStateTypeId, true);
                 break;
             case ABBModbusRtuConnection::ChargingStateothers:
                 qCWarning(dcAbb()) << "Unhandled charging state:" << connection->chargingState();
+                break;
+            default:
+                qCWarning(dcAbb()) << "Invalid charging state:" << connection->chargingState();
+                break;
         }
 
         int phaseCount = 0;
@@ -482,17 +490,28 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         switch (connection->chargingState()) {
             //TODO interpret states
             case ABBModbusRtuConnection::ChargingStateUndefined:
-            case ABBModbusRtuConnection::ChargingStateA:
-            case ABBModbusRtuConnection::ChargingStateB1:
-                thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
+                qCWarning(dcAbb()) << "Undefined charging state:" << connection->chargingState();
                 break;
+            case ABBModbusRtuConnection::ChargingStateA:
+                thing->setStateValue(TerraTCPChargingStateTypeId, false);
+                thing->setStateValue(TerraTCPPluggedInStateTypeId, false);
+                break;
+            case ABBModbusRtuConnection::ChargingStateB1:
             case ABBModbusRtuConnection::ChargingStateB2:
             case ABBModbusRtuConnection::ChargingStateC1:
+                thing->setStateValue(TerraTCPChargingStateTypeId, false);
+                thing->setStateValue(TerraTCPPluggedInStateTypeId, true);
+                break;
             case ABBModbusRtuConnection::ChargingStateC2:
-                thing->setStateValue(TerraRTUPluggedInStateTypeId, true);
+                thing->setStateValue(TerraTCPChargingStateTypeId, true);
+                thing->setStateValue(TerraTCPPluggedInStateTypeId, true);
                 break;
             case ABBModbusRtuConnection::ChargingStateothers:
                 qCWarning(dcAbb()) << "Unhandled charging state:" << connection->chargingState();
+                break;
+            default:
+                qCWarning(dcAbb()) << "Invalid charging state:" << connection->chargingState();
+                break;
         }
 
         int phaseCount = 0;
