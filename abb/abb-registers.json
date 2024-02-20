@@ -3,7 +3,7 @@
     "protocol": "BOTH",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 2,
-    "checkReachableRegister": "chargingCurrentLimit",
+    "checkReachableRegister": "voltageL1",
     "enums": [
         {
             "name": "ChargingState",
@@ -14,7 +14,7 @@
                 },
                 {
                     "key": "A",
-                    "value": 0
+                    "value": 32768
                 },
                 {
                     "key": "B1",
@@ -45,7 +45,7 @@
             "address": 16640,
             "size": 2,
             "type": "uint32",
-            "readSchedule": "init",
+            "readSchedule": "update",
             "registerType": "holdingRegister",
             "description": "Set Charging current Limit",
             "unit": "mA",
@@ -216,7 +216,7 @@
         },
         {
             "id": "deviceInfo",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "registers": [
                 {
                     "id": "serialnumber",
