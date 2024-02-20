@@ -37,7 +37,9 @@ void TerraRTUDiscovery::startDiscovery()
     }
 
     if (candidateMasters.isEmpty()) {
+        // TODO: add paramters of RTU Master
         qCWarning(dcAbb()) << "No usable modbus RTU master found.";
+        qCWarning(dcAbb()) << "Modbus Parameters should be set to: Baudrate - 19200 | Databits - 8 | Stopbits - 1 | Parity - Even";
         emit discoveryFinished(false);
         return;
     }
@@ -60,18 +62,19 @@ void TerraRTUDiscovery::tryConnect(ModbusRtuMaster *master, quint16 slaveId)
 {
     qCDebug(dcAbb()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << slaveId;
 
-    ModbusRtuReply *reply = master->readInputRegister(slaveId, 4);
+    // TODO: choose different register to test connection
+    ModbusRtuReply *reply = master->readInputRegister(slaveId, 16416);
     connect(reply, &ModbusRtuReply::finished, this, [=](){
         qCDebug(dcAbb()) << "Test reply finished!" << reply->error() << reply->result();
         if (reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
-            quint16 version = reply->result().first();
+            quint16 communicationTimeout = reply->result().first();
             // TODO Versioncontrol not sure if this is necessary like this
-            if (version >= 0x0100) {
-                qCDebug(dcAbb()) << QString("Version is 0x%1").arg(version, 0, 16);
-                Result result {master->modbusUuid(), version, slaveId};
+            if (communicationTimeout > 0) {
+                qCDebug(dcAbb()) << QString("Communication Timeout is 0x%1").arg(communicationTimeout, 0, 16);
+                Result result {master->modbusUuid(), communicationTimeout, slaveId};
                 m_discoveryResults.append(result);
             } else {
-                qCDebug(dcAbb()) << "Version must be at least 1.0.0 (0x0100)";
+                qCDebug(dcAbb()) << "Communication Timeout must be greater than 0";
             }
         }
         if (slaveId < 20) {
