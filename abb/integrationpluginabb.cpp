@@ -193,7 +193,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
 
         if (info->action().actionTypeId() == TerraRTUPowerActionTypeId) {
             bool power = info->action().paramValue(TerraRTUPowerActionPowerParamTypeId).toBool();
-            ModbusRtuReply *reply = connection->setChargingCurrent(power ? thing->stateValue(TerraRTUMaxChargingCurrentStateTypeId).toUInt() * 1000 : 0);
+            ModbusRtuReply *reply = connection->setChargingCurrent(power ? thing->stateValue(TerraRTUMaxChargingCurrentStateTypeId).toUInt(): 0);
             connect(reply, &ModbusRtuReply::finished, info, [info, reply, power](){
                 if (reply->error() == ModbusRtuReply::NoError) {
                     info->thing()->setStateValue(TerraRTUPowerStateTypeId, power);
@@ -208,7 +208,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
 
         if (info->action().actionTypeId() == TerraRTUMaxChargingCurrentActionTypeId) {
             bool power = thing->stateValue(TerraRTUPowerStateTypeId).toBool();
-            uint max = info->action().paramValue(TerraRTUMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt() * 1000;
+            uint max = info->action().paramValue(TerraRTUMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
             if(thing->stateValue(TerraRTUSettableMaxCurrentStateTypeId).toUInt() > max){
                 max = thing->stateValue(TerraRTUSettableMaxCurrentStateTypeId).toUInt();
             }
@@ -231,7 +231,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
 
         if (info->action().actionTypeId() == TerraTCPPowerActionTypeId) {
             bool power = info->action().paramValue(TerraTCPPowerActionPowerParamTypeId).toBool();
-            QModbusReply *reply = connection->setChargingCurrent(power ? thing->stateValue(TerraTCPMaxChargingCurrentStateTypeId).toUInt() * 1000 : 0);
+            QModbusReply *reply = connection->setChargingCurrent(power ? thing->stateValue(TerraTCPMaxChargingCurrentStateTypeId).toUInt(): 0);
             connect(reply, &QModbusReply::finished, info, [info, reply, power](){
                 if (reply->error() == QModbusDevice::NoError) {
                     info->thing()->setStateValue(TerraTCPPowerStateTypeId, power);
@@ -245,7 +245,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
 
         if (info->action().actionTypeId() == TerraTCPMaxChargingCurrentActionTypeId) {
             bool power = thing->stateValue(TerraTCPPowerStateTypeId).toBool();
-            uint max = info->action().paramValue(TerraTCPMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt() * 1000;
+            uint max = info->action().paramValue(TerraTCPMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
             if(thing->stateValue(TerraTCPSettableMaxCurrentStateTypeId).toUInt() > max){
                 max = thing->stateValue(TerraTCPSettableMaxCurrentStateTypeId).toUInt();
             }
@@ -345,7 +345,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &ABBModbusRtuConnection::chargingCurrentLimitChanged, thing, [thing](quint32 chargingCurrentLimit){
-        qCDebug(dcAbb()) << "Wallbox chargingCurrentLimit changed" << chargingCurrentLimit / 1000 << "A";
+        qCDebug(dcAbb()) << "Wallbox chargingCurrentLimit changed" << chargingCurrentLimit<< "A";
 
         if (chargingCurrentLimit == 0) {
             thing->setStateValue(TerraRTUPowerStateTypeId, false);
@@ -354,7 +354,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
             qCWarning(dcAbb()) << " ######## Set Charging enabled to true ######";
             // TODO: Remove following line
             // thing->setStateValue(TerraRTUPowerStateTypeId, true);
-            thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, chargingCurrentLimit / 1000);
+            thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, chargingCurrentLimit);
         }        
     });
 
@@ -476,7 +476,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &ABBModbusTcpConnection::chargingCurrentLimitChanged, thing, [thing](quint32 chargingCurrentLimit){
-        qCDebug(dcAbb()) << "Wallbox chargingCurrentLimit changed" << chargingCurrentLimit / 1000 << "A";
+        qCDebug(dcAbb()) << "Wallbox chargingCurrentLimit changed" << chargingCurrentLimit << "A";
 
         if (chargingCurrentLimit == 0) {
             thing->setStateValue(TerraTCPPowerStateTypeId, false);
@@ -484,7 +484,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         else {
             // TODO: Remove following line
             // thing->setStateValue(TerraTCPPowerStateTypeId, true);
-            thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, chargingCurrentLimit / 1000);
+            thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, chargingCurrentLimit);
         }        
     });
 
