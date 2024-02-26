@@ -317,7 +317,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
                                     << MIN_FIRMWARE_VERSION_MAJOR << "."
                                     << MIN_FIRMWARE_VERSION_MINOR << "."
                                     << MIN_FIRMWARE_VERSION_REVISION;
-                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware version "
+                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware version."
                                 + QString::number(MIN_FIRMWARE_VERSION_MAJOR)+"."
                                 + QString::number(MIN_FIRMWARE_VERSION_MINOR)+"."
                                 + QString::number(MIN_FIRMWARE_VERSION_REVISION)+"."));
@@ -330,7 +330,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
             m_rtuConnections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
         } else {
-            info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The wallbox is not responding"));
+            info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The wallbox is not responding."));
         }
         ModbusRtuReply *reply = connection->setChargingCurrent(0);
         connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
@@ -467,7 +467,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
                                     << MIN_FIRMWARE_VERSION_MAJOR << "."
                                     << MIN_FIRMWARE_VERSION_MINOR << "."
                                     << MIN_FIRMWARE_VERSION_REVISION;
-                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware version "
+                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware version."
                                 + QString::number(MIN_FIRMWARE_VERSION_MAJOR)+"."
                                 + QString::number(MIN_FIRMWARE_VERSION_MINOR)+"."
                                 + QString::number(MIN_FIRMWARE_VERSION_REVISION)+"."));
@@ -481,7 +481,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
             info->finish(Thing::ThingErrorNoError);
             connection->update();
         } else {
-            info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The wallbox is not responding"));
+            info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The wallbox is not responding."));
         }
         QModbusReply *reply = connection->setChargingCurrent(0);
         connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
