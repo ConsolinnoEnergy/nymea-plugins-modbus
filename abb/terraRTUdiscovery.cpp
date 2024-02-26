@@ -37,7 +37,6 @@ void TerraRTUDiscovery::startDiscovery()
     }
 
     if (candidateMasters.isEmpty()) {
-        // TODO: add paramters of RTU Master
         qCWarning(dcAbb()) << "No usable modbus RTU master found.";
         qCWarning(dcAbb()) << "Modbus Parameters should be set to: Baudrate - 19200 | Databits - 8 | Stopbits - 1 | Parity - Even";
         emit discoveryFinished(false);
@@ -58,23 +57,48 @@ QList<TerraRTUDiscovery::Result> TerraRTUDiscovery::discoveryResults() const
     return m_discoveryResults;
 }
 
+// void TerraRTUDiscovery::tryConnect(ModbusRtuMaster *master, quint16 slaveId)
+// {
+//     qCDebug(dcAbb()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << slaveId;
+
+//     // TODO: choose different register to test connection
+//     ModbusRtuReply *reply = master->readInputRegister(slaveId, 0x4020);
+//     connect(reply, &ModbusRtuReply::finished, this, [=](){
+//         qCDebug(dcAbb()) << "Test reply finished!" << reply->error() << reply->result();
+//         if (reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
+//             quint16 communicationTimeout = reply->result().first();
+//             if (communicationTimeout > 0) {
+//                 qCDebug(dcAbb()) << QString("Communication Timeout is 0x%1").arg(communicationTimeout, 0, 16);
+//                 Result result {master->modbusUuid(), communicationTimeout, slaveId};
+//                 m_discoveryResults.append(result);
+//             } else {
+//                 qCDebug(dcAbb()) << "Communication Timeout must be greater than 0";
+//             }
+//         }
+//         if (slaveId < 20) {
+//             tryConnect(master, slaveId+1);
+//         } else {
+//             emit discoveryFinished(true);
+//         }
+//     });
+// }
+
 void TerraRTUDiscovery::tryConnect(ModbusRtuMaster *master, quint16 slaveId)
 {
     qCDebug(dcAbb()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << slaveId;
 
-    // TODO: choose different register to test connection
-    ModbusRtuReply *reply = master->readInputRegister(slaveId, 16416);
+    // Check Voltage L1 Register
+    ModbusRtuReply *reply = master->readInputRegister(slaveId, 16407);
     connect(reply, &ModbusRtuReply::finished, this, [=](){
         qCDebug(dcAbb()) << "Test reply finished!" << reply->error() << reply->result();
-        if (reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
-            quint16 communicationTimeout = reply->result().first();
-            // TODO Versioncontrol not sure if this is necessary like this
-            if (communicationTimeout > 0) {
-                qCDebug(dcAbb()) << QString("Communication Timeout is 0x%1").arg(communicationTimeout, 0, 16);
-                Result result {master->modbusUuid(), communicationTimeout, slaveId};
+        if(reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
+            quint16 voltageL1 = reply->result().first();
+            if (voltageL1 > 220*10 && voltageL1 < 250*10) {
+                qCDebug(dcAbb()) << QString("Voltage L1 is 0x%1").arg(voltageL1, 0, 16);
+                Result result {master->modbusUuid(), voltageL1, slaveId};
                 m_discoveryResults.append(result);
             } else {
-                qCDebug(dcAbb()) << "Communication Timeout must be greater than 0";
+                qCDebug(dcAbb()) << "Voltage L1 must be betwenn 220V and 250V";
             }
         }
         if (slaveId < 20) {
@@ -84,4 +108,3 @@ void TerraRTUDiscovery::tryConnect(ModbusRtuMaster *master, quint16 slaveId)
         }
     });
 }
-
