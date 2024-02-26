@@ -101,7 +101,8 @@
                             "displayNameAction": "Set charging enabled",
                             "type": "bool",
                             "defaultValue": false,
-                            "writable": true
+                            "writable": true,
+                            "cached": false
                         },
                         {
                             "id": "13278596-5bd0-467e-a8d2-c0dcea31d543",
@@ -113,7 +114,8 @@
                             "minValue": 6,
                             "maxValue": 32,
                             "defaultValue": 6,
-                            "writable": true
+                            "writable": true,
+                            "cached": true
                         },
                         {
                             "id": "b20e21fd-8131-430c-9557-7d24d65f333a",
@@ -132,6 +134,14 @@
                             "unit": "Ampere",
                             "defaultValue": 0,
                             "cached": false
+                        },
+                        {
+                            "id": "b7c967fd-ff40-4fed-bb27-4bf777e0bec0",
+                            "name": "errorCode",
+                            "displayName": "Error Code",
+                            "type": "QString",
+                            "defaultValue": "Kein Fehler (0x0000)",
+                            "cached": "false"
                         }
                     ]
                 },
@@ -219,7 +229,8 @@
                             "displayNameAction": "Set charging enabled",
                             "type": "bool",
                             "defaultValue": false,
-                            "writable": true
+                            "writable": true,
+                            "cached": false
                         },
                         {
                             "id": "f22f30d5-ce90-4317-8e98-2c26a8d6f367",
@@ -250,6 +261,14 @@
                             "unit": "Ampere",
                             "defaultValue": 0,
                             "cached": false
+                        },
+                        {
+                            "id": "1ac5d2de-d5cd-46f3-b955-9438e8aa99e8",
+                            "name": "errorCode",
+                            "displayName": "Error Code",
+                            "type": "QString",
+                            "defaultValue": "Kein Fehler (0x0000)",
+                            "cached": "false"
                         }
                     ]
                 }
