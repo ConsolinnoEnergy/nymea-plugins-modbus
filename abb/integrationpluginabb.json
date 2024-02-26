@@ -12,7 +12,7 @@
                     "name": "TerraRTU",
                     "displayName": "ABB Terra (Modbus RTU)",
                     "id": "f38a0734-ad09-44a1-9fcb-0c9bdc0d1be6",
-                    "createMethods": ["discovery", "user"],
+                    "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {
@@ -20,7 +20,8 @@
                             "name":"rtuMaster",
                             "displayName": "Modbus RTU master",
                             "type": "QString",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "readOnly": true
                         },
                         {
                             "id": "9d0b0ec2-9bc9-4b76-9506-dae94c5beeac",
@@ -29,7 +30,8 @@
                             "type": "uint",
                             "minValue": 1,
                             "maxValue": 248,
-                            "defaultValue": 1
+                            "defaultValue": 1,
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [
@@ -149,7 +151,7 @@
                     "name": "TerraTCP",
                     "displayName": "ABB Terra (Modbus TCP)",
                     "id": "910fddb2-989d-4c6c-8264-cf877c1e53e4",
-                    "createMethods": ["discovery", "user"],
+                    "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {
@@ -157,7 +159,8 @@
                             "name":"macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [
