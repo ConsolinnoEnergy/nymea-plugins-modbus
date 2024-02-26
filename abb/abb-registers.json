@@ -2,7 +2,7 @@
     "className": "ABB",
     "protocol": "BOTH",
     "endianness": "BigEndian",
-    "errorLimitUntilNotReachable": 2,
+    "errorLimitUntilNotReachable": 15,
     "checkReachableRegister": "voltageL1",
     "enums": [
         {
@@ -13,7 +13,11 @@
                     "value": 11
                 },
                 {
-                    "key": "A",
+                    "key": "A0",
+                    "value": 0
+                },
+                {
+                    "key": "A1",
                     "value": 32768
                 },
                 {
@@ -25,12 +29,20 @@
                     "value": 33280
                 },
                 {
+                    "key": "B20",
+                    "value": 512
+                },
+                {
                     "key": "C1",
                     "value": 33536
                 },
                 {
                     "key": "C2",
                     "value": 33792
+                },
+                {
+                    "key": "C20",
+                    "value": 1024
                 },
                 {
                     "key": "others",
