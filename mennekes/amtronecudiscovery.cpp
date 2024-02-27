@@ -64,10 +64,6 @@ QList<AmtronECUDiscovery::Result> AmtronECUDiscovery::discoveryResults() const
 
 void AmtronECUDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo)
 {
-    if (networkDeviceInfo.macAddressManufacturer() != "GIGA-BYTE TECHNOLOGY CO.,LTD.") {
-        return;
-    }
-
     int port = 502;
     int slaveId = 0xff;
     qCDebug(dcMennekes()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << slaveId;
@@ -84,6 +80,11 @@ void AmtronECUDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevi
         connect(connection, &AmtronECUModbusTcpConnection::initializationFinished, this, [=](bool success){
             if (!success) {
                 qCDebug(dcMennekes()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString();
+                cleanupConnection(connection);
+                return;
+            }
+            if (connection->firmwareVersion() == 0 || connection->model().isEmpty()) {
+                qCDebug(dcMennekes()) << "Firmware version or model invalid. Skipping" << networkDeviceInfo.address();
                 cleanupConnection(connection);
                 return;
             }

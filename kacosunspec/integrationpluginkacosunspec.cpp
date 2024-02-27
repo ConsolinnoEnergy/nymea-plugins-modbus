@@ -153,7 +153,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
 
         // Make sure we have a valid mac address, otherwise no monitor and not auto searching is possible
         MacAddress macAddress = MacAddress(thing->paramValue(kacosunspecInverterTCPThingMacAddressParamTypeId).toString());
-        if (!macAddress.isValid()) {
+        if (macAddress.isNull()) {
             qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco SunSpec inverter because the MAC address is not valid:" << thing->paramValue(kacosunspecInverterTCPThingMacAddressParamTypeId).toString() << macAddress.toString();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
             return;

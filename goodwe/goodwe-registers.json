@@ -1,0 +1,684 @@
+{
+    "className": "Goodwe",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "diagStatusL16to31",
+    "enums": [
+        {
+            "name": "WorkMode",
+            "values": [
+                {
+                    "key": "Wait",
+                    "value": 0
+                },
+                {
+                    "key": "OnGrid",
+                    "value": 1
+                },
+                {
+                    "key": "OffGrid",
+                    "value": 2
+                },
+                {
+                    "key": "Fault",
+                    "value": 3
+                },
+                {
+                    "key": "InverterUpgrade",
+                    "value": 4
+                },
+                {
+                    "key": "SelfCheck",
+                    "value": 5
+                }
+            ]
+        },
+        {
+            "name": "BatteryStatus",
+            "values": [
+                {
+                    "key": "NoBattery",
+                    "value": 0
+                },
+                {
+                    "key": "Standby",
+                    "value": 1
+                },
+                {
+                    "key": "Discharging",
+                    "value": 2
+                },
+                {
+                    "key": "Charging",
+                    "value": 3
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "pvStuff",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "pv1Voltage",
+                    "address": 35103,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV1 voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv1Current",
+                    "address": 35104,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV1 current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv1Power",
+                    "address": 35105,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV1 power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv2Voltage",
+                    "address": 35107,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV2 voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv2Current",
+                    "address": 35108,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV2 current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv2Power",
+                    "address": 35109,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV2 power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3Voltage",
+                    "address": 35111,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV3 voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3Current",
+                    "address": 35112,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV3 current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3Power",
+                    "address": 35113,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV3 power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv4Voltage",
+                    "address": 35115,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV4 voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv4Current",
+                    "address": 35116,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV4 current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "pv4Power",
+                    "address": 35117,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV4 power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "batteryStuff1",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "batteryPower",
+                    "address": 35183,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Battery power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryMode",
+                    "address": 35184,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Battery mode",
+                    "enum": "BatteryStatus",
+                    "defaultValue": "BatteryStatusNoBattery",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "mixedStuff1",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "workMode",
+                    "address": 35187,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Work mode",
+                    "enum": "WorkMode",
+                    "defaultValue": "WorkModeWait",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 35188,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Filler",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "errorMessage",
+                    "address": 35189,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Error Message",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pvEtotal",
+                    "address": 35191,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "PV E-Total",
+                    "defaultValue": "0",
+                    "unit": "kWh",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "meterStuff1",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "meterConnectStatus",
+                    "address": 36003,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter connect status",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCommStatus",
+                    "address": 36004,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter comm status",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "meterStuff2",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "meterPowerFactor",
+                    "address": 36013,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter power factor",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "meterFrequence",
+                    "address": 36014,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter frequence",
+                    "defaultValue": "0",
+                    "unit": "Hz",
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "eTotalSell",
+                    "address": 36015,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "E-Total-Sell",
+                    "defaultValue": "0",
+                    "unit": "Wh",
+                    "access": "RO"
+                },
+                {
+                    "id": "eTotalBuy",
+                    "address": 36017,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "E-Total-Buy",
+                    "defaultValue": "0",
+                    "unit": "Wh",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterActivePowerR",
+                    "address": 36019,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Power phase L1",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterActivePowerS",
+                    "address": 36021,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Power phase L2",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterActivePowerT",
+                    "address": 36023,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Power phase L3",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterTotalActivePower",
+                    "address": 36025,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter total active power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "phases",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "vGridR",
+                    "address": 36052,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage phase L1",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "vGridS",
+                    "address": 36053,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage phase L2",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "vGridT",
+                    "address": 36054,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Voltage phase L3",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "iGridR",
+                    "address": 36055,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase L1",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "iGridS",
+                    "address": 36056,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase L2",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "iGridT",
+                    "address": 36057,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Current phase L3",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "batteryStuff2",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "bmsCommStatus",
+                    "address": 37002,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "BMS comm status",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryTemp",
+                    "address": 37003,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Battery temperature",
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 37004,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Filler",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy3",
+                    "address": 37005,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Filler",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bmsErrorCodeL",
+                    "address": 37006,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "BMS error code L",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batterySoc",
+                    "address": 37007,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Battery state of charge",
+                    "defaultValue": "0",
+                    "unit": "%",
+                    "access": "RO"
+                },
+                {
+                    "id": "batterySoh",
+                    "address": 37008,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Battery state of health",
+                    "defaultValue": "0",
+                    "unit": "%",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy4",
+                    "address": 37009,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Filler",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bmsWarningCodeL",
+                    "address": 37010,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "BMS warning code L",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy5",
+                    "address": 37011,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Filler",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bmsErrorCodeH",
+                    "address": 37012,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "BMS error code H",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bmsWarningCodeH",
+                    "address": 37013,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "BMS warning code H",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "diagStatusL16to31",
+            "address": 35220,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Diagnostic Status bits L 16 to 31",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "diagStatusL0to15",
+            "address": 35221,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Diagnostic Status bits L 0 to 15",
+            "defaultValue": "0",
+            "access": "RO"
+        }
+    ]
+}
+

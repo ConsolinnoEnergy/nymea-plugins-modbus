@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,17 +28,47 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef MODBUSHELPERS_H
-#define MODBUSHELPERS_H
+#ifndef INTEGRATIONPLUGINHEIDELBERG_H
+#define INTEGRATIONPLUGINHEIDELBERG_H
 
-#include <QtGlobal>
-#include <QVector>
+#include <plugintimer.h>
+#include <integrations/integrationplugin.h>
+#include <network/networkdevicemonitor.h>
 
-class ModbusHelpers {
+#include "extern-plugininfo.h"
+
+#include "amperfiedmodbusrtuconnection.h"
+#include "amperfiedmodbustcpconnection.h"
+
+class IntegrationPluginAmperfied: public IntegrationPlugin
+{
+    Q_OBJECT
+
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginamperfied.json")
+    Q_INTERFACES(IntegrationPlugin)
+
 public:
-    static float convertRegisterToFloat(const quint16 *reg);
-    static QVector<quint16> convertFloatToRegister(float value);
+    explicit IntegrationPluginAmperfied();
+
+    void discoverThings(ThingDiscoveryInfo *info) override;
+    void setupThing(ThingSetupInfo *info) override;
+    void postSetupThing(Thing *thing) override;
+    void executeAction(ThingActionInfo *info) override;
+    void thingRemoved(Thing *thing) override;
+
+private:
+    void setupRtuConnection(ThingSetupInfo *info);
+    void setupTcpConnection(ThingSetupInfo *info);
+
+private:
+    bool m_setupTcpConnectionRunning{false};
+    PluginTimer *m_pluginTimer = nullptr;
+    QHash<Thing *, AmperfiedModbusRtuConnection*> m_rtuConnections;
+    QHash<Thing *, AmperfiedModbusTcpConnection*> m_tcpConnections;
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+
 };
 
-#endif
+#endif // INTEGRATIONPLUGINHEIDELBERG_H
+
 
