@@ -57,8 +57,13 @@ void SaxStorageDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDev
     qCDebug(dcSax()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Modbus ID:" << modbusId;
 
     SaxModbusTcpConnection *connection = new SaxModbusTcpConnection(networkDeviceInfo.address(), port, modbusId, this);
+    connection->setCheckReachableRetries(3);    // For discovery, 3 retries should be enough. Can't set this too high, because it will take too long.
     m_connections.append(connection);
 
+    // I would like to get the test register address from the connection class, but the class does not have a function for that.
+    qCDebug(dcSax()) << "Testing connection by trying to read holding register 40072 from " << networkDeviceInfo;
+
+    // "reachable" is tested by trying to read the test register. If an answer is received without errors, "reachable" will change to true.
     connect(connection, &SaxModbusTcpConnection::reachableChanged, this, [=](bool reachable){
         if (!reachable) {
             // Disconnected ... done with this connection
@@ -66,32 +71,39 @@ void SaxStorageDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDev
             return;
         }
 
-        // Modbus TCP connected...ok, let's try to initialize it!
-        connect(connection, &SaxModbusTcpConnection::initializationFinished, this, [=](bool success){
-            if (!success) {
-                qCDebug(dcSax()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString();
+        // Call the update() method of the connection to read all registers. Then check the "frequency" register, to identify the device.
+        connection->update();
+        connect(connection, &SaxModbusTcpConnection::updateFinished, this, [=](){
+
+            // Note: we get "updateFinished = true" also if all calls failed. So instead test for reachable, because that is false if a call failed.
+            if (!connection->reachable()) {
+                qCDebug(dcSax()) << "Discovery: Update failed on" << networkDeviceInfo.address().toString();
                 cleanupConnection(connection);
                 return;
             }
-            Result result;
-            result.modbusId = modbusId;
-            result.port = port;
-            result.capacity_register = connection->capacity();
-            result.networkDeviceInfo = networkDeviceInfo;
-            m_discoveryResults.append(result);         
-            qCDebug(dcSax()) << "Discovery: --> Found Modbus Device:" 
-                                << result.networkDeviceInfo;         
 
+            // Check the frequency to identify this device as a Sax battery. The frequency is always close to 50 Hz.
+            qint16 frequencyRegister = connection->frequency();
+            qint16 frequencyFactorRegister = connection->frequencyFactor();
+            float frequencyValue = frequencyRegister * qPow(10, frequencyFactorRegister);
+            if (frequencyValue < 51.0 && frequencyValue > 49.0) {
+                float capacityRegister = connection->capacity();
+                qCDebug(dcSax()) << "Discovery: --> Found a Sax battery with capacity" << capacityRegister << "kWh at" << networkDeviceInfo.address().toString();
+                Result result;
+                result.modbusId = modbusId;
+                result.port = port;
+                result.networkDeviceInfo = networkDeviceInfo;
+                result.capacity = capacityRegister;
+                m_discoveryResults.append(result);
+            } else {
+                qCDebug(dcSax()) << "Discovery: --> Found a Modbus device at" << networkDeviceInfo.address().toString()
+                                 << ", but it is not a Sax battery. Holding register 40087 should be the grid frequency and holding register 40088 the frequency scaling factor. Register 40087 is"
+                                 << frequencyRegister << ", register 40088 is" << frequencyFactorRegister;
+            }
 
-
-            // Done with this connection
+            // Nothing left to do with this connection. Clean up.
             cleanupConnection(connection);
         });
-
-        if (!connection->initialize()) {
-            qCDebug(dcSax()) << "Discovery: Unable to initialize connection on" << networkDeviceInfo.address().toString();
-            cleanupConnection(connection);
-        }
     });
 
     // If check reachability failed...skip this host...

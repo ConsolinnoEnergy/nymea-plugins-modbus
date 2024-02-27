@@ -35,8 +35,8 @@ public:
     struct Result {
         quint16 modbusId;
         quint16 port;
-        quint16 capacity_register;
         NetworkDeviceInfo networkDeviceInfo;
+        float capacity;
     };
 
     void startDiscovery();

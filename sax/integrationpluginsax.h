@@ -44,9 +44,12 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
+    bool m_setupTcpConnectionRunning{false};
     QHash<Thing*, SaxModbusTcpConnection*> m_tcpConnections;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     PluginTimer *m_pluginTimer = nullptr;  
+
+    void setupTcpConnection(ThingSetupInfo *info);
 };
 
 #endif // INTEGRATIONPLUGINSAX_H

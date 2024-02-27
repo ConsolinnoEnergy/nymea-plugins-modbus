@@ -2,7 +2,7 @@
     "className": "Sax",
     "protocol": "TCP",
     "endianness": "BigEndian",
-    "errorLimitUntilNotReachable": 20,
+    "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "testReg",
     "enums": [
         {
@@ -291,6 +291,7 @@
                     "description": "current Phase A (Smartmeter)",
                     "defaultValue": "0",
                     "unit": "A",
+                    "staticScaleFactor": -2,
                     "access": "RO"
                 },
                 {
@@ -303,6 +304,7 @@
                     "description": "current Phase B (Smartmeter)",
                     "defaultValue": "0",
                     "unit": "A",
+                    "staticScaleFactor": -2,
                     "access": "RO"
                 },
                 {
@@ -315,6 +317,7 @@
                     "description": "current Phase C (Smartmeter)",
                     "defaultValue": "0",
                     "unit": "A",
+                    "staticScaleFactor": -2,
                     "access": "RO"
                 },
                 {
@@ -374,6 +377,7 @@
                     "description": "Voltage Phase A (Smartmeter)",
                     "defaultValue": "0",
                     "unit": "V",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 },
                 {
@@ -386,6 +390,7 @@
                     "description": "Voltage Phase B (Smartmeter)",
                     "defaultValue": "0",
                     "unit": "V",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 },
                 {
@@ -398,6 +403,7 @@
                     "description": "Voltage Phase C (Smartmeter)",
                     "defaultValue": "0",
                     "unit": "V",
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 }
             ]
@@ -427,7 +433,8 @@
                     "registerType": "holdingRegister",
                     "description": "Capacity of Battery",
                     "defaultValue": "0",
-                    "unit": "Wh",
+                    "unit": "kWh",
+                    "staticScaleFactor": -2,
                     "access": "RO"
                 },
                 {
