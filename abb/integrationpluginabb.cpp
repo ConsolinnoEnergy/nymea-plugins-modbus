@@ -247,6 +247,16 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
+            QModbusReply *replySession = connection->setToggleCharging(power ? 0 : 1);
+            connect(replySession, &QModbusReply::finished, info, [info, replySession, power](){
+                if (replySession->error() == QModbusDevice::NoError) {
+                    info->thing()->setStateValue(TerraTCPPowerStateTypeId, power);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcAbb()) << "Error setting power:" << replySession->error() << replySession->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
         }
 
         if (info->action().actionTypeId() == TerraTCPMaxChargingCurrentActionTypeId) {
@@ -258,6 +268,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
             QModbusReply *reply = connection->setChargingCurrent(power ? max : 0);
             connect(reply, &QModbusReply::finished, info, [info, reply, max](){
                 if (reply->error() == QModbusDevice::NoError) {
+                    qCWarning(dcAbb()) << "#### (ACTION) SETTING CURRENT TO " << max << "######";
                     info->thing()->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, max);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
@@ -386,7 +397,6 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusRtuConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAbb()) << "Updated:" << connection;
-        // thing->setStateMaxValue(TerraRTUMaxChargingCurrentStateTypeId,thing->stateValue(TerraRTUSettableMaxCurrentStateTypeId).toUInt());
         // TODO: change from qCWarning to qCDebug
         switch (connection->chargingState()) {
             case ABBModbusRtuConnection::ChargingStateUndefined:
@@ -451,11 +461,21 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
-
-    connect(connection, &ABBModbusTcpConnection::initializationFinished, thing, [thing](bool success){
+    connect(connection, &ABBModbusTcpConnection::initializationFinished, thing, [thing, connection](bool success){
         if (success) {
+            qCWarning(dcAbb()) << "###### Init finished, connected on";
             thing->setStateValue(TerraTCPConnectedStateTypeId, true);
         }
+        
+        bool chargingEnabled = thing->stateValue(TerraTCPPowerStateTypeId).toBool();
+        thing->setStateValue(TerraTCPPowerStateTypeId, chargingEnabled ? false : true);
+        thing->setStateValue(TerraTCPPowerStateTypeId, chargingEnabled);
+
+        quint32 current = thing->stateValue(TerraTCPMaxChargingCurrentStateTypeId).toUInt();
+        thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, current == 0 ? 5 : 0);
+        thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, current);
+        
+        
     });
 
     connect(connection, &ABBModbusTcpConnection::initializationFinished, info, [this, info, connection](bool success){
@@ -481,19 +501,6 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         } else {
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The wallbox is not responding."));
         }
-        QModbusReply *reply = connection->setChargingCurrent(0);
-        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        connect(reply, &QModbusReply::finished, info, [info, reply](){
-            if (reply->error() == QModbusDevice::NoError) {
-                info->thing()->setStateValue(TerraTCPPowerStateTypeId, false);
-                quint32 settableMax = info->thing()->stateValue(TerraTCPSettableMaxCurrentStateTypeId).toUInt();
-                info->thing()->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, settableMax);
-                info->finish(Thing::ThingErrorNoError);
-            } else {
-                qCWarning(dcAbb()) << "Error setting power:" << reply->error() << reply->errorString();
-                info->finish(Thing::ThingErrorHardwareFailure);
-            }
-        });
     });
 
 
