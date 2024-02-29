@@ -427,9 +427,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
         if (connection->currentL3() > 1) {
             phaseCount++;
         }
-        if (phaseCount > 0) {
-            thing->setStateValue(TerraRTUPhaseCountStateTypeId, phaseCount);
-        }
+        thing->setStateValue(TerraTCPPhaseCountStateTypeId, phaseCount > 0 ? phaseCount : 1);
         thing->setStateValue(TerraRTUChargingStateTypeId, phaseCount > 0);
     });
 
@@ -539,7 +537,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusTcpConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAbb()) << "Updated:" << connection;
-        // thing->setStateMaxValue(TerraTCPMaxChargingCurrentStateTypeId,thing->stateValue(TerraTCPSettableMaxCurrentStateTypeId).toUInt());
+    
         switch (connection->chargingState()) {
             case ABBModbusTcpConnection::ChargingStateUndefined:
                 qCWarning(dcAbb()) << "Undefined charging state:" << connection->chargingState();
@@ -579,9 +577,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         if (connection->currentL3() > 1) {
             phaseCount++;
         }
-        if (phaseCount > 0) {
-            thing->setStateValue(TerraTCPPhaseCountStateTypeId, phaseCount);
-        }
+        thing->setStateValue(TerraTCPPhaseCountStateTypeId, phaseCount > 0 ? phaseCount : 1);
         thing->setStateValue(TerraTCPChargingStateTypeId, phaseCount > 0);
     });
 

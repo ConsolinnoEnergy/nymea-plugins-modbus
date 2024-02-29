@@ -64,6 +64,17 @@
             "staticScaleFactor":-3,
             "defaultValue": "0",
             "access": "RW"
+        },
+        {
+            "id": "toggleCharging",
+            "address": 16645,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Enable or disable charging session",
+            "defaultValue": "0",
+            "access": "RW"
         }
     ],
     "blocks": [
