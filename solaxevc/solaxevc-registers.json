@@ -1,0 +1,444 @@
+{
+    "className": "SolaxEvc",
+    "protocol": "RTU",
+    "endianness": "LittleEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "chargingCurrent",
+    "enums": [
+        {
+            "name": "ControlCommand",
+            "values": [
+                {
+                    "key": "Available",
+                    "value": 1
+                },
+                {
+                    "key": "Unavailable",
+                    "value": 2
+                },
+                {
+                    "key": "StopCharging",
+                    "value": 3
+                },
+                {
+                    "key": "StartCharging",
+                    "value": 4
+                },
+                {
+                    "key": "Reserve",
+                    "value": 5
+                },
+                {
+                    "key": "CancelReservation",
+                    "value": 6
+                }
+            ]
+        },
+        {
+            "name": "State",
+            "values": [
+                {
+                    "key": "Available",
+                    "value": 0
+                },
+                {
+                    "key": "Preparing",
+                    "value": 1
+                },
+                {
+                    "key": "Charging",
+                    "value": 2
+                },
+                {
+                    "key": "Finishing",
+                    "value": 3
+                },
+                {
+                    "key": "Faulted",
+                    "value": 4
+                },
+                {
+                    "key": "Unavailable",
+                    "value": 5
+                },
+                {
+                    "key": "Reserved",
+                    "value": 6
+                },
+                {
+                    "key": "SuspendedEV",
+                    "value": 7
+                },
+                {
+                    "key": "SuspendedEVSE",
+                    "value": 8
+                },
+                {
+                    "key": "Update",
+                    "value": 9
+                },
+                {
+                    "key": "CardActivation",
+                    "value": 10
+                }
+            ]
+        },
+        {
+            "name": "ChargePhase",
+            "values": [
+                {
+                    "key": "ThreePhase",
+                    "value": 0
+                },
+                {
+                    "key": "SinglePhaseConnectedOnPhaseA",
+                    "value": 1
+                },
+                {
+                    "key": "SinglePhaseConnectedOnPhaseB",
+                    "value": 2
+                },
+                {
+                    "key": "SinglePhaseConnectedOnPhaseC",
+                    "value": 3
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "meterValues",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "voltagePhaseA",
+                    "address": 0,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Voltage phase A",
+                    "unit": "V",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseB",
+                    "address": 1,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Voltage phase B",
+                    "unit": "V",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseC",
+                    "address": 2,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Voltage phase C",
+                    "unit": "V",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePe",
+                    "address": 3,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Voltage PE",
+                    "unit": "V",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseA",
+                    "address": 4,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current phase A",
+                    "unit": "A",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseB",
+                    "address": 5,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current phase B",
+                    "unit": "A",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseC",
+                    "address": 6,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current phase C",
+                    "unit": "A",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPe",
+                    "address": 7,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current PE",
+                    "unit": "A",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -3,
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPhaseA",
+                    "address": 8,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power phase A",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPhaseB",
+                    "address": 9,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power phase B",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPhaseC",
+                    "address": 10,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power phase C",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "totalPower",
+                    "address": 11,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Total charging power",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "frequencyPhaseA",
+                    "address": 12,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Frequency phase A",
+                    "unit": "Hz",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "frequencyPhaseB",
+                    "address": 13,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Frequency phase B",
+                    "unit": "Hz",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "frequencyPhaseC",
+                    "address": 14,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Frequency phase C",
+                    "unit": "Hz",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "sessionEnergy",
+                    "address": 15,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Single charge energy",
+                    "unit": "kWh",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "totalEnergy",
+                    "address": 16,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "description": "Accumulated charging energy",
+                    "unit": "kWh",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "wallboxStatus",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "tempPcb",
+                    "address": 28,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "description": "PCB temperature",
+                    "unit": "°C",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "state",
+                    "address": 29,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "State",
+                    "enum": "State",
+                    "defaultValue": "StateAvailable",
+                    "access": "RO"
+                },
+                {
+                    "id": "firmwareVersion",
+                    "address": 37,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Firmware version",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "unbalancedPower",
+                    "address": 41,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Setting of unbalanced power",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "chargePhase",
+                    "address": 40,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Wallbox phase configuration",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "unbalancedPower",
+                    "address": 41,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Setting of unbalanced power",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "unbalancedSwitch",
+                    "address": 42,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Three phase unbalanced switch",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "chargingTime",
+                    "address": 43,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "description": "Duration of current charging session",
+                    "unit": "s",
+                    "defaultValue": 0,
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "serialNumber",
+            "address": 1536,
+            "size": 14,
+            "type": "string",
+            "readSchedule": "init",
+            "registerType": "holdingRegister",
+            "description": "Version",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "chargingCurrent",
+            "address": 261,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Charging current",
+            "unit": "1/10 A",
+            "defaultValue": "0",
+            "access": "RW"
+        },
+        {
+            "id": "standby",
+            "address": 258,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "init",
+            "registerType": "holdingRegister",
+            "description": "Standby function control",
+            "defaultValue": 0,
+            "access": "RW"
+        }
+    ]
+}
