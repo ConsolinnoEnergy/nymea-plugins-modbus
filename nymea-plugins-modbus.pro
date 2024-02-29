@@ -6,36 +6,37 @@ SUBDIRS += nymea-modbus-cli libnymea-modbus libnymea-sunspec
 #SUBDIRS += nymea-modbus-cli libnymea-modbus
 
 PLUGIN_DIRS = \
-    aeberle                 \
-    alphainnotec            \
-    alphatec                \    
-    azzurro                 \
-    amperfied               \
-    bgetech                 \
-    drexelundweiss          \
-    goodwe                  \
-    huawei                  \
-    idm                     \
-    inepro                  \
-    kacosunspec             \
-    kostal                  \
-    mennekes                \
-    modbuscommander         \
-    mtec                    \
-    mypv                    \
-    phoenixconnect          \
-    schneider               \
-    schneiderIEM            \
-    schrack                 \
-    senseair                \
-    sma                     \
-    stiebeleltron           \
-    sungrow                 \
-    sunspec                 \
-    technivolt              \
-    unipi                   \
-    webasto                 \
-    e3dc
+#    aeberle                 \
+#    alphainnotec            \
+#    alphatec                \
+#    azzurro                 \
+#    amperfied               \
+#    bgetech                 \
+#    drexelundweiss          \
+#    goodwe                  \
+#    huawei                  \
+#    idm                     \
+#    inepro                  \
+#    kacosunspec             \
+#    kostal                  \
+#    mennekes                \
+#    modbuscommander         \
+#    mtec                    \
+#    mypv                    \
+#    phoenixconnect          \
+#    schneider               \
+#    schneiderIEM            \
+#    schrack                 \
+#    senseair                \
+#    sma                     \
+    solaxevc                \
+#    stiebeleltron           \
+#    sungrow                 \
+#    sunspec                 \
+#    technivolt              \
+#    unipi                   \
+#    webasto                 \
+#    e3dc
 
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
