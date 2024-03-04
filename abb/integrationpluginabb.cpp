@@ -77,9 +77,6 @@ void IntegrationPluginABB::discoverThings(ThingDiscoveryInfo *info)
             foreach (const TerraTCPDiscovery::Result &result, discovery->discoveryResults()) {
                 qCDebug(dcAbb()) << "Discovery result:" << result.networkDeviceInfo.address().toString() + " (" + result.networkDeviceInfo.macAddress() + ", " + result.networkDeviceInfo.macAddressManufacturer() + ")";
 
-                //draft: check if found modbus device is actually ABB terra wallbox
-                //here as draft: check fw_version register
-                //firmware version is validated later as well
                 if (result.firmwareVersion >= MIN_FIRMWARE_VERSION){   
                     qCDebug(dcAbb()) << "Discovery: --> Found Version:" 
                                         << result.firmwareVersion;                      
@@ -91,8 +88,6 @@ void IntegrationPluginABB::discoverThings(ThingDiscoveryInfo *info)
                                         << MIN_FIRMWARE_VERSION_MAJOR << "."
                                         << MIN_FIRMWARE_VERSION_MINOR << "."
                                         << MIN_FIRMWARE_VERSION_REVISION;   
-                    // draft: skip device if fw version is wrong
-                    // continue;
                 }
                 
                 ThingDescriptor descriptor(TerraTCPThingClassId, "ABB Terra", QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
@@ -193,6 +188,8 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
 
         if (info->action().actionTypeId() == TerraRTUPowerActionTypeId) {
             bool power = info->action().paramValue(TerraRTUPowerActionPowerParamTypeId).toBool();
+            // Set charging current if the charging enabled button was pressed
+            // 0 if disabled; chosen value if enabled
             ModbusRtuReply *reply = connection->setChargingCurrent(power ? thing->stateValue(TerraRTUMaxChargingCurrentStateTypeId).toUInt(): 0);
             connect(reply, &ModbusRtuReply::finished, info, [info, reply, power](){
                 if (reply->error() == ModbusRtuReply::NoError) {
@@ -203,6 +200,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
+            // Toggle charging session if the charging enabled button was pressed
             ModbusRtuReply *replySession = connection->setToggleCharging(power ? 0 : 1);
             connect(replySession, &ModbusRtuReply::finished, info, [info, replySession, power](){
                 if (replySession->error() == ModbusRtuReply::NoError) {
@@ -216,6 +214,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
         }
 
         if (info->action().actionTypeId() == TerraRTUMaxChargingCurrentActionTypeId) {
+            // Set the charging current to the chosen value
             bool power = thing->stateValue(TerraRTUPowerStateTypeId).toBool();
             uint max = info->action().paramValue(TerraRTUMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
             if(thing->stateValue(TerraRTUSettableMaxCurrentStateTypeId).toUInt() < max){
@@ -239,6 +238,8 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
         ABBModbusTcpConnection *connection = m_tcpConnections.value(thing);
 
         if (info->action().actionTypeId() == TerraTCPPowerActionTypeId) {
+            // Set charging current if the charging enabled button was pressed
+            // 0 if disabled; chosen value if enabled
             bool power = info->action().paramValue(TerraTCPPowerActionPowerParamTypeId).toBool();
             QModbusReply *reply = connection->setChargingCurrent(power ? thing->stateValue(TerraTCPMaxChargingCurrentStateTypeId).toUInt(): 0);
             connect(reply, &QModbusReply::finished, info, [info, reply, power](){
@@ -250,6 +251,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
+            // Toggle charging session if the charging enabled button was pressed
             QModbusReply *replySession = connection->setToggleCharging(power ? 0 : 1);
             connect(replySession, &QModbusReply::finished, info, [info, replySession, power](){
                 if (replySession->error() == QModbusDevice::NoError) {
@@ -263,6 +265,7 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
         }
 
         if (info->action().actionTypeId() == TerraTCPMaxChargingCurrentActionTypeId) {
+            // Set the charging current to the chosen value
             bool power = thing->stateValue(TerraTCPPowerStateTypeId).toBool();
             uint max = info->action().paramValue(TerraTCPMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
             if(thing->stateValue(TerraTCPSettableMaxCurrentStateTypeId).toUInt() < max){
@@ -271,7 +274,6 @@ void IntegrationPluginABB::executeAction(ThingActionInfo *info)
             QModbusReply *reply = connection->setChargingCurrent(power ? max : 0);
             connect(reply, &QModbusReply::finished, info, [info, reply, max](){
                 if (reply->error() == QModbusDevice::NoError) {
-                    qCWarning(dcAbb()) << "#### (ACTION) SETTING CURRENT TO " << max << "######";
                     info->thing()->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, max);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
@@ -323,14 +325,15 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
             thing->setStateValue(TerraRTUConnectedStateTypeId, true);
         }
 
-        // Make settings in app follow the wallbox, incase of temporary disconnect
+        // In case of a temporary disconnect:
+        // Make the settings in the app follow the current state of the wallbox
         bool chargingEnabled = thing->stateValue(TerraRTUPowerStateTypeId).toBool();
         thing->setStateValue(TerraRTUPowerStateTypeId, chargingEnabled ? false : true);
         thing->setStateValue(TerraRTUPowerStateTypeId, chargingEnabled);
 
-        quint32 current = thing->stateValue(TerraRTUMaxChargingCurrentStateTypeId).toUInt();
-        thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, current == 0 ? 5 : 0);
-        thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, current);
+        quint32 maxCurrent = thing->stateValue(TerraRTUMaxChargingCurrentStateTypeId).toUInt();
+        thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, maxCurrent == 0 ? 5 : 0);
+        thing->setStateValue(TerraRTUMaxChargingCurrentStateTypeId, maxCurrent);
     });
 
     connect(connection, &ABBModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
@@ -356,24 +359,42 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
         } else {
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The wallbox is not responding."));
         }
+
+        // Upon adding the plugin, make sure the wallbox does not start charging on its own,
+        // while charging enabled is set to false
+        ModbusRtuReply *reply = connection->setChargingCurrent(0);
+        connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
+        connect(reply, &ModbusRtuReply::finished, info, [info, reply](){
+            if (reply->error() == ModbusRtuReply::NoError) {
+                info->thing()->setStateValue(TerraRTUPowerStateTypeId, false);
+                info->finish(Thing::ThingErrorNoError);
+            } else {
+                qCWarning(dcAbb()) << "Error setting power:" << reply->error() << reply->errorString();
+                info->finish(Thing::ThingErrorHardwareFailure);
+            }
+        });
     });
 
+    // Current active power of the wallbox
     connect(connection, &ABBModbusRtuConnection::currentPowerChanged, thing, [thing](float currentPower){
         qCDebug(dcAbb()) << "Wallbox currentPower changed" << currentPower << "W";
         thing->setStateValue(TerraRTUCurrentPowerStateTypeId, currentPower);
     });
 
+    // Session Energy
     connect(connection, &ABBModbusRtuConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
         qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
         thing->setStateValue(TerraRTUSessionEnergyStateTypeId, sessionEnergy / 1000.0);
     });
 
+    // The max current which can be set; Value configured in TerraConfig App
     connect(connection, &ABBModbusRtuConnection::settableMaxCurrentChanged, thing, [thing](quint32 settableMaxCurrent){
         qCDebug(dcAbb()) << "Wallbox settableMaxCurrent changed" << settableMaxCurrent << "A";
         thing->setStateValue(TerraRTUSettableMaxCurrentStateTypeId, settableMaxCurrent);
         thing->setStateMaxValue(TerraRTUMaxChargingCurrentStateTypeId,settableMaxCurrent);
     });
 
+    // Max charging current; Value set in Leaflet App
     connect(connection, &ABBModbusRtuConnection::chargingCurrentLimitChanged, thing, [thing](quint32 chargingCurrentLimit){
         qCDebug(dcAbb()) << "Wallbox chargingCurrentLimit changed" << chargingCurrentLimit<< "A";
         if (chargingCurrentLimit < 6) {
@@ -384,6 +405,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
         }        
     });
 
+    // Display error code
     connect(connection, &ABBModbusRtuConnection::errorCodeChanged, thing, [thing](quint32 errorCode){
         qCDebug(dcAbb()) << QString("Wallbox errorCode changed 0x%1").arg(errorCode, 0, 16);
         QMap<int, QString> errorCodeMap = {{0,"Kein Fehler (0x0000)"},{2,"Fehlerstrom erkannt (0x0002)"},{4,"Elektrischer Anschluss (0x0004)"}, \
@@ -396,6 +418,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
     connect(connection, &ABBModbusRtuConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAbb()) << "Updated:" << connection;
 
+        // Interpret charging state
         switch (connection->chargingState()) {
             case ABBModbusRtuConnection::ChargingStateUndefined:
                 qCWarning(dcAbb()) << "Undefined charging state:" << connection->chargingState();
@@ -425,6 +448,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
                 break;
         }
 
+        // Set number of connected phases
         int phaseCount = 0;
         if (connection->currentL1() > 1) {
             phaseCount++;
@@ -461,18 +485,18 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusTcpConnection::initializationFinished, thing, [thing, connection](bool success){
         if (success) {
-            qCWarning(dcAbb()) << "###### Init finished, connected on";
             thing->setStateValue(TerraTCPConnectedStateTypeId, true);
         }
         
-        // Make settings in app follow the wallbox, incase of temporary disconnect
+        // In case of a temporary disconnect:
+        // Make the settings in the app follow the current state of the wallbox
         bool chargingEnabled = thing->stateValue(TerraTCPPowerStateTypeId).toBool();
         thing->setStateValue(TerraTCPPowerStateTypeId, chargingEnabled ? false : true);
         thing->setStateValue(TerraTCPPowerStateTypeId, chargingEnabled);
 
-        quint32 current = thing->stateValue(TerraTCPMaxChargingCurrentStateTypeId).toUInt();
-        thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, current == 0 ? 5 : 0);
-        thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, current);
+        quint32 maxCurrent = thing->stateValue(TerraTCPMaxChargingCurrentStateTypeId).toUInt();
+        thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, maxCurrent == 0 ? 5 : 0);
+        thing->setStateValue(TerraTCPMaxChargingCurrentStateTypeId, maxCurrent);
     });
 
     connect(connection, &ABBModbusTcpConnection::initializationFinished, info, [this, info, connection](bool success){
@@ -498,8 +522,22 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         } else {
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The wallbox is not responding."));
         }
+        // Upon adding the plugin, make sure the wallbox does not start charging on its own,
+        // while charging enabled is set to false
+        QModbusReply *reply = connection->setChargingCurrent(0);
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, info, [info, reply](){
+            if (reply->error() == QModbusDevice::NoError) {
+                info->thing()->setStateValue(TerraTCPPowerStateTypeId, false);
+                info->finish(Thing::ThingErrorNoError);
+            } else {
+                qCWarning(dcAbb()) << "Error setting power:" << reply->error() << reply->errorString();
+                info->finish(Thing::ThingErrorHardwareFailure);
+            }
+        });
     });
 
+    // Current active power of the wallbox
     connect(connection, &ABBModbusTcpConnection::currentPowerChanged, thing, [thing](float currentPower){
         qCDebug(dcAbb()) << "Wallbox currentPower changed" << currentPower << "W";
         thing->setStateValue(TerraTCPCurrentPowerStateTypeId, currentPower);
@@ -510,12 +548,14 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue(TerraTCPSessionEnergyStateTypeId, sessionEnergy / 1000.0);
     });
 
+    // Session Energy
     connect(connection, &ABBModbusTcpConnection::settableMaxCurrentChanged, thing, [thing](quint32 settableMaxCurrent){
         qCDebug(dcAbb()) << "Wallbox settableMaxCurrent changed" << settableMaxCurrent << "A";
         thing->setStateValue(TerraTCPSettableMaxCurrentStateTypeId, settableMaxCurrent);
         thing->setStateMaxValue(TerraTCPMaxChargingCurrentStateTypeId,settableMaxCurrent);
     });
 
+    // Max charging current; Value set in Leaflet App
     connect(connection, &ABBModbusTcpConnection::chargingCurrentLimitChanged, thing, [thing](quint32 chargingCurrentLimit){
         qCDebug(dcAbb()) << "Wallbox chargingCurrentLimit changed" << chargingCurrentLimit << "A";
 
@@ -527,6 +567,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
         }        
     });
 
+    // Display error code
     connect(connection, &ABBModbusTcpConnection::errorCodeChanged, thing, [thing](quint32 errorCode){
         qCDebug(dcAbb()) << QString("Wallbox errorCode changed 0x%1").arg(errorCode, 0, 16);
         QMap<int, QString> errorCodeMap = {{0,"Kein Fehler (0x0000)"},{2,"Fehlerstrom erkannt (0x0002)"},{4,"Elektrischer Anschluss (0x0004)"}, \
@@ -539,6 +580,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
     connect(connection, &ABBModbusTcpConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAbb()) << "Updated:" << connection;
     
+        // Interpret charging state
         switch (connection->chargingState()) {
             case ABBModbusTcpConnection::ChargingStateUndefined:
                 qCWarning(dcAbb()) << "Undefined charging state:" << connection->chargingState();
@@ -568,6 +610,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
                 break;
         }
 
+        // Set number of connected phases
         int phaseCount = 0;
         if (connection->currentL1() > 1) {
             phaseCount++;
