@@ -28,127 +28,128 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "energycontroldiscovery.h"
+#include "discoveryrtu.h"
 #include "extern-plugininfo.h"
 
-EnergyControlDiscovery::EnergyControlDiscovery(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent) :
+DiscoveryRtu::DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent) :
     QObject{parent},
     m_modbusRtuResource{modbusRtuResource}
 {
 }
 
-void EnergyControlDiscovery::startDiscovery()
+void ::startDiscovery()
 {
-    qCInfo(dcAmperfied()) << "Discovery: Searching for Amperfied EnergyControl wallboxes on modbus RTU...";
+    qCInfo(dcSolaxEvc()) << "Discovery: Searching for Solax wallboxes on modbus RTU...";
 
     QList<ModbusRtuMaster*> candidateMasters;
     foreach (ModbusRtuMaster *master, m_modbusRtuResource->modbusRtuMasters()) {
-        if (master->baudrate() == 19200 && master->dataBits() == 8 && master->stopBits() == 1 && master->parity() == QSerialPort::EvenParity) {
+        if (master->baudrate() == 9600 && master->dataBits() == 8 && master->stopBits() == 1 && master->parity() == QSerialPort::NoParity) {
             candidateMasters.append(master);
         }
     }
 
     if (candidateMasters.isEmpty()) {
-        qCWarning(dcAmperfied()) << "No usable modbus RTU master found.";
+        qCWarning(dcSolaxEvc()) << "No usable modbus RTU master found.";
         emit discoveryFinished(false);
         return;
     }
 
     foreach (ModbusRtuMaster *master, candidateMasters) {
         if (master->connected()) {
-            // Start searching with Modbus ID 1.
-            tryConnect(master, 1);
+            // Start searching with Modbus ID 70, the default Modbus ID of the wallbox.
+            tryConnect(master, 70);
+
+            // Knowledge so far, Solax wallboxes only have Modbus ID 70. If wrong, use following code to also search other Modbus IDs.
+//            for (int modbusId = 1; modbusId < 11; ++modbusId) {
+//                tryConnect(master, modbusId);
+//            }
         } else {
-            qCWarning(dcAmperfied()) << "Modbus RTU master" << master->modbusUuid().toString() << "is not connected.";
+            qCWarning(dcSolaxEvc()) << "Modbus RTU master" << master->modbusUuid().toString() << "is not connected.";
         }
     }
+    emit discoveryFinished(true);
 }
 
-QList<EnergyControlDiscovery::Result> EnergyControlDiscovery::discoveryResults() const
+QList<DiscoveryRtu::Result> DiscoveryRtu::discoveryResults() const
 {
     return m_discoveryResults;
 }
 
-void EnergyControlDiscovery::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
+void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
 {
-    qCDebug(dcAmperfied()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << modbusId;
+    qCDebug(dcSolaxEvc()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << modbusId;
 
-    ModbusRtuReply *reply = master->readInputRegister(modbusId, 4);
+    ModbusRtuReply *reply = master->readInputRegister(modbusId, 37);
     connect(reply, &ModbusRtuReply::finished, this, [=](){
-        qCDebug(dcAmperfied()) << "Test reply finished!" << reply->error() << reply->result();
+        qCDebug(dcSolaxEvc()) << "Test reply finished!" << reply->error() << reply->result();
         if (reply->error() != ModbusRtuReply::NoError || reply->result().length() == 0) {
-            qCDebug(dcAmperfied()) << "Error reading input register 4 (firmware version). This is not an Energy Control wallbox.";
+            qCDebug(dcSolaxEvc()) << "Error reading input register 37 (firmware version). This is not a Solax wallbox.";
         } else {
             quint16 version = reply->result().first();
-            if (version >= 0x0100) {
-                qCDebug(dcAmperfied()) << QString("Version is 0x%1").arg(version, 0, 16);
-                Result result {master->modbusUuid(), version, modbusId};
+            if (version > 0) {
+                qCDebug(dcSolaxEvc()) << "Wallbox firmware version is " << version;
 
-                ModbusRtuReply *reply2 = master->readInputRegister(modbusId, 5);
+                ModbusRtuReply *reply2 = master->readInputRegister(modbusId, 41);
                 connect(reply2, &ModbusRtuReply::finished, this, [=](){
-                    qCDebug(dcAmperfied()) << "Reading next test value" << reply2->error() << reply2->result();
+                    qCDebug(dcSolaxEvc()) << "Reading next test value" << reply2->error() << reply2->result();
                     if (reply2->error() != ModbusRtuReply::NoError || reply2->result().length() == 0) {
-                        qCDebug(dcAmperfied()) << "Error reading input register 5 (charging state). This is not an Energy Control wallbox.";
+                        qCDebug(dcSolaxEvc()) << "Error reading input register 41 (unbalanced power). This is not a Solax wallbox.";
                         return;
                     }
 
-                    quint16 chargingState = reply2->result().first();
-                    if (chargingState >= 1 && chargingState <= 11) {
-                        qCDebug(dcAmperfied()) << "Charging state is" << chargingState << ". Value is ok.";
+                    quint16 unbalancedPower = reply2->result().first();
+                    if (unbalancedPower >= 1300 && unbalancedPower <= 7200) {
+                        qCDebug(dcSolaxEvc()) << "Unbalanced power setting is" << unbalancedPower << ". Value is ok.";
 
-                        ModbusRtuReply *reply3 = master->readInputRegister(modbusId, 100);
+                        ModbusRtuReply *reply3 = master->readInputRegister(modbusId, 33);
                         connect(reply3, &ModbusRtuReply::finished, this, [=](){
-                            qCDebug(dcAmperfied()) << "Reading next test value" << reply3->error() << reply3->result();
+                            qCDebug(dcSolaxEvc()) << "Reading next test value" << reply3->error() << reply3->result();
                             if (reply3->error() != ModbusRtuReply::NoError || reply3->result().length() == 0) {
-                                qCDebug(dcAmperfied()) << "Error reading input register 100 (maximum charge current). This is not an Energy Control wallbox.";
+                                qCDebug(dcSolaxEvc()) << "Error reading input register 33 (type power). This is not a Solax wallbox.";
                                 return;
                             }
 
-                            quint16 maximumCurrent = reply3->result().first();
-                            if (maximumCurrent >= 6 && maximumCurrent <= 16) {
-                                qCDebug(dcAmperfied()) << "Maximum charge current is" << maximumCurrent << ". Value is ok.";
+                            quint16 typePower = reply3->result().first();
+                            if (typePower <= 2) {
+                                QString model{""};
+                                switch (typePower) {
+                                case 0:
+                                    qCDebug(dcSolaxEvc()) << "This is a Solax X1-EVC-7.2K. Adding it to the list.";
+                                    model = "Solax X1-EVC-7.2K";
+                                    break;
+                                case 1:
+                                    qCDebug(dcSolaxEvc()) << "This is a Solax X3-EVC-11K. Adding it to the list.";
+                                    model = "Solax X3-EVC-11K";
+                                    break;
+                                case 2:
+                                    qCDebug(dcSolaxEvc()) << "This is a Solax X3-EVC-22K. Adding it to the list.";
+                                    model = "Solax X3-EVC-22K";
+                                    break;
+                                default:
+                                    qCWarning(dcSolaxEvc()) << "Error identifying Solax wallbox model. This should not happen.";
+                                    model = "Error";
+                                    break;
+                                }
 
-                                ModbusRtuReply *reply4 = master->readInputRegister(modbusId, 101);
-                                connect(reply4, &ModbusRtuReply::finished, this, [=](){
-                                    qCDebug(dcAmperfied()) << "Reading next test value" << reply4->error() << reply4->result();
-                                    if (reply4->error() != ModbusRtuReply::NoError || reply4->result().length() == 0) {
-                                        qCDebug(dcAmperfied()) << "Error reading input register 101 (minimum charge current). This is not an Energy Control wallbox.";
-                                        return;
-                                    }
-
-                                    quint16 minimumCurrent = reply4->result().first();
-                                    if (minimumCurrent >= 6 && minimumCurrent <= 16) {
-                                        qCDebug(dcAmperfied()) << "Minimum charge current is" << minimumCurrent << ". Value is ok.";
-                                        qCDebug(dcAmperfied()) << "This device is an Energy Control wallbox. Adding it to the list.";
-                                        m_discoveryResults.append(result);
-                                    } else {
-                                        qCDebug(dcAmperfied()) << "Value in input register 101 (minimum charge current) should be in the range [6;16], but the value is"
-                                                               << maximumCurrent << ". This is not an Energy Control wallbox.";
-                                    }
-                                });
-
+                                Result result {master->modbusUuid(), model, modbusId};
+                                m_discoveryResults.append(result);
                             } else {
-                                qCDebug(dcAmperfied()) << "Value in input register 100 (maximum charge current) should be in the range [6;16], but the value is"
-                                                       << maximumCurrent << ". This is not an Energy Control wallbox.";
+                                qCDebug(dcSolaxEvc()) << "Value in input register 33 (type power) should be in the range [0;2], but the value is"
+                                                       << typePower << ". This is not a Solax wallbox.";
                             }
                         });
 
                     } else {
-                        qCDebug(dcAmperfied()) << "Value in input register 5 (charging state) should be in the range [1;11], but the value is"
-                                               << chargingState << ". This is not an Energy Control wallbox.";
+                        qCDebug(dcSolaxEvc()) << "Value in input register 41 (unbalanced power) should be in the range [1300;7200], but the value is"
+                                               << unbalancedPower << ". This is not a Solax wallbox.";
                     }
                 });
 
             } else {
-                qCDebug(dcAmperfied()) << "Version must be at least 1.0.0 (0x0100)";
+                qCDebug(dcSolaxEvc()) << "Value in input register 37 (firmware version) should be >0, but the value is"
+                                      << version << ". This is not a Solax wallbox.";
+//                qCDebug(dcSolaxEvc()) << "Version must be at least xxx";
             }
-        }
-
-        // The possible Modbus IDs of the Energy Control are in the range [1;15].
-        if (modbusId < 15) {
-            tryConnect(master, modbusId+1);
-        } else {
-            emit discoveryFinished(true);
         }
     });
 }

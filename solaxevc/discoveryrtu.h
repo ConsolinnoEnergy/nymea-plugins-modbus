@@ -28,22 +28,22 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef ENERGYCONTROLDISCOVERY_H
-#define ENERGYCONTROLDISCOVERY_H
+#ifndef DISCOVERYRTU_H
+#define DISCOVERYRTU_H
 
 #include <QObject>
 #include <QTimer>
 
 #include <hardware/modbus/modbusrtuhardwareresource.h>
 
-class EnergyControlDiscovery : public QObject
+class DiscoveryRtu : public QObject
 {
     Q_OBJECT
 public:
-    explicit EnergyControlDiscovery(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
+    explicit DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
     struct Result {
         QUuid modbusRtuMasterId;
-        quint16 firmwareVersion;
+        QString model;
         quint16 modbusId;
     };
 
@@ -63,4 +63,4 @@ private:
     QList<Result> m_discoveryResults;
 };
 
-#endif // ENERGYCONTROLDISCOVERY_H
+#endif // DISCOVERYRTU_H

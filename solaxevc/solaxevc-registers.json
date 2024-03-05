@@ -3,11 +3,15 @@
     "protocol": "RTU",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 15,
-    "checkReachableRegister": "chargingCurrent",
+    "checkReachableRegister": "firmwareVersion",
     "enums": [
         {
             "name": "ControlCommand",
             "values": [
+                {
+                    "key": "Undefined",
+                    "value": 0
+                },
                 {
                     "key": "Available",
                     "value": 1
@@ -339,6 +343,66 @@
                     "access": "RO"
                 },
                 {
+                    "id": "faultCode",
+                    "address": 30,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "description": "Fault code",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "typeCase",
+                    "address": 32,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Wallbox model case type",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "typePower",
+                    "address": 33,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Wallbox is 7kW, 11kW or 22kW",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "typePhase",
+                    "address": 34,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Wallbox is single or three phase",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "typeCharger",
+                    "address": 35,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Wallbox is type home or OCPP",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "typeScreen",
+                    "address": 36,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Wallbox model has screen or not",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
                     "id": "firmwareVersion",
                     "address": 37,
                     "size": 1,
@@ -349,13 +413,23 @@
                     "access": "RO"
                 },
                 {
-                    "id": "unbalancedPower",
-                    "address": 41,
+                    "id": "ocppNetwork",
+                    "address": 38,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
-                    "description": "Setting of unbalanced power",
-                    "unit": "W",
+                    "description": "OCPP status",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "rssi",
+                    "address": 39,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Received signal strength indicator",
+                    "unit": "%",
                     "defaultValue": 0,
                     "access": "RO"
                 },
@@ -366,8 +440,8 @@
                     "type": "uint16",
                     "registerType": "inputRegister",
                     "description": "Wallbox phase configuration",
-                    "unit": "W",
-                    "defaultValue": 0,
+                    "enum": "ChargePhase",
+                    "defaultValue": "ChargePhaseThreePhase",
                     "access": "RO"
                 },
                 {
@@ -418,27 +492,172 @@
             "access": "RO"
         },
         {
-            "id": "chargingCurrent",
-            "address": 261,
+            "id": "deviceType",
+            "address": 1548,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Device type",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "deviceMode",
+            "address": 1549,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Device mode",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "ecoGear",
+            "address": 1550,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "ECO gear",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "greenGear",
+            "address": 1551,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Green gear",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "startChargeMode",
+            "address": 1552,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Start charge mode",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "overVoltSet",
+            "address": 1553,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Over voltage setting",
+            "unit": "V",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "underVoltSet",
+            "address": 1554,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Under voltage setting",
+            "unit": "V",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "boostMode",
+            "address": 1555,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Boost mode",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "mainBreakerLimit",
+            "address": 1556,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Main breaker limit",
+            "unit": "A",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "electronicLock",
+            "address": 1557,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Electronic Lock",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "CardActivateSwitch",
+            "address": 1558,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Card activate switch",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "DataHubChargeCurrent",
+            "address": 1572,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Data hub charge current",
+            "unit": "1/100 A",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "controlCommand",
+            "address": 1575,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Control command",
+            "enum": "ControlCommand",
+            "defaultValue": "ControlCommandUndefined",
+            "access": "RO"
+        },
+        {
+            "id": "MaxCurrent",
+            "address": 1576,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Maximum AC line current",
+            "unit": "1/10 A",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "MinCurrent",
+            "address": 1599,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Minimum AC line current",
+            "unit": "1/10 A",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "slaveAddress",
+            "address": 1600,
             "size": 1,
             "type": "uint16",
             "readSchedule": "update",
             "registerType": "holdingRegister",
-            "description": "Charging current",
-            "unit": "1/10 A",
-            "defaultValue": "0",
-            "access": "RW"
-        },
-        {
-            "id": "standby",
-            "address": 258,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "init",
-            "registerType": "holdingRegister",
-            "description": "Standby function control",
+            "description": "Own 485 address",
             "defaultValue": 0,
-            "access": "RW"
+            "access": "RO"
         }
     ]
 }

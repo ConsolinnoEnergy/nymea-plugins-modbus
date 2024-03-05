@@ -57,14 +57,10 @@ public:
 
 private:
     void setupRtuConnection(ThingSetupInfo *info);
-    void setupTcpConnection(ThingSetupInfo *info);
 
 private:
-    bool m_setupTcpConnectionRunning{false};
     PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, AmperfiedModbusRtuConnection*> m_rtuConnections;
-    QHash<Thing *, AmperfiedModbusTcpConnection*> m_tcpConnections;
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    QHash<Thing *, SolaxEvcModbusRtuConnection*> m_rtuConnections;
 
 };
 

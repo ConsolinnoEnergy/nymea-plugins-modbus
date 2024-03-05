@@ -28,7 +28,7 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "integrationpluginsolaxevc.h"
+#include "integrationpluginsolaxEvc.h"
 #include "plugininfo.h"
 #include "discoveryrtu.h"
 
@@ -43,23 +43,23 @@ IntegrationPluginSolaxEvc::IntegrationPluginSolaxEvc()
 
 void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
 {
-    if (info->thingClassId() == energyControlThingClassId) {
-        EnergyControlDiscovery *discovery = new EnergyControlDiscovery(hardwareManager()->modbusRtuResource(), info);
+    if (info->thingClassId() == solaxEvcThingClassId) {
+        DiscoveryRtu *discovery = new DiscoveryRtu(hardwareManager()->modbusRtuResource(), info);
 
-        connect(discovery, &EnergyControlDiscovery::discoveryFinished, info, [this, info, discovery](bool modbusMasterAvailable){
+        connect(discovery, &DiscoveryRtu::discoveryFinished, info, [this, info, discovery](bool modbusMasterAvailable){
             if (!modbusMasterAvailable) {
-                info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master with appropriate settings found. Please set up a modbus RTU master with a baudrate of 19200, 8 data bis, 1 stop bit and even parity first."));
+                info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master with appropriate settings found. Please set up a modbus RTU master with a baudrate of 9600, 8 data bis, 1 stop bit and no parity first."));
                 return;
             }
 
-            qCInfo(dcAmperfied()) << "Discovery results:" << discovery->discoveryResults().count();
+            qCInfo(dcSolaxEvc()) << "Discovery results:" << discovery->discoveryResults().count();
 
-            foreach (const EnergyControlDiscovery::Result &result, discovery->discoveryResults()) {
-                ThingDescriptor descriptor(energyControlThingClassId, "Amperfied Energy Control", QString("Modbus ID: %1").arg(result.modbusId));
+            foreach (const DiscoveryRtu::Result &result, discovery->discoveryResults()) {
+                ThingDescriptor descriptor(solaxEvcThingClassId, result.model, QString("Modbus ID: %1").arg(result.modbusId));
 
                 ParamList params{
-                    {energyControlThingRtuMasterParamTypeId, result.modbusRtuMasterId},
-                    {energyControlThingModbusIdParamTypeId, result.modbusId}
+                    {solaxEvcThingRtuMasterParamTypeId, result.modbusRtuMasterId},
+                    {solaxEvcThingModbusIdParamTypeId, result.modbusId}
                 };
                 descriptor.setParams(params);
 
@@ -73,34 +73,6 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
             info->finish(Thing::ThingErrorNoError);
         });
 
-        discovery->startDiscovery();
-
-        return;
-    }
-
-    if (info->thingClassId() == connectHomeThingClassId) {
-        ConnectHomeDiscovery *discovery = new ConnectHomeDiscovery(hardwareManager()->networkDeviceDiscovery(), info);
-        connect(discovery, &ConnectHomeDiscovery::discoveryFinished, info, [this, info, discovery](){
-            qCInfo(dcAmperfied()) << "Discovery results:" << discovery->discoveryResults().count();
-
-            foreach (const ConnectHomeDiscovery::Result &result, discovery->discoveryResults()) {
-                ThingDescriptor descriptor(connectHomeThingClassId, "Amperfied connect.home", QString("MAC: %1").arg(result.networkDeviceInfo.macAddress()));
-
-                ParamList params{
-                    {connectHomeThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress()}
-                };
-                descriptor.setParams(params);
-
-                Thing *existingThing = myThings().findByParams(params);
-                if (existingThing) {
-                    descriptor.setThingId(existingThing->id());
-                }
-                info->addThingDescriptor(descriptor);
-            }
-
-            info->finish(Thing::ThingErrorNoError);
-
-        });
         discovery->startDiscovery();
     }
 }
@@ -108,63 +80,16 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
 void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
-    qCDebug(dcAmperfied()) << "Setup" << thing << thing->params();
+    qCDebug(dcSolaxEvc()) << "Setup" << thing << thing->params();
 
-    if (thing->thingClassId() == energyControlThingClassId) {
+    if (thing->thingClassId() == solaxEvcThingClassId) {
 
         if (m_rtuConnections.contains(thing)) {
-            qCDebug(dcAmperfied()) << "Reconfiguring existing thing" << thing->name();
+            qCDebug(dcSolaxEvc()) << "Reconfiguring existing thing" << thing->name();
             m_rtuConnections.take(thing)->deleteLater();
         }
 
         setupRtuConnection(info);
-        return;
-    }
-
-
-    if (thing->thingClassId() == connectHomeThingClassId) {
-        m_setupTcpConnectionRunning = false;
-
-        if (m_tcpConnections.contains(thing)) {
-            qCDebug(dcAmperfied()) << "Reconfiguring existing thing" << thing->name();
-            AmperfiedModbusTcpConnection *connection = m_tcpConnections.take(thing);
-            connection->disconnectDevice(); // Make sure it does not interfere with new connection we are about to create.
-            connection->deleteLater();
-        }
-
-        if (m_monitors.contains(thing))
-            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-
-        // Test for null, because registering a monitor with null will cause a segfault. Mac is loaded from config, you can't be sure config contains a valid mac.
-        MacAddress macAddress = MacAddress(thing->paramValue(connectHomeThingMacAddressParamTypeId).toString());
-        if (macAddress.isNull()) {
-            qCWarning(dcAmperfied()) << "Failed to set up Amperfied connect.home because the MAC address is not valid:" << thing->paramValue(connectHomeThingMacAddressParamTypeId).toString() << macAddress.toString();
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
-            return;
-        }
-
-        NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
-        m_monitors.insert(thing, monitor);
-        connect(info, &ThingSetupInfo::aborted, monitor, [=](){
-            if (m_monitors.contains(thing)) {
-                qCDebug(dcAmperfied()) << "Unregistering monitor because setup has been aborted.";
-                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-            }
-        });
-
-        qCDebug(dcAmperfied()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(connectHomeThingMacAddressParamTypeId).toString();
-        if (monitor->reachable()) {
-            setupTcpConnection(info);
-        } else {
-            connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [this, info](bool reachable){
-                qCDebug(dcAmperfied()) << "Monitor reachable changed!" << reachable;
-                if (reachable && !m_setupTcpConnectionRunning) {
-                    // The monitor is unreliable and can change reachable true->false->true before setup is done. Make sure this runs only once.
-                    m_setupTcpConnectionRunning = true;
-                    setupTcpConnection(info);
-                }
-            });
-        }
     }
 }
 
@@ -172,15 +97,11 @@ void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
 {
     Q_UNUSED(thing)
     if (!m_pluginTimer) {
-        qCDebug(dcAmperfied()) << "Starting plugin timer...";
+        qCDebug(dcSolaxEvc()) << "Starting plugin timer...";
         m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
-            foreach(AmperfiedModbusRtuConnection *connection, m_rtuConnections) {
-                qCDebug(dcAmperfied()) << "Updating connection" << connection->modbusRtuMaster() << connection->slaveId();
-                connection->update();
-            }
-            foreach(AmperfiedModbusTcpConnection *connection, m_tcpConnections) {
-                qCDebug(dcAmperfied()) << "Updating connection" << connection->hostAddress();
+            foreach(SolaxEvcModbusRtuConnection *connection, m_rtuConnections) {
+                qCDebug(dcSolaxEvc()) << "Updating connection" << connection->modbusRtuMaster() << connection->slaveId();
                 connection->update();
             }
         });
@@ -201,7 +122,7 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(energyControlPowerStateTypeId, power);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcAmperfied()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcSolaxEvc()) << "Error setting power:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -217,7 +138,7 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(energyControlMaxChargingCurrentStateTypeId, max / 10);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcAmperfied()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcSolaxEvc()) << "Error setting power:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -235,7 +156,7 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(connectHomePowerStateTypeId, power);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcAmperfied()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcSolaxEvc()) << "Error setting power:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -251,7 +172,7 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
                     info->thing()->setStateValue(connectHomeMaxChargingCurrentStateTypeId, max / 10);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcAmperfied()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcSolaxEvc()) << "Error setting power:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
@@ -291,14 +212,14 @@ void IntegrationPluginSolaxEvc::setupRtuConnection(ThingSetupInfo *info)
     Thing *thing = info->thing();
     ModbusRtuMaster *master = hardwareManager()->modbusRtuResource()->getModbusRtuMaster(thing->paramValue(energyControlThingRtuMasterParamTypeId).toUuid());
     if (!master) {
-        qCWarning(dcAmperfied()) << "The Modbus Master is not available any more.";
+        qCWarning(dcSolaxEvc()) << "The Modbus Master is not available any more.";
         info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("The modbus RTU connection is not available."));
         return;
     }
     quint16 modbusId = thing->paramValue(energyControlThingModbusIdParamTypeId).toUInt();
     AmperfiedModbusRtuConnection *connection = new AmperfiedModbusRtuConnection(master, modbusId, thing);
     connect(info, &ThingSetupInfo::aborted, connection, [=](){
-        qCDebug(dcAmperfied()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
+        qCDebug(dcSolaxEvc()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
         connection->deleteLater();
     });
 
@@ -322,7 +243,7 @@ void IntegrationPluginSolaxEvc::setupRtuConnection(ThingSetupInfo *info)
     connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
             if (connection->version() < 0x0107) {
-                qCWarning(dcAmperfied()) << "We require at least version 1.0.7.";
+                qCWarning(dcSolaxEvc()) << "We require at least version 1.0.7.";
                 info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware 1.0.7."));
                 return;
             }
@@ -335,7 +256,7 @@ void IntegrationPluginSolaxEvc::setupRtuConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &AmperfiedModbusRtuConnection::updateFinished, thing, [connection, thing](){
-        qCDebug(dcAmperfied()) << "Updated:" << connection;
+        qCDebug(dcSolaxEvc()) << "Updated:" << connection;
 
         if (connection->chargingCurrent() == 0) {
             thing->setStateValue(energyControlPowerStateTypeId, false);
@@ -363,7 +284,7 @@ void IntegrationPluginSolaxEvc::setupRtuConnection(ThingSetupInfo *info)
         case AmperfiedModbusRtuConnection::ChargingStateE:
         case AmperfiedModbusRtuConnection::ChargingStateError:
         case AmperfiedModbusRtuConnection::ChargingStateF:
-            qCWarning(dcAmperfied()) << "Unhandled charging state:" << connection->chargingState();
+            qCWarning(dcSolaxEvc()) << "Unhandled charging state:" << connection->chargingState();
         }
 
         int phaseCount = 0;
@@ -393,12 +314,12 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
     // This setup method checks the version number of the wallbox before giving the signal that info finished successfully. The version number is read
     // from a modbus register. Modbus calls can fail, making the setup fail. As a result, care needs to be taken to clean up all objects that were created.
 
-    qCDebug(dcAmperfied()) << "setting up TCP connection";
+    qCDebug(dcSolaxEvc()) << "setting up TCP connection";
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
     AmperfiedModbusTcpConnection *connection = new AmperfiedModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, thing);
     connect(info, &ThingSetupInfo::aborted, connection, [=](){
-        qCDebug(dcAmperfied()) << "Cleaning up ModbusTCP connection because setup has been aborted.";
+        qCDebug(dcSolaxEvc()) << "Cleaning up ModbusTCP connection because setup has been aborted.";
         connection->disconnectDevice();
         connection->deleteLater();
     });
@@ -409,7 +330,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
         // This may trigger before setup finished, but should only execute after setup. Check m_tcpConnections for thing, because that key won't
         // be in there before setup finished.
         if (m_tcpConnections.contains(thing)) {
-            qCDebug(dcAmperfied()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+            qCDebug(dcSolaxEvc()) << "Network device monitor reachable changed for" << thing->name() << reachable;
             if (!thing->stateValue(connectHomeConnectedStateTypeId).toBool()) {
                 // connectedState switches to false when modbus calls don't work. This code should not execute when modbus is still working.
                 if (reachable) {
@@ -424,7 +345,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &AmperfiedModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable){
-        qCDebug(dcAmperfied()) << "Reachable changed to" << reachable;
+        qCDebug(dcSolaxEvc()) << "Reachable changed to" << reachable;
         thing->setStateValue(connectHomeConnectedStateTypeId, reachable);
         if (reachable) {
             connection->initialize();
@@ -439,9 +360,9 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &AmperfiedModbusTcpConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
-            qCDebug(dcAmperfied()) << "Initialization finished sucessfully";
+            qCDebug(dcSolaxEvc()) << "Initialization finished sucessfully";
             if (connection->version() < 0x0107) {
-                qCWarning(dcAmperfied()) << "We require at least version 1.0.7.";
+                qCWarning(dcSolaxEvc()) << "We require at least version 1.0.7.";
                 info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this wallbox is too old. Please update the wallbox to at least firmware 1.0.7."));
                 return;
             }
@@ -454,7 +375,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &AmperfiedModbusTcpConnection::updateFinished, thing, [connection, thing](){
-        qCDebug(dcAmperfied()) << "Updated:" << connection;
+        qCDebug(dcSolaxEvc()) << "Updated:" << connection;
 
         if (connection->chargingCurrent() == 0) {
             thing->setStateValue(connectHomePowerStateTypeId, false);
@@ -482,7 +403,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
         case AmperfiedModbusTcpConnection::ChargingStateE:
         case AmperfiedModbusTcpConnection::ChargingStateError:
         case AmperfiedModbusTcpConnection::ChargingStateF:
-            qCWarning(dcAmperfied()) << "Unhandled charging state:" << connection->chargingState();
+            qCWarning(dcSolaxEvc()) << "Unhandled charging state:" << connection->chargingState();
         }
 
         int phaseCount = 0;

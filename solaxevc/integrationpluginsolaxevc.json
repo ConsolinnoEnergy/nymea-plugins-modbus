@@ -88,6 +88,24 @@
                             "cached": true
                         },
                         {
+                            "id": "a0b733e7-7ee5-4bdf-8c1a-ec7e9705524f",
+                            "name": "sessionEnergy",
+                            "displayName": "Session energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "c44e12df-ea75-4c79-bfc5-ed6ee860e7ed",
+                            "name": "chargingTime",
+                            "displayName": "Charging time",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "37e2cb34-3fe0-4e8b-a1ee-e65ec34b7cf4",
                             "name": "power",
                             "displayName": "Charging enabled",
@@ -109,11 +127,18 @@
                             "writable": true
                         },
                         {
-                            "id": "a0b733e7-7ee5-4bdf-8c1a-ec7e9705524f",
-                            "name": "sessionEnergy",
-                            "displayName": "Session energy",
-                            "type": "double",
-                            "unit": "KiloWattHour",
+                            "id": "3dc608f1-3ec2-41a5-8327-f83ef12f4d2f",
+                            "name": "state",
+                            "displayName": "State",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        }
+                        {
+                            "id": "1897fda3-b5e4-4449-bff4-32333325b7c4",
+                            "name": "faultCode",
+                            "displayName": "Fault code",
+                            "type": "uint",
                             "defaultValue": 0,
                             "cached": false
                         },
