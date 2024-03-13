@@ -178,6 +178,8 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 connection->initialize();
             } else {
                 thing->setStateValue(kacosunspecInverterTCPConnectedStateTypeId, false);
+                thing->setStateValue(kacosunspecInverterTCPCurrentPowerStateTypeId, 0);
+                thing->setStateValue(kacosunspecInverterTCPOperatingStateStateTypeId, "Off");
             }
         });
 
@@ -266,7 +268,9 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             if (reachable) {
                 qCDebug(dcKacoSunSpec()) << "Device" << thing << "is reachable via Modbus RTU on" << connection->modbusRtuMaster()->serialPort();
             } else {
-                qCWarning(dcKacoSunSpec()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
+                qCDebug(dcKacoSunSpec()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
+                thing->setStateValue(kacosunspecInverterRTUCurrentPowerStateTypeId, 0);
+                thing->setStateValue(kacosunspecInverterRTUOperatingStateStateTypeId, "Off");
             }
         });
 
