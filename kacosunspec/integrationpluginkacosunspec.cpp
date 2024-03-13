@@ -106,26 +106,108 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
             return;
         }
 
-        uint slaveAddress = info->params().paramValue(kacosunspecInverterRTUDiscoverySlaveAddressParamTypeId).toUInt();
-        if (slaveAddress > 247 || slaveAddress < 3) {
+        uint modbusId = info->params().paramValue(kacosunspecInverterRTUDiscoverySlaveAddressParamTypeId).toUInt();
+        if (modbusId > 247 || modbusId < 3) {
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The Modbus slave address must be a value between 3 and 247."));
             return;
         }
 
-        foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
+        QList<ModbusRtuMaster*> candidateMasters;
+        foreach (ModbusRtuMaster *master, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
+            if (master->baudrate() == 9600 && master->dataBits() == 8 && master->stopBits() == 1 && master->parity() == QSerialPort::NoParity) {
+                candidateMasters.append(master);
+            }
+        }
+
+        if (candidateMasters.isEmpty()) {
+            qCWarning(dcKacoSunSpec()) << "No modbus RTU master with the required configuration found (baud rate 9600, data bits 8, stop bits 1, parity none). Need a modbus RTU masters with these parameters for the plugin to work.";
+            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("No modbus RTU master with the required configuration found (baud rate 9600, data bits 8, stop bits 1, parity none). Need a modbus RTU masters with these parameters for the plugin to work."));
+            return;
+        }
+
+        m_openReplies = 0;
+        foreach (ModbusRtuMaster *modbusMaster, candidateMasters) {
             qCDebug(dcKacoSunSpec()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
             if (!modbusMaster->connected())
                 continue;
 
-            ThingDescriptor descriptor(info->thingClassId(), "Kaco SunSpec Inverter", QString::number(slaveAddress) + " " + modbusMaster->serialPort());
-            ParamList params;
-            params << Param(kacosunspecInverterRTUThingSlaveAddressParamTypeId, slaveAddress);
-            params << Param(kacosunspecInverterRTUThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
-            descriptor.setParams(params);
-            info->addThingDescriptor(descriptor);
+            QUuid modbusMasterUuid{modbusMaster->modbusUuid()};
+
+            // Check already configured devices to filter them out.
+            if (!m_rtuConnections.isEmpty()) {
+                bool alreadyConfigured{false};
+                qCDebug(dcKacoSunSpec()) << "Checking existing things to see if this device is already configured";
+                foreach (Thing *configuredThing, myThings()) {
+                    // Skip if we already found a duplicate.
+                    if (alreadyConfigured)
+                        continue;
+
+                    // A thing is created as soon as discovery starts. Check if the thing is in m_rtuConnections, to only look at things that are configured.
+                    if (configuredThing->thingClassId() == kacosunspecInverterRTUThingClassId && m_rtuConnections.contains(configuredThing)) {
+                        // Only check things on the same modbus Master.
+                        QUuid uuid = configuredThing->paramValue(kacosunspecInverterRTUThingModbusMasterUuidParamTypeId).toUuid();
+                        if (modbusMasterUuid == uuid) {
+                            uint existingModbusId{configuredThing->paramValue(kacosunspecInverterRTUThingSlaveAddressParamTypeId).toUInt()};
+                            if (modbusId == existingModbusId)
+                                alreadyConfigured = true;
+                        }
+                    }
+                }
+
+                if (alreadyConfigured) {
+                    qCDebug(dcKacoSunSpec()) << "The inverter with modbus ID" << modbusId << "is already configured on this modbus master" << modbusMaster;
+                    continue;
+                }
+            }
+
+            m_openReplies++;
+            ModbusRtuReply *reply = modbusMaster->readHoldingRegister(modbusId, 40070);
+            connect(reply, &ModbusRtuReply::finished, this, [=](){
+                m_openReplies--;
+                qCDebug(dcKacoSunSpec()) << "Reading test value" << reply->error() << reply->result();
+                if (reply->error() != ModbusRtuReply::NoError || reply->result().length() == 0) {
+                    qCDebug(dcKacoSunSpec()) << "Error reading holding register 40070 (SunSpec model 103). This is not a Kaco SunSpec inverter.";
+                    if (m_openReplies <= 0) {
+                        emit discoveryRtuFinished();
+                    }
+                    return;
+                }
+
+                quint16 registerValue = reply->result().first();
+                if (registerValue == 103) {
+                    qCDebug(dcKacoSunSpec()) << "Holding register 40070 has the expected value 103. This device is a Kaco SunSpec inverter. Adding it to the list.";
+
+                    ThingDescriptor descriptor(info->thingClassId(), "Kaco SunSpec Inverter", QString::number(modbusId) + " " + modbusMaster->serialPort());
+                    ParamList params;
+                    params << Param(kacosunspecInverterRTUThingSlaveAddressParamTypeId, modbusId);
+                    params << Param(kacosunspecInverterRTUThingModbusMasterUuidParamTypeId, modbusMasterUuid);
+                    descriptor.setParams(params);
+                    info->addThingDescriptor(descriptor);
+                } else {
+                    qCDebug(dcKacoSunSpec()) << "Value in holding register 40070 (SunSpec model 103) should be 103, but the value is"
+                                           << registerValue << ". This device is not a Kaco SunSpec inverter.";
+                }
+                if (m_openReplies <= 0) {
+                    emit discoveryRtuFinished();
+                }
+            });
         }
 
-        info->finish(Thing::ThingErrorNoError);
+        if (m_openReplies) {
+            qCDebug(dcKacoSunSpec()) << "Waiting for modbus RTU replies.";
+            connect(this, &IntegrationPluginKacoSunSpec::discoveryRtuFinished, this, [this, info](){
+                info->finish(Thing::ThingErrorNoError);
+            });
+//            QTimer gracePeriodTimer;
+//            gracePeriodTimer.setSingleShot(true);
+//            gracePeriodTimer.setInterval(3000);
+//            connect(&gracePeriodTimer, &QTimer::timeout, this, [this, info](){
+//                qCDebug(dcKacoSunSpec()) << "Discovery: Grace period timer triggered.";
+//                info->finish(Thing::ThingErrorNoError);
+//            });
+        } else {
+            info->finish(Thing::ThingErrorNoError);
+        }
     }
 }
 
