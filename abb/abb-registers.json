@@ -2,7 +2,7 @@
     "className": "ABB",
     "protocol": "BOTH",
     "endianness": "BigEndian",
-    "errorLimitUntilNotReachable": 15,
+    "errorLimitUntilNotReachable": 20,
     "checkReachableRegister": "voltageL1",
     "enums": [
         {

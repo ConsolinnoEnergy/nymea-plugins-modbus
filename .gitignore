@@ -4,3 +4,5 @@ doc/html
 *.qm
 __pycache__
 settings.json
+.qmake.stash
+Makefile
