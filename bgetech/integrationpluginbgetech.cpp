@@ -33,6 +33,7 @@
 
 #include "integrationpluginbgetech.h"
 #include "plugininfo.h"
+#include "discoveryrtu.h"
 
 IntegrationPluginBGETech::IntegrationPluginBGETech()
 {
@@ -63,56 +64,97 @@ void IntegrationPluginBGETech::init()
 
 void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
 {
-    qCDebug(dcBgeTech()) << "Discover modbus RTU resources...";
-    if (hardwareManager()->modbusRtuResource()->modbusRtuMasters().isEmpty()) {
-        info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No Modbus RTU interface available. Please set up the Modbus RTU interface first."));
+    if (info->thingClassId() == sdm630ThingClassId) {
+        uint modbusId = info->params().paramValue(sdm630DiscoveryModbusIdParamTypeId).toUInt();
+        DiscoveryRtu *discovery = new DiscoveryRtu(hardwareManager()->modbusRtuResource(), modbusId, info);
+
+        connect(discovery, &DiscoveryRtu::discoveryFinished, info, [this, info, discovery, modbusId](bool modbusMasterAvailable){
+            if (!modbusMasterAvailable) {
+                info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master found. Please set up a modbus RTU master first."));
+                return;
+            }
+
+            qCInfo(dcBgeTech()) << "Discovery results:" << discovery->discoveryResults().count();
+
+            foreach (const DiscoveryRtu::Result &result, discovery->discoveryResults()) {
+
+                // Use result.meterCode() to test if this is a SDM630.
+                if (result.meterCode != 112) {
+                    qCDebug(dcBgeTech()) << "Found a smartmeter, but it is not an SDM630. The meter code for an SDM630 is 112. Received meter code is" << result.meterCode;
+                    continue;
+                }
+
+                QString serialNumberString{QString::number(result.serialNumber)};
+                ThingDescriptor descriptor(info->thingClassId(), "SDM630 Smartmeter", QString::number(modbusId) + " " + result.serialPort);
+
+                ParamList params{
+                    {sdm630ThingModbusIdParamTypeId, modbusId},
+                    {sdm630ThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
+                    {sdm630ThingSerialNumberParamTypeId, serialNumberString}
+                };
+                descriptor.setParams(params);
+
+                // Code for reconfigure. The discovery during reconfigure only displays things that have a ThingId that matches one of the things in myThings().
+                // So we need to search myThings() for the thing that is currently reconfigured to get the ThingId, then set it.
+                Things existingThings = myThings().filterByThingClassId(sdm630ThingClassId).filterByParam(sdm630ThingSerialNumberParamTypeId, serialNumberString);
+                if (!existingThings.isEmpty()) {
+                    descriptor.setThingId(existingThings.first()->id());
+                }
+
+                info->addThingDescriptor(descriptor);
+            }
+
+            info->finish(Thing::ThingErrorNoError);
+        });
+
+        discovery->startDiscovery();
         return;
     }
 
-    if (info->thingClassId() == sdm630ThingClassId) {
-        uint slaveAddress = info->params().paramValue(sdm630DiscoverySlaveAddressParamTypeId).toUInt();
-        if (slaveAddress > 254 || slaveAddress == 0) {
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The Modbus slave address must be a value between 1 and 254."));
-            return;
-        }
+    if (info->thingClassId() == sdm72ThingClassId) {
+        uint modbusId = info->params().paramValue(sdm72DiscoveryModbusIdParamTypeId).toUInt();
+        DiscoveryRtu *discovery = new DiscoveryRtu(hardwareManager()->modbusRtuResource(), modbusId, info);
 
-        foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
-            qCDebug(dcBgeTech()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
-            if (!modbusMaster->connected())
-                continue;
+        connect(discovery, &DiscoveryRtu::discoveryFinished, info, [this, info, discovery, modbusId](bool modbusMasterAvailable){
+            if (!modbusMasterAvailable) {
+                info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master found. Please set up a modbus RTU master first."));
+                return;
+            }
 
-            ThingDescriptor descriptor(info->thingClassId(), "SDM630", QString::number(slaveAddress) + " " + modbusMaster->serialPort());
-            ParamList params;
-            params << Param(sdm630ThingSlaveAddressParamTypeId, slaveAddress);
-            params << Param(sdm630ThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
-            descriptor.setParams(params);
-            info->addThingDescriptor(descriptor);
-        }
+            qCInfo(dcBgeTech()) << "Discovery results:" << discovery->discoveryResults().count();
 
-        info->finish(Thing::ThingErrorNoError);
-        return;
-    } else if (info->thingClassId() == sdm72ThingClassId) {
-        uint slaveAddress = info->params().paramValue(sdm72DiscoverySlaveAddressParamTypeId).toUInt();
-        if (slaveAddress > 254 || slaveAddress == 0) {
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The Modbus slave address must be a value between 1 and 254."));
-            return;
-        }
+            foreach (const DiscoveryRtu::Result &result, discovery->discoveryResults()) {
 
-        foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
-            qCDebug(dcBgeTech()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
-            if (!modbusMaster->connected())
-                continue;
+                // Use result.meterCode() to test if this is a SDM72.
+                if (result.meterCode != 137) {
+                    qCDebug(dcBgeTech()) << "Found a smartmeter, but it is not an SDM72. The meter code for an SDM72 is 137. Received meter code is" << result.meterCode;
+                    continue;
+                }
 
-            ThingDescriptor descriptor(info->thingClassId(), "SDM72", QString::number(slaveAddress) + " " + modbusMaster->serialPort());
-            ParamList params;
-            params << Param(sdm72ThingSlaveAddressParamTypeId, slaveAddress);
-            params << Param(sdm72ThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
-            descriptor.setParams(params);
-            info->addThingDescriptor(descriptor);
-        }
+                QString serialNumberString{QString::number(result.serialNumber)};
+                ThingDescriptor descriptor(info->thingClassId(), "SDM72 Smartmeter", QString::number(modbusId) + " " + result.serialPort);
 
-        info->finish(Thing::ThingErrorNoError);
-        return;
+                ParamList params{
+                    {sdm72ThingModbusIdParamTypeId, modbusId},
+                    {sdm72ThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
+                    {sdm72ThingSerialNumberParamTypeId, serialNumberString}
+                };
+                descriptor.setParams(params);
+
+                // Code for reconfigure. The discovery during reconfigure only displays things that have a ThingId that matches one of the things in myThings().
+                // So we need to search myThings() for the thing that is currently reconfigured to get the ThingId, then set it.
+                Things existingThings = myThings().filterByThingClassId(sdm72ThingClassId).filterByParam(sdm72ThingSerialNumberParamTypeId, serialNumberString);
+                if (!existingThings.isEmpty()) {
+                    descriptor.setThingId(existingThings.first()->id());
+                }
+
+                info->addThingDescriptor(descriptor);
+            }
+
+            info->finish(Thing::ThingErrorNoError);
+        });
+
+        discovery->startDiscovery();
     }
 }
 
@@ -122,7 +164,7 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
     qCDebug(dcBgeTech()) << "Setup thing" << thing << thing->params();
 
     if (thing->thingClassId() == sdm630ThingClassId) {
-        uint address = thing->paramValue(sdm630ThingSlaveAddressParamTypeId).toUInt();
+        uint address = thing->paramValue(sdm630ThingModbusIdParamTypeId).toUInt();
         if (address > 254 || address == 0) {
             qCWarning(dcBgeTech()) << "Setup failed, slave address is not valid" << address;
             info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 254."));
@@ -240,7 +282,7 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         info->finish(Thing::ThingErrorNoError);
 
     } else if (thing->thingClassId() == sdm72ThingClassId) {
-        uint address = thing->paramValue(sdm72ThingSlaveAddressParamTypeId).toUInt();
+        uint address = thing->paramValue(sdm72ThingModbusIdParamTypeId).toUInt();
         if (address > 254 || address == 0) {
             qCWarning(dcBgeTech()) << "Setup failed, slave address is not valid" << address;
             info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 254."));
