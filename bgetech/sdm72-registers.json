@@ -180,6 +180,32 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "serialAndMeterCode",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "serialNumber",
+                    "address": 64512,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Serial number",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCode",
+                    "address": 64514,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter code",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         }
     ]
 }

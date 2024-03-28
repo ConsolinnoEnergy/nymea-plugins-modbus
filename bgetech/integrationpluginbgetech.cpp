@@ -184,11 +184,56 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         }
 
         Sdm630ModbusRtuConnection *sdmConnection = new Sdm630ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
-        connect(sdmConnection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
-            if (connected) {
-                qCDebug(dcBgeTech()) << "Modbus RTU resource connected" << thing << sdmConnection->modbusRtuMaster()->serialPort();
+        connect(info, &ThingSetupInfo::aborted, sdmConnection, [=](){
+            qCDebug(dcBgeTech()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
+            sdmConnection->deleteLater();
+        });
+
+        connect(sdmConnection, &Sdm630ModbusRtuConnection::reachableChanged, thing, [sdmConnection, thing](bool reachable){
+            if (reachable) {
+                qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is sending data.";
+                sdmConnection->initialize();
             } else {
-                qCWarning(dcBgeTech()) << "Modbus RTU resource disconnected" << thing << sdmConnection->modbusRtuMaster()->serialPort();
+                thing->setStateValue(sdm630ConnectedStateTypeId, false);
+                qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is not responding.";
+                thing->setStateValue(sdm630CurrentPowerStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPhaseAStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPhaseBStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPhaseCStateTypeId, 0);
+                thing->setStateValue(sdm630VoltagePhaseAStateTypeId, 0);
+                thing->setStateValue(sdm630VoltagePhaseBStateTypeId, 0);
+                thing->setStateValue(sdm630VoltagePhaseCStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPowerPhaseAStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPowerPhaseBStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPowerPhaseCStateTypeId, 0);
+                thing->setStateValue(sdm630FrequencyStateTypeId, 0);
+            }
+        });
+
+        connect(sdmConnection, &Sdm630ModbusRtuConnection::initializationFinished, thing, [sdmConnection, thing](bool success){
+            if (success) {
+                thing->setStateValue(sdm630ConnectedStateTypeId, true);
+
+
+                // Disabling the auto-standby as it will shut down modbus
+                //connection->setStandby(AmperfiedModbusRtuConnection::StandbyStandbyDisabled);
+            } else {
+                // Do some connection handling here? Timer to try again later? Stop sending modbus calls until timer triggers?
+            }
+        });
+
+        connect(sdmConnection, &Sdm630ModbusRtuConnection::initializationFinished, info, [this, info, sdmConnection](bool success){
+            if (success) {
+                if (sdmConnection->meterCode() != 112) {
+                    qCWarning(dcBgeTech()) << "This does not seem to be a SDM630 smartmeter.";
+                    info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("This does not seem to be a SDM630 smartmeter. Please reconfigure the device."));
+                    return;
+                }
+                m_sdm630Connections.insert(info->thing(), sdmConnection);
+                info->finish(Thing::ThingErrorNoError);
+                sdmConnection->update();
+            } else {
+                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The SDM630 smartmeter is not responding"));
             }
         });
 
@@ -206,7 +251,6 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
             thing->setStateValue(sdm630VoltagePhaseAStateTypeId, voltagePhaseA);
-            thing->setStateValue(sdm630ConnectedStateTypeId, true);
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::voltagePhaseBChanged, this, [=](float voltagePhaseB){
@@ -242,7 +286,7 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
                 qCWarning(dcBgeTech()) << "Total energy consumed value is smaller than the previous value. Skipping value.";
                 return;
             }
-        thing->setStateValue(sdm630TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
+            thing->setStateValue(sdm630TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float totalEnergyProduced){
@@ -250,7 +294,7 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
                 qCWarning(dcBgeTech()) << "Total energy produced value is smaller than the previous value. Skipping value.";
                 return;
             }
-        thing->setStateValue(sdm630TotalEnergyProducedStateTypeId, totalEnergyProduced);
+            thing->setStateValue(sdm630TotalEnergyProducedStateTypeId, totalEnergyProduced);
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::energyProducedPhaseAChanged, this, [=](float energyProducedPhaseA){
@@ -276,10 +320,6 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         connect(sdmConnection, &Sdm630ModbusRtuConnection::energyConsumedPhaseCChanged, this, [=](float energyConsumedPhaseC){
             thing->setStateValue(sdm630EnergyConsumedPhaseCStateTypeId, energyConsumedPhaseC);
         });
-
-        // FIXME: try to read before setup success
-        m_sdm630Connections.insert(thing, sdmConnection);
-        info->finish(Thing::ThingErrorNoError);
 
     } else if (thing->thingClassId() == sdm72ThingClassId) {
         uint address = thing->paramValue(sdm72ThingModbusIdParamTypeId).toUInt();
