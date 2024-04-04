@@ -53,7 +53,7 @@ private:
 
     struct MeterStates {
         bool modbusReachable {false};
-        bool meterCommStatus {false};
+        bool meterCommStatus {true};
     };
 
     struct BatteryStates {
