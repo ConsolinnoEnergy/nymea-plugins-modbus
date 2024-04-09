@@ -353,3 +353,12 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Webasto Live wallboxes
  This package contains the nymea integration plugin for wallboxes made
  by Webasto.
+
+Package: nymea-plugin-dvmodbusir
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Device dvModbusIR read-out adapters
+ This package contains the nymea integration plugin for read-out adapters made
+ by Device GmbH.
