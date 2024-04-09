@@ -13,7 +13,7 @@
                     "displayName": "DvModbusIR",
                     "id": "e4babb85-8679-40f0-b6e7-7fda422117b0",
                     "createMethods": ["discovery"],
-                    "interfaces": ["energymeter", "connectable"],
+                    "interfaces": ["smartmeterconsumer", "smartmeterproducer", "connectable"],
                     "discoveryParamTypes": [
                         {
                             "id": "3646c862-2c78-4338-a41b-4f84a019b7ab",
@@ -74,24 +74,6 @@
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": "0"
-                        },
-                        {
-                            "id": "68f8aac9-d49e-4659-8547-8863e76b69d7",
-                            "name": "currentPhaseA",
-                            "displayName": "Current Phase A",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": "0",
-                            "cached": false
-                        },
-                        {
-                            "id": "1bfe9206-93ce-4682-bc8b-394a39348775",
-                            "name": "voltagePhaseA",
-                            "displayName": "Voltage Phase A",
-                            "type": "double",
-                            "unit": "Volt",
-                            "defaultValue": "0",
-                            "cached": false
                         },
                         {
                             "id": "b36ed4a0-9271-433f-98a1-1fcd3c004915",
