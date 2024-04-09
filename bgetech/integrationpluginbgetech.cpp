@@ -101,6 +101,9 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                     descriptor.setThingId(existingThings.first()->id());
                 }
 
+                // ToDo: Don't display SDM630 that are already configured in the discovery. This will be tricky, as the SDM630 has multiple plugins (inverter, consumer).
+                // myThings() only has the configured devices of this plugin. -> Solution: need to migrate the other plugins into this one.
+
                 info->addThingDescriptor(descriptor);
             }
 
@@ -165,9 +168,9 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
     if (thing->thingClassId() == sdm630ThingClassId) {
         uint address = thing->paramValue(sdm630ThingModbusIdParamTypeId).toUInt();
-        if (address > 254 || address == 0) {
+        if (address > 247 || address == 0) {
             qCWarning(dcBgeTech()) << "Setup failed, slave address is not valid" << address;
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 254."));
+            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
             return;
         }
 
@@ -190,11 +193,11 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::reachableChanged, thing, [sdmConnection, thing](bool reachable){
+            thing->setStateValue(sdm630ConnectedStateTypeId, reachable);
             if (reachable) {
                 qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is sending data.";
                 sdmConnection->initialize();
             } else {
-                thing->setStateValue(sdm630ConnectedStateTypeId, false);
                 qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is not responding.";
                 thing->setStateValue(sdm630CurrentPowerStateTypeId, 0);
                 thing->setStateValue(sdm630CurrentPhaseAStateTypeId, 0);
@@ -212,13 +215,16 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::initializationFinished, thing, [sdmConnection, thing](bool success){
             if (success) {
-                thing->setStateValue(sdm630ConnectedStateTypeId, true);
+                QString serialNumberString{QString::number(sdmConnection->serialNumber())};
+                int stringsNotEqual = QString::compare(serialNumberString, thing->paramValue(sdm630ThingSerialNumberParamTypeId), Qt::CaseInsensitive);  // if strings are equal, stringsNotEqual should be 0.
+                if (stringsNotEqual) {
+                    // The SDM630 found is a different one than configured. We assume the SDM630 was replaced, and the new device should use this config.
+                    // Step 1: update the serial number.
+                    info->thing()->setParamValue(sdm630ThingSerialNumberParamTypeId, serialNumberString);
 
-
-                // Disabling the auto-standby as it will shut down modbus
-                //connection->setStandby(AmperfiedModbusRtuConnection::StandbyStandbyDisabled);
-            } else {
-                // Do some connection handling here? Timer to try again later? Stop sending modbus calls until timer triggers?
+                    // Todo: Step 2: search existing things if there is one with this serial number. If yes, that thing should be deleted. Otherwise there
+                    // will be undefined behaviour when using reconfigure.
+                }
             }
         });
 
@@ -226,7 +232,7 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
             if (success) {
                 if (sdmConnection->meterCode() != 112) {
                     qCWarning(dcBgeTech()) << "This does not seem to be a SDM630 smartmeter.";
-                    info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("This does not seem to be a SDM630 smartmeter. Please reconfigure the device."));
+                    info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("This does not seem to be a SDM630 smartmeter. This is the wrong thing for that device. You need to configure the device with the correct thing."));
                     return;
                 }
                 m_sdm630Connections.insert(info->thing(), sdmConnection);
@@ -323,9 +329,9 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
     } else if (thing->thingClassId() == sdm72ThingClassId) {
         uint address = thing->paramValue(sdm72ThingModbusIdParamTypeId).toUInt();
-        if (address > 254 || address == 0) {
+        if (address > 247 || address == 0) {
             qCWarning(dcBgeTech()) << "Setup failed, slave address is not valid" << address;
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 254."));
+            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
             return;
         }
 

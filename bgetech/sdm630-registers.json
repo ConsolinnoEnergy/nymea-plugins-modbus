@@ -2,7 +2,7 @@
     "className": "Sdm630",
     "protocol": "RTU",
     "endianness": "BigEndian",
-    "errorLimitUntilNotReachable": 15,
+    "errorLimitUntilNotReachable": 3,
     "checkReachableRegister": "voltagePhaseA",
     "registers": [
         {
