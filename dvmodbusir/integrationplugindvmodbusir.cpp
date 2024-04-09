@@ -34,7 +34,7 @@ IntegrationPluginDvModbusIR::IntegrationPluginDvModbusIR()
 }
 
 /**
- * 
+ * Initialize the plugin, nothing is done
  *  
  * @param nothing
  * @return nothing
@@ -45,6 +45,14 @@ void IntegrationPluginDvModbusIR::init()
     qCDebug(dcDvModbusIR()) << "Initialize plugin.";
 }
 
+/**
+ * Discovery of dvModbusIR adapters
+ * As the Modbus address is set for each device, the address is taken from user input.
+ * This function searches for a configured modbus master and sets infos of the thing.
+ *  
+ * @param info provided by nymea
+ * @return nothing
+ */
 void IntegrationPluginDvModbusIR::discoverThings(ThingDiscoveryInfo *info)
 {
     if (info->thingClassId() == dvModbusIRThingClassId)
@@ -86,6 +94,16 @@ void IntegrationPluginDvModbusIR::discoverThings(ThingDiscoveryInfo *info)
     }
 }
 
+/**
+ * Setup the plugin.
+ * Create ModbusRtu connection and assign it to the thing.
+ * Get the serial number and device status of the dvModbusIR adapter.
+ * Additionally, get the number of the meter it is connected to.
+ * Afterwards, setup the connections.
+ *  
+ * @param info provided by nymea
+ * @return nothing
+ */
 void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
 {
     qCDebug(dcDvModbusIR()) << "Setup thing" << info->thing();
@@ -99,6 +117,7 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
 
         uint address = thing->paramValue(dvModbusIRThingModbusIdParamTypeId).toUInt();
 
+        // Get Modbus master uuid
         QUuid uuid = thing->paramValue(dvModbusIRThingModbusMasterUuidParamTypeId).toUuid();
         if (!hardwareManager()->modbusRtuResource()->hasModbusRtuMaster(uuid))
         {
@@ -113,10 +132,13 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
             m_rtuConnections.take(thing)->deleteLater();
         }
 
+        // Create modbus rtu connection
         DvModbusIRModbusRtuConnection *connection = new DvModbusIRModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
+        // Try the reachable check five times, as it might not working at first, even though the modbus connection is working
         connection->setCheckReachableRetries(5);
 
         connect(connection, &DvModbusIRModbusRtuConnection::reachableChanged, this, [=](bool reachable) {
+            // If the device is reachable, set connected state
             thing->setStateValue(dvModbusIRConnectedStateTypeId, reachable);
             if (reachable)
             {
@@ -128,12 +150,14 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
         });
 
         connect(connection, &DvModbusIRModbusRtuConnection::initializationFinished, thing, [=](bool success) {
+            // If the communication is working, get general info about the connected devices
             if (success)
             {
                 qCDebug(dcDvModbusIR()) << "dvModbusIR initialization successful.";
                 thing->setStateValue(dvModbusIRSerialNumberStateTypeId, connection->serialNumber());
                 thing->setStateValue(dvModbusIRDeviceStatusStateTypeId, connection->deviceStatus());
                 thing->setStateValue(dvModbusIRMeterIdStateTypeId, connection->meterId());
+                // Set the name of the thing to "DvIR-<meter number>"
                 thing->setName("DvIR-"+thing->stateValue(dvModbusIRMeterIdStateTypeId).toString());
             } else {
                 qCWarning(dcDvModbusIR()) << "dvModbusIR initialization failed.";
@@ -141,12 +165,14 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
             }
         });
 
+        // Connect and calculate the total produced energy
         connect(connection, &DvModbusIRModbusRtuConnection::totalProducedEnergyChanged, this, [=](quint64 totalProducedEnergy) {
             connect(connection, &DvModbusIRModbusRtuConnection::producedEnergyExponentChanged, this, [=](qint16 producedEnergyExponent) {
                 thing->setStateValue(dvModbusIRTotalEnergyProducedStateTypeId, totalProducedEnergy*qPow(10, producedEnergyExponent-3));
             });
         });
 
+        // Connect and calculate the total consumed energy
         connect(connection, &DvModbusIRModbusRtuConnection::totalConsumedEnergyChanged, this, [=](quint64 totalConsumedEnergy) {
             connect(connection, &DvModbusIRModbusRtuConnection::consumedEnergyExponentChanged, this, [=](qint16 consumedEnergyExponent) {
                 thing->setStateValue(dvModbusIRTotalEnergyConsumedStateTypeId, totalConsumedEnergy*qPow(10, consumedEnergyExponent-3));
@@ -161,7 +187,7 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
  * Executed after setup.
  * Setup the plugin timer. After 10min, get the current values from the connected meters
  *
- * @param [Thing*] thing: provided by nymea
+ * @param thing being set up
  * @return nothing
  */
 void IntegrationPluginDvModbusIR::postSetupThing(Thing *thing)
@@ -185,6 +211,13 @@ void IntegrationPluginDvModbusIR::postSetupThing(Thing *thing)
     m_pluginTimer->start();
 }
 
+/**
+ * Executed when a thing is being removed.
+ * If there are no things left, unregister pluginTimer
+ *
+ * @param thing to be removed
+ * @return nothing
+ */
 void IntegrationPluginDvModbusIR::thingRemoved(Thing *thing)
 {
     // A thing is being removed from the system. Do the required cleanup
