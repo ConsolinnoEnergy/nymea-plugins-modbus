@@ -1,2 +1,2 @@
 usr/lib/@DEB_HOST_MULTIARCH@/nymea/plugins/libnymea_integrationplugindvmodbusir.so
-dvmodbusir/translations/*ts usr/share/nymea/translations/
+dvmodbusir/translations/*qm usr/share/nymea/translations/
