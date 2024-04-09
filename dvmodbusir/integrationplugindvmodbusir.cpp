@@ -134,7 +134,7 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(dvModbusIRSerialNumberStateTypeId, connection->serialNumber());
                 thing->setStateValue(dvModbusIRDeviceStatusStateTypeId, connection->deviceStatus());
                 thing->setStateValue(dvModbusIRMeterIdStateTypeId, connection->meterId());
-                thing->setName("IR-"+thing->stateValue(dvModbusIRMeterIdStateTypeId).toString());
+                thing->setName("DvIR-"+thing->stateValue(dvModbusIRMeterIdStateTypeId).toString());
             } else {
                 qCWarning(dcDvModbusIR()) << "dvModbusIR initialization failed.";
                 connection->initialize();
@@ -171,7 +171,7 @@ void IntegrationPluginDvModbusIR::postSetupThing(Thing *thing)
 
     if (!m_pluginTimer)
     {
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(45);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10*60);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcDvModbusIR()) << "Update dvModbusIR";
             foreach(Thing *thing, myThings()) {
