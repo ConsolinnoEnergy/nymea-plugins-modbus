@@ -30,6 +30,7 @@
 
 #include "integrationpluginsolaxevc.h"
 #include "plugininfo.h"
+#include "discoverytcp.h"
 
 #include <network/networkdevicediscovery.h>
 #include <hardwaremanager.h>
@@ -41,12 +42,12 @@ IntegrationPluginSolaxEvc::IntegrationPluginSolaxEvc()
 
 void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
 {
+    Q_UNUSED(info)
 }
 
 void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 {
-    Thing *thing = info->thing();
-    qCDebug(dcSolaxEvc()) << "Setup" << thing << thing->params();
+    Q_UNUSED(info)
 }
 
 void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
@@ -56,18 +57,17 @@ void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
 
 void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
 {
+    Q_UNUSED(info)
 }
 
 void IntegrationPluginSolaxEvc::thingRemoved(Thing *thing)
 {
-    if (myThings().isEmpty() && m_pluginTimer) {
-        hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
-        m_pluginTimer = nullptr;
-    }
+    Q_UNUSED(thing)
 }
 
 void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
 {
+    Q_UNUSED(info)
 }
 
 

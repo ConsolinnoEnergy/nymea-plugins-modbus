@@ -1,10 +1,10 @@
 {
-    "name": "solaxevc",
+    "name": "solaxEvc",
     "displayName": "Solax EVC",
     "id": "ae657063-b938-4df2-9f1d-7408c2b7ae62",
     "vendors": [
         {
-            "name": "solaxevc",
+            "name": "solaxEvc",
             "displayName": "Solax EVC",
             "id": "332093ce-e2e1-4b06-96d7-8836d8cbf912",
             "thingClasses": [
