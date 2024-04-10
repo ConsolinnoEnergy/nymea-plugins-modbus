@@ -60,6 +60,7 @@ private:
 
 private:
     PluginTimer *m_pluginTimer = nullptr;
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, SolaxEvcModbusTcpConnection*> m_tcpConnections;
 
 };

@@ -75,7 +75,25 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
 
 void IntegrationPluginSolaxEvc::thingRemoved(Thing *thing)
 {
-    Q_UNUSED(thing)
+    qCDebug(dcSolaxEvc()) << "Thing removed" << thing->name();
+
+    if (m_monitors.contains(thing))
+    {
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+    }
+
+    if (m_tcpConnections.contains(thing))
+    {
+        SolaxEvcModbusTcpConnection *connection = m_tcpConnections.take(thing);
+        connection->disconnectDevice();
+        connection->deleteLater();
+    }
+
+    if (myThings().isEmpty() && m_pluginTimer)
+    {
+        hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
+        m_pluginTimer = nullptr;
+    }
 }
 
 void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
