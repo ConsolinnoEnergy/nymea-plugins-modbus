@@ -42,12 +42,50 @@ IntegrationPluginSolaxEvc::IntegrationPluginSolaxEvc()
 
 void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
 {
-    Q_UNUSED(info)
+    if (info->thingClassId() == solaxEvcThingClassId)
+    {
+        if (!hardwareManager()->networkDeviceDiscovery()->available()) {
+            qCWarning(dcSolaxEvc()) << "The network discovery is not available on this platform.";
+            info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
+            return;
+        }
+
+        // Create a discovery with the info as parent for auto deleting the object once the discovery info is done
+        SolaxEvcTCPDiscovery *discovery = new SolaxEvcTCPDiscovery(hardwareManager()->networkDeviceDiscovery(), info);
+        connect(discovery, &SolaxEvcTCPDiscovery::discoveryFinished, info, [=](){
+            foreach (const SolaxEvcTCPDiscovery::Result &result, discovery->discoveryResults()) {
+
+                ThingDescriptor descriptor(solaxEvcThingClassId, "Solax Wallbox " + result.networkDeviceInfo.address().toString());
+                qCInfo(dcSolaxEvc()) << "Discovered:" << descriptor.title() << descriptor.description();
+
+                // Check if we already have set up this device
+                Things existingThings = myThings().filterByParam(solaxEvcThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                if (existingThings.count() >= 1) {
+                    qCDebug(dcSolaxEvc()) << "This solax inverter already exists in the system:" << result.networkDeviceInfo;
+                    descriptor.setThingId(existingThings.first()->id());
+                }
+
+                ParamList params;
+                params << Param(solaxEvcThingIpAddressParamTypeId, result.networkDeviceInfo.address().toString());
+                params << Param(solaxEvcThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                params << Param(solaxEvcThingPortParamTypeId, result.port);
+                params << Param(solaxEvcThingModbusIdParamTypeId, result.modbusId);
+                descriptor.setParams(params);
+                info->addThingDescriptor(descriptor);
+            }
+
+            info->finish(Thing::ThingErrorNoError);
+        });
+
+        // Start the discovery process
+        discovery->startDiscovery();
+    }
 }
 
 void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 {
-    Q_UNUSED(info)
+    Thing *thing = info->thing();
+    qCDebug(dcSolaxEvc()) << "Setup" << thing << thing->params();
 }
 
 void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
@@ -95,10 +133,3 @@ void IntegrationPluginSolaxEvc::thingRemoved(Thing *thing)
         m_pluginTimer = nullptr;
     }
 }
-
-void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
-{
-    Q_UNUSED(info)
-}
-
-

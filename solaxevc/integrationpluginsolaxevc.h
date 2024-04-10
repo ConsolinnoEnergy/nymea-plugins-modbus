@@ -56,7 +56,6 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
-    void setupTcpConnection(ThingSetupInfo *info);
 
 private:
     PluginTimer *m_pluginTimer = nullptr;

@@ -35,6 +35,7 @@ public:
     struct Result {
         quint16 firmwareVersion;
         quint16 modbusId;
+        quint16 port;
         NetworkDeviceInfo networkDeviceInfo;
     };
 

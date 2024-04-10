@@ -15,14 +15,31 @@
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
+                       {
+                            "id": "f2089b5c-407b-47d1-a250-cd201292c769",
+                            "name": "ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "inputType": "IPv4Address",
+                            "defaultValue": "127.0.0.1",
+                            "readOnly": true
+                        },
                         {
-                            "id": "c91dd1f4-68e3-43f2-81f1-2606901073b3",
-                            "name":"rtuMaster",
-                            "displayName": "Modbus RTU master",
+                            "id": "83ffc100-a926-4590-87d4-4e69f3aa7948",
+                            "name": "macAddress",
+                            "displayName": "MAC address",
                             "type": "QString",
                             "defaultValue": "",
                             "readOnly": true
                         },
+                        {
+                            "id": "dbac37a7-f311-4083-b56f-fd0490f1afcc",
+                            "name": "port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502,
+                            "readOnly": true
+                        }, 
                         {
                             "id": "d96cd892-4bce-470e-b11c-3dca16fdeeb7",
                             "name":"modbusId",

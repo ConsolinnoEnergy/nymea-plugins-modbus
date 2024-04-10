@@ -79,6 +79,7 @@ void SolaxEvcTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDe
             {
                 Result result;
                 result.firmwareVersion = connection->firmwareVersion();
+                result.port = port;
                 result.networkDeviceInfo = networkDeviceInfo;
                 m_discoveryResults.append(result);
 
