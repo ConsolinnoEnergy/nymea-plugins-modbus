@@ -1,6 +1,6 @@
 {
     "className": "SolaxEvc",
-    "protocol": "RTU",
+    "protocol": "TCP",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 15,
     "checkReachableRegister": "firmwareVersion",

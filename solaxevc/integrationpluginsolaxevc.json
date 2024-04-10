@@ -133,7 +133,7 @@
                             "type": "QString",
                             "defaultValue": "",
                             "cached": false
-                        }
+                        },
                         {
                             "id": "1897fda3-b5e4-4449-bff4-32333325b7c4",
                             "name": "faultCode",

@@ -6,9 +6,7 @@ MODBUS_CONNECTIONS += solaxevc-registers.json
 include(../modbus.pri)
 
 HEADERS += \
-    integrationpluginsolaxevc.h \
-    discoveryrtu.h
+    integrationpluginsolaxevc.h
 
 SOURCES += \
-    integrationpluginsolaxevc.cpp \
-    discoveryrtu.cpp
+    integrationpluginsolaxevc.cpp
