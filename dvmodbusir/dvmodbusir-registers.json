@@ -1,0 +1,100 @@
+{
+    "className": "DvModbusIR",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 20,
+    "checkReachableRegister": "serialNumber",
+    "registers": [
+        {
+            "id": "serialNumber",
+            "address": 0,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "Serialnumber of read-out head.",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "deviceStatus",
+            "address": 4,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "Info about connected meters.",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "meterId",
+            "address": 11,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "Devicenumber of connected meter.",
+            "defaultValue": 0,
+            "access": "RO"
+        }
+    ],
+    "blocks": [
+        {
+            "id": "consumedEnergy",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "totalConsumedEnergy",
+                    "address": 13,
+                    "size": 4,
+                    "type": "uint64",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Total consumed energy without comma.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "consumedEnergyExponent",
+                    "address": 17,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "10-exponent for consumed energy.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "producedEnergy",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "totalProducedEnergy",
+                    "address": 28,
+                    "size": 4,
+                    "type": "uint64",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Total produced energy without comma.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "producedEnergyExponent",
+                    "address": 32,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "10-exponent for produced energy.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                }
+            ]
+        }
+    ]
+}
