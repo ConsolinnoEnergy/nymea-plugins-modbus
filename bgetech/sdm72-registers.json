@@ -191,6 +191,7 @@
                     "size": 2,
                     "type": "uint32",
                     "registerType": "holdingRegister",
+                    "readSchedule": "init",
                     "description": "Serial number",
                     "defaultValue": "0",
                     "access": "RO"
@@ -201,6 +202,7 @@
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
+                    "readSchedule": "init",
                     "description": "Meter code",
                     "defaultValue": "0",
                     "access": "RO"

@@ -151,6 +151,9 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                     descriptor.setThingId(existingThings.first()->id());
                 }
 
+                // ToDo: Don't display SDM72 that are already configured in the discovery. This will be tricky, as the SDM72 has multiple plugins (inverter, consumer).
+                // myThings() only has the configured devices of this plugin. -> Solution: need to migrate the other plugins into this one.
+
                 info->addThingDescriptor(descriptor);
             }
 
@@ -215,12 +218,13 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::initializationFinished, thing, [sdmConnection, thing](bool success){
             if (success) {
-                QString serialNumberString{QString::number(sdmConnection->serialNumber())};
-                int stringsNotEqual = QString::compare(serialNumberString, thing->paramValue(sdm630ThingSerialNumberParamTypeId), Qt::CaseInsensitive);  // if strings are equal, stringsNotEqual should be 0.
+                QString serialNumberRead{QString::number(sdmConnection->serialNumber())};
+                QString serialNumberConfig{thing->paramValue(sdm630ThingSerialNumberParamTypeId).toString()};
+                int stringsNotEqual = QString::compare(serialNumberRead, serialNumberConfig, Qt::CaseInsensitive);  // if strings are equal, stringsNotEqual should be 0.
                 if (stringsNotEqual) {
                     // The SDM630 found is a different one than configured. We assume the SDM630 was replaced, and the new device should use this config.
                     // Step 1: update the serial number.
-                    info->thing()->setParamValue(sdm630ThingSerialNumberParamTypeId, serialNumberString);
+                    thing->setParamValue(sdm630ThingSerialNumberParamTypeId, serialNumberRead);
 
                     // Todo: Step 2: search existing things if there is one with this serial number. If yes, that thing should be deleted. Otherwise there
                     // will be undefined behaviour when using reconfigure.
@@ -348,11 +352,60 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         }
 
         Sdm72ModbusRtuConnection *sdmConnection = new Sdm72ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
-        connect(sdmConnection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
-            if (connected) {
-                qCDebug(dcBgeTech()) << "Modbus RTU resource connected" << thing << sdmConnection->modbusRtuMaster()->serialPort();
+        connect(info, &ThingSetupInfo::aborted, sdmConnection, [=](){
+            qCDebug(dcBgeTech()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
+            sdmConnection->deleteLater();
+        });
+
+        connect(sdmConnection, &Sdm72ModbusRtuConnection::reachableChanged, thing, [sdmConnection, thing](bool reachable){
+            thing->setStateValue(sdm72ConnectedStateTypeId, reachable);
+            if (reachable) {
+                qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is sending data.";
+                sdmConnection->initialize();
             } else {
-                qCWarning(dcBgeTech()) << "Modbus RTU resource disconnected" << thing << sdmConnection->modbusRtuMaster()->serialPort();
+                qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is not responding.";
+                thing->setStateValue(sdm72CurrentPowerStateTypeId, 0);
+                thing->setStateValue(sdm72CurrentPhaseAStateTypeId, 0);
+                thing->setStateValue(sdm72CurrentPhaseBStateTypeId, 0);
+                thing->setStateValue(sdm72CurrentPhaseCStateTypeId, 0);
+                thing->setStateValue(sdm72VoltagePhaseAStateTypeId, 0);
+                thing->setStateValue(sdm72VoltagePhaseBStateTypeId, 0);
+                thing->setStateValue(sdm72VoltagePhaseCStateTypeId, 0);
+                thing->setStateValue(sdm72CurrentPowerPhaseAStateTypeId, 0);
+                thing->setStateValue(sdm72CurrentPowerPhaseBStateTypeId, 0);
+                thing->setStateValue(sdm72CurrentPowerPhaseCStateTypeId, 0);
+                thing->setStateValue(sdm72FrequencyStateTypeId, 0);
+            }
+        });
+
+        connect(sdmConnection, &Sdm72ModbusRtuConnection::initializationFinished, thing, [sdmConnection, thing](bool success){
+            if (success) {
+                QString serialNumberRead{QString::number(sdmConnection->serialNumber())};
+                QString serialNumberConfig{thing->paramValue(sdm72ThingSerialNumberParamTypeId).toString()};
+                int stringsNotEqual = QString::compare(serialNumberRead, serialNumberConfig, Qt::CaseInsensitive);  // if strings are equal, stringsNotEqual should be 0.
+                if (stringsNotEqual) {
+                    // The SDM72 found is a different one than configured. We assume the SDM72 was replaced, and the new device should use this config.
+                    // Step 1: update the serial number.
+                    thing->setParamValue(sdm72ThingSerialNumberParamTypeId, serialNumberRead);
+
+                    // Todo: Step 2: search existing things if there is one with this serial number. If yes, that thing should be deleted. Otherwise there
+                    // will be undefined behaviour when using reconfigure.
+                }
+            }
+        });
+
+        connect(sdmConnection, &Sdm72ModbusRtuConnection::initializationFinished, info, [this, info, sdmConnection](bool success){
+            if (success) {
+                if (sdmConnection->meterCode() != 137) {
+                    qCWarning(dcBgeTech()) << "This does not seem to be a SDM72 smartmeter.";
+                    info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("This does not seem to be a SDM72 smartmeter. This is the wrong thing for that device. You need to configure the device with the correct thing."));
+                    return;
+                }
+                m_sdm72Connections.insert(info->thing(), sdmConnection);
+                info->finish(Thing::ThingErrorNoError);
+                sdmConnection->update();
+            } else {
+                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The SDM72 smartmeter is not responding"));
             }
         });
 
@@ -408,10 +461,6 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         connect(sdmConnection, &Sdm72ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float totalEnergyProduced){
             thing->setStateValue(sdm72TotalEnergyProducedStateTypeId, totalEnergyProduced);
         });
-
-        // FIXME: try to read before setup success
-        m_sdm72Connections.insert(thing, sdmConnection);
-        info->finish(Thing::ThingErrorNoError);
     }
 }
 
