@@ -193,7 +193,7 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
 void IntegrationPluginDvModbusIR::postSetupThing(Thing *thing)
 {
     Q_UNUSED(thing)
-        qCDebug(dcDvModbusIR()) << "Post setup thing";
+    qCDebug(dcDvModbusIR()) << "Post setup thing";
 
     if (!m_pluginTimer)
     {
@@ -223,6 +223,9 @@ void IntegrationPluginDvModbusIR::thingRemoved(Thing *thing)
     // A thing is being removed from the system. Do the required cleanup
     // (e.g. disconnect from the device) here.
     qCDebug(dcDvModbusIR()) << "Remove thing" << thing;
+
+    if (m_rtuConnections.contains(thing))
+        m_rtuConnections.take(thing)->deleteLater();
 
     if (myThings().isEmpty() && m_pluginTimer)
     {
