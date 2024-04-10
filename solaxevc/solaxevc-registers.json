@@ -116,7 +116,7 @@
             "registers": [
                 {
                     "id": "voltagePhaseA",
-                    "address": 0,
+                    "address": 4096,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -128,7 +128,7 @@
                 },
                 {
                     "id": "voltagePhaseB",
-                    "address": 1,
+                    "address": 4097,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -140,7 +140,7 @@
                 },
                 {
                     "id": "voltagePhaseC",
-                    "address": 2,
+                    "address": 4098,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -152,7 +152,7 @@
                 },
                 {
                     "id": "voltagePe",
-                    "address": 3,
+                    "address": 4099,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -164,7 +164,7 @@
                 },
                 {
                     "id": "currentPhaseA",
-                    "address": 4,
+                    "address": 4100,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -176,7 +176,7 @@
                 },
                 {
                     "id": "currentPhaseB",
-                    "address": 5,
+                    "address": 4101,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -188,7 +188,7 @@
                 },
                 {
                     "id": "currentPhaseC",
-                    "address": 6,
+                    "address": 4102,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -200,7 +200,7 @@
                 },
                 {
                     "id": "currentPe",
-                    "address": 7,
+                    "address": 4103,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -212,7 +212,7 @@
                 },
                 {
                     "id": "powerPhaseA",
-                    "address": 8,
+                    "address": 4104,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -223,7 +223,7 @@
                 },
                 {
                     "id": "powerPhaseB",
-                    "address": 9,
+                    "address": 4105,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -234,7 +234,7 @@
                 },
                 {
                     "id": "powerPhaseC",
-                    "address": 10,
+                    "address": 4106,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -245,7 +245,7 @@
                 },
                 {
                     "id": "totalPower",
-                    "address": 11,
+                    "address": 4107,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -256,7 +256,7 @@
                 },
                 {
                     "id": "frequencyPhaseA",
-                    "address": 12,
+                    "address": 4108,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -268,7 +268,7 @@
                 },
                 {
                     "id": "frequencyPhaseB",
-                    "address": 13,
+                    "address": 4109,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -280,7 +280,7 @@
                 },
                 {
                     "id": "frequencyPhaseC",
-                    "address": 14,
+                    "address": 4110,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -292,7 +292,7 @@
                 },
                 {
                     "id": "sessionEnergy",
-                    "address": 15,
+                    "address": 4111,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -304,7 +304,7 @@
                 },
                 {
                     "id": "totalEnergy",
-                    "address": 16,
+                    "address": 4112,
                     "size": 2,
                     "type": "uint32",
                     "registerType": "inputRegister",
@@ -322,7 +322,7 @@
             "registers": [
                 {
                     "id": "tempPcb",
-                    "address": 28,
+                    "address": 4124,
                     "size": 1,
                     "type": "int16",
                     "registerType": "inputRegister",
@@ -333,7 +333,7 @@
                 },
                 {
                     "id": "state",
-                    "address": 29,
+                    "address": 4125,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -344,7 +344,7 @@
                 },
                 {
                     "id": "faultCode",
-                    "address": 30,
+                    "address": 4126,
                     "size": 2,
                     "type": "uint32",
                     "registerType": "inputRegister",
@@ -354,7 +354,7 @@
                 },
                 {
                     "id": "typeCase",
-                    "address": 32,
+                    "address": 4128,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -364,7 +364,7 @@
                 },
                 {
                     "id": "typePower",
-                    "address": 33,
+                    "address": 4129,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -374,7 +374,7 @@
                 },
                 {
                     "id": "typePhase",
-                    "address": 34,
+                    "address": 4130,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -384,7 +384,7 @@
                 },
                 {
                     "id": "typeCharger",
-                    "address": 35,
+                    "address": 4131,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -394,7 +394,7 @@
                 },
                 {
                     "id": "typeScreen",
-                    "address": 36,
+                    "address": 4132,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -404,7 +404,7 @@
                 },
                 {
                     "id": "firmwareVersion",
-                    "address": 37,
+                    "address": 4133,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -414,7 +414,7 @@
                 },
                 {
                     "id": "ocppNetwork",
-                    "address": 38,
+                    "address": 4134,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -423,7 +423,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "rssi",
+                    "id": "4135",
                     "address": 39,
                     "size": 1,
                     "type": "uint16",
@@ -435,7 +435,7 @@
                 },
                 {
                     "id": "chargePhase",
-                    "address": 40,
+                    "address": 4136,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -446,7 +446,7 @@
                 },
                 {
                     "id": "unbalancedPower",
-                    "address": 41,
+                    "address": 4137,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -457,7 +457,7 @@
                 },
                 {
                     "id": "unbalancedSwitch",
-                    "address": 42,
+                    "address": 4138,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
@@ -467,7 +467,7 @@
                 },
                 {
                     "id": "chargingTime",
-                    "address": 43,
+                    "address": 4139,
                     "size": 2,
                     "type": "uint32",
                     "registerType": "inputRegister",
@@ -482,7 +482,7 @@
     "registers": [
         {
             "id": "serialNumber",
-            "address": 1536,
+            "address": 4096,
             "size": 14,
             "type": "string",
             "readSchedule": "init",
@@ -493,7 +493,7 @@
         },
         {
             "id": "deviceType",
-            "address": 1548,
+            "address": 4108,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -503,7 +503,7 @@
         },
         {
             "id": "deviceMode",
-            "address": 1549,
+            "address": 4109,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -513,7 +513,7 @@
         },
         {
             "id": "ecoGear",
-            "address": 1550,
+            "address": 4110,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -523,7 +523,7 @@
         },
         {
             "id": "greenGear",
-            "address": 1551,
+            "address": 4111,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -533,7 +533,7 @@
         },
         {
             "id": "startChargeMode",
-            "address": 1552,
+            "address": 4112,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -543,7 +543,7 @@
         },
         {
             "id": "overVoltSet",
-            "address": 1553,
+            "address": 4113,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -554,7 +554,7 @@
         },
         {
             "id": "underVoltSet",
-            "address": 1554,
+            "address": 4114,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -565,7 +565,7 @@
         },
         {
             "id": "boostMode",
-            "address": 1555,
+            "address": 4115,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -575,7 +575,7 @@
         },
         {
             "id": "mainBreakerLimit",
-            "address": 1556,
+            "address": 4116,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -586,7 +586,7 @@
         },
         {
             "id": "electronicLock",
-            "address": 1557,
+            "address": 4117,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -596,7 +596,7 @@
         },
         {
             "id": "CardActivateSwitch",
-            "address": 1558,
+            "address": 4118,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -606,18 +606,31 @@
         },
         {
             "id": "DataHubChargeCurrent",
-            "address": 1572,
+            "address": 4119,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
             "description": "Data hub charge current",
-            "unit": "1/100 A",
+            "unit": "A",
+            "staticScaleFactor": -2,
             "defaultValue": 0,
             "access": "RO"
         },
         {
+            "id": "totalEnergy",
+            "address": 4121,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "description": "Accumulated charging energy",
+            "unit": "kWh",
+            "defaultValue": 0,
+            "staticScaleFactor": -1,
+            "access": "RO"
+        },
+        {
             "id": "controlCommand",
-            "address": 1575,
+            "address": 4135,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -628,29 +641,31 @@
         },
         {
             "id": "MaxCurrent",
-            "address": 1576,
+            "address": 4136,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
             "description": "Maximum AC line current",
-            "unit": "1/10 A",
+            "staticScaleFactor": -2,
+            "unit": "A",
             "defaultValue": 0,
             "access": "RO"
         },
         {
             "id": "MinCurrent",
-            "address": 1599,
+            "address": 4159,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
             "description": "Minimum AC line current",
-            "unit": "1/10 A",
+            "staticScaleFactor": -2,
+            "unit": "A",
             "defaultValue": 0,
             "access": "RO"
         },
         {
             "id": "slaveAddress",
-            "address": 1600,
+            "address": 4160,
             "size": 1,
             "type": "uint16",
             "readSchedule": "update",
