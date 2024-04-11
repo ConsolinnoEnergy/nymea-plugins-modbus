@@ -81,7 +81,9 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                 // Use result.meterCode() to test if this is a SDM630.
                 if (result.meterCode != 112) {
                     qCDebug(dcBgeTech()) << "Found a smartmeter, but it is not an SDM630. The meter code for an SDM630 is 112. Received meter code is" << result.meterCode;
-                    continue;
+
+                    // Disable this line for now. Not sure if every SDM630 has meter code 112.
+                    //continue;
                 }
 
                 QString serialNumberString{QString::number(result.serialNumber)};
@@ -90,7 +92,8 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                 ParamList params{
                     {sdm630ThingModbusIdParamTypeId, modbusId},
                     {sdm630ThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
-                    {sdm630ThingSerialNumberParamTypeId, serialNumberString}
+                    {sdm630ThingSerialNumberParamTypeId, serialNumberString},
+                    {sdm630ThingMeterCodeParamTypeId, result.meterCode}
                 };
                 descriptor.setParams(params);
 
@@ -131,7 +134,9 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                 // Use result.meterCode() to test if this is a SDM72.
                 if (result.meterCode != 137) {
                     qCDebug(dcBgeTech()) << "Found a smartmeter, but it is not an SDM72. The meter code for an SDM72 is 137. Received meter code is" << result.meterCode;
-                    continue;
+
+                    // Disable this line for now. Not sure if every SDM72 has meter code 137.
+                    //continue;
                 }
 
                 QString serialNumberString{QString::number(result.serialNumber)};
@@ -140,7 +145,8 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                 ParamList params{
                     {sdm72ThingModbusIdParamTypeId, modbusId},
                     {sdm72ThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
-                    {sdm72ThingSerialNumberParamTypeId, serialNumberString}
+                    {sdm72ThingSerialNumberParamTypeId, serialNumberString},
+                    {sdm72ThingMeterCodeParamTypeId, result.meterCode}
                 };
                 descriptor.setParams(params);
 
@@ -224,10 +230,22 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
                 if (stringsNotEqual) {
                     // The SDM630 found is a different one than configured. We assume the SDM630 was replaced, and the new device should use this config.
                     // Step 1: update the serial number.
+                    qCDebug(dcBgeTech()) << "The serial number of this device is" << serialNumberRead << ". It does not match the serial number in the config, which is"
+                                         << serialNumberConfig << ". Updating config with new serial number.";
                     thing->setParamValue(sdm630ThingSerialNumberParamTypeId, serialNumberRead);
 
                     // Todo: Step 2: search existing things if there is one with this serial number. If yes, that thing should be deleted. Otherwise there
                     // will be undefined behaviour when using reconfigure.
+                }
+
+                // Tracking meter code is not needed longterm. This is done to gather data on the meter codes of installed devices. To see if there are only two meter codes
+                // (112 for SDM630 and 137 for SDM72) and these can be used to reliably identify the type of device, or if other meter codes exist as well.
+                uint meterCodeRead{sdmConnection->meterCode()};
+                uint meterCodeConfig{thing->paramValue(sdm630ThingMeterCodeParamTypeId).toUInt()};
+                if (meterCodeRead != meterCodeConfig) {
+                    qCDebug(dcBgeTech()) << "The meter code read from this device is" << meterCodeRead << ". It does not match the meter code in the config, which is"
+                                         << meterCodeConfig << ". Updating config with the new meter code.";
+                    thing->setParamValue(sdm630ThingMeterCodeParamTypeId, meterCodeRead);
                 }
             }
         });
@@ -235,15 +253,17 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         connect(sdmConnection, &Sdm630ModbusRtuConnection::initializationFinished, info, [this, info, sdmConnection](bool success){
             if (success) {
                 if (sdmConnection->meterCode() != 112) {
-                    qCWarning(dcBgeTech()) << "This does not seem to be a SDM630 smartmeter.";
-                    info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("This does not seem to be a SDM630 smartmeter. This is the wrong thing for that device. You need to configure the device with the correct thing."));
-                    return;
+                    qCWarning(dcBgeTech()) << "This does not seem to be a SDM630 smartmeter. The meter code for an SDM630 is 112. Received meter code is" << sdmConnection->meterCode();
+
+                    // Disable these lines for now. Not sure if every SDM630 has meter code 112.
+                    //info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("This does not seem to be a SDM630 smartmeter. This is the wrong thing for that device. You need to configure the device with the correct thing."));
+                    //return;
                 }
                 m_sdm630Connections.insert(info->thing(), sdmConnection);
                 info->finish(Thing::ThingErrorNoError);
                 sdmConnection->update();
             } else {
-                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The SDM630 smartmeter is not responding"));
+                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The SDM630 smartmeter is not responding."));
             }
         });
 
@@ -292,6 +312,9 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::totalEnergyConsumedChanged, this, [=](float totalEnergyConsumed){
+            // ToDo: better detection of faulty values. Simple "needs to be bigger" is not good. If your faulty value is unreasonably high, this will prevent
+            // all later correct values (which are lower) to be discarded.
+
             if (totalEnergyConsumed < thing->stateValue(sdm630TotalEnergyConsumedStateTypeId).toFloat()) {
                 qCWarning(dcBgeTech()) << "Total energy consumed value is smaller than the previous value. Skipping value.";
                 return;
@@ -300,6 +323,9 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float totalEnergyProduced){
+            // ToDo: better detection of faulty values. Simple "needs to be bigger" is not good. If your faulty value is unreasonably high, this will prevent
+            // all later correct values (which are lower) to be discarded.
+
             if (totalEnergyProduced < thing->stateValue(sdm630TotalEnergyProducedStateTypeId).toFloat()) {
                 qCWarning(dcBgeTech()) << "Total energy produced value is smaller than the previous value. Skipping value.";
                 return;
@@ -386,10 +412,22 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
                 if (stringsNotEqual) {
                     // The SDM72 found is a different one than configured. We assume the SDM72 was replaced, and the new device should use this config.
                     // Step 1: update the serial number.
+                    qCDebug(dcBgeTech()) << "The serial number of this device is" << serialNumberRead << ". It does not match the serial number in the config, which is"
+                                         << serialNumberConfig << ". Updating config with new serial number.";
                     thing->setParamValue(sdm72ThingSerialNumberParamTypeId, serialNumberRead);
 
                     // Todo: Step 2: search existing things if there is one with this serial number. If yes, that thing should be deleted. Otherwise there
                     // will be undefined behaviour when using reconfigure.
+                }
+
+                // Tracking meter code is not needed longterm. This is done to gather data on the meter codes of installed devices. To see if there are only two meter codes
+                // (112 for SDM630 and 137 for SDM72) and these can be used to reliably identify the type of device, or if other meter codes exist as well.
+                uint meterCodeRead{sdmConnection->meterCode()};
+                uint meterCodeConfig{thing->paramValue(sdm72ThingMeterCodeParamTypeId).toUInt()};
+                if (meterCodeRead != meterCodeConfig) {
+                    qCDebug(dcBgeTech()) << "The meter code read from this device is" << meterCodeRead << ". It does not match the meter code in the config, which is"
+                                         << meterCodeConfig << ". Updating config with the new meter code.";
+                    thing->setParamValue(sdm72ThingMeterCodeParamTypeId, meterCodeRead);
                 }
             }
         });
@@ -397,15 +435,17 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         connect(sdmConnection, &Sdm72ModbusRtuConnection::initializationFinished, info, [this, info, sdmConnection](bool success){
             if (success) {
                 if (sdmConnection->meterCode() != 137) {
-                    qCWarning(dcBgeTech()) << "This does not seem to be a SDM72 smartmeter.";
-                    info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("This does not seem to be a SDM72 smartmeter. This is the wrong thing for that device. You need to configure the device with the correct thing."));
-                    return;
+                    qCWarning(dcBgeTech()) << "This does not seem to be a SDM72 smartmeter. The meter code for an SDM72 is 137. Received meter code is" << sdmConnection->meterCode();
+
+                    // Disable these lines for now. Not sure if every SDM72 has meter code 137.
+                    //info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("This does not seem to be a SDM72 smartmeter. This is the wrong thing for that device. You need to configure the device with the correct thing."));
+                    //return;
                 }
                 m_sdm72Connections.insert(info->thing(), sdmConnection);
                 info->finish(Thing::ThingErrorNoError);
                 sdmConnection->update();
             } else {
-                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The SDM72 smartmeter is not responding"));
+                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The SDM72 smartmeter is not responding."));
             }
         });
 
@@ -455,10 +495,24 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         });
 
         connect(sdmConnection, &Sdm72ModbusRtuConnection::totalEnergyConsumedChanged, this, [=](float totalEnergyConsumed){
+            // ToDo: better detection of faulty values. Simple "needs to be bigger" is not good. If your faulty value is unreasonably high, this will prevent
+            // all later correct values (which are lower) to be discarded.
+
+            if (totalEnergyConsumed < thing->stateValue(sdm72TotalEnergyConsumedStateTypeId).toFloat()) {
+                qCWarning(dcBgeTech()) << "Total energy consumed value is smaller than the previous value. Skipping value.";
+                return;
+            }
             thing->setStateValue(sdm72TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
         });
 
         connect(sdmConnection, &Sdm72ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float totalEnergyProduced){
+            // ToDo: better detection of faulty values. Simple "needs to be bigger" is not good. If your faulty value is unreasonably high, this will prevent
+            // all later correct values (which are lower) to be discarded.
+
+            if (totalEnergyProduced < thing->stateValue(sdm72TotalEnergyProducedStateTypeId).toFloat()) {
+                qCWarning(dcBgeTech()) << "Total energy produced value is smaller than the previous value. Skipping value.";
+                return;
+            }
             thing->setStateValue(sdm72TotalEnergyProducedStateTypeId, totalEnergyProduced);
         });
     }

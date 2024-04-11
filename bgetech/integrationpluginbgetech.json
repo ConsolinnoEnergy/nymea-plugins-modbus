@@ -52,6 +52,14 @@
                             "type": "QString",
                             "defaultValue": "",
                             "readOnly": true
+                        },
+                        {
+                            "id": "ea4a06ac-5f08-4b57-9a3b-0951d028a8fc",
+                            "name": "meterCode",
+                            "displayName": "Meter code",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [
@@ -298,6 +306,14 @@
                             "displayName": "Serial number",
                             "type": "QString",
                             "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "17cf1de9-1be3-4267-a152-8c2fd9f80b62",
+                            "name": "meterCode",
+                            "displayName": "Meter code",
+                            "type": "uint",
+                            "defaultValue": 0,
                             "readOnly": true
                         }
                     ],
