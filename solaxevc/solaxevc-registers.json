@@ -1,6 +1,6 @@
 {
     "className": "SolaxEvc",
-    "protocol": "TCP",
+    "protocol": "RTU",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 15,
     "checkReachableRegister": "firmwareVersion",
@@ -423,7 +423,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "chargePhase",
+                    "id": "chargePhaseInput",
                     "address": 4136,
                     "size": 1,
                     "type": "uint16",
@@ -466,6 +466,115 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "deviceSettings",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "deviceMode",
+                    "address": 4109,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Device mode",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "ecoGear",
+                    "address": 4110,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "ECO gear",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "greenGear",
+                    "address": 4111,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Green gear",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "startChargeMode",
+                    "address": 4112,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Start charge mode",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "overVoltSet",
+                    "address": 4113,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Over voltage setting",
+                    "unit": "V",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "underVoltSet",
+                    "address": 4114,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Under voltage setting",
+                    "unit": "V",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "boostMode",
+                    "address": 4115,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Boost mode",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "mainBreakerLimit",
+                    "address": 4116,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Main breaker limit",
+                    "unit": "A",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "electronicLock",
+                    "address": 4117,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Electronic Lock",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "CardActivateSwitch",
+                    "address": 4118,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Card activate switch",
+                    "defaultValue": 0,
+                    "access": "RW"
+                }
+            ]
         }
     ],
     "registers": [
@@ -492,132 +601,6 @@
             "access": "RO"
         },
         {
-            "id": "deviceMode",
-            "address": 4109,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Device mode",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "ecoGear",
-            "address": 4110,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "ECO gear",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "greenGear",
-            "address": 4111,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Green gear",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "startChargeMode",
-            "address": 4112,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Start charge mode",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "overVoltSet",
-            "address": 4113,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Over voltage setting",
-            "unit": "V",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "underVoltSet",
-            "address": 4114,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Under voltage setting",
-            "unit": "V",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "boostMode",
-            "address": 4115,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Boost mode",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "mainBreakerLimit",
-            "address": 4116,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Main breaker limit",
-            "unit": "A",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "electronicLock",
-            "address": 4117,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Electronic Lock",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "CardActivateSwitch",
-            "address": 4118,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Card activate switch",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "DataHubChargeCurrent",
-            "address": 4119,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Data hub charge current",
-            "unit": "A",
-            "staticScaleFactor": -2,
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
             "id": "totalEnergy",
             "address": 4121,
             "size": 2,
@@ -631,6 +614,18 @@
             "access": "RO"
         },
         {
+            "id": "DataHubChargeCurrent",
+            "address": 4132,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Data hub charge current",
+            "unit": "A",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "access": "RW"
+        },
+        {
             "id": "controlCommand",
             "address": 4135,
             "size": 1,
@@ -640,7 +635,7 @@
             "description": "Control command",
             "enum": "ControlCommand",
             "defaultValue": "ControlCommandUndefined",
-            "access": "RO"
+            "access": "RW"
         },
         {
             "id": "MaxCurrent",
@@ -653,6 +648,17 @@
             "staticScaleFactor": -2,
             "unit": "A",
             "defaultValue": 0,
+            "access": "RW"
+        },
+        {
+            "id": "chargePhase",
+            "address": 4155,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "description": "Wallbox phase configuration",
+            "enum": "ChargePhase",
+            "defaultValue": "ChargePhaseThreePhase",
             "access": "RO"
         },
         {
@@ -666,7 +672,7 @@
             "staticScaleFactor": -2,
             "unit": "A",
             "defaultValue": 0,
-            "access": "RO"
+            "access": "RW"
         },
         {
             "id": "slaveAddress",

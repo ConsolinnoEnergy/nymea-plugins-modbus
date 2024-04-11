@@ -86,6 +86,11 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
     qCDebug(dcSolaxEvc()) << "Setup" << thing << thing->params();
+
+    if (thing->thingClassId() == solaxEvcThingClassId)
+    {
+        info->finish(Thing::ThingErrorNoError);
+    }
 }
 
 void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
