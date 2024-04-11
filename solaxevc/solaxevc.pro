@@ -7,8 +7,10 @@ include(../modbus.pri)
 
 HEADERS += \
     discoverytcp.h \
-    integrationpluginsolaxevc.h
+    integrationpluginsolaxevc.h \
+    solaxevcmodbustcpconnection.h
 
 SOURCES += \
     discoverytcp.cpp \
-    integrationpluginsolaxevc.cpp
+    integrationpluginsolaxevc.cpp \
+    solaxevcmodbustcpconnection.cpp
