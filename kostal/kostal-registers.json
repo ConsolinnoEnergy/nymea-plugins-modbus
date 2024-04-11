@@ -893,8 +893,8 @@
         {
             "id": "batteryWorkCapacity",
             "address": 529,
-            "size": 1,
-            "type": "uint32",
+            "size": 2,
+            "type": "uint16",
             "readSchedule": "init",
             "description": "Battery work capacity",
             "registerType": "holdingRegister",
