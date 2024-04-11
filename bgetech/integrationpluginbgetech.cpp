@@ -97,15 +97,16 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                 };
                 descriptor.setParams(params);
 
-                // Code for reconfigure. The discovery during reconfigure only displays things that have a ThingId that matches one of the things in myThings().
-                // So we need to search myThings() for the thing that is currently reconfigured to get the ThingId, then set it.
+                // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+                // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+                // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
                 Things existingThings = myThings().filterByThingClassId(sdm630ThingClassId).filterByParam(sdm630ThingSerialNumberParamTypeId, serialNumberString);
                 if (!existingThings.isEmpty()) {
                     descriptor.setThingId(existingThings.first()->id());
                 }
 
-                // ToDo: Don't display SDM630 that are already configured in the discovery. This will be tricky, as the SDM630 has multiple plugins (inverter, consumer).
-                // myThings() only has the configured devices of this plugin. -> Solution: need to migrate the other plugins into this one.
+                // Some remarks to the above code: This plugin gets copy-pasted to get the inverter and consumer SDM630. Since they are different plugins, myThings() won't contain the things
+                // from these plugins. So currently you can add the same device once in each plugin.
 
                 info->addThingDescriptor(descriptor);
             }
@@ -150,15 +151,16 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                 };
                 descriptor.setParams(params);
 
-                // Code for reconfigure. The discovery during reconfigure only displays things that have a ThingId that matches one of the things in myThings().
-                // So we need to search myThings() for the thing that is currently reconfigured to get the ThingId, then set it.
+                // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+                // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+                // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
                 Things existingThings = myThings().filterByThingClassId(sdm72ThingClassId).filterByParam(sdm72ThingSerialNumberParamTypeId, serialNumberString);
                 if (!existingThings.isEmpty()) {
                     descriptor.setThingId(existingThings.first()->id());
                 }
 
-                // ToDo: Don't display SDM72 that are already configured in the discovery. This will be tricky, as the SDM72 has multiple plugins (inverter, consumer).
-                // myThings() only has the configured devices of this plugin. -> Solution: need to migrate the other plugins into this one.
+                // Some remarks to the above code: This plugin gets copy-pasted to get the inverter and consumer SDM72. Since they are different plugins, myThings() won't contain the things
+                // from these plugins. So currently you can add the same device once in each plugin.
 
                 info->addThingDescriptor(descriptor);
             }
