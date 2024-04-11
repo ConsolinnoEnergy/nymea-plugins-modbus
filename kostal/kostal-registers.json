@@ -1,7 +1,7 @@
 {
     "className": "Kostal",
     "protocol": "TCP",
-    "endianness": "LittleEndian",
+    "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 20,
     "checkReachableRegister": "inverterState",
     "enums": [
@@ -894,7 +894,7 @@
             "id": "batteryWorkCapacity",
             "address": 529,
             "size": 2,
-            "type": "uint16",
+            "type": "uint32",
             "readSchedule": "init",
             "description": "Battery work capacity",
             "registerType": "holdingRegister",
