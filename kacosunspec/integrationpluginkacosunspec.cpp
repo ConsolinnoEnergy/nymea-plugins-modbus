@@ -124,37 +124,26 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
 
             QUuid modbusMasterUuid{modbusMaster->modbusUuid()};
 
-            // Check already configured devices to filter them out.
-            if (!m_rtuConnections.isEmpty()) {
-                bool alreadyConfigured{false};
-                qCDebug(dcKacoSunSpec()) << "Checking existing things to see if this device is already configured";
-                foreach (Thing *configuredThing, myThings()) {
-                    // Skip if we already found a duplicate.
-                    if (alreadyConfigured)
-                        continue;
-                    // A thing is created as soon as discovery starts. Check if the thing is in m_rtuConnections, to only look at things that are configured.
-                    if (configuredThing->thingClassId() == kacosunspecInverterRTUThingClassId && m_rtuConnections.contains(configuredThing)) {
-                        // Only check things on the same modbus Master.
-                        QUuid uuid = configuredThing->paramValue(kacosunspecInverterRTUThingModbusMasterUuidParamTypeId).toUuid();
-                        if (modbusMasterUuid == uuid) {
-                            uint existingModbusId{configuredThing->paramValue(kacosunspecInverterRTUThingSlaveAddressParamTypeId).toUInt()};
-                            if (modbusId == existingModbusId)
-                                alreadyConfigured = true;
-                        }
-                    }
-                }
-
-              if (alreadyConfigured) {
-                    qCDebug(dcKacoSunSpec()) << "The inverter with modbus ID" << modbusId << "is already configured on this modbus master" << modbusMaster;
-                    continue;
-              }
-            }
-            qCDebug(dcKacoSunSpec()) << "Found Kaco SunSpec inverter on modbus master" << modbusMaster->modbusUuid() << "with modbus ID" << modbusId;
             ThingDescriptor descriptor(info->thingClassId(), "Kaco SunSpec Inverter", QString::number(modbusId) + " " + modbusMaster->serialPort());
             ParamList params;
             params << Param(kacosunspecInverterRTUThingSlaveAddressParamTypeId, modbusId);
             params << Param(kacosunspecInverterRTUThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
             descriptor.setParams(params);
+
+            // Reconfigure not working when changing modbus ID right now. 
+            // The existing device should be detected by checking a hardware serial (analog to MAC address in the TCP case)
+            // This is not possible right now, as the serial is only available when the device is connected
+            // --> Only practical when a real Modbus RTU discovery is implemented
+            // However, this correctly prevents the user from adding the same device twice, as the UI will 
+            // not show descriptors for already configured devices in the discovery list (they are only shown when using reconfigure)
+            Thing *existingThing = myThings().findByParams(descriptor.params());
+               if (existingThing) {
+                   qCDebug(dcKacoSunSpec()) << "Found already configured inverter:" << existingThing->name() << modbusMaster->serialPort();
+                   descriptor.setThingId(existingThing->id());
+               } else {
+                   qCDebug(dcKacoSunSpec()) << "Found Kaco SunSpec inverter on modbus master" << modbusMaster->serialPort() << "with modbus ID" << modbusId;
+               }
+
             info->addThingDescriptor(descriptor);
         }
         qCDebug(dcKacoSunSpec()) << "Found" << info->thingDescriptors().count() << " Kaco SunSpec inverters";
