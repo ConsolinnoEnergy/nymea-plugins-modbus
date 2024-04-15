@@ -114,15 +114,7 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
 
         QList<ModbusRtuMaster*> candidateMasters;
         foreach (ModbusRtuMaster *master, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
-            if (master->baudrate() == 9600 && master->dataBits() == 8 && master->stopBits() == 1 && master->parity() == QSerialPort::NoParity) {
                 candidateMasters.append(master);
-            }
-        }
-
-        if (candidateMasters.isEmpty()) {
-            qCWarning(dcKacoSunSpec()) << "No modbus RTU master with the required configuration found (baud rate 9600, data bits 8, stop bits 1, parity none). Need a modbus RTU masters with these parameters for the plugin to work.";
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("No modbus RTU master with the required configuration found (baud rate 9600, data bits 8, stop bits 1, parity none). Need a modbus RTU masters with these parameters for the plugin to work."));
-            return;
         }
 
         m_openReplies = 0;
