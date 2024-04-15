@@ -200,29 +200,37 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 
         connect(connection, &SolaxEvcModbusTcpConnection::faultCodeChanged, thing, [thing](quint32 code) {
             qCDebug(dcSolaxEvc()) << "Fault code changed" << code;
-            thing->setStateValue(solaxEvcFaultCodeStateTypeId, code);
+            QMap<int, QString> faultCodeMap = {{0,"PowerSelect_Fault (0)"},{1,"Emergency Stop (1)"},{2,"Overvoltage L1 (2)"},{3,"Undervoltage L1 (3)"}, \
+                                               {4,"Overvoltage L2 (4)"},{5,"Undervoltage L2 (5)"},{6,"Overvoltage L3 (6)"},{7,"Undervoltage L2 (7)"},{8,"Electronic Lock (8)"}, \
+                                               {9,"Over Load (9)"},{10,"Over Current (10)"},{11,"Over Temperature (11)"},{12,"PE Ground (12)"},{13,"PE Leak Current (13)"}, \
+                                               {14,"Over Leak Current (14)"},{15,"Meter Communication (15)"},{16,"485 Communication (16)"},{17,"CP Voltage (17)"}};
+            thing->setStateValue(solaxEvcFaultCodeStateTypeId, faultCodeMap[code]);
         });
 
         connect(connection, &SolaxEvcModbusTcpConnection::stateChanged, thing, [thing](quint16 state) {
             qCDebug(dcSolaxEvc()) << "State changed" << state;
-            thing->setStateValue(solaxEvcStateStateTypeId, state);
+            // thing->setStateValue(solaxEvcStateStateTypeId, state);
 
             switch (state)
             {
                 case SolaxEvcModbusTcpConnection::StateCharging:
                     thing->setStateValue(solaxEvcChargingStateTypeId, true);
                     thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                    thing->setStateValue(solaxEvcStateStateTypeId, "Charging");
                     break;
                 case SolaxEvcModbusTcpConnection::StateFaulted:
                     thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                    thing->setStateValue(solaxEvcStateStateTypeId, "Fault");
                     break;
                 case SolaxEvcModbusTcpConnection::StateFinishing:
                     thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
                     thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                    thing->setStateValue(solaxEvcStateStateTypeId, "Plugged In");
                     break;
                 default:
                     thing->setStateValue(solaxEvcChargingStateTypeId, false);
                     thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
+                    thing->setStateValue(solaxEvcStateStateTypeId, "Available");
                     break;
             }
         });
