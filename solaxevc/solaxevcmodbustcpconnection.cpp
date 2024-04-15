@@ -1649,7 +1649,7 @@ void SolaxEvcModbusTcpConnection::processMaxCurrentRegisterValues(const QVector<
 
 void SolaxEvcModbusTcpConnection::processChargingTimeRegisterValues(const QVector<quint16> values)
 {
-    quint32 receivedChargingTime = ModbusDataUtils::convertToUInt32(values, m_endianness);
+    quint32 receivedChargingTime = ModbusDataUtils::convertToUInt32(values, ModbusDataUtils::ByteOrderBigEndian);
     emit chargingTimeReadFinished(receivedChargingTime);
 
     if (m_chargingTime != receivedChargingTime) {
@@ -2166,12 +2166,10 @@ void SolaxEvcModbusTcpConnection::onReachabilityCheckFailed()
 
 void SolaxEvcModbusTcpConnection::evaluateReachableState()
 {
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "## Evaluate reachable state";
     bool reachable = m_communicationWorking && connected();
     if (m_reachable == reachable)
         return;
 
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "## Reachable State" << reachable;
     m_reachable = reachable;
     emit reachableChanged(m_reachable);
     m_checkReachableRetriesCount = 0;

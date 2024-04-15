@@ -55,7 +55,7 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &SolaxEvcTCPDiscovery::discoveryFinished, info, [=](){
             foreach (const SolaxEvcTCPDiscovery::Result &result, discovery->discoveryResults()) {
 
-                ThingDescriptor descriptor(solaxEvcThingClassId, "Solax Wallbox " + result.networkDeviceInfo.address().toString());
+                ThingDescriptor descriptor(solaxEvcThingClassId, "Solax Wallbox");
                 qCInfo(dcSolaxEvc()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 // Check if we already have set up this device
@@ -89,6 +89,114 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 
     if (thing->thingClassId() == solaxEvcThingClassId)
     {
+
+        // Handle reconfigure
+        if (m_tcpConnections.contains(thing))
+        {
+            qCDebug(dcSolaxEvc()) << "Already have a Solax connection for this thing. Cleaning up old connection and initializing new one...";
+            SolaxEvcModbusTcpConnection *connection = m_tcpConnections.take(thing);
+            connection->disconnectDevice();
+            connection->deleteLater();
+        } else {
+            qCDebug(dcSolaxEvc()) << "Setting up a new device: " << thing->params();
+        }
+
+        if (m_monitors.contains(thing))
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+
+        // Make sure we have a valid mac address, otherwise no monitor and no auto searching is possible.
+        // Testing for null is necessary, because registering a monitor with a zero mac adress will cause a segfault.
+        MacAddress macAddress = MacAddress(thing->paramValue(solaxEvcThingMacAddressParamTypeId).toString());
+        if (macAddress.isNull()) {
+            qCWarning(dcSolaxEvc()) << "Failed to set up Solax wallbox because the MAC address is not valid:" << thing->paramValue(solaxEvcThingMacAddressParamTypeId).toString() << macAddress.toString();
+            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
+            return;
+        }
+
+        // Create a monitor so we always get the correct IP in the network and see if the device is reachable without polling on our own.
+        NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        m_monitors.insert(thing, monitor);
+        connect(info, &ThingSetupInfo::aborted, monitor, [=](){
+            // Is this needed? How can setup be aborted at this point?
+
+            // Clean up in case the setup gets aborted.
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcSolaxEvc()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
+        });
+
+        uint port = thing->paramValue(solaxEvcThingPortParamTypeId).toUInt();
+        quint16 modbusId = thing->paramValue(solaxEvcThingModbusIdParamTypeId).toUInt();
+        // TODO: insert fix from Solax Inverter
+        SolaxEvcModbusTcpConnection *connection = new SolaxEvcModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
+        m_tcpConnections.insert(thing, connection);
+
+        // Reconnect on monitor reachable changed
+        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
+            qCDebug(dcSolaxEvc()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+            if (reachable && !thing->stateValue(solaxEvcConnectedStateTypeId).toBool())
+            {
+            // TODO: insert fix from Solax inverter
+                connection->setHostAddress(monitor->networkDeviceInfo().address());
+                connection->reconnectDevice();
+            } else {
+                // Note: We disable autoreconnect explicitly and we will
+                // connect the device once the monitor says it is reachable again
+                connection->disconnectDevice();
+            }
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable) {
+            qCDebug(dcSolaxEvc()) << "Reachable state changed to" << reachable;
+            if (reachable)
+            {
+                // Connected true will be set after successfull init.
+                connection->initialize();
+            } else {
+                thing->setStateValue(solaxEvcConnectedStateTypeId, false);
+            }
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::initializationFinished, thing, [=](bool success) {
+            thing->setStateValue(solaxEvcConnectedStateTypeId, success);
+
+            if (success)
+            {
+                qCDebug(dcSolaxEvc()) << "Solax wallbox initialized.";
+                thing->setStateValue(solaxEvcFirmwareVersionStateTypeId, connection->firmwareVersion());
+            } else {
+                qCDebug(dcSolaxEvc()) << "Solax wallbox initialization failed.";
+                // Try to reconnect to device
+                connection->reconnectDevice();
+            }
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::totalPowerChanged, thing, [thing](quint16 totalPower) {
+            qCDebug(dcSolaxEvc()) << "Total charging power changed" << totalPower << "W";
+            thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::sessionEnergyChanged, thing, [thing](double sessionEnergy) {
+            qCDebug(dcSolaxEvc()) << "Session energy changed" << sessionEnergy << "kWh";
+            thing->setStateValue(solaxEvcSessionEnergyStateTypeId, sessionEnergy);
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::totalEnergyChanged, thing, [thing](double totalEnergy) {
+            qCDebug(dcSolaxEvc()) << "Total energy changed" << totalEnergy << "kWh";
+            thing->setStateValue(solaxEvcTotalEnergyConsumedStateTypeId, totalEnergy);
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::chargingTimeChanged, thing, [thing](quint32 time) {
+            qCDebug(dcSolaxEvc()) << "Charging Time changed" << time << "s";
+            thing->setStateValue(solaxEvcChargingTimeStateTypeId, time);
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::MaxCurrentChanged, thing, [thing](float maxCurrent) {
+            qCDebug(dcSolaxEvc()) << "Max current changed" << maxCurrent << "A";
+            thing->setStateValue(solaxEvcMaxChargingCurrentStateTypeId, maxCurrent);
+        });
+
         info->finish(Thing::ThingErrorNoError);
     }
 }
@@ -101,7 +209,7 @@ void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
     if (!m_pluginTimer)
     {
         qCDebug(dcSolaxEvc()) << "Starting plugin timer..";
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcSolaxEvc()) << "Updating Solax EVC..";
             foreach (SolaxEvcModbusTcpConnection *connection, m_tcpConnections) {

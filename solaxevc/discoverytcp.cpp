@@ -73,7 +73,7 @@ void SolaxEvcTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDe
                 return;
             }
  
-            if (connection->firmwareVersion() > 0)
+            if (connection->firmwareVersion() >= 112)
             {
                 Result result;
                 result.firmwareVersion = connection->firmwareVersion();

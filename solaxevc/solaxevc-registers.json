@@ -2,7 +2,7 @@
     "className": "SolaxEvc",
     "protocol": "RTU",
     "endianness": "LittleEndian",
-    "errorLimitUntilNotReachable": 15,
+    "errorLimitUntilNotReachable": 20,
     "checkReachableRegister": "firmwareVersion",
     "enums": [
         {
