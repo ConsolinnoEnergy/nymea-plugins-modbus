@@ -148,7 +148,7 @@
                             "name": "state",
                             "displayName": "State",
                             "type": "QString",
-                            "defaultValue": "",
+                            "defaultValue": "Unknown",
                             "cached": false
                         },
                         {

@@ -165,6 +165,7 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
             {
                 qCDebug(dcSolaxEvc()) << "Solax wallbox initialized.";
                 thing->setStateValue(solaxEvcFirmwareVersionStateTypeId, connection->firmwareVersion());
+                thing->setStateValue(solaxEvcSerialNumberStateTypeId, connection->serialNumber());
             } else {
                 qCDebug(dcSolaxEvc()) << "Solax wallbox initialization failed.";
                 // Try to reconnect to device
@@ -195,6 +196,40 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
         connect(connection, &SolaxEvcModbusTcpConnection::MaxCurrentChanged, thing, [thing](float maxCurrent) {
             qCDebug(dcSolaxEvc()) << "Max current changed" << maxCurrent << "A";
             thing->setStateValue(solaxEvcMaxChargingCurrentStateTypeId, maxCurrent);
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::faultCodeChanged, thing, [thing](quint32 code) {
+            qCDebug(dcSolaxEvc()) << "Fault code changed" << code;
+            thing->setStateValue(solaxEvcFaultCodeStateTypeId, code);
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::stateChanged, thing, [thing](quint16 state) {
+            qCDebug(dcSolaxEvc()) << "State changed" << state;
+            thing->setStateValue(solaxEvcStateStateTypeId, state);
+
+            switch (state)
+            {
+                case SolaxEvcModbusTcpConnection::StateCharging:
+                    thing->setStateValue(solaxEvcChargingStateTypeId, true);
+                    thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                    break;
+                case SolaxEvcModbusTcpConnection::StateFaulted:
+                    thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                    break;
+                case SolaxEvcModbusTcpConnection::StateFinishing:
+                    thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                    thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                    break;
+                default:
+                    thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                    thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
+                    break;
+            }
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::chargePhaseChanged, thing, [thing](quint16 phaseCount) {
+            qCDebug(dcSolaxEvc()) << "Phase count changed" << phaseCount;
+            thing->setStateValue(solaxEvcPhaseCountStateTypeId, phaseCount == 0 ? 1 : 3);
         });
 
         info->finish(Thing::ThingErrorNoError);
