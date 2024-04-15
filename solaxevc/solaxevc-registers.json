@@ -389,81 +389,6 @@
                     "description": "Wallbox model has screen or not",
                     "defaultValue": 0,
                     "access": "RO"
-                },
-                {
-                    "id": "firmwareVersion",
-                    "address": 4133,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "readSchedule": "init",
-                    "description": "Firmware version",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "ocppNetwork",
-                    "address": 4134,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "OCPP status",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "rssi",
-                    "address": 4135,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Received signal strength indicator",
-                    "unit": "%",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "chargePhaseInput",
-                    "address": 4136,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Wallbox phase configuration",
-                    "enum": "ChargePhase",
-                    "defaultValue": "ChargePhaseThreePhase",
-                    "access": "RO"
-                },
-                {
-                    "id": "unbalancedPower",
-                    "address": 4137,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Setting of unbalanced power",
-                    "unit": "W",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "unbalancedSwitch",
-                    "address": 4138,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Three phase unbalanced switch",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "chargingTime",
-                    "address": 4139,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Duration of current charging session",
-                    "unit": "s",
-                    "defaultValue": 0,
-                    "access": "RO"
                 }
             ]
         },
@@ -626,6 +551,17 @@
             "access": "RW"
         },
         {
+            "id": "firmwareVersion",
+            "address": 4133,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "init",
+            "description": "Firmware version",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
             "id": "controlCommand",
             "address": 4135,
             "size": 1,
@@ -649,6 +585,18 @@
             "unit": "A",
             "defaultValue": 0,
             "access": "RW"
+        },
+        {
+            "id": "chargingTime",
+            "address": 4139,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "description": "Duration of current charging session",
+            "readSchedule": "update",
+            "unit": "s",
+            "defaultValue": 0,
+            "access": "RO"
         },
         {
             "id": "chargePhase",

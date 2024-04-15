@@ -72,8 +72,6 @@ void SolaxEvcTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDe
                 cleanupConnection(connection);
                 return;
             }
-
-            // TODO: CHECK A REGISTER
  
             if (connection->firmwareVersion() > 0)
             {
@@ -81,6 +79,7 @@ void SolaxEvcTCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDe
                 result.firmwareVersion = connection->firmwareVersion();
                 result.port = port;
                 result.networkDeviceInfo = networkDeviceInfo;
+                result.modbusId = modbusId;
                 m_discoveryResults.append(result);
 
                 qCDebug(dcSolaxEvc()) << "Discovery: --> Found Version:" 
