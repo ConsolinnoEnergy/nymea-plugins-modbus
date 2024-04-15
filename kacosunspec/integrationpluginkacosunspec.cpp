@@ -117,7 +117,6 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
                 candidateMasters.append(master);
         }
 
-        m_openReplies = 0;
         foreach (ModbusRtuMaster *modbusMaster, candidateMasters) {
             qCDebug(dcKacoSunSpec()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
             if (!modbusMaster->connected())
