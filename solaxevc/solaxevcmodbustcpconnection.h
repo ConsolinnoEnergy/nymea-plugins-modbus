@@ -83,11 +83,8 @@ public:
         RegisterTypeCharger = 4131,
         RegisterDataHubChargeCurrent = 4132,
         RegisterFirmwareVersion = 4133,
-        RegisterOcppNetwork = 4134,
         RegisterControlCommand = 4135,
         RegisterMaxCurrent = 4136,
-        RegisterUnbalancedPower = 4137,
-        RegisterUnbalancedSwitch = 4138,
         RegisterChargingTime = 4139,
         RegisterChargePhase = 4155,
         RegisterMinCurrent = 4159,
@@ -153,6 +150,9 @@ public:
     float DataHubChargeCurrent() const;
     QModbusReply *setDataHubChargeCurrent(float DataHubChargeCurrent);
 
+    /* Firmware version - Address: 4133, Size: 1 */
+    quint16 firmwareVersion() const;
+
     /* Control command - Address: 4135, Size: 1 */
     ControlCommand controlCommand() const;
     QModbusReply *setControlCommand(ControlCommand controlCommand);
@@ -160,6 +160,9 @@ public:
     /* Maximum AC line current [A] - Address: 4136, Size: 1 */
     float MaxCurrent() const;
     QModbusReply *setMaxCurrent(float MaxCurrent);
+
+    /* Duration of current charging session [s] - Address: 4139, Size: 2 */
+    quint32 chargingTime() const;
 
     /* Wallbox phase configuration - Address: 4155, Size: 1 */
     ChargePhase chargePhase() const;
@@ -243,27 +246,6 @@ public:
     /* Wallbox model has screen or not - Address: 4132, Size: 1 */
     quint16 typeScreen() const;
 
-    /* Firmware version - Address: 4133, Size: 1 */
-    quint16 firmwareVersion() const;
-
-    /* OCPP status - Address: 4134, Size: 1 */
-    quint16 ocppNetwork() const;
-
-    /* Received signal strength indicator [%] - Address: 4135, Size: 1 */
-    quint16 rssi() const;
-
-    /* Wallbox phase configuration - Address: 4136, Size: 1 */
-    ChargePhase chargePhaseInput() const;
-
-    /* Setting of unbalanced power [W] - Address: 4137, Size: 1 */
-    quint16 unbalancedPower() const;
-
-    /* Three phase unbalanced switch - Address: 4138, Size: 1 */
-    quint16 unbalancedSwitch() const;
-
-    /* Duration of current charging session [s] - Address: 4139, Size: 2 */
-    quint32 chargingTime() const;
-
     /* Device mode - Address: 4109, Size: 1 */
     quint16 deviceMode() const;
     QModbusReply *setDeviceMode(quint16 deviceMode);
@@ -324,7 +306,7 @@ public:
     */
     void updateMeterValuesBlock();
 
-    /* Read block from start addess 4124 with size of 17 registers containing following 15 properties:
+    /* Read block from start addess 4124 with size of 9 registers containing following 8 properties:
       - PCB temperature [°C] - Address: 4124, Size: 1
       - State - Address: 4125, Size: 1
       - Fault code - Address: 4126, Size: 2
@@ -333,13 +315,6 @@ public:
       - Wallbox is single or three phase - Address: 4130, Size: 1
       - Wallbox is type home or OCPP - Address: 4131, Size: 1
       - Wallbox model has screen or not - Address: 4132, Size: 1
-      - Firmware version - Address: 4133, Size: 1
-      - OCPP status - Address: 4134, Size: 1
-      - Received signal strength indicator [%] - Address: 4135, Size: 1
-      - Wallbox phase configuration - Address: 4136, Size: 1
-      - Setting of unbalanced power [W] - Address: 4137, Size: 1
-      - Three phase unbalanced switch - Address: 4138, Size: 1
-      - Duration of current charging session [s] - Address: 4139, Size: 2
     */
     void updateWallboxStatusBlock();
 
@@ -361,6 +336,7 @@ public:
     void updateDataHubChargeCurrent();
     void updateControlCommand();
     void updateMaxCurrent();
+    void updateChargingTime();
     void updateChargePhase();
     void updateMinCurrent();
     void updateSlaveAddress();
@@ -389,12 +365,6 @@ public:
     void updateTypePhase();
     void updateTypeCharger();
     void updateTypeScreen();
-    void updateOcppNetwork();
-    void updateRssi();
-    void updateChargePhaseInput();
-    void updateUnbalancedPower();
-    void updateUnbalancedSwitch();
-    void updateChargingTime();
     void updateDeviceMode();
     void updateEcoGear();
     void updateGreenGear();
@@ -410,8 +380,10 @@ public:
     QModbusReply *readDeviceType();
     QModbusReply *readTotalEnergy();
     QModbusReply *readDataHubChargeCurrent();
+    QModbusReply *readFirmwareVersion();
     QModbusReply *readControlCommand();
     QModbusReply *readMaxCurrent();
+    QModbusReply *readChargingTime();
     QModbusReply *readChargePhase();
     QModbusReply *readMinCurrent();
     QModbusReply *readSlaveAddress();
@@ -439,13 +411,6 @@ public:
     QModbusReply *readTypePhase();
     QModbusReply *readTypeCharger();
     QModbusReply *readTypeScreen();
-    QModbusReply *readFirmwareVersion();
-    QModbusReply *readOcppNetwork();
-    QModbusReply *readRssi();
-    QModbusReply *readChargePhaseInput();
-    QModbusReply *readUnbalancedPower();
-    QModbusReply *readUnbalancedSwitch();
-    QModbusReply *readChargingTime();
     QModbusReply *readDeviceMode();
     QModbusReply *readEcoGear();
     QModbusReply *readGreenGear();
@@ -477,7 +442,7 @@ public:
     */
     QModbusReply *readBlockMeterValues();
 
-    /* Read block from start addess 4124 with size of 17 registers containing following 15 properties:
+    /* Read block from start addess 4124 with size of 9 registers containing following 8 properties:
      - PCB temperature [°C] - Address: 4124, Size: 1
      - State - Address: 4125, Size: 1
      - Fault code - Address: 4126, Size: 2
@@ -486,13 +451,6 @@ public:
      - Wallbox is single or three phase - Address: 4130, Size: 1
      - Wallbox is type home or OCPP - Address: 4131, Size: 1
      - Wallbox model has screen or not - Address: 4132, Size: 1
-     - Firmware version - Address: 4133, Size: 1
-     - OCPP status - Address: 4134, Size: 1
-     - Received signal strength indicator [%] - Address: 4135, Size: 1
-     - Wallbox phase configuration - Address: 4136, Size: 1
-     - Setting of unbalanced power [W] - Address: 4137, Size: 1
-     - Three phase unbalanced switch - Address: 4138, Size: 1
-     - Duration of current charging session [s] - Address: 4139, Size: 2
     */
     QModbusReply *readBlockWallboxStatus();
 
@@ -513,6 +471,7 @@ public:
 
     virtual bool initialize();
     virtual void initialize1();
+    virtual void initialize2();
     virtual bool update();
     virtual void update1();
     virtual void update2();
@@ -521,6 +480,7 @@ public:
     virtual void update5();
     virtual void update6();
     virtual void update7();
+    virtual void update8();
 
 signals:
     void reachableChanged(bool reachable);
@@ -540,10 +500,14 @@ signals:
     void totalEnergyReadFinished(float totalEnergy);
     void DataHubChargeCurrentChanged(float DataHubChargeCurrent);
     void DataHubChargeCurrentReadFinished(float DataHubChargeCurrent);
+    void firmwareVersionChanged(quint16 firmwareVersion);
+    void firmwareVersionReadFinished(quint16 firmwareVersion);
     void controlCommandChanged(ControlCommand controlCommand);
     void controlCommandReadFinished(ControlCommand controlCommand);
     void MaxCurrentChanged(float MaxCurrent);
     void MaxCurrentReadFinished(float MaxCurrent);
+    void chargingTimeChanged(quint32 chargingTime);
+    void chargingTimeReadFinished(quint32 chargingTime);
     void chargePhaseChanged(ChargePhase chargePhase);
     void chargePhaseReadFinished(ChargePhase chargePhase);
     void MinCurrentChanged(float MinCurrent);
@@ -599,20 +563,6 @@ signals:
     void typeChargerReadFinished(quint16 typeCharger);
     void typeScreenChanged(quint16 typeScreen);
     void typeScreenReadFinished(quint16 typeScreen);
-    void firmwareVersionChanged(quint16 firmwareVersion);
-    void firmwareVersionReadFinished(quint16 firmwareVersion);
-    void ocppNetworkChanged(quint16 ocppNetwork);
-    void ocppNetworkReadFinished(quint16 ocppNetwork);
-    void rssiChanged(quint16 rssi);
-    void rssiReadFinished(quint16 rssi);
-    void chargePhaseInputChanged(ChargePhase chargePhaseInput);
-    void chargePhaseInputReadFinished(ChargePhase chargePhaseInput);
-    void unbalancedPowerChanged(quint16 unbalancedPower);
-    void unbalancedPowerReadFinished(quint16 unbalancedPower);
-    void unbalancedSwitchChanged(quint16 unbalancedSwitch);
-    void unbalancedSwitchReadFinished(quint16 unbalancedSwitch);
-    void chargingTimeChanged(quint32 chargingTime);
-    void chargingTimeReadFinished(quint32 chargingTime);
     void deviceModeChanged(quint16 deviceMode);
     void deviceModeReadFinished(quint16 deviceMode);
     void ecoGearChanged(quint16 ecoGear);
@@ -639,8 +589,10 @@ protected:
     quint16 m_deviceType = 0;
     float m_totalEnergy = 0;
     float m_DataHubChargeCurrent = 0;
+    quint16 m_firmwareVersion = 0;
     ControlCommand m_controlCommand = ControlCommandUndefined;
     float m_MaxCurrent = 0;
+    quint32 m_chargingTime = 0;
     ChargePhase m_chargePhase = ChargePhaseThreePhase;
     float m_MinCurrent = 0;
     quint16 m_slaveAddress = 0;
@@ -668,13 +620,6 @@ protected:
     quint16 m_typePhase = 0;
     quint16 m_typeCharger = 0;
     quint16 m_typeScreen = 0;
-    quint16 m_firmwareVersion = 0;
-    quint16 m_ocppNetwork = 0;
-    quint16 m_rssi = 0;
-    ChargePhase m_chargePhaseInput = ChargePhaseThreePhase;
-    quint16 m_unbalancedPower = 0;
-    quint16 m_unbalancedSwitch = 0;
-    quint32 m_chargingTime = 0;
     quint16 m_deviceMode = 0;
     quint16 m_ecoGear = 0;
     quint16 m_greenGear = 0;
@@ -690,8 +635,10 @@ protected:
     void processDeviceTypeRegisterValues(const QVector<quint16> values);
     void processTotalEnergyRegisterValues(const QVector<quint16> values);
     void processDataHubChargeCurrentRegisterValues(const QVector<quint16> values);
+    void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processControlCommandRegisterValues(const QVector<quint16> values);
     void processMaxCurrentRegisterValues(const QVector<quint16> values);
+    void processChargingTimeRegisterValues(const QVector<quint16> values);
     void processChargePhaseRegisterValues(const QVector<quint16> values);
     void processMinCurrentRegisterValues(const QVector<quint16> values);
     void processSlaveAddressRegisterValues(const QVector<quint16> values);
@@ -721,13 +668,6 @@ protected:
     void processTypePhaseRegisterValues(const QVector<quint16> values);
     void processTypeChargerRegisterValues(const QVector<quint16> values);
     void processTypeScreenRegisterValues(const QVector<quint16> values);
-    void processFirmwareVersionRegisterValues(const QVector<quint16> values);
-    void processOcppNetworkRegisterValues(const QVector<quint16> values);
-    void processRssiRegisterValues(const QVector<quint16> values);
-    void processChargePhaseInputRegisterValues(const QVector<quint16> values);
-    void processUnbalancedPowerRegisterValues(const QVector<quint16> values);
-    void processUnbalancedSwitchRegisterValues(const QVector<quint16> values);
-    void processChargingTimeRegisterValues(const QVector<quint16> values);
 
     void processDeviceModeRegisterValues(const QVector<quint16> values);
     void processEcoGearRegisterValues(const QVector<quint16> values);

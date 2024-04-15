@@ -139,6 +139,11 @@ QModbusReply *SolaxEvcModbusTcpConnection::setDataHubChargeCurrent(float DataHub
     return sendWriteRequest(request, m_slaveId);
 }
 
+quint16 SolaxEvcModbusTcpConnection::firmwareVersion() const
+{
+    return m_firmwareVersion;
+}
+
 SolaxEvcModbusTcpConnection::ControlCommand SolaxEvcModbusTcpConnection::controlCommand() const
 {
     return m_controlCommand;
@@ -165,6 +170,11 @@ QModbusReply *SolaxEvcModbusTcpConnection::setMaxCurrent(float MaxCurrent)
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4136, values.count());
     request.setValues(values);
     return sendWriteRequest(request, m_slaveId);
+}
+
+quint32 SolaxEvcModbusTcpConnection::chargingTime() const
+{
+    return m_chargingTime;
 }
 
 SolaxEvcModbusTcpConnection::ChargePhase SolaxEvcModbusTcpConnection::chargePhase() const
@@ -309,41 +319,6 @@ quint16 SolaxEvcModbusTcpConnection::typeCharger() const
 quint16 SolaxEvcModbusTcpConnection::typeScreen() const
 {
     return m_typeScreen;
-}
-
-quint16 SolaxEvcModbusTcpConnection::firmwareVersion() const
-{
-    return m_firmwareVersion;
-}
-
-quint16 SolaxEvcModbusTcpConnection::ocppNetwork() const
-{
-    return m_ocppNetwork;
-}
-
-quint16 SolaxEvcModbusTcpConnection::rssi() const
-{
-    return m_rssi;
-}
-
-SolaxEvcModbusTcpConnection::ChargePhase SolaxEvcModbusTcpConnection::chargePhaseInput() const
-{
-    return m_chargePhaseInput;
-}
-
-quint16 SolaxEvcModbusTcpConnection::unbalancedPower() const
-{
-    return m_unbalancedPower;
-}
-
-quint16 SolaxEvcModbusTcpConnection::unbalancedSwitch() const
-{
-    return m_unbalancedSwitch;
-}
-
-quint32 SolaxEvcModbusTcpConnection::chargingTime() const
-{
-    return m_chargingTime;
 }
 
 quint16 SolaxEvcModbusTcpConnection::deviceMode() const
@@ -570,11 +545,50 @@ void SolaxEvcModbusTcpConnection::initialize1()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from init \"Device type\" register" << 4108 << "size:" << 1 << unit.values();
         processDeviceTypeRegisterValues(unit.values());
-        verifyInitFinished();
+        initialize2();
     });
 
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcSolaxEvcModbusTcpConnection()) << "Modbus reply error occurred while reading \"Device type\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxEvcModbusTcpConnection::initialize2()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read Firmware version
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read init \"Firmware version\" register:" << 4133 << "size:" << 1;
+    reply = readFirmwareVersion();
+    if (!reply) {
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Firmware version\" registers from" << hostAddress().toString() << errorString();
+        finishInitialization(false);
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingInitReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, m_initObject, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingInitReplies.removeAll(reply);
+        if (reply->error() != QModbusDevice::NoError) {
+            finishInitialization(false);
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from init \"Firmware version\" register" << 4133 << "size:" << 1 << unit.values();
+        processFirmwareVersionRegisterValues(unit.values());
+        verifyInitFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, m_initObject, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Modbus reply error occurred while reading \"Firmware version\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -706,6 +720,44 @@ void SolaxEvcModbusTcpConnection::update3()
 {
     QModbusReply *reply = nullptr;
 
+    // Read Duration of current charging session
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Duration of current charging session\" register:" << 4139 << "size:" << 2;
+    reply = readChargingTime();
+    if (!reply) {
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Duration of current charging session\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Duration of current charging session\" register" << 4139 << "size:" << 2 << unit.values();
+        processChargingTimeRegisterValues(unit.values());
+        update4();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Modbus reply error occurred while reading \"Duration of current charging session\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxEvcModbusTcpConnection::update4()
+{
+    QModbusReply *reply = nullptr;
+
     // Read Minimum AC line current
     qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Minimum AC line current\" register:" << 4159 << "size:" << 1;
     reply = readMinCurrent();
@@ -732,7 +784,7 @@ void SolaxEvcModbusTcpConnection::update3()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Minimum AC line current\" register" << 4159 << "size:" << 1 << unit.values();
         processMinCurrentRegisterValues(unit.values());
-        update4();
+        update5();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
@@ -740,7 +792,7 @@ void SolaxEvcModbusTcpConnection::update3()
     });
 }
 
-void SolaxEvcModbusTcpConnection::update4()
+void SolaxEvcModbusTcpConnection::update5()
 {
     QModbusReply *reply = nullptr;
 
@@ -770,7 +822,7 @@ void SolaxEvcModbusTcpConnection::update4()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Own 485 address\" register" << 4160 << "size:" << 1 << unit.values();
         processSlaveAddressRegisterValues(unit.values());
-        update5();
+        update6();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
@@ -778,9 +830,10 @@ void SolaxEvcModbusTcpConnection::update4()
     });
 }
 
-void SolaxEvcModbusTcpConnection::update5()
+void SolaxEvcModbusTcpConnection::update6()
 {
     QModbusReply *reply = nullptr;
+
     // Read meterValues
     reply = readBlockMeterValues();
     qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read block \"meterValues\" registers from:" << 4096 << "size:" << 16;
@@ -823,7 +876,7 @@ void SolaxEvcModbusTcpConnection::update5()
         processFrequencyPhaseBRegisterValues(blockValues.mid(13, 1));
         processFrequencyPhaseCRegisterValues(blockValues.mid(14, 1));
         processSessionEnergyRegisterValues(blockValues.mid(15, 1));
-        verifyUpdateFinished();
+        update7();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -831,13 +884,13 @@ void SolaxEvcModbusTcpConnection::update5()
     });
 }
 
-void SolaxEvcModbusTcpConnection::update6()
+void SolaxEvcModbusTcpConnection::update7()
 {
     QModbusReply *reply = nullptr;
 
     // Read wallboxStatus
     reply = readBlockWallboxStatus();
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read block \"wallboxStatus\" registers from:" << 4124 << "size:" << 17;
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read block \"wallboxStatus\" registers from:" << 4124 << "size:" << 9;
     if (!reply) {
         qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading block \"wallboxStatus\" registers";
         return;
@@ -860,7 +913,7 @@ void SolaxEvcModbusTcpConnection::update6()
 
         const QModbusDataUnit unit = reply->result();
         const QVector<quint16> blockValues = unit.values();
-        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from reading block \"wallboxStatus\" register" << 4124 << "size:" << 17 << blockValues;
+        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from reading block \"wallboxStatus\" register" << 4124 << "size:" << 9 << blockValues;
         processTempPcbRegisterValues(blockValues.mid(0, 1));
         processStateRegisterValues(blockValues.mid(1, 1));
         processFaultCodeRegisterValues(blockValues.mid(2, 2));
@@ -869,14 +922,7 @@ void SolaxEvcModbusTcpConnection::update6()
         processTypePhaseRegisterValues(blockValues.mid(6, 1));
         processTypeChargerRegisterValues(blockValues.mid(7, 1));
         processTypeScreenRegisterValues(blockValues.mid(8, 1));
-        processFirmwareVersionRegisterValues(blockValues.mid(9, 1));
-        processOcppNetworkRegisterValues(blockValues.mid(10, 1));
-        processRssiRegisterValues(blockValues.mid(11, 1));
-        processChargePhaseInputRegisterValues(blockValues.mid(12, 1));
-        processUnbalancedPowerRegisterValues(blockValues.mid(13, 1));
-        processUnbalancedSwitchRegisterValues(blockValues.mid(14, 1));
-        processChargingTimeRegisterValues(blockValues.mid(15, 2));
-        verifyUpdateFinished();
+        update8();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -884,7 +930,7 @@ void SolaxEvcModbusTcpConnection::update6()
     });
 }
 
-void SolaxEvcModbusTcpConnection::update7()
+void SolaxEvcModbusTcpConnection::update8()
 {
     QModbusReply *reply = nullptr;
 
@@ -1022,6 +1068,36 @@ void SolaxEvcModbusTcpConnection::updateMaxCurrent()
     });
 }
 
+void SolaxEvcModbusTcpConnection::updateChargingTime()
+{
+    // Update registers from Duration of current charging session
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Duration of current charging session\" register:" << 4139 << "size:" << 2;
+    QModbusReply *reply = readChargingTime();
+    if (!reply) {
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Duration of current charging session\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Duration of current charging session\" register" << 4139 << "size:" << 2 << unit.values();
+            processChargingTimeRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Modbus reply error occurred while updating \"Duration of current charging session\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
 void SolaxEvcModbusTcpConnection::updateMinCurrent()
 {
     // Update registers from Minimum AC line current
@@ -1131,7 +1207,7 @@ void SolaxEvcModbusTcpConnection::updateMeterValuesBlock()
 void SolaxEvcModbusTcpConnection::updateWallboxStatusBlock()
 {
     // Update register block "wallboxStatus"
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read block \"wallboxStatus\" registers from:" << 4124 << "size:" << 17;
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read block \"wallboxStatus\" registers from:" << 4124 << "size:" << 9;
     QModbusReply *reply = readBlockWallboxStatus();
     if (!reply) {
         qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading block \"wallboxStatus\" registers";
@@ -1149,7 +1225,7 @@ void SolaxEvcModbusTcpConnection::updateWallboxStatusBlock()
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
             const QVector<quint16> blockValues = unit.values();
-            qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from reading block \"wallboxStatus\" register" << 4124 << "size:" << 17 << blockValues;
+            qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from reading block \"wallboxStatus\" register" << 4124 << "size:" << 9 << blockValues;
             processTempPcbRegisterValues(blockValues.mid(0, 1));
             processStateRegisterValues(blockValues.mid(1, 1));
             processFaultCodeRegisterValues(blockValues.mid(2, 2));
@@ -1158,13 +1234,6 @@ void SolaxEvcModbusTcpConnection::updateWallboxStatusBlock()
             processTypePhaseRegisterValues(blockValues.mid(6, 1));
             processTypeChargerRegisterValues(blockValues.mid(7, 1));
             processTypeScreenRegisterValues(blockValues.mid(8, 1));
-            processFirmwareVersionRegisterValues(blockValues.mid(9, 1));
-            processOcppNetworkRegisterValues(blockValues.mid(10, 1));
-            processRssiRegisterValues(blockValues.mid(11, 1));
-            processChargePhaseInputRegisterValues(blockValues.mid(12, 1));
-            processUnbalancedPowerRegisterValues(blockValues.mid(13, 1));
-            processUnbalancedSwitchRegisterValues(blockValues.mid(14, 1));
-            processChargingTimeRegisterValues(blockValues.mid(15, 2));
         }
     });
 
@@ -1237,6 +1306,12 @@ QModbusReply *SolaxEvcModbusTcpConnection::readDataHubChargeCurrent()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *SolaxEvcModbusTcpConnection::readFirmwareVersion()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4133, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *SolaxEvcModbusTcpConnection::readControlCommand()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4135, 1);
@@ -1246,6 +1321,12 @@ QModbusReply *SolaxEvcModbusTcpConnection::readControlCommand()
 QModbusReply *SolaxEvcModbusTcpConnection::readMaxCurrent()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4136, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxEvcModbusTcpConnection::readChargingTime()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4139, 2);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -1411,48 +1492,6 @@ QModbusReply *SolaxEvcModbusTcpConnection::readTypeScreen()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *SolaxEvcModbusTcpConnection::readFirmwareVersion()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4133, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *SolaxEvcModbusTcpConnection::readOcppNetwork()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4134, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *SolaxEvcModbusTcpConnection::readRssi()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4135, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *SolaxEvcModbusTcpConnection::readChargePhaseInput()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4136, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *SolaxEvcModbusTcpConnection::readUnbalancedPower()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4137, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *SolaxEvcModbusTcpConnection::readUnbalancedSwitch()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4138, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *SolaxEvcModbusTcpConnection::readChargingTime()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4139, 2);
-    return sendReadRequest(request, m_slaveId);
-}
-
 QModbusReply *SolaxEvcModbusTcpConnection::readDeviceMode()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4109, 1);
@@ -1521,7 +1560,7 @@ QModbusReply *SolaxEvcModbusTcpConnection::readBlockMeterValues()
 
 QModbusReply *SolaxEvcModbusTcpConnection::readBlockWallboxStatus()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4124, 17);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 4124, 9);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -1575,6 +1614,17 @@ void SolaxEvcModbusTcpConnection::processDataHubChargeCurrentRegisterValues(cons
     }
 }
 
+void SolaxEvcModbusTcpConnection::processFirmwareVersionRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedFirmwareVersion = ModbusDataUtils::convertToUInt16(values);
+    emit firmwareVersionReadFinished(receivedFirmwareVersion);
+
+    if (m_firmwareVersion != receivedFirmwareVersion) {
+        m_firmwareVersion = receivedFirmwareVersion;
+        emit firmwareVersionChanged(m_firmwareVersion);
+    }
+}
+
 void SolaxEvcModbusTcpConnection::processControlCommandRegisterValues(const QVector<quint16> values)
 {
     ControlCommand receivedControlCommand = static_cast<ControlCommand>(ModbusDataUtils::convertToUInt16(values));
@@ -1594,6 +1644,17 @@ void SolaxEvcModbusTcpConnection::processMaxCurrentRegisterValues(const QVector<
     if (m_MaxCurrent != receivedMaxCurrent) {
         m_MaxCurrent = receivedMaxCurrent;
         emit MaxCurrentChanged(m_MaxCurrent);
+    }
+}
+
+void SolaxEvcModbusTcpConnection::processChargingTimeRegisterValues(const QVector<quint16> values)
+{
+    quint32 receivedChargingTime = ModbusDataUtils::convertToUInt32(values, m_endianness);
+    emit chargingTimeReadFinished(receivedChargingTime);
+
+    if (m_chargingTime != receivedChargingTime) {
+        m_chargingTime = receivedChargingTime;
+        emit chargingTimeChanged(m_chargingTime);
     }
 }
 
@@ -1894,83 +1955,6 @@ void SolaxEvcModbusTcpConnection::processTypeScreenRegisterValues(const QVector<
     }
 }
 
-void SolaxEvcModbusTcpConnection::processFirmwareVersionRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedFirmwareVersion = ModbusDataUtils::convertToUInt16(values);
-    emit firmwareVersionReadFinished(receivedFirmwareVersion);
-
-    if (m_firmwareVersion != receivedFirmwareVersion) {
-        m_firmwareVersion = receivedFirmwareVersion;
-        emit firmwareVersionChanged(m_firmwareVersion);
-    }
-}
-
-void SolaxEvcModbusTcpConnection::processOcppNetworkRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedOcppNetwork = ModbusDataUtils::convertToUInt16(values);
-    emit ocppNetworkReadFinished(receivedOcppNetwork);
-
-    if (m_ocppNetwork != receivedOcppNetwork) {
-        m_ocppNetwork = receivedOcppNetwork;
-        emit ocppNetworkChanged(m_ocppNetwork);
-    }
-}
-
-void SolaxEvcModbusTcpConnection::processRssiRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedRssi = ModbusDataUtils::convertToUInt16(values);
-    emit rssiReadFinished(receivedRssi);
-
-    if (m_rssi != receivedRssi) {
-        m_rssi = receivedRssi;
-        emit rssiChanged(m_rssi);
-    }
-}
-
-void SolaxEvcModbusTcpConnection::processChargePhaseInputRegisterValues(const QVector<quint16> values)
-{
-    ChargePhase receivedChargePhaseInput = static_cast<ChargePhase>(ModbusDataUtils::convertToUInt16(values));
-    emit chargePhaseInputReadFinished(receivedChargePhaseInput);
-
-    if (m_chargePhaseInput != receivedChargePhaseInput) {
-        m_chargePhaseInput = receivedChargePhaseInput;
-        emit chargePhaseInputChanged(m_chargePhaseInput);
-    }
-}
-
-void SolaxEvcModbusTcpConnection::processUnbalancedPowerRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedUnbalancedPower = ModbusDataUtils::convertToUInt16(values);
-    emit unbalancedPowerReadFinished(receivedUnbalancedPower);
-
-    if (m_unbalancedPower != receivedUnbalancedPower) {
-        m_unbalancedPower = receivedUnbalancedPower;
-        emit unbalancedPowerChanged(m_unbalancedPower);
-    }
-}
-
-void SolaxEvcModbusTcpConnection::processUnbalancedSwitchRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedUnbalancedSwitch = ModbusDataUtils::convertToUInt16(values);
-    emit unbalancedSwitchReadFinished(receivedUnbalancedSwitch);
-
-    if (m_unbalancedSwitch != receivedUnbalancedSwitch) {
-        m_unbalancedSwitch = receivedUnbalancedSwitch;
-        emit unbalancedSwitchChanged(m_unbalancedSwitch);
-    }
-}
-
-void SolaxEvcModbusTcpConnection::processChargingTimeRegisterValues(const QVector<quint16> values)
-{
-    quint32 receivedChargingTime = ModbusDataUtils::convertToUInt32(values, m_endianness);
-    emit chargingTimeReadFinished(receivedChargingTime);
-
-    if (m_chargingTime != receivedChargingTime) {
-        m_chargingTime = receivedChargingTime;
-        emit chargingTimeChanged(m_chargingTime);
-    }
-}
-
 void SolaxEvcModbusTcpConnection::processDeviceModeRegisterValues(const QVector<quint16> values)
 {
     quint16 receivedDeviceMode = ModbusDataUtils::convertToUInt16(values);
@@ -2182,10 +2166,12 @@ void SolaxEvcModbusTcpConnection::onReachabilityCheckFailed()
 
 void SolaxEvcModbusTcpConnection::evaluateReachableState()
 {
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "## Evaluate reachable state";
     bool reachable = m_communicationWorking && connected();
     if (m_reachable == reachable)
         return;
 
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "## Reachable State" << reachable;
     m_reachable = reachable;
     emit reachableChanged(m_reachable);
     m_checkReachableRetriesCount = 0;
@@ -2198,8 +2184,10 @@ QDebug operator<<(QDebug debug, SolaxEvcModbusTcpConnection *solaxEvcModbusTcpCo
     debug.nospace().noquote() << "    - Device type: " << solaxEvcModbusTcpConnection->deviceType() << "\n";
     debug.nospace().noquote() << "    - Accumulated charging energy: " << solaxEvcModbusTcpConnection->totalEnergy() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Data hub charge current: " << solaxEvcModbusTcpConnection->DataHubChargeCurrent() << " [A]" << "\n";
+    debug.nospace().noquote() << "    - Firmware version: " << solaxEvcModbusTcpConnection->firmwareVersion() << "\n";
     debug.nospace().noquote() << "    - Control command: " << solaxEvcModbusTcpConnection->controlCommand() << "\n";
     debug.nospace().noquote() << "    - Maximum AC line current: " << solaxEvcModbusTcpConnection->MaxCurrent() << " [A]" << "\n";
+    debug.nospace().noquote() << "    - Duration of current charging session: " << solaxEvcModbusTcpConnection->chargingTime() << " [s]" << "\n";
     debug.nospace().noquote() << "    - Wallbox phase configuration: " << solaxEvcModbusTcpConnection->chargePhase() << "\n";
     debug.nospace().noquote() << "    - Minimum AC line current: " << solaxEvcModbusTcpConnection->MinCurrent() << " [A]" << "\n";
     debug.nospace().noquote() << "    - Own 485 address: " << solaxEvcModbusTcpConnection->slaveAddress() << "\n";
@@ -2227,13 +2215,6 @@ QDebug operator<<(QDebug debug, SolaxEvcModbusTcpConnection *solaxEvcModbusTcpCo
     debug.nospace().noquote() << "    - Wallbox is single or three phase: " << solaxEvcModbusTcpConnection->typePhase() << "\n";
     debug.nospace().noquote() << "    - Wallbox is type home or OCPP: " << solaxEvcModbusTcpConnection->typeCharger() << "\n";
     debug.nospace().noquote() << "    - Wallbox model has screen or not: " << solaxEvcModbusTcpConnection->typeScreen() << "\n";
-    debug.nospace().noquote() << "    - Firmware version: " << solaxEvcModbusTcpConnection->firmwareVersion() << "\n";
-    debug.nospace().noquote() << "    - OCPP status: " << solaxEvcModbusTcpConnection->ocppNetwork() << "\n";
-    debug.nospace().noquote() << "    - Received signal strength indicator: " << solaxEvcModbusTcpConnection->rssi() << " [%]" << "\n";
-    debug.nospace().noquote() << "    - Wallbox phase configuration: " << solaxEvcModbusTcpConnection->chargePhaseInput() << "\n";
-    debug.nospace().noquote() << "    - Setting of unbalanced power: " << solaxEvcModbusTcpConnection->unbalancedPower() << " [W]" << "\n";
-    debug.nospace().noquote() << "    - Three phase unbalanced switch: " << solaxEvcModbusTcpConnection->unbalancedSwitch() << "\n";
-    debug.nospace().noquote() << "    - Duration of current charging session: " << solaxEvcModbusTcpConnection->chargingTime() << " [s]" << "\n";
     debug.nospace().noquote() << "    - Device mode: " << solaxEvcModbusTcpConnection->deviceMode() << "\n";
     debug.nospace().noquote() << "    - ECO gear: " << solaxEvcModbusTcpConnection->ecoGear() << "\n";
     debug.nospace().noquote() << "    - Green gear: " << solaxEvcModbusTcpConnection->greenGear() << "\n";
