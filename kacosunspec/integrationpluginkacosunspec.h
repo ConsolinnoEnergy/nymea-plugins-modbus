@@ -48,9 +48,6 @@ public:
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
 
-signals:
-    void discoveryRtuFinished();
-
 private:
     PluginTimer *m_pluginTimer = nullptr;
 
@@ -59,7 +56,6 @@ private:
         qint16 energySf {1};
     };
 
-    quint16 m_openReplies;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, KacoSunSpecModbusTcpConnection *> m_tcpConnections;
     QHash<Thing *, KacoSunSpecModbusRtuConnection *> m_rtuConnections;
