@@ -149,6 +149,7 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
                     continue;
               }
             }
+            qCDebug(dcKacoSunSpec()) << "Found Kaco SunSpec inverter on modbus master" << modbusMaster->modbusUuid() << "with modbus ID" << modbusId;
             ThingDescriptor descriptor(info->thingClassId(), "Kaco SunSpec Inverter", QString::number(modbusId) + " " + modbusMaster->serialPort());
             ParamList params;
             params << Param(kacosunspecInverterRTUThingSlaveAddressParamTypeId, modbusId);
@@ -156,6 +157,8 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
             descriptor.setParams(params);
             info->addThingDescriptor(descriptor);
         }
+        qCDebug(dcKacoSunSpec()) << "Found" << info->thingDescriptors().count() << " Kaco SunSpec inverters";
+        
         info->finish(Thing::ThingErrorNoError);
     }
 }
@@ -331,9 +334,12 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
 
 
         // FIXME: make async and check if this is really a kaco sunspec
+        //
+        //
         m_rtuConnections.insert(thing, connection);
         ScaleFactors scalefactors{};
         m_scalefactors.insert(thing, scalefactors);
+
         info->finish(Thing::ThingErrorNoError);
     }
 }
