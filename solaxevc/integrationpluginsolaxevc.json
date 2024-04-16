@@ -155,8 +155,8 @@
                             "id": "38d022d5-c25c-41d4-bec0-d3701e66418f",
                             "name": "faultCode",
                             "displayName": "Fault code",
-                            "type": "uint",
-                            "defaultValue": 0,
+                            "type": "QString",
+                            "defaultValue": "No Error",
                             "cached": false
                         },
                         {
@@ -173,6 +173,66 @@
                             "displayName": "Serial number",
                             "type": "QString",
                             "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "7234b907-0c10-437e-9824-a8ab706bd3b3",
+                            "name": "currentPhaseA",
+                            "displayName": "Current Phase A",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "3dd1efb6-92d7-4a34-856f-c6a20581af56",
+                            "name": "currentPhaseB",
+                            "displayName": "Current Phase B",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "23a369af-7fb5-4e51-bfdd-c0cae2bee841",
+                            "name": "currentPhaseC",
+                            "displayName": "Current Phase C",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "3e995ec8-21f1-4eb4-a626-a66008257fd8",
+                            "name": "deviceMode",
+                            "displayName": "Device Mode",
+                            "displayNameAction": "Set device mode",
+                            "type": "QString",
+                            "defaultValue": "Fast",
+                            "possibleValues": ["Fast", "Eco", "Green"],
+                            "writable": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "43a16557-aa5a-4be6-aa9c-c11a2a67352a",
+                            "name": "ecoGear",
+                            "displayName": "Eco Gear",
+                            "displayNameAction": "Set eco gear mode",
+                            "type": "QString",
+                            "defaultValue": "6A",
+                            "possibleValues": ["6A", "10A", "16A", "20A", "25A"],
+                            "writable": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "68cd667f-35ce-48d0-b923-c2db2acc2a9b",
+                            "name": "greenGear",
+                            "displayName": "Green Gear",
+                            "displayNameAction": "Set green gear mode",
+                            "type": "QString",
+                            "defaultValue": "3A",
+                            "possibleValues": ["3A", "6A"],
+                            "writable": true,
                             "cached": false
                         }
                     ]

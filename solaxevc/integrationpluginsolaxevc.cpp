@@ -207,6 +207,19 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
             thing->setStateValue(solaxEvcFaultCodeStateTypeId, faultCodeMap[code]);
         });
 
+        connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseAChanged, thing, [thing](double currentPhase) {
+            qCDebug(dcSolaxEvc()) << "Current Phase" << currentPhase << "A";
+            thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, currentPhase);
+        });
+        connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseBChanged, thing, [thing](double currentPhase) {
+            qCDebug(dcSolaxEvc()) << "Current Phase" << currentPhase << "A";
+            thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, currentPhase);
+        });
+        connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseCChanged, thing, [thing](double currentPhase) {
+            qCDebug(dcSolaxEvc()) << "Current Phase" << currentPhase << "A";
+            thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
+        });
+
         connect(connection, &SolaxEvcModbusTcpConnection::stateChanged, thing, [thing](quint16 state) {
             qCDebug(dcSolaxEvc()) << "State changed" << state;
             // thing->setStateValue(solaxEvcStateStateTypeId, state);
@@ -220,6 +233,7 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
                     break;
                 case SolaxEvcModbusTcpConnection::StatePreparing:
                     thing->setStateValue(solaxEvcStateStateTypeId, "Preparing");
+                    break;
                 case SolaxEvcModbusTcpConnection::StateCharging:
                     thing->setStateValue(solaxEvcChargingStateTypeId, true);
                     thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
@@ -277,7 +291,7 @@ void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
     if (!m_pluginTimer)
     {
         qCDebug(dcSolaxEvc()) << "Starting plugin timer..";
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcSolaxEvc()) << "Updating Solax EVC..";
             foreach (SolaxEvcModbusTcpConnection *connection, m_tcpConnections) {
@@ -289,7 +303,84 @@ void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
 
 void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
 {
-    Q_UNUSED(info)
+    Thing *thing = info->thing();
+    if (thing->thingClassId() == solaxEvcThingClassId)
+    {
+        SolaxEvcModbusTcpConnection *connection = m_tcpConnections.value(thing);
+
+        if (info->action().actionTypeId() == solaxEvcMaxChargingCurrentActionTypeId)
+        {
+            // set maximal charging current
+            bool power = thing->stateValue(solaxEvcPowerStateTypeId).toBool();
+            quint32 maxCurrent = info->action().paramValue(solaxEvcMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
+            maxCurrent = maxCurrent;
+            QModbusReply *reply = connection->setMaxCurrent(power ? maxCurrent : 0);
+            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, maxCurrent]() {
+                if (reply->error() == QModbusDevice::NoError)
+                {
+                    thing->setStateValue(solaxEvcMaxChargingCurrentStateTypeId, maxCurrent);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcSolaxEvc()) << "Error setting maximal charging current:" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
+        
+        if (info->action().actionTypeId() == solaxEvcDeviceModeActionTypeId)
+        {
+            // change device mode
+            QString mode = info->action().paramValue(solaxEvcDeviceModeActionDeviceModeParamTypeId).toString();
+            QMap<QString, int> deviceMode = {{"Fast",1},{"Eco",2},{"Green",3}};
+            QModbusReply *reply = connection->setDeviceMode(deviceMode[mode]);
+            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, mode]() {
+                if (reply->error() == QModbusDevice::NoError)
+                {
+                    thing->setStateValue(solaxEvcDeviceModeStateTypeId, mode);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcSolaxEvc()) << "Error setting device mode:" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
+
+        if (info->action().actionTypeId() == solaxEvcEcoGearActionTypeId)
+        {
+            // change device mode
+            QString mode = info->action().paramValue(solaxEvcEcoGearActionEcoGearParamTypeId).toString();
+            QMap<QString, int> deviceMode = {{"6A",1},{"10A",2},{"16A",3},{"20A",4},{"25A",5}};
+            QModbusReply *reply = connection->setEcoGear(deviceMode[mode]);
+            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, mode]() {
+                if (reply->error() == QModbusDevice::NoError)
+                {
+                    thing->setStateValue(solaxEvcEcoGearStateTypeId, mode);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcSolaxEvc()) << "Error setting eco mode:" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
+
+        if (info->action().actionTypeId() == solaxEvcGreenGearActionTypeId)
+        {
+            // change device mode
+            QString mode = info->action().paramValue(solaxEvcGreenGearActionGreenGearParamTypeId).toString();
+            QMap<QString, int> deviceMode = {{"3A",1},{"6A",2}};
+            QModbusReply *reply = connection->setGreenGear(deviceMode[mode]);
+            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, mode]() {
+                if (reply->error() == QModbusDevice::NoError)
+                {
+                    thing->setStateValue(solaxEvcGreenGearStateTypeId, mode);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcSolaxEvc()) << "Error setting eco gear:" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
+    }
 }
 
 void IntegrationPluginSolaxEvc::thingRemoved(Thing *thing)
