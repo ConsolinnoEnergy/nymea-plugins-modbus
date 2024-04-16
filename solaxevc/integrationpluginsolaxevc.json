@@ -201,39 +201,6 @@
                             "unit": "Ampere",
                             "defaultValue": 0,
                             "cached": false
-                        },
-                        {
-                            "id": "3e995ec8-21f1-4eb4-a626-a66008257fd8",
-                            "name": "deviceMode",
-                            "displayName": "Device Mode",
-                            "displayNameAction": "Set device mode",
-                            "type": "QString",
-                            "defaultValue": "Fast",
-                            "possibleValues": ["Fast", "Eco", "Green"],
-                            "writable": true,
-                            "cached": false
-                        },
-                        {
-                            "id": "43a16557-aa5a-4be6-aa9c-c11a2a67352a",
-                            "name": "ecoGear",
-                            "displayName": "Eco Gear",
-                            "displayNameAction": "Set eco gear mode",
-                            "type": "QString",
-                            "defaultValue": "6A",
-                            "possibleValues": ["6A", "10A", "16A", "20A", "25A"],
-                            "writable": true,
-                            "cached": false
-                        },
-                        {
-                            "id": "68cd667f-35ce-48d0-b923-c2db2acc2a9b",
-                            "name": "greenGear",
-                            "displayName": "Green Gear",
-                            "displayNameAction": "Set green gear mode",
-                            "type": "QString",
-                            "defaultValue": "3A",
-                            "possibleValues": ["3A", "6A"],
-                            "writable": true,
-                            "cached": false
                         }
                     ]
                 }

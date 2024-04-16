@@ -326,60 +326,6 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
                 }
             });
         }
-        
-        if (info->action().actionTypeId() == solaxEvcDeviceModeActionTypeId)
-        {
-            // change device mode
-            QString mode = info->action().paramValue(solaxEvcDeviceModeActionDeviceModeParamTypeId).toString();
-            QMap<QString, int> deviceMode = {{"Fast",1},{"Eco",2},{"Green",3}};
-            QModbusReply *reply = connection->setDeviceMode(deviceMode[mode]);
-            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, mode]() {
-                if (reply->error() == QModbusDevice::NoError)
-                {
-                    thing->setStateValue(solaxEvcDeviceModeStateTypeId, mode);
-                    info->finish(Thing::ThingErrorNoError);
-                } else {
-                    qCWarning(dcSolaxEvc()) << "Error setting device mode:" << reply->error() << reply->errorString();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                }
-            });
-        }
-
-        if (info->action().actionTypeId() == solaxEvcEcoGearActionTypeId)
-        {
-            // change device mode
-            QString mode = info->action().paramValue(solaxEvcEcoGearActionEcoGearParamTypeId).toString();
-            QMap<QString, int> deviceMode = {{"6A",1},{"10A",2},{"16A",3},{"20A",4},{"25A",5}};
-            QModbusReply *reply = connection->setEcoGear(deviceMode[mode]);
-            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, mode]() {
-                if (reply->error() == QModbusDevice::NoError)
-                {
-                    thing->setStateValue(solaxEvcEcoGearStateTypeId, mode);
-                    info->finish(Thing::ThingErrorNoError);
-                } else {
-                    qCWarning(dcSolaxEvc()) << "Error setting eco mode:" << reply->error() << reply->errorString();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                }
-            });
-        }
-
-        if (info->action().actionTypeId() == solaxEvcGreenGearActionTypeId)
-        {
-            // change device mode
-            QString mode = info->action().paramValue(solaxEvcGreenGearActionGreenGearParamTypeId).toString();
-            QMap<QString, int> deviceMode = {{"3A",1},{"6A",2}};
-            QModbusReply *reply = connection->setGreenGear(deviceMode[mode]);
-            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, mode]() {
-                if (reply->error() == QModbusDevice::NoError)
-                {
-                    thing->setStateValue(solaxEvcGreenGearStateTypeId, mode);
-                    info->finish(Thing::ThingErrorNoError);
-                } else {
-                    qCWarning(dcSolaxEvc()) << "Error setting eco gear:" << reply->error() << reply->errorString();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                }
-            });
-        }
     }
 }
 
