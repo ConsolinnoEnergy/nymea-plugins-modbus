@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.006) buster focal jammy; urgency=medium
+
+* Kaco SunSpec: improved modbus RTU discovery.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Thu, 13 Mar 2024 17:21:53 +0200
+
 nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
 
 * GoodWe: fixed some meter values sign and scaling.
