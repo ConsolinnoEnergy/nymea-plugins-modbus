@@ -326,6 +326,23 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
                 }
             });
         }
+
+        if (info->action().actionTypeId() == solaxEvcPowerActionTypeId)
+        {
+            // start / stop the charging session
+            bool power = info->action().paramValue(solaxEvcPowerActionPowerParamTypeId).toBool();
+            QModbusReply *reply = connection->setControlCommand(power ? ControlCommandStartCharging : ControlCommandStopCharging);
+            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, power]() {
+                if (reply->error() == QModbusDevice::NoError)
+                {
+                    thing->setStateValue(solaxEvcPowerStateTypeId, power);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcSolaxEvc()) << "Error setting charging state: " << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
     }
 }
 
