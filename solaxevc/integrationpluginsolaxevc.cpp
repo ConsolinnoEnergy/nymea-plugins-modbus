@@ -331,7 +331,7 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
         {
             // start / stop the charging session
             bool power = info->action().paramValue(solaxEvcPowerActionPowerParamTypeId).toBool();
-            QModbusReply *reply = connection->setControlCommand(power ? ControlCommandStartCharging : ControlCommandStopCharging);
+            QModbusReply *reply = connection->setControlCommand(power ? SolaxEvcModbusTcpConnection::ControlCommand::ControlCommandStartCharging : SolaxEvcModbusTcpConnection::ControlCommand::ControlCommandStopCharging);
             connect(reply, &QModbusReply::finished, thing, [info, thing, reply, power]() {
                 if (reply->error() == QModbusDevice::NoError)
                 {
