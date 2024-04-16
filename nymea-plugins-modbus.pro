@@ -35,7 +35,8 @@ PLUGIN_DIRS = \
     technivolt              \
     unipi                   \
     webasto                 \
-    e3dc
+    e3dc                    \
+    dvmodbusir
 
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
