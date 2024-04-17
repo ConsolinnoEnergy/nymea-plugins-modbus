@@ -128,7 +128,17 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 
         uint port = thing->paramValue(solaxEvcThingPortParamTypeId).toUInt();
         quint16 modbusId = thing->paramValue(solaxEvcThingModbusIdParamTypeId).toUInt();
-        // TODO: insert fix from Solax Inverter
+        // TODO: test fix from Solax Inverter
+        /*
+        SolaxEvcModbusTcpConnection *connection = nullptr;
+        if (monitor->networkDeviceInfo().address().toString() == "")
+        {
+            QString addressStr = thing->paramValue(solaxEvcThingIpAddressParamTypeId).toString();
+            connection = new SolaxEvcModbusTcpConnection(QHostAddress(addressStr), port, modbusId, this);
+        } else {
+            connection = new SolaxEvcModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
+        }
+        */
         SolaxEvcModbusTcpConnection *connection = new SolaxEvcModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
         m_tcpConnections.insert(thing, connection);
 
@@ -137,7 +147,16 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
             qCDebug(dcSolaxEvc()) << "Network device monitor reachable changed for" << thing->name() << reachable;
             if (reachable && !thing->stateValue(solaxEvcConnectedStateTypeId).toBool())
             {
-            // TODO: insert fix from Solax inverter
+                // TODO: test fix from Solax inverter
+                /*
+                if (monitor->networkDeviceInfo().address().toString() == "")
+                {
+                    QString addressStr = thing->paramValue(solaxEvcThingIpAddressParamTypeId).toString();
+                    connection->setHostAddress(QHostAddress(addressStr));
+                } else {
+                    connection->setHostAddress(monitor->networkDeviceInfo().address());
+                }
+                */
                 connection->setHostAddress(monitor->networkDeviceInfo().address());
                 connection->reconnectDevice();
             } else {
