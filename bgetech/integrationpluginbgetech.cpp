@@ -197,6 +197,12 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
             m_sdm630Connections.take(thing)->deleteLater();
         }
 
+        if (m_energyConsumedValues.contains(thing))
+            m_energyConsumedValues.remove(thing);
+
+        if (m_energyProducedValues.contains(thing))
+            m_energyProducedValues.remove(thing);
+
         Sdm630ModbusRtuConnection *sdmConnection = new Sdm630ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
         connect(info, &ThingSetupInfo::aborted, sdmConnection, [=](){
             qCDebug(dcBgeTech()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
@@ -262,6 +268,10 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
                     //return;
                 }
                 m_sdm630Connections.insert(info->thing(), sdmConnection);
+                QList<float> energyConsumedList{};
+                m_energyConsumedValues.insert(info->thing(), energyConsumedList);
+                QList<float> energyProducedList{};
+                m_energyProducedValues.insert(info->thing(), energyProducedList);
                 info->finish(Thing::ThingErrorNoError);
                 sdmConnection->update();
             } else {
@@ -313,28 +323,6 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
             thing->setStateValue(sdm630FrequencyStateTypeId, frequency);
         });
 
-        connect(sdmConnection, &Sdm630ModbusRtuConnection::totalEnergyConsumedChanged, this, [=](float totalEnergyConsumed){
-            // ToDo: better detection of faulty values. Simple "needs to be bigger" is not good. If your faulty value is unreasonably high, this will prevent
-            // all later correct values (which are lower) to be discarded.
-
-            if (totalEnergyConsumed < thing->stateValue(sdm630TotalEnergyConsumedStateTypeId).toFloat()) {
-                qCWarning(dcBgeTech()) << "Total energy consumed value is smaller than the previous value. Skipping value.";
-                return;
-            }
-            thing->setStateValue(sdm630TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
-        });
-
-        connect(sdmConnection, &Sdm630ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float totalEnergyProduced){
-            // ToDo: better detection of faulty values. Simple "needs to be bigger" is not good. If your faulty value is unreasonably high, this will prevent
-            // all later correct values (which are lower) to be discarded.
-
-            if (totalEnergyProduced < thing->stateValue(sdm630TotalEnergyProducedStateTypeId).toFloat()) {
-                qCWarning(dcBgeTech()) << "Total energy produced value is smaller than the previous value. Skipping value.";
-                return;
-            }
-            thing->setStateValue(sdm630TotalEnergyProducedStateTypeId, totalEnergyProduced);
-        });
-
         connect(sdmConnection, &Sdm630ModbusRtuConnection::energyProducedPhaseAChanged, this, [=](float energyProducedPhaseA){
             thing->setStateValue(sdm630EnergyProducedPhaseAStateTypeId, energyProducedPhaseA);
         });
@@ -361,24 +349,59 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::updateFinished, thing, [sdmConnection, thing, this](){
 
-            // Use Hampel identifier. WIP
-            m_valueList.append(sdmConnection->totalEnergyConsumed());
-            if (m_valueList.length() > m_windowLength) {
-                m_valueList.removeFirst();
+            // Check for outliers. As a consequence of that, the value written to the state is not the most recent. It is several cycles old, depending on the window size.
+            if (m_energyConsumedValues.contains(thing)) {
+                QList<float>& valueList = m_energyConsumedValues.operator[](thing);
+                valueList.append(sdmConnection->totalEnergyConsumed());
+                if (valueList.length() > m_windowLength) {
+                    valueList.removeFirst();
+                    uint centerIndex;
+                    if (m_windowLength % 2 == 0) {
+                        centerIndex = m_windowLength / 2;
+                    } else {
+                        centerIndex = (m_windowLength - 1)/ 2;
+                    }
+                    float testValue{valueList.at(centerIndex)};
+                    if (isOutlier(valueList)) {
+                        qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                    } else {
+                        //qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is legit.";
+
+                        float currentValue{thing->stateValue(sdm630TotalEnergyConsumedStateTypeId).toFloat()};
+                        if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                            //qCDebug(dcBgeTech()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                            thing->setStateValue(sdm630TotalEnergyConsumedStateTypeId, testValue);
+                        }
+                    }
+                }
             }
-            uint centerIndex;
-            if (m_windowLength % 2 == 0) {
-                centerIndex = m_windowLength / 2;
-            } else {
-                centerIndex = (m_windowLength - 1)/ 2;
+
+            if (m_energyProducedValues.contains(thing)) {
+                QList<float>& valueList = m_energyProducedValues.operator[](thing);
+                valueList.append(sdmConnection->totalEnergyProduced());
+                if (valueList.length() > m_windowLength) {
+                    valueList.removeFirst();
+                    uint centerIndex;
+                    if (m_windowLength % 2 == 0) {
+                        centerIndex = m_windowLength / 2;
+                    } else {
+                        centerIndex = (m_windowLength - 1)/ 2;
+                    }
+                    float testValue{valueList.at(centerIndex)};
+                    if (isOutlier(valueList)) {
+                        qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                    } else {
+                        //qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is legit.";
+
+                        float currentValue{thing->stateValue(sdm630TotalEnergyProducedStateTypeId).toFloat()};
+                        if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                            //qCDebug(dcBgeTech()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                            thing->setStateValue(sdm630TotalEnergyProducedStateTypeId, testValue);
+                        }
+                    }
+                }
             }
-            float testValue{m_valueList.at(centerIndex)};
-            if (isOutlier(m_valueList)) {
-                qCDebug(dcBgeTech()) << "Testing Hampel identifier: the value" << testValue << " is an outlier.";
-            } else {
-                qCDebug(dcBgeTech()) << "Testing Hampel identifier: the value" << testValue << " is legit.";
-                // thing->setStateValue(sdm630TotalEnergyConsumedStateTypeId, newValue);
-            }
+
         });
 
     } else if (thing->thingClassId() == sdm72ThingClassId) {
@@ -400,6 +423,12 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
             qCDebug(dcBgeTech()) << "Setup after rediscovery, cleaning up ...";
             m_sdm72Connections.take(thing)->deleteLater();
         }
+
+        if (m_energyConsumedValues.contains(thing))
+            m_energyConsumedValues.remove(thing);
+
+        if (m_energyProducedValues.contains(thing))
+            m_energyProducedValues.remove(thing);
 
         Sdm72ModbusRtuConnection *sdmConnection = new Sdm72ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
         connect(info, &ThingSetupInfo::aborted, sdmConnection, [=](){
@@ -466,6 +495,10 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
                     //return;
                 }
                 m_sdm72Connections.insert(info->thing(), sdmConnection);
+                QList<float> energyConsumedList{};
+                m_energyConsumedValues.insert(info->thing(), energyConsumedList);
+                QList<float> energyProducedList{};
+                m_energyProducedValues.insert(info->thing(), energyProducedList);
                 info->finish(Thing::ThingErrorNoError);
                 sdmConnection->update();
             } else {
@@ -518,26 +551,61 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
             thing->setStateValue(sdm72FrequencyStateTypeId, frequency);
         });
 
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::totalEnergyConsumedChanged, this, [=](float totalEnergyConsumed){
-            // ToDo: better detection of faulty values. Simple "needs to be bigger" is not good. If your faulty value is unreasonably high, this will prevent
-            // all later correct values (which are lower) to be discarded.
+        connect(sdmConnection, &Sdm72ModbusRtuConnection::updateFinished, thing, [sdmConnection, thing, this](){
 
-            if (totalEnergyConsumed < thing->stateValue(sdm72TotalEnergyConsumedStateTypeId).toFloat()) {
-                qCWarning(dcBgeTech()) << "Total energy consumed value is smaller than the previous value. Skipping value.";
-                return;
+            // Check for outliers. As a consequence of that, the value written to the state is not the most recent. It is several cycles old, depending on the window size.
+            if (m_energyConsumedValues.contains(thing)) {
+                QList<float>& valueList = m_energyConsumedValues.operator[](thing);
+                valueList.append(sdmConnection->totalEnergyConsumed());
+                if (valueList.length() > m_windowLength) {
+                    valueList.removeFirst();
+                    uint centerIndex;
+                    if (m_windowLength % 2 == 0) {
+                        centerIndex = m_windowLength / 2;
+                    } else {
+                        centerIndex = (m_windowLength - 1)/ 2;
+                    }
+                    float testValue{valueList.at(centerIndex)};
+                    if (isOutlier(valueList)) {
+                        qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                    } else {
+                        //qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is legit.";
+
+                        float currentValue{thing->stateValue(sdm72TotalEnergyConsumedStateTypeId).toFloat()};
+                        if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                            //qCDebug(dcBgeTech()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                            thing->setStateValue(sdm72TotalEnergyConsumedStateTypeId, testValue);
+                        }
+                    }
+                }
             }
-            thing->setStateValue(sdm72TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
-        });
 
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float totalEnergyProduced){
-            // ToDo: better detection of faulty values. Simple "needs to be bigger" is not good. If your faulty value is unreasonably high, this will prevent
-            // all later correct values (which are lower) to be discarded.
+            if (m_energyProducedValues.contains(thing)) {
+                QList<float>& valueList = m_energyProducedValues.operator[](thing);
+                valueList.append(sdmConnection->totalEnergyProduced());
+                if (valueList.length() > m_windowLength) {
+                    valueList.removeFirst();
+                    uint centerIndex;
+                    if (m_windowLength % 2 == 0) {
+                        centerIndex = m_windowLength / 2;
+                    } else {
+                        centerIndex = (m_windowLength - 1)/ 2;
+                    }
+                    float testValue{valueList.at(centerIndex)};
+                    if (isOutlier(valueList)) {
+                        qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                    } else {
+                        //qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is legit.";
 
-            if (totalEnergyProduced < thing->stateValue(sdm72TotalEnergyProducedStateTypeId).toFloat()) {
-                qCWarning(dcBgeTech()) << "Total energy produced value is smaller than the previous value. Skipping value.";
-                return;
+                        float currentValue{thing->stateValue(sdm72TotalEnergyProducedStateTypeId).toFloat()};
+                        if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                            //qCDebug(dcBgeTech()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                            thing->setStateValue(sdm72TotalEnergyProducedStateTypeId, testValue);
+                        }
+                    }
+                }
             }
-            thing->setStateValue(sdm72TotalEnergyProducedStateTypeId, totalEnergyProduced);
+
         });
     }
 }
@@ -572,6 +640,12 @@ void IntegrationPluginBGETech::thingRemoved(Thing *thing)
     if (m_sdm72Connections.contains(thing))
         m_sdm72Connections.take(thing)->deleteLater();
 
+    if (m_energyConsumedValues.contains(thing))
+        m_energyConsumedValues.remove(thing);
+
+    if (m_energyProducedValues.contains(thing))
+        m_energyProducedValues.remove(thing);
+
     if (myThings().isEmpty() && m_refreshTimer) {
         qCDebug(dcBgeTech()) << "Stopping reconnect timer";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
@@ -582,20 +656,24 @@ void IntegrationPluginBGETech::thingRemoved(Thing *thing)
 // This method uses the Hampel identifier (https://blogs.sas.com/content/iml/2021/06/01/hampel-filter-robust-outliers.html) to test if the value in the center of the window is an outlier or not.
 // The input is a list of floats that contains the window of values to look at. The method will return true if the center value of that list is an outlier according to the Hampel
 // identifier. If the value is not an outlier, the method will return false.
-// The center value is of the list is the one at (length / 2) for even length and ((length - 1) / 2) for odd length.
-bool IntegrationPluginBGETech::isOutlier(QList<float> list)
+// The center value of the list is the one at (length / 2) for even length and ((length - 1) / 2) for odd length.
+bool IntegrationPluginBGETech::isOutlier(const QList<float>& list)
 {
     int const windowLength{list.length()};
     if (windowLength < 3) {
-        qCDebug(dcBgeTech()) << "Hampel identifier: Not enough values in the list.";
-        return true;
+        qCWarning(dcBgeTech()) << "Outlier check not working. Not enough values in the list.";
+        return true;    // Unknown if the value is an outlier, but return true to not use the value because it can't be checked.
     }
+
+    // This is the variable you can change to tweak outlier detection. It scales the size of the range in which values are deemed not an outlier. Increase the number to increase the
+    // range (less values classified as an outlier), lower the number to reduce the range (more values classified as an outlier).
     uint const hampelH{3};
+
     float const madNormalizeFactor{1.4826};
-    qCDebug(dcBgeTech()) << "Hampel identifier: the input list -" << list;
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the input list -" << list;
     QList<float> sortedList{list};
     std::sort(sortedList.begin(), sortedList.end());
-    qCDebug(dcBgeTech()) << "Hampel identifier: the sorted list -" << sortedList;
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the sorted list -" << sortedList;
     uint medianIndex;
     if (windowLength % 2 == 0) {
         medianIndex = windowLength / 2;
@@ -603,21 +681,21 @@ bool IntegrationPluginBGETech::isOutlier(QList<float> list)
         medianIndex = (windowLength - 1)/ 2;
     }
     float const median{sortedList.at(medianIndex)};
-    qCDebug(dcBgeTech()) << "Hampel identifier: the median -" << median;
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the median -" << median;
 
     QList<float> madList;
     for (int i = 0; i < windowLength; ++i) {
         madList.append(std::abs(median - sortedList.at(i)));
     }
-    qCDebug(dcBgeTech()) << "Hampel identifier: the mad list -" << madList;
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the mad list -" << madList;
 
     std::sort(madList.begin(), madList.end());
-    qCDebug(dcBgeTech()) << "Hampel identifier: the sorted mad list -" << madList;
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the sorted mad list -" << madList;
     float const hampelIdentifier{hampelH * madNormalizeFactor * madList.at(medianIndex)};
-    qCDebug(dcBgeTech()) << "Hampel identifier: the calculated Hampel identifier" << hampelIdentifier;
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the calculated Hampel identifier" << hampelIdentifier;
 
     bool isOutlier{std::abs(list.at(medianIndex) - median) > hampelIdentifier};
-    qCDebug(dcBgeTech()) << "Hampel identifier: the value" << list.at(medianIndex) << " is an outlier?" << isOutlier;
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the value" << list.at(medianIndex) << " is an outlier?" << isOutlier;
 
     return isOutlier;
 }
