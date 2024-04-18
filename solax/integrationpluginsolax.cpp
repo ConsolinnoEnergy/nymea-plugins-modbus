@@ -28,6 +28,7 @@
 #include <QStringList>
 #include <QJsonDocument>
 #include <QNetworkInterface>
+#include <QEventLoop>
 
 IntegrationPluginSolax::IntegrationPluginSolax()
 {
@@ -180,7 +181,17 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         }
 
         // Create a monitor so we always get the correct IP in the network and see if the device is reachable without polling on our own.
+        // In this call, nymea is checking a list for known mac addresses and associated ip addresses
         NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        // If the mac address is not known, nymea is starting a internal network discovery.
+        // 'monitor' is returned while the discovery is still running -> monitor does not include ip address and is set to not reachable
+        // To fix this check if an ip address has been returned, if not wait the discovery finish
+        if (monitor->networkDeviceInfo().address().toString() == "")
+        {
+            QEventLoop loop;
+            connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
         m_monitors.insert(thing, monitor);
         connect(info, &ThingSetupInfo::aborted, monitor, [=](){
             // Is this needed? How can setup be aborted at this point?
@@ -194,14 +205,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
         uint port = thing->paramValue(solaxX3InverterTCPThingPortParamTypeId).toUInt();
         quint16 modbusId = thing->paramValue(solaxX3InverterTCPThingModbusIdParamTypeId).toUInt();
-        SolaxModbusTcpConnection *connection = nullptr;
-        if (monitor->networkDeviceInfo().address().toString() == "")
-        {
-            QString addressStr = thing->paramValue(solaxX3InverterTCPThingIpAddressParamTypeId).toString();
-            connection = new SolaxModbusTcpConnection(QHostAddress(addressStr), port, modbusId, this);
-        } else {
-            connection = new SolaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
-        }
+        SolaxModbusTcpConnection *connection = new SolaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
         m_tcpConnections.insert(thing, connection);
         MeterStates meterStates{};
         m_meterstates.insert(thing, meterStates);
@@ -212,13 +216,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
             qCDebug(dcSolax()) << "Network device monitor reachable changed for" << thing->name() << reachable;
             if (reachable && !thing->stateValue(solaxX3InverterTCPConnectedStateTypeId).toBool()) {
-                if (monitor->networkDeviceInfo().address().toString() == "" )
-                {
-                    QString addressStr = thing->paramValue(solaxX3InverterTCPThingIpAddressParamTypeId).toString();
-                    connection->setHostAddress(QHostAddress(addressStr));
-                } else {
-                    connection->setHostAddress(monitor->networkDeviceInfo().address());
-                }
+                connection->setHostAddress(monitor->networkDeviceInfo().address());
                 connection->reconnectDevice();
             } else if (!reachable) {
                 // Note: We disable autoreconnect explicitly and we will
