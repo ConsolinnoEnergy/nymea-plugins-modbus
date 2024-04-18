@@ -179,38 +179,34 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
             }
         });
 
+        // connect current charging power
         connect(connection, &SolaxEvcModbusTcpConnection::totalPowerChanged, thing, [thing](quint16 totalPower) {
             qCDebug(dcSolaxEvc()) << "Total charging power changed" << totalPower << "W";
             thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
         });
 
+        // connect energy consumption of current session
         connect(connection, &SolaxEvcModbusTcpConnection::sessionEnergyChanged, thing, [thing](double sessionEnergy) {
             qCDebug(dcSolaxEvc()) << "Session energy changed" << sessionEnergy << "kWh";
             thing->setStateValue(solaxEvcSessionEnergyStateTypeId, sessionEnergy);
         });
 
+        // connect total energy consumption
         connect(connection, &SolaxEvcModbusTcpConnection::totalEnergyChanged, thing, [thing](double totalEnergy) {
             qCDebug(dcSolaxEvc()) << "Total energy changed" << totalEnergy << "kWh";
             thing->setStateValue(solaxEvcTotalEnergyConsumedStateTypeId, totalEnergy);
         });
 
+        // connect time of current charging session
         connect(connection, &SolaxEvcModbusTcpConnection::chargingTimeChanged, thing, [thing](quint32 time) {
             qCDebug(dcSolaxEvc()) << "Charging Time changed" << time << "s";
             thing->setStateValue(solaxEvcChargingTimeStateTypeId, time);
         });
 
+        // connect max charging current
         connect(connection, &SolaxEvcModbusTcpConnection::MaxCurrentChanged, thing, [thing](float maxCurrent) {
             qCDebug(dcSolaxEvc()) << "Max current changed" << maxCurrent << "A";
             thing->setStateValue(solaxEvcMaxChargingCurrentStateTypeId, maxCurrent);
-        });
-
-        connect(connection, &SolaxEvcModbusTcpConnection::faultCodeChanged, thing, [thing](quint32 code) {
-            qCDebug(dcSolaxEvc()) << "Fault code changed" << code;
-            QMap<int, QString> faultCodeMap = {{0,"PowerSelect_Fault (0)"},{1,"Emergency Stop (1)"},{2,"Overvoltage L1 (2)"},{3,"Undervoltage L1 (3)"}, \
-                                               {4,"Overvoltage L2 (4)"},{5,"Undervoltage L2 (5)"},{6,"Overvoltage L3 (6)"},{7,"Undervoltage L2 (7)"},{8,"Electronic Lock (8)"}, \
-                                               {9,"Over Load (9)"},{10,"Over Current (10)"},{11,"Over Temperature (11)"},{12,"PE Ground (12)"},{13,"PE Leak Current (13)"}, \
-                                               {14,"Over Leak Current (14)"},{15,"Meter Communication (15)"},{16,"485 Communication (16)"},{17,"CP Voltage (17)"}};
-            thing->setStateValue(solaxEvcFaultCodeStateTypeId, faultCodeMap[code]);
         });
 
         connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseAChanged, thing, [thing](double currentPhase) {
@@ -226,6 +222,7 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
             thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
         });
 
+        // connect current state of evcharger
         connect(connection, &SolaxEvcModbusTcpConnection::stateChanged, thing, [thing](quint16 state) {
             qCDebug(dcSolaxEvc()) << "State changed" << state;
             // thing->setStateValue(solaxEvcStateStateTypeId, state);
@@ -279,6 +276,22 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
             }
         });
 
+        // connect fault code
+        connect(connection, &SolaxEvcModbusTcpConnection::faultCodeChanged, thing, [thing](quint32 code) {
+            qCDebug(dcSolaxEvc()) << "Fault code changed" << code;
+            QMap<int, QString> faultCodeMap = {{0,"PowerSelect_Fault (0)"},{1,"Emergency Stop (1)"},{2,"Overvoltage L1 (2)"},{3,"Undervoltage L1 (3)"}, \
+                                               {4,"Overvoltage L2 (4)"},{5,"Undervoltage L2 (5)"},{6,"Overvoltage L3 (6)"},{7,"Undervoltage L2 (7)"},{8,"Electronic Lock (8)"}, \
+                                               {9,"Over Load (9)"},{10,"Over Current (10)"},{11,"Over Temperature (11)"},{12,"PE Ground (12)"},{13,"PE Leak Current (13)"}, \
+                                               {14,"Over Leak Current (14)"},{15,"Meter Communication (15)"},{16,"485 Communication (16)"},{17,"CP Voltage (17)"}};
+            if (thing->stateValue(solaxEvcStateStateTypeId) == SolaxEvcModbusTcpConnection::StateFaulted)
+            {
+                thing->setStateValue(solaxEvcFaultCodeStateTypeId, faultCodeMap[code]);
+            } else {
+                thing->setStateValue(solaxEvcFaultCodeStateTypeId, "No Error");
+            }
+        });
+
+        // connect current charging phases
         connect(connection, &SolaxEvcModbusTcpConnection::chargePhaseChanged, thing, [thing](quint16 phaseCount) {
             qCDebug(dcSolaxEvc()) << "Phase count changed" << phaseCount;
             // TODO: Test if working properly
@@ -309,11 +322,13 @@ void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
 
 void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
 {
+    // TODO: needs to be properly tested, when modbus communication is working properly
     Thing *thing = info->thing();
     if (thing->thingClassId() == solaxEvcThingClassId)
     {
         SolaxEvcModbusTcpConnection *connection = m_tcpConnections.value(thing);
 
+        // set the maximum charging current
         if (info->action().actionTypeId() == solaxEvcMaxChargingCurrentActionTypeId)
         {
             // set maximal charging current
@@ -333,6 +348,7 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
             });
         }
 
+        // toggle charging enabled
         if (info->action().actionTypeId() == solaxEvcPowerActionTypeId)
         {
             // start / stop the charging session
