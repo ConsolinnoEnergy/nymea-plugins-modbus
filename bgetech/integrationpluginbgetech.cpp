@@ -203,7 +203,7 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         if (m_energyProducedValues.contains(thing))
             m_energyProducedValues.remove(thing);
 
-        Sdm630ModbusRtuConnection *sdmConnection = new Sdm630ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
+        Sdm630ModbusRtuConnection *sdmConnection = new Sdm630ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, thing);
         connect(info, &ThingSetupInfo::aborted, sdmConnection, [=](){
             qCDebug(dcBgeTech()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
             sdmConnection->deleteLater();
@@ -212,10 +212,10 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         connect(sdmConnection, &Sdm630ModbusRtuConnection::reachableChanged, thing, [sdmConnection, thing](bool reachable){
             thing->setStateValue(sdm630ConnectedStateTypeId, reachable);
             if (reachable) {
-                qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is sending data.";
+                qCDebug(dcBgeTech()) << "Modbus RTU device " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is sending data.";
                 sdmConnection->initialize();
             } else {
-                qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is not responding.";
+                qCDebug(dcBgeTech()) << "Modbus RTU device " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is not responding.";
                 thing->setStateValue(sdm630CurrentPowerStateTypeId, 0);
                 thing->setStateValue(sdm630CurrentPhaseAStateTypeId, 0);
                 thing->setStateValue(sdm630CurrentPhaseBStateTypeId, 0);
@@ -430,7 +430,7 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         if (m_energyProducedValues.contains(thing))
             m_energyProducedValues.remove(thing);
 
-        Sdm72ModbusRtuConnection *sdmConnection = new Sdm72ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
+        Sdm72ModbusRtuConnection *sdmConnection = new Sdm72ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, thing);
         connect(info, &ThingSetupInfo::aborted, sdmConnection, [=](){
             qCDebug(dcBgeTech()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
             sdmConnection->deleteLater();
@@ -439,10 +439,10 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         connect(sdmConnection, &Sdm72ModbusRtuConnection::reachableChanged, thing, [sdmConnection, thing](bool reachable){
             thing->setStateValue(sdm72ConnectedStateTypeId, reachable);
             if (reachable) {
-                qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is sending data.";
+                qCDebug(dcBgeTech()) << "Modbus RTU device " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is sending data.";
                 sdmConnection->initialize();
             } else {
-                qCDebug(dcBgeTech()) << "Modbus RTU resource " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is not responding.";
+                qCDebug(dcBgeTech()) << "Modbus RTU device " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is not responding.";
                 thing->setStateValue(sdm72CurrentPowerStateTypeId, 0);
                 thing->setStateValue(sdm72CurrentPhaseAStateTypeId, 0);
                 thing->setStateValue(sdm72CurrentPhaseBStateTypeId, 0);
