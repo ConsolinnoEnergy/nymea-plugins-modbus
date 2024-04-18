@@ -34,6 +34,7 @@
 
 #include <network/networkdevicediscovery.h>
 #include <hardwaremanager.h>
+#include <QEventLoop>
 
 IntegrationPluginSolaxEvc::IntegrationPluginSolaxEvc()
 {
@@ -115,6 +116,13 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 
         // Create a monitor so we always get the correct IP in the network and see if the device is reachable without polling on our own.
         NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        // Fix from solax inverter
+        if (monitor->networkDeviceInfo().address().toString() == "")
+        {
+            QEventLoop loop;
+            connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
         m_monitors.insert(thing, monitor);
         connect(info, &ThingSetupInfo::aborted, monitor, [=](){
             // Is this needed? How can setup be aborted at this point?
@@ -128,17 +136,6 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 
         uint port = thing->paramValue(solaxEvcThingPortParamTypeId).toUInt();
         quint16 modbusId = thing->paramValue(solaxEvcThingModbusIdParamTypeId).toUInt();
-        // TODO: test fix from Solax Inverter
-        /*
-        SolaxEvcModbusTcpConnection *connection = nullptr;
-        if (monitor->networkDeviceInfo().address().toString() == "")
-        {
-            QString addressStr = thing->paramValue(solaxEvcThingIpAddressParamTypeId).toString();
-            connection = new SolaxEvcModbusTcpConnection(QHostAddress(addressStr), port, modbusId, this);
-        } else {
-            connection = new SolaxEvcModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
-        }
-        */
         SolaxEvcModbusTcpConnection *connection = new SolaxEvcModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
         m_tcpConnections.insert(thing, connection);
 
@@ -147,16 +144,6 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
             qCDebug(dcSolaxEvc()) << "Network device monitor reachable changed for" << thing->name() << reachable;
             if (reachable && !thing->stateValue(solaxEvcConnectedStateTypeId).toBool())
             {
-                // TODO: test fix from Solax inverter
-                /*
-                if (monitor->networkDeviceInfo().address().toString() == "")
-                {
-                    QString addressStr = thing->paramValue(solaxEvcThingIpAddressParamTypeId).toString();
-                    connection->setHostAddress(QHostAddress(addressStr));
-                } else {
-                    connection->setHostAddress(monitor->networkDeviceInfo().address());
-                }
-                */
                 connection->setHostAddress(monitor->networkDeviceInfo().address());
                 connection->reconnectDevice();
             } else {
