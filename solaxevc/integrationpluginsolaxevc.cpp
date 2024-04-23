@@ -332,10 +332,8 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
         if (info->action().actionTypeId() == solaxEvcMaxChargingCurrentActionTypeId)
         {
             // set maximal charging current
-            bool power = thing->stateValue(solaxEvcPowerStateTypeId).toBool();
             quint32 maxCurrent = info->action().paramValue(solaxEvcMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
-            maxCurrent = maxCurrent;
-            QModbusReply *reply = connection->setMaxCurrent(power ? maxCurrent : 0);
+            QModbusReply *reply = connection->setMaxCurrent(maxCurrent);
             connect(reply, &QModbusReply::finished, thing, [info, thing, reply, maxCurrent]() {
                 if (reply->error() == QModbusDevice::NoError)
                 {
