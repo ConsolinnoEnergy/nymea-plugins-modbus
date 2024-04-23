@@ -300,7 +300,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
            
             qCDebug(dcSolax()) << "Subtract from InverterPower";
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
+            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(inverterPower-batteryPower));
         });
 
         connect(connection, &SolaxModbusTcpConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
