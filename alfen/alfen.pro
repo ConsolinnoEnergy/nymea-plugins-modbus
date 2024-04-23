@@ -5,8 +5,6 @@ include(../modbus.pri)
 
 SOURCES += \
     integrationpluginalfen.cpp \
-    alfen.cpp
 
 HEADERS += \
     integrationpluginalfen.h \
-    alfen.h

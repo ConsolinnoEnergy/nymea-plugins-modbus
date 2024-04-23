@@ -61,9 +61,11 @@ private:
     QHash<Thing*, NetworkDeviceMonitor*> m_monitors;
     PluginTimer *m_pluginTimer = nullptr;
 
-    AlfenWallboxModbusTcpConnection *alfenWallboxTcpConnection;
+    //AlfenWallboxModbusTcpConnection *alfenWallboxTcpConnection;
+    //NetworkDeviceMonitor *monitor;
+    QHash<Thing*, AlfenWallboxModbusTcpConnection *> m_modbusTcpConnections;
     bool setMaxCurrent(AlfenWallboxModbusTcpConnection *connection, int maxCurrent);
-    int ampereValueBefore = nullptr;
+    int ampereValueBefore = 6;
 
     std::map<QString, QString> chargePointStates = {
         {"A", "A - EV not connected"},

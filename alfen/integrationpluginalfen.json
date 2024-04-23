@@ -85,39 +85,6 @@
                             "cached": false
                         },
                         {
-                            "id": "087f90ff-8d42-45ab-91b1-61a55c1f3bb4",
-                            "name": "availability",
-                            "displayName": "EVSE available",
-                            "type": "QString",
-                            "possibleValues": [
-                                "Operative",
-                                "Inoperative"
-                            ],
-                            "defaultValue": "Inoperative",
-                            "displayNameEvent": "availability changed",
-                            "cached": false
-                        },
-                        {
-                            "id": "a661f15f-5b4f-4a40-8042-2808c67e80d6",
-                            "name": "mode3State",
-                            "displayName": "State (61851)",
-                            "type": "QString",
-                            "possibleValues": [
-                                "A - EV not connected",
-                                "B1 - EVSE not ready",
-                                "B2 - EVSE ready",
-                                "C1 - EVSE not ready (charging interrupted)",
-                                "C2 - Charging",
-                                "D1 - EVSE not ready (ventilation required)",
-                                "D2 - Charging (ventilation required)",
-                                "E - Error: Grid not available (short on CP)",
-                                "F - Error: EVSE not available"
-                            ],
-                            "defaultValue": "EV not connected",
-                            "displayNameEvent": "mode3State changed",
-                            "cached": false
-                        },
-                        {
                             "id": "80dfa465-6dd0-4359-9c53-4e0d0791ea9b",
                             "name": "maxChargingCurrent",
                             "displayName": "Maximal charging current",
@@ -135,8 +102,8 @@
                         {
                             "id": "dff81182-0958-41fa-94e8-c5f6ee1285a1",
                             "name": "currentPower",
-                            "displayName": "Real Power",
-                            "displayNameEvent": "Real Power consumtion changed",
+                            "displayName": "Active Power",
+                            "displayNameEvent": "Active Power consumtion changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.0,
@@ -182,10 +149,43 @@
                             "displayName": "Phase count",
                             "displayNameEvent": "Phase count changed",
                             "type": "uint",
-                            "minValue": 0,
+                            "minValue": 1,
                             "maxValue": 3,
                             "defaultValue": 1,
                             "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "087f90ff-8d42-45ab-91b1-61a55c1f3bb4",
+                            "name": "availability",
+                            "displayName": "EVSE available",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Operative",
+                                "Inoperative"
+                            ],
+                            "defaultValue": "Inoperative",
+                            "displayNameEvent": "availability changed",
+                            "cached": false
+                        },
+                        {
+                            "id": "a661f15f-5b4f-4a40-8042-2808c67e80d6",
+                            "name": "mode3State",
+                            "displayName": "State (61851)",
+                            "type": "QString",
+                            "possibleValues": [
+                                "A - EV not connected",
+                                "B1 - EVSE not ready",
+                                "B2 - EVSE ready",
+                                "C1 - EVSE not ready (charging interrupted)",
+                                "C2 - Charging",
+                                "D1 - EVSE not ready (ventilation required)",
+                                "D2 - Charging (ventilation required)",
+                                "E - Error: Grid not available (short on CP)",
+                                "F - Error: EVSE not available"
+                            ],
+                            "defaultValue": "A - EV not connected",
+                            "displayNameEvent": "mode3State changed",
                             "cached": false
                         }
                     ]

@@ -17,47 +17,6 @@
                     "value": 1
                 }
             ]
-        },
-        {
-            "name": "Mode3States",
-            "values": [
-                {
-                    "key": "NoEVConnected",
-                    "value": "A"
-                },
-                {
-                    "key": "EVSEnotReady",
-                    "value": "B1"
-                },
-                {
-                    "key": "EVSEready",
-                    "value": "B2"
-                },
-                {
-                    "key": "EVSEnotReadyChargeInterrupted",
-                    "value": "C1"
-                },
-                {
-                    "key": "Charging",
-                    "value": "C2"
-                },
-                {
-                    "key": "EVSEnotReadyChargeInterruptedVentilationRequired",
-                    "value": "D1"
-                },
-                {
-                    "key": "ChargingVentilationRequired",
-                    "value": "D2"
-                },
-                {
-                    "key": "ErrorGridNotAvailable",
-                    "value": "E"
-                },
-                {
-                    "key": "ErrorEVSEnotAvailable",
-                    "value": "F"
-                }
-            ]
         }
     ],
     "blocks": [
@@ -391,7 +350,6 @@
                     "registerType": "holdingRegister",
                     "readSchedule": "update",
                     "description": "mode3State61851",
-                    "defaultValue": "Mode3StatesNoEVConnected",
                     "access": "RO"
                 },
                 {
@@ -417,54 +375,56 @@
                     "defaultValue": "0",
                     "unit": "Seconds",
                     "access": "RO"
-                },
-                {
-                    "id": "setpointMaxCurrent",
-                    "address": 1210,
-                    "size": 2,
-                    "type": "float",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "modbusSlaveMaxCurrent",
-                    "defaultValue": "0",
-                    "unit": "Ampere",
-                    "access": "RW"
-                },
-                {
-                    "id": "activeLoadBalancindSafeCurrent",
-                    "address": 1212,
-                    "size": 2,
-                    "type": "float",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "activeLoadBalancindSafeCurrent",
-                    "defaultValue": "0",
-                    "unit": "Ampere",
-                    "access": "RO"
-                },
-                {
-                    "id": "setpointMaxCurrentActive",
-                    "address": 1214,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "modbusSlaveReceivedSetpointAccountedFor",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "phaseUsed",
-                    "address": 1215,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "chargingUsing1or3Phases",
-                    "defaultValue": "0",
-                    "access": "RW"
                 }
             ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "setpointMaxCurrent",
+            "address": 1210,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "modbusSlaveMaxCurrent",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RW"
+        },
+        {
+            "id": "activeLoadBalancindSafeCurrent",
+            "address": 1212,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "activeLoadBalancindSafeCurrent",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RO"
+        },
+        {
+            "id": "setpointMaxCurrentActive",
+            "address": 1214,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "modbusSlaveReceivedSetpointAccountedFor",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "phaseUsed",
+            "address": 1215,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "chargingUsing1or3Phases",
+            "defaultValue": "0",
+            "access": "RW"
         }
     ]
 }

@@ -79,7 +79,7 @@ void IntegrationPluginAlfen::discoverThings(ThingDiscoveryInfo *info)
 
                 ThingDescriptor descriptor(info->thingClassId(), title, description);
                 ParamList params;
-                params << Param(alfenEveSingleProMacParamTypeId, networkDeviceInfo.macAddress());
+                params << Param(alfenEveSingleProThingMacParamTypeId, networkDeviceInfo.macAddress());
                 descriptor.setParams(params);
 
                 // Check if we already have set up this device
@@ -99,7 +99,10 @@ void IntegrationPluginAlfen::discoverThings(ThingDiscoveryInfo *info)
 
 void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
 {
-    if (info->thingClassId() == alfenEveSingleProThingClassId) {
+    Thing *thing = info->thing();
+    qCDebug(dcAlfen()) << "Setup" << thing << thing->params();
+
+    if (thing->thingClassId() == alfenEveSingleProThingClassId) {
         Thing *thing = info->thing();
 
         MacAddress mac = MacAddress(thing->paramValue(alfenEveSingleProThingMacParamTypeId).toString());
@@ -111,8 +114,8 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
 
         uint port = thing->paramValue(alfenEveSingleProThingPortParamTypeId).toUInt();
         quint16 slaveId = thing->paramValue(alfenEveSingleProThingSlaveIdParamTypeId).toUInt();
-        //AlfenWallboxModbusTcpConnection *alfenWallboxTcpConnection = new AlfenWallboxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
-        alfenWallboxTcpConnection = new AlfenWallboxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
+        AlfenWallboxModbusTcpConnection *alfenWallboxTcpConnection = new AlfenWallboxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
+        //alfenWallboxTcpConnection = new AlfenWallboxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
         //SchneiderWallbox *schneiderWallbox = new SchneiderWallbox(alfenWallboxTcpConnection, this);
         //connect(info, &ThingSetupInfo::aborted, schneiderWallbox, &SchneiderWallbox::deleteLater);
         connect(info, &ThingSetupInfo::aborted, monitor, [monitor, this](){ hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);});
@@ -131,10 +134,11 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
         });
 
         // Only during setup
-        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::initializationFinished, info, [this, thing, monitor, info](bool success){
+        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::initializationFinished, info, [this, thing, monitor, alfenWallboxTcpConnection, info](bool success){
             if (success) {
                 qCDebug(dcAlfen()) << "Alfen wallbox initialized.";
                 //m_schneiderDevices.insert(thing, schneiderWallbox);
+                m_modbusTcpConnections.insert(thing, alfenWallboxTcpConnection);
                 m_monitors.insert(thing, monitor);
                 info->finish(Thing::ThingErrorNoError);
             } else {
@@ -181,7 +185,7 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
         });
 
         connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::currentSumChanged, this, [thing](float current){
-            qCDebug(dcAlfen()) << thing << "current changed" << currentSum << "A";
+            qCDebug(dcAlfen()) << thing << "current changed" << current << "A";
             thing->setStateValue(alfenEveSingleProCurrentStateTypeId, current);
         });
 
@@ -195,7 +199,7 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
             thing->setStateValue(alfenEveSingleProTotalEnergyDeliveredStateTypeId, energy);
         });
 
-        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::phaseCountChanged, this, [thing, this](quint16 phaseCount){
+        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::phaseUsedChanged, this, [thing, this](quint16 phaseCount){
             qCDebug(dcAlfen()) << thing << "Phase count changed" << phaseCount ;
             thing->setStateValue(alfenEveSingleProPhaseCountStateTypeId, phaseCount);
         });
@@ -251,11 +255,11 @@ void IntegrationPluginAlfen::thingRemoved(Thing *thing)
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;
     }
-    if (myThings().isEmpty() && m_monitors) {
+    /*if (myThings().isEmpty() && m_monitors) {
     qCDebug(dcAlfen()) << "Stopping plugin monitors ...";
         hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         m_monitors = nullptr;
-    }
+    }*/
 }
 
 void IntegrationPluginAlfen::executeAction(ThingActionInfo *info)
@@ -263,8 +267,10 @@ void IntegrationPluginAlfen::executeAction(ThingActionInfo *info)
     Thing *thing = info->thing();
     Action action = info->action();
 
+
     if (thing->thingClassId() == alfenEveSingleProThingClassId) {
-        //AlfenWallboxModbusTcpConnection *connection = ??;
+
+        AlfenWallboxModbusTcpConnection *alfenWallboxTcpConnection = m_modbusTcpConnections.value(thing);
         if (!alfenWallboxTcpConnection) {
             qCWarning(dcAlfen()) << "Modbus connection not available";
             info->finish(Thing::ThingErrorHardwareFailure);
@@ -288,17 +294,17 @@ void IntegrationPluginAlfen::executeAction(ThingActionInfo *info)
                     ampereValueBefore = thing->stateValue(alfenEveSingleProMaxChargingCurrentStateTypeId).toUInt();
                 }
                 // send before value again to allow charging again
-                success = setMaxCurrent(ampereValueBefore);
+                success = setMaxCurrent(alfenWallboxTcpConnection, ampereValueBefore);
             } else {
                 // get before value
                 ampereValueBefore = thing->stateValue(alfenEveSingleProMaxChargingCurrentStateTypeId).toUInt();
                 // send 0 ampere to stop charging
-                success = setMaxCurrent(0);
+                success = setMaxCurrent(alfenWallboxTcpConnection, 0);
             }
 
         } else if (action.actionTypeId() == alfenEveSingleProMaxChargingCurrentActionTypeId) {
             int ampereValue = action.paramValue(alfenEveSingleProMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
-            success = setMaxCurrent(ampereValue);
+            success = setMaxCurrent(alfenWallboxTcpConnection, ampereValue);
             thing->setStateValue(alfenEveSingleProMaxChargingCurrentStateTypeId, ampereValue);
 
         } else {
@@ -321,7 +327,7 @@ bool IntegrationPluginAlfen::setMaxCurrent(AlfenWallboxModbusTcpConnection *conn
     QModbusReply *reply = connection->setSetpointMaxCurrent((float)maxCurrent);
     if (!reply) {
         qCWarning(dcAlfen()) << "Sending max current failed because the reply could not be created.";
-        m_errorOccured = true;
+        //m_errorOccured = true;
         return false;
     }
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
