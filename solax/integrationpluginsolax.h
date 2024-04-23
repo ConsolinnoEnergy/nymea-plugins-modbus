@@ -73,6 +73,8 @@ private:
     void setRunMode(Thing *thing, quint16 runModeAsInt);
     void setErrorMessage(Thing *thing, quint32 errorBits);
     void setBmsWarningMessage(Thing *thing);
+
+    void setupTcpConnection(ThingSetupInfo *info);
 };
 
 #endif // INTEGRATIONPLUGINSOLAX_H

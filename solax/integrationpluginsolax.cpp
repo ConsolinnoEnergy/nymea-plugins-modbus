@@ -186,6 +186,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         // If the mac address is not known, nymea is starting a internal network discovery.
         // 'monitor' is returned while the discovery is still running -> monitor does not include ip address and is set to not reachable
         // To fix this check if an ip address has been returned, if not wait the discovery finish
+        /*
         if (monitor->networkDeviceInfo().address().toString() == "")
         {
             // Create an event loop, so we can pause the setup of the 'Thing'
@@ -195,422 +196,18 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             // Start the EventLoop: Plugin setup is paused
             loop.exec();
         }
+        */
         m_monitors.insert(thing, monitor);
-        connect(info, &ThingSetupInfo::aborted, monitor, [=](){
-            // Is this needed? How can setup be aborted at this point?
 
-            // Clean up in case the setup gets aborted.
-            if (m_monitors.contains(thing)) {
-                qCDebug(dcSolax()) << "Unregister monitor because the setup has been aborted.";
-                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-            }
-        });
-
-        uint port = thing->paramValue(solaxX3InverterTCPThingPortParamTypeId).toUInt();
-        quint16 modbusId = thing->paramValue(solaxX3InverterTCPThingModbusIdParamTypeId).toUInt();
-        SolaxModbusTcpConnection *connection = new SolaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
-        m_tcpConnections.insert(thing, connection);
-        MeterStates meterStates{};
-        m_meterstates.insert(thing, meterStates);
-        BatteryStates batteryStates{};
-        m_batterystates.insert(thing, batteryStates);
-
-        // Reconnect on monitor reachable changed.
-        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
-            qCDebug(dcSolax()) << "Network device monitor reachable changed for" << thing->name() << reachable;
-            if (reachable && !thing->stateValue(solaxX3InverterTCPConnectedStateTypeId).toBool()) {
-                connection->setHostAddress(monitor->networkDeviceInfo().address());
-                connection->reconnectDevice();
-            } else if (!reachable) {
-                // Note: We disable autoreconnect explicitly and we will
-                // connect the device once the monitor says it is reachable again.
-                connection->disconnectDevice();
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable){
-            qCDebug(dcSolax()) << "Reachable state changed" << reachable;
-            if (reachable) {
-                // Connected true will be set after successfull init.
-                connection->initialize();
-            } else {
-                thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, false);
-                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, 0);
-                foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
-                    childThing->setStateValue("connected", false);
-                }
-                Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-                if (!meterThings.isEmpty()) {
-                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
-                }
-
-                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-                if (!batteryThings.isEmpty()) {
-                    batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
-                }
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::initializationFinished, thing, [=](bool success){
-            thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, success);
-
-            // Set connected state for meter
-            m_meterstates.find(thing)->modbusReachable = success;
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                if (success && m_meterstates.value(thing).meterCommStatus) {
-                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
-                } else {
-                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
-                }
-            }
-
-            // Set connected state for battery
-            m_batterystates.find(thing)->modbusReachable = success;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                if (success && m_batterystates.value(thing).bmsCommStatus) {
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, true);
-                } else {
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
-                }
-            }
-
-            if (success) {
-                qCDebug(dcSolax()) << "Solax inverter initialized.";
-                thing->setStateValue(solaxX3InverterTCPFirmwareVersionStateTypeId, connection->firmwareVersion());
-                thing->setStateValue(solaxX3InverterTCPRatedPowerStateTypeId, connection->inverterType());
-            } else {
-                qCDebug(dcSolax()) << "Solax inverter initialization failed.";
-                // Try once to reconnect the device
-                connection->reconnectDevice();
-            } 
-        });
-
-
-        // Handle property changed signals for inverter
-        connect(connection, &SolaxModbusTcpConnection::inverterPowerChanged, thing, [thing, this](double inverterPower){
-            qCDebug(dcSolax()) << "Inverter power changed" << inverterPower << "W";
-            // https://consolinno.atlassian.net/wiki/spaces/~62f39a8532850ea2a3268713/pages/462848121/Bugfixing+Solax+EX3
-           
-            double batteryPower = 0;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                batteryPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toDouble();
-            }
-           
-            qCDebug(dcSolax()) << "Subtract from InverterPower";
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(inverterPower-batteryPower));
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
-            qCDebug(dcSolax()) << "Inverter voltage changed" << inverterVoltage << "V";
-            thing->setStateValue(solaxX3InverterTCPInverterVoltageStateTypeId, inverterVoltage);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::inverterCurrentChanged, thing, [thing](double inverterCurrent){
-            qCDebug(dcSolax()) << "Inverter current changed" << inverterCurrent << "A";
-            thing->setStateValue(solaxX3InverterTCPInverterCurrentStateTypeId, inverterCurrent);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::powerDc1Changed, thing, [thing](double powerDc1){
-            qCDebug(dcSolax()) << "Inverter DC1 power changed" << powerDc1 << "W";
-            thing->setStateValue(solaxX3InverterTCPPv1PowerStateTypeId, powerDc1);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::pvVoltage1Changed, thing, [thing](double pvVoltage1){
-            qCDebug(dcSolax()) << "Inverter PV1 voltage changed" << pvVoltage1 << "V";
-            thing->setStateValue(solaxX3InverterTCPPv1VoltageStateTypeId, pvVoltage1);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::pvCurrent1Changed, thing, [thing](double pvCurrent1){
-            qCDebug(dcSolax()) << "Inverter PV1 current changed" << pvCurrent1 << "A";
-            thing->setStateValue(solaxX3InverterTCPPv1CurrentStateTypeId, pvCurrent1);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::powerDc2Changed, thing, [thing](double powerDc2){
-            qCDebug(dcSolax()) << "Inverter DC2 power changed" << powerDc2 << "W";
-            thing->setStateValue(solaxX3InverterTCPPv2PowerStateTypeId, powerDc2);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::pvVoltage2Changed, thing, [thing](double pvVoltage2){
-            qCDebug(dcSolax()) << "Inverter PV2 voltage changed" << pvVoltage2 << "V";
-            thing->setStateValue(solaxX3InverterTCPPv2VoltageStateTypeId, pvVoltage2);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::pvCurrent2Changed, thing, [thing](double pvCurrent2){
-            qCDebug(dcSolax()) << "Inverter PV2 current changed" << pvCurrent2 << "A";
-            thing->setStateValue(solaxX3InverterTCPPv2CurrentStateTypeId, pvCurrent2);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::runModeChanged, thing, [this, thing](SolaxModbusTcpConnection::RunMode runMode){
-            qCDebug(dcSolax()) << "Inverter run mode recieved" << runMode;
-            quint16 runModeAsInt = runMode;
-            setRunMode(thing, runModeAsInt);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::temperatureChanged, thing, [thing](quint16 temperature){
-            qCDebug(dcSolax()) << "Inverter temperature changed" << temperature << "°C";
-            thing->setStateValue(solaxX3InverterTCPTemperatureStateTypeId, temperature);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::solarEnergyTotalChanged, thing, [thing](double solarEnergyTotal){
-            qCDebug(dcSolax()) << "Inverter solar energy total changed" << solarEnergyTotal << "kWh";
-            thing->setStateValue(solaxX3InverterTCPTotalEnergyProducedStateTypeId, solarEnergyTotal);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::solarEnergyTodayChanged, thing, [thing](double solarEnergyToday){
-            qCDebug(dcSolax()) << "Inverter solar energy today changed" << solarEnergyToday << "kWh";
-            thing->setStateValue(solaxX3InverterTCPEnergyProducedTodayStateTypeId, solarEnergyToday);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::activePowerLimitChanged, thing, [thing](quint16 activePowerLimit){
-            qCDebug(dcSolax()) << "Inverter active power limit changed" << activePowerLimit << "%";
-            thing->setStateValue(solaxX3InverterTCPActivePowerLimitStateTypeId, activePowerLimit);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::inverterFaultBitsChanged, thing, [this, thing](quint32 inverterFaultBits){
-            qCDebug(dcSolax()) << "Inverter fault bits recieved" << inverterFaultBits;
-            setErrorMessage(thing, inverterFaultBits);
-        });
-
-
-        // Meter
-        connect(connection, &SolaxModbusTcpConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
-            bool commStatusBool = (commStatus != 0);
-            m_meterstates.find(thing)->meterCommStatus = commStatusBool;
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
-                if (commStatusBool && m_meterstates.value(thing).modbusReachable) {
-                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
-                } else {
-                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
-                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
-                }
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::feedinPowerChanged, thing, [this, thing](qint32 feedinPower){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
-                // Sign should be correct, but check to make sure.
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -double(feedinPower));
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::feedinEnergyTotalChanged, thing, [this, thing](double feedinEnergyTotal){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter exported energy total (feedinEnergyTotal) changed" << feedinEnergyTotal << "kWh";
-                meterThings.first()->setStateValue(solaxMeterTotalEnergyProducedStateTypeId, feedinEnergyTotal);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::consumEnergyTotalChanged, thing, [this, thing](double consumEnergyTotal){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter consumed energy total (consumEnergyTotal) changed" << consumEnergyTotal << "kWh";
-                meterThings.first()->setStateValue(solaxMeterTotalEnergyConsumedStateTypeId, consumEnergyTotal);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridCurrentRChanged, thing, [this, thing](double currentPhaseA){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase A current (gridCurrentR) changed" << currentPhaseA << "A";
-                meterThings.first()->setStateValue(solaxMeterCurrentPhaseAStateTypeId, currentPhaseA);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridCurrentSChanged, thing, [this, thing](double currentPhaseB){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase B current (gridCurrentS) changed" << currentPhaseB << "A";
-                meterThings.first()->setStateValue(solaxMeterCurrentPhaseBStateTypeId, currentPhaseB);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridCurrentTChanged, thing, [this, thing](double currentPhaseC){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase C current (gridCurrentT) changed" << currentPhaseC << "A";
-                meterThings.first()->setStateValue(solaxMeterCurrentPhaseCStateTypeId, currentPhaseC);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridPowerRChanged, thing, [this, thing](qint16 currentPowerPhaseA){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase A power (gridPowerR) changed" << currentPowerPhaseA << "W";
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseAStateTypeId, double(currentPowerPhaseA));
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridPowerSChanged, thing, [this, thing](qint16 currentPowerPhaseB){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase B power (gridPowerS) changed" << currentPowerPhaseB << "W";
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseBStateTypeId, double(currentPowerPhaseB));
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridPowerTChanged, thing, [this, thing](qint16 currentPowerPhaseC){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase C power (gridPowerT) changed" << currentPowerPhaseC << "W";
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseCStateTypeId, double(currentPowerPhaseC));
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridVoltageRChanged, thing, [this, thing](double voltagePhaseA){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase A voltage (gridVoltageR) changed" << voltagePhaseA << "V";
-                meterThings.first()->setStateValue(solaxMeterVoltagePhaseAStateTypeId, voltagePhaseA);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridVoltageSChanged, thing, [this, thing](double voltagePhaseB){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase B voltage (gridVoltageS) changed" << voltagePhaseB << "V";
-                meterThings.first()->setStateValue(solaxMeterVoltagePhaseBStateTypeId, voltagePhaseB);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridVoltageTChanged, thing, [this, thing](double voltagePhaseC){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase C voltage (gridVoltageT) changed" << voltagePhaseC << "V";
-                meterThings.first()->setStateValue(solaxMeterVoltagePhaseCStateTypeId, voltagePhaseC);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridFrequencyRChanged, thing, [this, thing](double gridFrequencyR){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase A frequency (gridFrequencyR) changed" << gridFrequencyR << "Hz";
-                meterThings.first()->setStateValue(solaxMeterFrequencyPhaseAStateTypeId, gridFrequencyR);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridFrequencySChanged, thing, [this, thing](double gridFrequencyS){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase B frequency (gridFrequencyS) changed" << gridFrequencyS << "Hz";
-                meterThings.first()->setStateValue(solaxMeterFrequencyPhaseBStateTypeId, gridFrequencyS);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::gridFrequencyTChanged, thing, [this, thing](double gridFrequencyT){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter phase C frequency (gridFrequencyT) changed" << gridFrequencyT << "Hz";
-                meterThings.first()->setStateValue(solaxMeterFrequencyPhaseCStateTypeId, gridFrequencyT);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::inverterFrequencyChanged, thing, [this, thing](double frequency){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Meter frequency (gridFrequency) changed" << frequency << "Hz";
-                meterThings.first()->setStateValue(solaxMeterFrequencyStateTypeId, frequency);
-            }
-        });
-
-
-        // Battery        
-        connect(connection, &SolaxModbusTcpConnection::bmsConnectStateChanged, thing, [this, thing](quint16 bmsConnect){
-            // Debug output even if there is no battery thing, since this signal creates it.
-            qCDebug(dcSolax()) << "Battery connect state (bmsConnectState) changed" << bmsConnect;
-            bool bmsCommStatusBool = (bmsConnect != 0);
-            m_batterystates.find(thing)->bmsCommStatus = bmsCommStatusBool;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                if (bmsCommStatusBool && m_batterystates.value(thing).modbusReachable) {
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, true);
-                } else {
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
-                }
-            } else if (bmsCommStatusBool){
-                // Battery detected. No battery exists yet. Create it.
-                qCDebug(dcSolax()) << "Set up Solax battery for" << thing;
-                ThingDescriptor descriptor(solaxBatteryThingClassId, "Solax battery", QString(), thing->id());
-                emit autoThingsAppeared(ThingDescriptors() << descriptor);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::batPowerCharge1Changed, thing, [this, thing](qint16 powerBat1){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Battery power (batpowerCharge1) changed" << powerBat1 << "W";
-
-                // ToDo: Check if sign for charge / dischage is correct.
-                batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
-                if (powerBat1 < 0) {
-                    batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "discharging");
-                } else if (powerBat1 > 0) {
-                    batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "charging");
-                } else {
-                    batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "idle");
-                }
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::batteryCapacityChanged, thing, [this, thing](quint16 socBat1){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
-                batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::bmsWarningLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
-            qCDebug(dcSolax()) << "Battery warning bits LSB recieved" << batteryWarningBitsLsb;
-            m_batterystates.find(thing)->bmsWarningLsb = batteryWarningBitsLsb;
-            setBmsWarningMessage(thing);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::bmsWarningMsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
-            qCDebug(dcSolax()) << "Battery warning bits MSB recieved" << batteryWarningBitsMsb;
-            m_batterystates.find(thing)->bmsWarningMsb = batteryWarningBitsMsb;
-            setBmsWarningMessage(thing);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::batVoltageCharge1Changed, thing, [this, thing](double batVoltageCharge1){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Battery voltage changed" << batVoltageCharge1 << "V";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryVoltageStateTypeId, batVoltageCharge1);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::batCurrentCharge1Changed, thing, [this, thing](double batCurrentCharge1){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Battery current changed" << batCurrentCharge1 << "A";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryCurrentStateTypeId, batCurrentCharge1);
-            }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::temperatureBatChanged, thing, [this, thing](quint16 temperatureBat){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Battery temperature changed" << temperatureBat << "°C";
-                batteryThings.first()->setStateValue(solaxBatteryTemperatureStateTypeId, temperatureBat);
-            }
-        });
-
-
-        if (monitor->reachable())
-            connection->connectDevice();
-
-        info->finish(Thing::ThingErrorNoError);
-
-        return;
+        qCDebug(dcSolax()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(solaxX3InverterTCPThingMacAddressParamTypeId).toString();
+        if (monitor->reachable()) 
+        {
+            setupTcpConnection(info);
+        } else {
+            connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
+                setupTcpConnection(info);
+            });
+        }
     }
 
     if (thing->thingClassId() == solaxX3InverterRTUThingClassId) {
@@ -697,7 +294,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
            
             qCDebug(dcSolax()) << "Subtract from InverterPower";
-            thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -inverterPower-batteryPower);
+            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(inverterPower-batteryPower));
         });
 
         connect(connection, &SolaxModbusRtuConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
@@ -1024,6 +621,428 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         }
         return;
     }
+}
+
+void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
+{
+        qCDebug(dcSolax()) << "Setup TCP connection.";
+        Thing *thing = info->thing();
+        NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
+        uint port = thing->paramValue(solaxX3InverterTCPThingPortParamTypeId).toUInt();
+        quint16 modbusId = thing->paramValue(solaxX3InverterTCPThingModbusIdParamTypeId).toUInt();
+        SolaxModbusTcpConnection *connection = new SolaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
+        m_tcpConnections.insert(thing, connection);
+        MeterStates meterStates{};
+        m_meterstates.insert(thing, meterStates);
+        BatteryStates batteryStates{};
+        m_batterystates.insert(thing, batteryStates);
+
+        connect(info, &ThingSetupInfo::aborted, monitor, [=](){
+            // Is this needed? How can setup be aborted at this point?
+
+            // Clean up in case the setup gets aborted.
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcSolax()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
+        });
+
+        // Reconnect on monitor reachable changed.
+        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
+            qCDebug(dcSolax()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+            if (reachable && !thing->stateValue(solaxX3InverterTCPConnectedStateTypeId).toBool()) {
+                connection->setHostAddress(monitor->networkDeviceInfo().address());
+                connection->reconnectDevice();
+            } else if (!reachable) {
+                // Note: We disable autoreconnect explicitly and we will
+                // connect the device once the monitor says it is reachable again.
+                connection->disconnectDevice();
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable){
+            qCDebug(dcSolax()) << "Reachable state changed" << reachable;
+            if (reachable) {
+                // Connected true will be set after successfull init.
+                connection->initialize();
+            } else {
+                thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, false);
+                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, 0);
+                foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                    childThing->setStateValue("connected", false);
+                }
+                Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+                if (!meterThings.isEmpty()) {
+                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                }
+
+                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+                if (!batteryThings.isEmpty()) {
+                    batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::initializationFinished, thing, [=](bool success){
+            thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, success);
+
+            // Set connected state for meter
+            m_meterstates.find(thing)->modbusReachable = success;
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                if (success && m_meterstates.value(thing).meterCommStatus) {
+                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
+                } else {
+                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                }
+            }
+
+            // Set connected state for battery
+            m_batterystates.find(thing)->modbusReachable = success;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                if (success && m_batterystates.value(thing).bmsCommStatus) {
+                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, true);
+                } else {
+                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
+                }
+            }
+
+            if (success) {
+                qCDebug(dcSolax()) << "Solax inverter initialized.";
+                thing->setStateValue(solaxX3InverterTCPFirmwareVersionStateTypeId, connection->firmwareVersion());
+                thing->setStateValue(solaxX3InverterTCPRatedPowerStateTypeId, connection->inverterType());
+            } else {
+                qCDebug(dcSolax()) << "Solax inverter initialization failed.";
+                // Try once to reconnect the device
+                connection->reconnectDevice();
+            } 
+        });
+
+
+        // Handle property changed signals for inverter
+        connect(connection, &SolaxModbusTcpConnection::inverterPowerChanged, thing, [thing, this](double inverterPower){
+            qCDebug(dcSolax()) << "Inverter power changed" << inverterPower << "W";
+            // https://consolinno.atlassian.net/wiki/spaces/~62f39a8532850ea2a3268713/pages/462848121/Bugfixing+Solax+EX3
+           
+            double batteryPower = 0;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toDouble();
+            }
+           
+            qCDebug(dcSolax()) << "Subtract from InverterPower";
+            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
+            qCDebug(dcSolax()) << "Inverter voltage changed" << inverterVoltage << "V";
+            thing->setStateValue(solaxX3InverterTCPInverterVoltageStateTypeId, inverterVoltage);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::inverterCurrentChanged, thing, [thing](double inverterCurrent){
+            qCDebug(dcSolax()) << "Inverter current changed" << inverterCurrent << "A";
+            thing->setStateValue(solaxX3InverterTCPInverterCurrentStateTypeId, inverterCurrent);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::powerDc1Changed, thing, [thing](double powerDc1){
+            qCDebug(dcSolax()) << "Inverter DC1 power changed" << powerDc1 << "W";
+            thing->setStateValue(solaxX3InverterTCPPv1PowerStateTypeId, powerDc1);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::pvVoltage1Changed, thing, [thing](double pvVoltage1){
+            qCDebug(dcSolax()) << "Inverter PV1 voltage changed" << pvVoltage1 << "V";
+            thing->setStateValue(solaxX3InverterTCPPv1VoltageStateTypeId, pvVoltage1);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::pvCurrent1Changed, thing, [thing](double pvCurrent1){
+            qCDebug(dcSolax()) << "Inverter PV1 current changed" << pvCurrent1 << "A";
+            thing->setStateValue(solaxX3InverterTCPPv1CurrentStateTypeId, pvCurrent1);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::powerDc2Changed, thing, [thing](double powerDc2){
+            qCDebug(dcSolax()) << "Inverter DC2 power changed" << powerDc2 << "W";
+            thing->setStateValue(solaxX3InverterTCPPv2PowerStateTypeId, powerDc2);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::pvVoltage2Changed, thing, [thing](double pvVoltage2){
+            qCDebug(dcSolax()) << "Inverter PV2 voltage changed" << pvVoltage2 << "V";
+            thing->setStateValue(solaxX3InverterTCPPv2VoltageStateTypeId, pvVoltage2);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::pvCurrent2Changed, thing, [thing](double pvCurrent2){
+            qCDebug(dcSolax()) << "Inverter PV2 current changed" << pvCurrent2 << "A";
+            thing->setStateValue(solaxX3InverterTCPPv2CurrentStateTypeId, pvCurrent2);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::runModeChanged, thing, [this, thing](SolaxModbusTcpConnection::RunMode runMode){
+            qCDebug(dcSolax()) << "Inverter run mode recieved" << runMode;
+            quint16 runModeAsInt = runMode;
+            setRunMode(thing, runModeAsInt);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::temperatureChanged, thing, [thing](quint16 temperature){
+            qCDebug(dcSolax()) << "Inverter temperature changed" << temperature << "°C";
+            thing->setStateValue(solaxX3InverterTCPTemperatureStateTypeId, temperature);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::solarEnergyTotalChanged, thing, [thing](double solarEnergyTotal){
+            qCDebug(dcSolax()) << "Inverter solar energy total changed" << solarEnergyTotal << "kWh";
+            thing->setStateValue(solaxX3InverterTCPTotalEnergyProducedStateTypeId, solarEnergyTotal);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::solarEnergyTodayChanged, thing, [thing](double solarEnergyToday){
+            qCDebug(dcSolax()) << "Inverter solar energy today changed" << solarEnergyToday << "kWh";
+            thing->setStateValue(solaxX3InverterTCPEnergyProducedTodayStateTypeId, solarEnergyToday);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::activePowerLimitChanged, thing, [thing](quint16 activePowerLimit){
+            qCDebug(dcSolax()) << "Inverter active power limit changed" << activePowerLimit << "%";
+            thing->setStateValue(solaxX3InverterTCPActivePowerLimitStateTypeId, activePowerLimit);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::inverterFaultBitsChanged, thing, [this, thing](quint32 inverterFaultBits){
+            qCDebug(dcSolax()) << "Inverter fault bits recieved" << inverterFaultBits;
+            setErrorMessage(thing, inverterFaultBits);
+        });
+
+
+        // Meter
+        connect(connection, &SolaxModbusTcpConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
+            bool commStatusBool = (commStatus != 0);
+            m_meterstates.find(thing)->meterCommStatus = commStatusBool;
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
+                if (commStatusBool && m_meterstates.value(thing).modbusReachable) {
+                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
+                } else {
+                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::feedinPowerChanged, thing, [this, thing](qint32 feedinPower){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
+                // Sign should be correct, but check to make sure.
+                meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -double(feedinPower));
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::feedinEnergyTotalChanged, thing, [this, thing](double feedinEnergyTotal){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter exported energy total (feedinEnergyTotal) changed" << feedinEnergyTotal << "kWh";
+                meterThings.first()->setStateValue(solaxMeterTotalEnergyProducedStateTypeId, feedinEnergyTotal);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::consumEnergyTotalChanged, thing, [this, thing](double consumEnergyTotal){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter consumed energy total (consumEnergyTotal) changed" << consumEnergyTotal << "kWh";
+                meterThings.first()->setStateValue(solaxMeterTotalEnergyConsumedStateTypeId, consumEnergyTotal);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridCurrentRChanged, thing, [this, thing](double currentPhaseA){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase A current (gridCurrentR) changed" << currentPhaseA << "A";
+                meterThings.first()->setStateValue(solaxMeterCurrentPhaseAStateTypeId, currentPhaseA);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridCurrentSChanged, thing, [this, thing](double currentPhaseB){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase B current (gridCurrentS) changed" << currentPhaseB << "A";
+                meterThings.first()->setStateValue(solaxMeterCurrentPhaseBStateTypeId, currentPhaseB);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridCurrentTChanged, thing, [this, thing](double currentPhaseC){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase C current (gridCurrentT) changed" << currentPhaseC << "A";
+                meterThings.first()->setStateValue(solaxMeterCurrentPhaseCStateTypeId, currentPhaseC);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridPowerRChanged, thing, [this, thing](qint16 currentPowerPhaseA){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase A power (gridPowerR) changed" << currentPowerPhaseA << "W";
+                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseAStateTypeId, double(currentPowerPhaseA));
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridPowerSChanged, thing, [this, thing](qint16 currentPowerPhaseB){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase B power (gridPowerS) changed" << currentPowerPhaseB << "W";
+                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseBStateTypeId, double(currentPowerPhaseB));
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridPowerTChanged, thing, [this, thing](qint16 currentPowerPhaseC){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase C power (gridPowerT) changed" << currentPowerPhaseC << "W";
+                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseCStateTypeId, double(currentPowerPhaseC));
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridVoltageRChanged, thing, [this, thing](double voltagePhaseA){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase A voltage (gridVoltageR) changed" << voltagePhaseA << "V";
+                meterThings.first()->setStateValue(solaxMeterVoltagePhaseAStateTypeId, voltagePhaseA);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridVoltageSChanged, thing, [this, thing](double voltagePhaseB){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase B voltage (gridVoltageS) changed" << voltagePhaseB << "V";
+                meterThings.first()->setStateValue(solaxMeterVoltagePhaseBStateTypeId, voltagePhaseB);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridVoltageTChanged, thing, [this, thing](double voltagePhaseC){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase C voltage (gridVoltageT) changed" << voltagePhaseC << "V";
+                meterThings.first()->setStateValue(solaxMeterVoltagePhaseCStateTypeId, voltagePhaseC);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridFrequencyRChanged, thing, [this, thing](double gridFrequencyR){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase A frequency (gridFrequencyR) changed" << gridFrequencyR << "Hz";
+                meterThings.first()->setStateValue(solaxMeterFrequencyPhaseAStateTypeId, gridFrequencyR);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridFrequencySChanged, thing, [this, thing](double gridFrequencyS){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase B frequency (gridFrequencyS) changed" << gridFrequencyS << "Hz";
+                meterThings.first()->setStateValue(solaxMeterFrequencyPhaseBStateTypeId, gridFrequencyS);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::gridFrequencyTChanged, thing, [this, thing](double gridFrequencyT){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter phase C frequency (gridFrequencyT) changed" << gridFrequencyT << "Hz";
+                meterThings.first()->setStateValue(solaxMeterFrequencyPhaseCStateTypeId, gridFrequencyT);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::inverterFrequencyChanged, thing, [this, thing](double frequency){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter frequency (gridFrequency) changed" << frequency << "Hz";
+                meterThings.first()->setStateValue(solaxMeterFrequencyStateTypeId, frequency);
+            }
+        });
+
+
+        // Battery        
+        connect(connection, &SolaxModbusTcpConnection::bmsConnectStateChanged, thing, [this, thing](quint16 bmsConnect){
+            // Debug output even if there is no battery thing, since this signal creates it.
+            qCDebug(dcSolax()) << "Battery connect state (bmsConnectState) changed" << bmsConnect;
+            bool bmsCommStatusBool = (bmsConnect != 0);
+            m_batterystates.find(thing)->bmsCommStatus = bmsCommStatusBool;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                if (bmsCommStatusBool && m_batterystates.value(thing).modbusReachable) {
+                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, true);
+                } else {
+                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
+                }
+            } else if (bmsCommStatusBool){
+                // Battery detected. No battery exists yet. Create it.
+                qCDebug(dcSolax()) << "Set up Solax battery for" << thing;
+                ThingDescriptor descriptor(solaxBatteryThingClassId, "Solax battery", QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::batPowerCharge1Changed, thing, [this, thing](qint16 powerBat1){
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Battery power (batpowerCharge1) changed" << powerBat1 << "W";
+
+                // ToDo: Check if sign for charge / dischage is correct.
+                batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
+                if (powerBat1 < 0) {
+                    batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "discharging");
+                } else if (powerBat1 > 0) {
+                    batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "charging");
+                } else {
+                    batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "idle");
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::batteryCapacityChanged, thing, [this, thing](quint16 socBat1){
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
+                batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+                batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::bmsWarningLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
+            qCDebug(dcSolax()) << "Battery warning bits LSB recieved" << batteryWarningBitsLsb;
+            m_batterystates.find(thing)->bmsWarningLsb = batteryWarningBitsLsb;
+            setBmsWarningMessage(thing);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::bmsWarningMsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
+            qCDebug(dcSolax()) << "Battery warning bits MSB recieved" << batteryWarningBitsMsb;
+            m_batterystates.find(thing)->bmsWarningMsb = batteryWarningBitsMsb;
+            setBmsWarningMessage(thing);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::batVoltageCharge1Changed, thing, [this, thing](double batVoltageCharge1){
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Battery voltage changed" << batVoltageCharge1 << "V";
+                batteryThings.first()->setStateValue(solaxBatteryBatteryVoltageStateTypeId, batVoltageCharge1);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::batCurrentCharge1Changed, thing, [this, thing](double batCurrentCharge1){
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Battery current changed" << batCurrentCharge1 << "A";
+                batteryThings.first()->setStateValue(solaxBatteryBatteryCurrentStateTypeId, batCurrentCharge1);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::temperatureBatChanged, thing, [this, thing](quint16 temperatureBat){
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Battery temperature changed" << temperatureBat << "°C";
+                batteryThings.first()->setStateValue(solaxBatteryTemperatureStateTypeId, temperatureBat);
+            }
+        });
+
+
+        if (monitor->reachable())
+            connection->connectDevice();
+
+        info->finish(Thing::ThingErrorNoError);
+
+        return;
 }
 
 void IntegrationPluginSolax::postSetupThing(Thing *thing)
