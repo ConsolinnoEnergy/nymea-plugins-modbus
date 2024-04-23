@@ -1,0 +1,196 @@
+{
+    "displayName": "Alfen",
+    "name": "Alfen",
+    "id": "d82e88e7-1cde-477e-93f1-1b2b4e98d7aa",
+    "vendors": [
+        {
+            "displayName": "Alfen",
+            "name": "Alfen",
+            "id": "bc9d8661-7984-4076-953c-a226eb591845",
+            "thingClasses": [
+                {
+                    "id": "f5eef340-6747-4985-8c50-dc715f11db45",
+                    "displayName": "Alfen Eve Single Pro-Line",
+                    "name": "alfenEveSinglePro",
+                    "createMethods": [
+                        "discovery",
+                        "user"
+                    ],
+                    "interfaces": [
+                        "evcharger",
+                        "smartmeterconsumer",
+                        "connectable"
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "0b464569-2e44-46dd-a034-efca06c165a2",
+                            "displayName": "MAC address",
+                            "name": "mac",
+                            "type": "QString",
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "e3cf4289-0b9b-4ab9-a3e2-024ea504e6c4",
+                            "name": "port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502
+                        },
+                        {
+                            "id": "e4fb5320-b845-42bf-b338-be2e6a573864",
+                            "name": "slaveId",
+                            "displayName": "Modbus slave ID",
+                            "type": "int",
+                            "defaultValue": 1
+                        },
+                        {
+                            "id": "37524f63-8978-4915-9981-949aba468457",
+                            "name": "minChargeCurrent",
+                            "displayName": "Minimum charge current",
+                            "type": "int",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 6
+                        },
+                        {
+                            "id": "56f9d8a4-b29b-445d-99c4-b67ba202d8f1",
+                            "name": "maxChargeCurrent",
+                            "displayName": "Maximum charge current",
+                            "type": "int",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 16
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "3bf008cc-ba2f-4bc0-8075-9ecd7f832b29",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "427fcf58-b5dc-4590-b6c6-edabb20271b6",
+                            "name": "power",
+                            "displayName": "Charging enabled",
+                            "displayNameEvent": "Charging status changed",
+                            "displayNameAction": "Set charging enabled",
+                            "type": "bool",
+                            "writable": true,
+                            "defaultValue": false,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "087f90ff-8d42-45ab-91b1-61a55c1f3bb4",
+                            "name": "availability",
+                            "displayName": "EVSE available",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Operative",
+                                "Inoperative"
+                            ],
+                            "defaultValue": "Inoperative",
+                            "displayNameEvent": "availability changed",
+                            "cached": false
+                        },
+                        {
+                            "id": "a661f15f-5b4f-4a40-8042-2808c67e80d6",
+                            "name": "mode3State",
+                            "displayName": "State (61851)",
+                            "type": "QString",
+                            "possibleValues": [
+                                "A - EV not connected",
+                                "B1 - EVSE not ready",
+                                "B2 - EVSE ready",
+                                "C1 - EVSE not ready (charging interrupted)",
+                                "C2 - Charging",
+                                "D1 - EVSE not ready (ventilation required)",
+                                "D2 - Charging (ventilation required)",
+                                "E - Error: Grid not available (short on CP)",
+                                "F - Error: EVSE not available"
+                            ],
+                            "defaultValue": "EV not connected",
+                            "displayNameEvent": "mode3State changed",
+                            "cached": false
+                        },
+                        {
+                            "id": "80dfa465-6dd0-4359-9c53-4e0d0791ea9b",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Maximal charging current",
+                            "displayNameEvent": "Maximal charging current changed",
+                            "displayNameAction": "Set maximal charging current",
+                            "type": "uint",
+                            "unit": "Ampere",
+                            "defaultValue": 6,
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "writable": true,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "dff81182-0958-41fa-94e8-c5f6ee1285a1",
+                            "name": "currentPower",
+                            "displayName": "Real Power",
+                            "displayNameEvent": "Real Power consumtion changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "d6aa75e4-31fe-4566-ae7b-4ec020c34368",
+                            "name": "current",
+                            "displayName": "Current",
+                            "displayNameEvent": "Current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "2d668dfc-6934-4310-b3e1-26e09f9c9c4f",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumption changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "05faf0c6-8290-4f7c-b6b5-1c84824cb30e",
+                            "name": "totalEnergyDelivered",
+                            "displayName": "Total energy delivered",
+                            "displayNameEvent": "Total energy delivered changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "7bace022-4f1e-45d7-a2af-83f37e9659d0",
+                            "name": "phaseCount",
+                            "displayName": "Phase count",
+                            "displayNameEvent": "Phase count changed",
+                            "type": "uint",
+                            "minValue": 0,
+                            "maxValue": 3,
+                            "defaultValue": 1,
+                            "suggestLogging": true,
+                            "cached": false
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
