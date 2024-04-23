@@ -84,11 +84,11 @@ public:
         RegisterDataHubChargeCurrent = 4132,
         RegisterFirmwareVersion = 4133,
         RegisterControlCommand = 4135,
-        RegisterMaxCurrent = 4136,
         RegisterChargingTime = 4139,
         RegisterChargePhase = 4155,
         RegisterMinCurrent = 4159,
-        RegisterSlaveAddress = 4160
+        RegisterSlaveAddress = 4160,
+        RegisterMaxCurrent = 4175
     };
     Q_ENUM(Registers)
 
@@ -157,7 +157,7 @@ public:
     ControlCommand controlCommand() const;
     QModbusReply *setControlCommand(ControlCommand controlCommand);
 
-    /* Maximum AC line current [A] - Address: 4136, Size: 1 */
+    /* Maximum current fast mode [A] - Address: 4175, Size: 1 */
     float MaxCurrent() const;
     QModbusReply *setMaxCurrent(float MaxCurrent);
 
@@ -692,7 +692,7 @@ private:
     uint m_checkReachableRetries = 0;
     uint m_checkReachableRetriesCount = 0;
     bool m_communicationWorking = false;
-    quint8 m_communicationFailedMax = 15;
+    quint8 m_communicationFailedMax = 20;
     quint8 m_communicationFailedCounter = 0;
 
     QVector<QModbusReply *> m_pendingInitReplies;

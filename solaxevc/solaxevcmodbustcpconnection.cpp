@@ -166,8 +166,8 @@ float SolaxEvcModbusTcpConnection::MaxCurrent() const
 QModbusReply *SolaxEvcModbusTcpConnection::setMaxCurrent(float MaxCurrent)
 {
     QVector<quint16> values = ModbusDataUtils::convertFromUInt16(static_cast<quint16>(MaxCurrent  * 1.0 / pow(10, -2)));
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Write \"Maximum AC line current\" register:" << 4136 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4136, values.count());
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Write \"Maximum current fast mode\" register:" << 4175 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4175, values.count());
     request.setValues(values);
     return sendWriteRequest(request, m_slaveId);
 }
@@ -682,11 +682,11 @@ void SolaxEvcModbusTcpConnection::update2()
 {
     QModbusReply *reply = nullptr;
 
-    // Read Maximum AC line current
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Maximum AC line current\" register:" << 4136 << "size:" << 1;
+    // Read Maximum current fast mode
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Maximum current fast mode\" register:" << 4175 << "size:" << 1;
     reply = readMaxCurrent();
     if (!reply) {
-        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Maximum AC line current\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Maximum current fast mode\" registers from" << hostAddress().toString() << errorString();
         return;
     }
 
@@ -706,13 +706,13 @@ void SolaxEvcModbusTcpConnection::update2()
         }
 
         const QModbusDataUnit unit = reply->result();
-        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Maximum AC line current\" register" << 4136 << "size:" << 1 << unit.values();
+        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Maximum current fast mode\" register" << 4175 << "size:" << 1 << unit.values();
         processMaxCurrentRegisterValues(unit.values());
         update3();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Modbus reply error occurred while reading \"Maximum AC line current\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Modbus reply error occurred while reading \"Maximum current fast mode\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1040,11 +1040,11 @@ void SolaxEvcModbusTcpConnection::updateControlCommand()
 
 void SolaxEvcModbusTcpConnection::updateMaxCurrent()
 {
-    // Update registers from Maximum AC line current
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Maximum AC line current\" register:" << 4136 << "size:" << 1;
+    // Update registers from Maximum current fast mode
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Maximum current fast mode\" register:" << 4175 << "size:" << 1;
     QModbusReply *reply = readMaxCurrent();
     if (!reply) {
-        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Maximum AC line current\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Maximum current fast mode\" registers from" << hostAddress().toString() << errorString();
         return;
     }
 
@@ -1058,13 +1058,13 @@ void SolaxEvcModbusTcpConnection::updateMaxCurrent()
         handleModbusError(reply->error());
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
-            qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Maximum AC line current\" register" << 4136 << "size:" << 1 << unit.values();
+            qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Maximum current fast mode\" register" << 4175 << "size:" << 1 << unit.values();
             processMaxCurrentRegisterValues(unit.values());
         }
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Modbus reply error occurred while updating \"Maximum AC line current\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCWarning(dcSolaxEvcModbusTcpConnection()) << "Modbus reply error occurred while updating \"Maximum current fast mode\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1320,7 +1320,7 @@ QModbusReply *SolaxEvcModbusTcpConnection::readControlCommand()
 
 QModbusReply *SolaxEvcModbusTcpConnection::readMaxCurrent()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4136, 1);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4175, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -2184,7 +2184,7 @@ QDebug operator<<(QDebug debug, SolaxEvcModbusTcpConnection *solaxEvcModbusTcpCo
     debug.nospace().noquote() << "    - Data hub charge current: " << solaxEvcModbusTcpConnection->DataHubChargeCurrent() << " [A]" << "\n";
     debug.nospace().noquote() << "    - Firmware version: " << solaxEvcModbusTcpConnection->firmwareVersion() << "\n";
     debug.nospace().noquote() << "    - Control command: " << solaxEvcModbusTcpConnection->controlCommand() << "\n";
-    debug.nospace().noquote() << "    - Maximum AC line current: " << solaxEvcModbusTcpConnection->MaxCurrent() << " [A]" << "\n";
+    debug.nospace().noquote() << "    - Maximum current fast mode: " << solaxEvcModbusTcpConnection->MaxCurrent() << " [A]" << "\n";
     debug.nospace().noquote() << "    - Duration of current charging session: " << solaxEvcModbusTcpConnection->chargingTime() << " [s]" << "\n";
     debug.nospace().noquote() << "    - Wallbox phase configuration: " << solaxEvcModbusTcpConnection->chargePhase() << "\n";
     debug.nospace().noquote() << "    - Minimum AC line current: " << solaxEvcModbusTcpConnection->MinCurrent() << " [A]" << "\n";
