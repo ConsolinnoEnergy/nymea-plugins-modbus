@@ -56,7 +56,7 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &SolaxEvcTCPDiscovery::discoveryFinished, info, [=](){
             foreach (const SolaxEvcTCPDiscovery::Result &result, discovery->discoveryResults()) {
 
-                ThingDescriptor descriptor(solaxEvcThingClassId, "Solax Wallbox");
+                ThingDescriptor descriptor(solaxEvcThingClassId, "Solax Wallbox", result.networkDeviceInfo.address().toString());
                 qCInfo(dcSolaxEvc()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 // Check if we already have set up this device
