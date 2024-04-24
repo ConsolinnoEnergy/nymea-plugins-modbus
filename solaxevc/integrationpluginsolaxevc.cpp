@@ -200,13 +200,27 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
         // connect time of current charging session
         connect(connection, &SolaxEvcModbusTcpConnection::chargingTimeChanged, thing, [thing](quint32 time) {
             qCDebug(dcSolaxEvc()) << "Charging Time changed" << time << "s";
-            thing->setStateValue(solaxEvcChargingTimeStateTypeId, time);
+            // Every once in a while, nonsense values are received, charging session unlikely to be above 55h
+            if (time < 200000)
+                thing->setStateValue(solaxEvcChargingTimeStateTypeId, time);
         });
 
         // connect max charging current
         connect(connection, &SolaxEvcModbusTcpConnection::MaxCurrentChanged, thing, [thing](float maxCurrent) {
             qCDebug(dcSolaxEvc()) << "Max current changed" << maxCurrent << "A";
-            thing->setStateValue(solaxEvcMaxChargingCurrentStateTypeId, maxCurrent);
+            // Every once in a while, nonsense values are received, only change when value between 6 and 16 received
+            if (maxCurrent >= 6 && maxCurrent <= 16)
+                thing->setStateValue(solaxEvcMaxChargingCurrentStateTypeId, maxCurrent);
+        });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::deviceModeChanged, thing, [thing](quint16 mode) {
+            qCDebug(dcSolaxEvc()) << "Device mode changed" << mode;
+            if (mode == 1)
+            {
+                thing->setStateValue(solaxEvcPowerStateTypeId, true);
+            } else if (mode == 0) {
+                thing->setStateValue(solaxEvcPowerStateTypeId, false);
+            }
         });
 
         connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseAChanged, thing, [thing](double currentPhase) {

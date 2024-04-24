@@ -151,8 +151,8 @@ SolaxEvcModbusTcpConnection::ControlCommand SolaxEvcModbusTcpConnection::control
 
 QModbusReply *SolaxEvcModbusTcpConnection::setControlCommand(ControlCommand controlCommand)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(static_cast<quint16>(controlCommand));
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Write \"Control command\" register:" << 4135 << "size:" << 1 << values;
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(static_cast<quint32>(controlCommand), m_endianness);
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Write \"Control command\" register:" << 4135 << "size:" << 2 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4135, values.count());
     request.setValues(values);
     return sendWriteRequest(request, m_slaveId);
@@ -165,8 +165,8 @@ float SolaxEvcModbusTcpConnection::MaxCurrent() const
 
 QModbusReply *SolaxEvcModbusTcpConnection::setMaxCurrent(float MaxCurrent)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(static_cast<quint16>(MaxCurrent  * 1.0 / pow(10, -2)));
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Write \"Maximum current fast mode\" register:" << 4175 << "size:" << 1 << values;
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(static_cast<quint32>(MaxCurrent  * 1.0 / pow(10, -2)), m_endianness);
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Write \"Maximum current fast mode\" register:" << 4175 << "size:" << 2 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4175, values.count());
     request.setValues(values);
     return sendWriteRequest(request, m_slaveId);
@@ -645,7 +645,7 @@ void SolaxEvcModbusTcpConnection::update1()
     QModbusReply *reply = nullptr;
 
     // Read Control command
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Control command\" register:" << 4135 << "size:" << 1;
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Control command\" register:" << 4135 << "size:" << 2;
     reply = readControlCommand();
     if (!reply) {
         qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Control command\" registers from" << hostAddress().toString() << errorString();
@@ -668,7 +668,7 @@ void SolaxEvcModbusTcpConnection::update1()
         }
 
         const QModbusDataUnit unit = reply->result();
-        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Control command\" register" << 4135 << "size:" << 1 << unit.values();
+        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Control command\" register" << 4135 << "size:" << 2 << unit.values();
         processControlCommandRegisterValues(unit.values());
         update2();
     });
@@ -683,7 +683,7 @@ void SolaxEvcModbusTcpConnection::update2()
     QModbusReply *reply = nullptr;
 
     // Read Maximum current fast mode
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Maximum current fast mode\" register:" << 4175 << "size:" << 1;
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Maximum current fast mode\" register:" << 4175 << "size:" << 2;
     reply = readMaxCurrent();
     if (!reply) {
         qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Maximum current fast mode\" registers from" << hostAddress().toString() << errorString();
@@ -706,7 +706,7 @@ void SolaxEvcModbusTcpConnection::update2()
         }
 
         const QModbusDataUnit unit = reply->result();
-        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Maximum current fast mode\" register" << 4175 << "size:" << 1 << unit.values();
+        qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Maximum current fast mode\" register" << 4175 << "size:" << 2 << unit.values();
         processMaxCurrentRegisterValues(unit.values());
         update3();
     });
@@ -1011,7 +1011,7 @@ void SolaxEvcModbusTcpConnection::updateTotalEnergy()
 void SolaxEvcModbusTcpConnection::updateControlCommand()
 {
     // Update registers from Control command
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Control command\" register:" << 4135 << "size:" << 1;
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Control command\" register:" << 4135 << "size:" << 2;
     QModbusReply *reply = readControlCommand();
     if (!reply) {
         qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Control command\" registers from" << hostAddress().toString() << errorString();
@@ -1028,7 +1028,7 @@ void SolaxEvcModbusTcpConnection::updateControlCommand()
         handleModbusError(reply->error());
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
-            qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Control command\" register" << 4135 << "size:" << 1 << unit.values();
+            qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Control command\" register" << 4135 << "size:" << 2 << unit.values();
             processControlCommandRegisterValues(unit.values());
         }
     });
@@ -1041,7 +1041,7 @@ void SolaxEvcModbusTcpConnection::updateControlCommand()
 void SolaxEvcModbusTcpConnection::updateMaxCurrent()
 {
     // Update registers from Maximum current fast mode
-    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Maximum current fast mode\" register:" << 4175 << "size:" << 1;
+    qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Read \"Maximum current fast mode\" register:" << 4175 << "size:" << 2;
     QModbusReply *reply = readMaxCurrent();
     if (!reply) {
         qCWarning(dcSolaxEvcModbusTcpConnection()) << "Error occurred while reading \"Maximum current fast mode\" registers from" << hostAddress().toString() << errorString();
@@ -1058,7 +1058,7 @@ void SolaxEvcModbusTcpConnection::updateMaxCurrent()
         handleModbusError(reply->error());
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
-            qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Maximum current fast mode\" register" << 4175 << "size:" << 1 << unit.values();
+            qCDebug(dcSolaxEvcModbusTcpConnection()) << "<-- Response from \"Maximum current fast mode\" register" << 4175 << "size:" << 2 << unit.values();
             processMaxCurrentRegisterValues(unit.values());
         }
     });
@@ -1314,13 +1314,13 @@ QModbusReply *SolaxEvcModbusTcpConnection::readFirmwareVersion()
 
 QModbusReply *SolaxEvcModbusTcpConnection::readControlCommand()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4135, 1);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4135, 2);
     return sendReadRequest(request, m_slaveId);
 }
 
 QModbusReply *SolaxEvcModbusTcpConnection::readMaxCurrent()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4175, 1);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4175, 2);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -1627,7 +1627,7 @@ void SolaxEvcModbusTcpConnection::processFirmwareVersionRegisterValues(const QVe
 
 void SolaxEvcModbusTcpConnection::processControlCommandRegisterValues(const QVector<quint16> values)
 {
-    ControlCommand receivedControlCommand = static_cast<ControlCommand>(ModbusDataUtils::convertToUInt16(values));
+    ControlCommand receivedControlCommand = static_cast<ControlCommand>(ModbusDataUtils::convertToUInt32(values, m_endianness));
     emit controlCommandReadFinished(receivedControlCommand);
 
     if (m_controlCommand != receivedControlCommand) {
@@ -1638,7 +1638,7 @@ void SolaxEvcModbusTcpConnection::processControlCommandRegisterValues(const QVec
 
 void SolaxEvcModbusTcpConnection::processMaxCurrentRegisterValues(const QVector<quint16> values)
 {
-    float receivedMaxCurrent = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -2);
+    float receivedMaxCurrent = ModbusDataUtils::convertToUInt32(values, m_endianness) * 1.0 * pow(10, -2);
     emit MaxCurrentReadFinished(receivedMaxCurrent);
 
     if (m_MaxCurrent != receivedMaxCurrent) {

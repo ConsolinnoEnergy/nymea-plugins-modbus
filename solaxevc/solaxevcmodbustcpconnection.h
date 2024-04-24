@@ -153,11 +153,11 @@ public:
     /* Firmware version - Address: 4133, Size: 1 */
     quint16 firmwareVersion() const;
 
-    /* Control command - Address: 4135, Size: 1 */
+    /* Control command - Address: 4135, Size: 2 */
     ControlCommand controlCommand() const;
     QModbusReply *setControlCommand(ControlCommand controlCommand);
 
-    /* Maximum current fast mode [A] - Address: 4175, Size: 1 */
+    /* Maximum current fast mode [A] - Address: 4175, Size: 2 */
     float MaxCurrent() const;
     QModbusReply *setMaxCurrent(float MaxCurrent);
 

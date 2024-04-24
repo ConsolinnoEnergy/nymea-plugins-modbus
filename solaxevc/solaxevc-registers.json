@@ -564,8 +564,8 @@
         {
             "id": "controlCommand",
             "address": 4135,
-            "size": 1,
-            "type": "uint16",
+            "size": 2,
+            "type": "uint32",
             "readSchedule": "update",
             "registerType": "holdingRegister",
             "description": "Control command",
@@ -576,8 +576,8 @@
         {
             "id": "MaxCurrent",
             "address": 4175,
-            "size": 1,
-            "type": "uint16",
+            "size": 2,
+            "type": "uint32",
             "readSchedule": "update",
             "registerType": "holdingRegister",
             "description": "Maximum current fast mode",
