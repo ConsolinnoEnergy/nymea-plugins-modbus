@@ -73,6 +73,14 @@
                             "cached": false
                         },
                         {
+                            "id": "73b86e88-6700-476e-859a-e7942a049907",
+                            "name": "pluggedIn",
+                            "displayName": "Plugged in",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
                             "id": "427fcf58-b5dc-4590-b6c6-edabb20271b6",
                             "name": "power",
                             "displayName": "Charging enabled",
@@ -111,10 +119,10 @@
                             "cached": false
                         },
                         {
-                            "id": "d6aa75e4-31fe-4566-ae7b-4ec020c34368",
-                            "name": "current",
-                            "displayName": "Current",
-                            "displayNameEvent": "Current changed",
+                            "id": "d418be72-18cc-445e-9fdb-083bcbd3e8ea",
+                            "name": "currentPhaseA",
+                            "displayName": "Current L1",
+                            "displayNameEvent": "Current L1 changed",
                             "type": "double",
                             "unit": "Ampere",
                             "defaultValue": 0.0,
@@ -122,21 +130,32 @@
                             "cached": false
                         },
                         {
-                            "id": "2d668dfc-6934-4310-b3e1-26e09f9c9c4f",
-                            "name": "totalEnergyConsumed",
-                            "displayName": "Total energy consumed",
-                            "displayNameEvent": "Total energy consumption changed",
+                            "id": "d83c2a71-760c-4d93-bee0-1786b13553c2",
+                            "name": "currentPhaseB",
+                            "displayName": "Current L2",
+                            "displayNameEvent": "Current L2 changed",
                             "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0,
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
                             "suggestLogging": true,
                             "cached": false
                         },
                         {
-                            "id": "05faf0c6-8290-4f7c-b6b5-1c84824cb30e",
-                            "name": "totalEnergyDelivered",
-                            "displayName": "Total energy delivered",
-                            "displayNameEvent": "Total energy delivered changed",
+                            "id": "9148c650-2eb9-4934-92e1-890bc9692902",
+                            "name": "currentPhaseC",
+                            "displayName": "Current L3",
+                            "displayNameEvent": "Current L3 changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "f4e186c7-f048-4e2f-9e46-714af3b31e28",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total consumed energy",
+                            "displayNameEvent": "Total energy consumption changed",
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0,

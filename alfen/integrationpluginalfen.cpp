@@ -163,6 +163,11 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
         connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::mode3StateChanged, this, [thing, this](QString state){
             qCDebug(dcAlfen()) << thing << "Charge point state changed" << state;
             thing->setStateValue(alfenEveSingleProMode3StateStateTypeId, chargePointStates[state]);
+            if (state == "B1" || state == "B2" || state == "C1" || state == "C2" || state == "D1" || state == "D2") {
+                thing->setStateValue(alfenEveSingleProPluggedInStateTypeId, true);
+            } else {
+                thing->setStateValue(alfenEveSingleProPluggedInStateTypeId, false);
+            }
         });
 
         connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::availabilityChanged, this, [thing, this](AlfenWallboxModbusTcpConnection::Availability availability){
@@ -184,19 +189,22 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
             thing->setStateValue(alfenEveSingleProCurrentPowerStateTypeId, power);
         });
 
-        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::currentSumChanged, this, [thing](float current){
-            qCDebug(dcAlfen()) << thing << "current changed" << current << "A";
-            thing->setStateValue(alfenEveSingleProCurrentStateTypeId, current);
+        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::currentPhaseL1Changed, this, [thing](float current){
+            qCDebug(dcAlfen()) << thing << "current L1 changed" << current << "A";
+            thing->setStateValue(alfenEveSingleProCurrentPhaseAStateTypeId, current);
         });
-
-        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::realEnergyConsumedSumChanged, this, [thing](float energy){
-            qCDebug(dcAlfen()) << thing << "total energy consumed changed" << energy << "Wh";
-            thing->setStateValue(alfenEveSingleProTotalEnergyConsumedStateTypeId, energy);
+        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::currentPhaseL2Changed, this, [thing](float current){
+            qCDebug(dcAlfen()) << thing << "current L2 changed" << current << "A";
+            thing->setStateValue(alfenEveSingleProCurrentPhaseBStateTypeId, current);
+        });
+        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::currentPhaseL3Changed, this, [thing](float current){
+            qCDebug(dcAlfen()) << thing << "current L3 changed" << current << "A";
+            thing->setStateValue(alfenEveSingleProCurrentPhaseCStateTypeId, current);
         });
 
         connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::realEnergyDeliveredSumChanged, this, [thing](float energy){
             qCDebug(dcAlfen()) << thing << "total energy delivered changed" << energy << "Wh";
-            thing->setStateValue(alfenEveSingleProTotalEnergyDeliveredStateTypeId, energy);
+            thing->setStateValue(alfenEveSingleProTotalEnergyConsumedStateTypeId, energy);
         });
 
         connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::phaseUsedChanged, this, [thing, this](quint16 phaseCount){
@@ -235,6 +243,7 @@ void IntegrationPluginAlfen::postSetupThing(Thing *thing)
             foreach(Thing *thing, myThings()) {
                 if (m_monitors.value(thing)->reachable()) {
                     qCDebug(dcAlfen()) << "Updating" << thing->name();
+                    m_modbusTcpConnections.value(thing)->update();
                     //m_schneiderDevices.value(thing)->modbusTcpConnection()->update();
                     //m_schneiderDevices.value(thing)->update();
                 } else {
