@@ -62,6 +62,7 @@ private:
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, SolaxEvcModbusTcpConnection*> m_tcpConnections;
 
+    void setupTcpConnection(ThingSetupInfo *info);
 };
 
 #endif // INTEGRATIONPLUGINSOLAXEVC_H
