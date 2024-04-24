@@ -32,7 +32,16 @@
                             "maxValue": 248,
                             "defaultValue": 1,
                             "readOnly": true
+                        },
+                        {
+                            "id": "fbac4f07-8e14-4385-b1af-0c4c0c8a9f25",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
                         }
+
                     ],
                     "stateTypes": [
                         {

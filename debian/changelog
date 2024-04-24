@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.007) buster focal jammy; urgency=medium
+
+* Amperfied Energy Control: improved reconfigure.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Wed, 24 Mar 2024 14:54:53 +0200
+
 nymea-plugins-modbus (1.7.006) buster focal jammy; urgency=medium
 
 * Kaco SunSpec: set inverter power state to 0 when not connected.

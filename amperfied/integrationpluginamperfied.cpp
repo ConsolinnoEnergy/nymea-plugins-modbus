@@ -56,17 +56,23 @@ void IntegrationPluginAmperfied::discoverThings(ThingDiscoveryInfo *info)
             qCInfo(dcAmperfied()) << "Discovery results:" << discovery->discoveryResults().count();
 
             foreach (const EnergyControlDiscovery::Result &result, discovery->discoveryResults()) {
-                ThingDescriptor descriptor(energyControlThingClassId, "Amperfied Energy Control", QString("Modbus ID: %1").arg(result.modbusId));
+
+                ThingDescriptor descriptor(energyControlThingClassId, "Amperfied Energy Control", QString("Modbus ID: %1").arg(result.modbusId) + " on " + result.serialPort);
 
                 ParamList params{
                     {energyControlThingRtuMasterParamTypeId, result.modbusRtuMasterId},
-                    {energyControlThingModbusIdParamTypeId, result.modbusId}
+                    {energyControlThingModbusIdParamTypeId, result.modbusId},
+                    {energyControlThingSerialNumberParamTypeId, result.serialNumber}
                 };
                 descriptor.setParams(params);
 
-                Thing *existingThing = myThings().findByParams(params);
-                if (existingThing) {
-                    descriptor.setThingId(existingThing->id());
+
+                // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+                // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+                // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
+                Things existingThings = myThings().filterByThingClassId(energyControlThingClassId).filterByParam(energyControlThingSerialNumberParamTypeId, result.serialNumber);
+                if (!existingThings.isEmpty()) {
+                    descriptor.setThingId(existingThings.first()->id());
                 }
                 info->addThingDescriptor(descriptor);
             }
@@ -75,7 +81,6 @@ void IntegrationPluginAmperfied::discoverThings(ThingDiscoveryInfo *info)
         });
 
         discovery->startDiscovery();
-
         return;
     }
 
@@ -313,6 +318,20 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
     });
     connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, thing, [connection, thing](bool success){
         if (success) {
+            QString serialNumberRead{connection->serialNumber()};
+            QString serialNumberConfig{thing->paramValue(energyControlThingSerialNumberParamTypeId).toString()};
+            int stringsNotEqual = QString::compare(serialNumberRead, serialNumberConfig, Qt::CaseInsensitive);  // if strings are equal, stringsNotEqual should be 0.
+            if (stringsNotEqual) {
+                // The wallbox found is a different one than configured. We assume the wallbox was replaced, and the new device should use this config.
+                // Step 1: update the serial number.
+                qCDebug(dcAmperfied()) << "The serial number of this device is" << serialNumberRead << ". It does not match the serial number in the config, which is"
+                                     << serialNumberConfig << ". Updating config with new serial number.";
+                thing->setParamValue(energyControlThingSerialNumberParamTypeId, serialNumberRead);
+
+                // Todo: Step 2: search existing things if there is one with this serial number. If yes, that thing should be deleted. Otherwise there
+                // will be undefined behaviour when using reconfigure.
+            }
+
             thing->setStateValue(energyControlConnectedStateTypeId, true);
 
             // Disabling the auto-standby as it will shut down modbus
