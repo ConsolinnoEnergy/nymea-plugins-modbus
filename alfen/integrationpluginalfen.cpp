@@ -259,16 +259,22 @@ void IntegrationPluginAlfen::thingRemoved(Thing *thing)
 {
     qCDebug(dcAlfen()) << "Removing device" << thing->name();
 
+    if (m_modbusTcpConnections.contains(thing))
+    {
+        AlfenWallboxModbusTcpConnection *connection = m_modbusTcpConnections.take(thing);
+        connection->disconnectDevice();
+        connection->deleteLater();
+    }
+    if (m_monitors) {
+        qCDebug(dcAlfen()) << "Stopping plugin monitors ...";
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+        m_monitors = nullptr;
+    }
     if (myThings().isEmpty() && m_pluginTimer) {
         qCDebug(dcAlfen()) << "Stopping plugin timers ...";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;
     }
-    /*if (myThings().isEmpty() && m_monitors) {
-    qCDebug(dcAlfen()) << "Stopping plugin monitors ...";
-        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-        m_monitors = nullptr;
-    }*/
 }
 
 void IntegrationPluginAlfen::executeAction(ThingActionInfo *info)
