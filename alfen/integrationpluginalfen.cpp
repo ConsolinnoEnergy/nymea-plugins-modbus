@@ -265,10 +265,9 @@ void IntegrationPluginAlfen::thingRemoved(Thing *thing)
         connection->disconnectDevice();
         connection->deleteLater();
     }
-    if (m_monitors) {
+    if (m_monitors.contains(thing)) {
         qCDebug(dcAlfen()) << "Stopping plugin monitors ...";
         hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-        m_monitors = nullptr;
     }
     if (myThings().isEmpty() && m_pluginTimer) {
         qCDebug(dcAlfen()) << "Stopping plugin timers ...";
