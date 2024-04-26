@@ -185,27 +185,22 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
         // If the mac address is not known, nymea is starting a internal network discovery.
         // 'monitor' is returned while the discovery is still running -> monitor does not include ip address and is set to not reachable
-        // To fix this check if an ip address has been returned, if not wait the discovery finish
-        /*
-        if (monitor->networkDeviceInfo().address().toString() == "")
-        {
-            // Create an event loop, so we can pause the setup of the 'Thing'
-            QEventLoop loop;
-            // Once the network discovery is finished in the background, the cacheUpdated signal is emitted, quit the EventLoop
-            connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, &loop, &QEventLoop::quit);
-            // Start the EventLoop: Plugin setup is paused
-            loop.exec();
-        }
-        */
         m_monitors.insert(thing, monitor);
 
+        // If the ip address was not found in the cache, wait for the for the network discovery cache to be updated
         qCDebug(dcSolax()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(solaxX3InverterTCPThingMacAddressParamTypeId).toString();
+        m_setupTcpConnectionRunning = false;
         if (monitor->reachable()) 
         {
             setupTcpConnection(info);
         } else {
-            connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
-                setupTcpConnection(info);
+            connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, info, [this, info](bool reachable) {
+                qCDebug(dcSolax()) << "Solax reachable changed" << reachable;
+                if (reachable && !m_setupTcpConnectionRunning) 
+                {
+                    m_setupTcpConnectionRunning = true;
+                    setupTcpConnection(info);
+                }
             });
         }
     }

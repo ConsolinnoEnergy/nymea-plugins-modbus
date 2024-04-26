@@ -50,6 +50,7 @@ public:
 
 private:
     PluginTimer *m_pluginTimer = nullptr;
+    bool m_setupTcpConnectionRunning = false;
 
     struct MeterStates {
         bool modbusReachable {false};
