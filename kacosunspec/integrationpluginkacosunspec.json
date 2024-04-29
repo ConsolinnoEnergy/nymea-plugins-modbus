@@ -121,7 +121,8 @@
                             "name": "slaveAddress",
                             "displayName": "Modbus slave address",
                             "type": "uint",
-                            "defaultValue": 3
+                            "defaultValue": 3,
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [

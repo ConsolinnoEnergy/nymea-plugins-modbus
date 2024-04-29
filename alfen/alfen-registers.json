@@ -1,0 +1,430 @@
+{
+    "className": "AlfenWallbox",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 20,
+    "checkReachableRegister": "availability",
+    "enums": [
+        {
+            "name": "Availability",
+            "values": [
+                {
+                    "key": "Inoperative",
+                    "value": 0
+                },
+                {
+                    "key": "Operative",
+                    "value": 1
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "voltage",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "voltagePhaseL1",
+                    "address": 306,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "voltagePhaseL1",
+                    "defaultValue": "0",
+                    "unit": "Volt",
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseL2",
+                    "address": 308,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "voltagePhaseL2",
+                    "defaultValue": "0",
+                    "unit": "Volt",
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseL3",
+                    "address": 310,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "voltagePhaseL3",
+                    "defaultValue": "0",
+                    "unit": "Volt",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "currentPowerFactorFreqPower",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currentPhaseL1",
+                    "address": 320,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "currentPhaseL1",
+                    "defaultValue": "0",
+                    "unit": "Ampere",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseL2",
+                    "address": 322,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "currentPhaseL2",
+                    "defaultValue": "0",
+                    "unit": "Ampere",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseL3",
+                    "address": 324,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "currentPhaseL3",
+                    "defaultValue": "0",
+                    "unit": "Ampere",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentSum",
+                    "address": 326,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "currentSum",
+                    "defaultValue": "0",
+                    "unit": "Ampere",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerFactorPhase1",
+                    "address": 328,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "powerFactorPhase1",
+                    "defaultValue": "0",
+                    "unit": "-",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerFactorPhase2",
+                    "address": 330,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "powerFactorPhase2",
+                    "defaultValue": "0",
+                    "unit": "-",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerFactorPhase3",
+                    "address": 332,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "powerFactorPhase3",
+                    "defaultValue": "0",
+                    "unit": "-",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerFactorSum",
+                    "address": 334,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "powerFactorSum",
+                    "defaultValue": "0",
+                    "unit": "-",
+                    "access": "RO"
+                },
+                {
+                    "id": "frequency",
+                    "address": 336,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "frequency",
+                    "defaultValue": "0",
+                    "unit": "Hz",
+                    "access": "RO"
+                },
+                {
+                    "id": "realPowerPhase1",
+                    "address": 338,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realPowerPhase1",
+                    "defaultValue": "0",
+                    "unit": "Watt",
+                    "access": "RO"
+                },
+                {
+                    "id": "realPowerPhase2",
+                    "address": 340,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realPowerPhase2",
+                    "defaultValue": "0",
+                    "unit": "Watt",
+                    "access": "RO"
+                },
+                {
+                    "id": "realPowerPhase3",
+                    "address": 342,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realPowerPhase3",
+                    "defaultValue": "0",
+                    "unit": "Watt",
+                    "access": "RO"
+                },
+                {
+                    "id": "realPowerSum",
+                    "address": 344,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realPowerSum",
+                    "defaultValue": "0",
+                    "unit": "Watt",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "energy",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currerealEnergyDeliveredL1",
+                    "address": 362,
+                    "size": 4,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realEnergyDeliveredPhaseL1",
+                    "defaultValue": "0",
+                    "unit": "WattHour",
+                    "access": "RO"
+                },
+                {
+                    "id": "realEnergyDeliveredPhaseL2",
+                    "address": 366,
+                    "size": 4,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realEnergyDeliveredPhaseL2",
+                    "defaultValue": "0",
+                    "unit": "WattHour",
+                    "access": "RO"
+                },
+                {
+                    "id": "realEnergyDeliveredPhaseL3",
+                    "address": 370,
+                    "size": 4,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realEnergyDeliveredPhaseL3",
+                    "defaultValue": "0",
+                    "unit": "WattHour",
+                    "access": "RO"
+                },
+                {
+                    "id": "realEnergyDeliveredSum",
+                    "address": 374,
+                    "size": 4,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realEnergyDeliveredSum",
+                    "defaultValue": "0",
+                    "unit": "WattHour",
+                    "access": "RO"
+                },
+                {
+                    "id": "currerealEnergyConsumedL1",
+                    "address": 378,
+                    "size": 4,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realEnergyConsumedPhaseL1",
+                    "defaultValue": "0",
+                    "unit": "WattHour",
+                    "access": "RO"
+                },
+                {
+                    "id": "realEnergyConsumedPhaseL2",
+                    "address": 382,
+                    "size": 4,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realEnergyConsumedPhaseL2",
+                    "defaultValue": "0",
+                    "unit": "WattHour",
+                    "access": "RO"
+                },
+                {
+                    "id": "realEnergyConsumedPhaseL3",
+                    "address": 386,
+                    "size": 4,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realEnergyConsumedPhaseL3",
+                    "defaultValue": "0",
+                    "unit": "WattHour",
+                    "access": "RO"
+                },
+                {
+                    "id": "realEnergyConsumedSum",
+                    "address": 390,
+                    "size": 4,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realEnergyConsumedSum",
+                    "defaultValue": "0",
+                    "unit": "WattHour",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "statusAndTransactions",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "availability",
+                    "address": 1200,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "Availability",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "availability",
+                    "defaultValue": "AvailabilityInoperative",
+                    "access": "RO"
+                },
+                {
+                    "id": "mode3State",
+                    "address": 1201,
+                    "size": 5,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "mode3State61851",
+                    "access": "RO"
+                },
+                {
+                    "id": "actualAppliedMaxCurrent",
+                    "address": 1206,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "actualAppliedMaxCurrent",
+                    "defaultValue": "0",
+                    "unit": "Ampere",
+                    "access": "RO"
+                },
+                {
+                    "id": "modbusSlaveMaxCurrentValidTime",
+                    "address": 1208,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "modbusSlaveMaxCurrentValidTime",
+                    "defaultValue": "0",
+                    "unit": "Seconds",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "setpointMaxCurrent",
+            "address": 1210,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "modbusSlaveMaxCurrent",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RW"
+        },
+        {
+            "id": "activeLoadBalancindSafeCurrent",
+            "address": 1212,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "activeLoadBalancindSafeCurrent",
+            "defaultValue": "0",
+            "unit": "Ampere",
+            "access": "RO"
+        },
+        {
+            "id": "setpointMaxCurrentActive",
+            "address": 1214,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "modbusSlaveReceivedSetpointAccountedFor",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "phaseUsed",
+            "address": 1215,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "chargingUsing1or3Phases",
+            "defaultValue": "0",
+            "access": "RW"
+        }
+    ]
+}
