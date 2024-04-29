@@ -1,0 +1,14 @@
+{
+    "title": "alfen",
+    "tagline": "Integrates Alfen Eve Single Pro-Line wallbox into nymea.",
+    "icon": "alfen.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network",
+        "modbus"
+    ],
+    "categories": [
+        "energy"
+    ]
+}
