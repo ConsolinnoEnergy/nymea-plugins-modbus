@@ -125,22 +125,20 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
 
         // Create a monitor so we always get the correct IP in the network and see if the device is reachable without polling on our own.
         NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
-        // Fix from solax inverter
-        if (monitor->networkDeviceInfo().address().toString() == "")
-        {
-            QEventLoop loop;
-            connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, &loop, &QEventLoop::quit);
-            loop.exec();
-        }
         m_monitors.insert(thing, monitor);
 
         qCDebug(dcSolaxEvc()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(solaxEvcThingMacAddressParamTypeId).toString();
+        m_setupTcpConnectionRunning = false;
         if (monitor->reachable())
         {
             setupTcpConnection(info);
         } else {
             connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
+                if (!m_setupTcpConnectionRunning)
+                {
+                    m_setupTcpConnectionRunning = true;
                     setupTcpConnection(info);
+                }
             });
         }
     }
