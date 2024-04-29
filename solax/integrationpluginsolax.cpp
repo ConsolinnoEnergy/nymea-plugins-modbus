@@ -194,9 +194,8 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         {
             setupTcpConnection(info);
         } else {
-            connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, info, [this, info](bool reachable) {
-                qCDebug(dcSolax()) << "Solax reachable changed" << reachable;
-                if (reachable && !m_setupTcpConnectionRunning) 
+            connect(hardwareManager()->networkDeviceDiscovery(), &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
+                if (!m_setupTcpConnectionRunning)
                 {
                     m_setupTcpConnectionRunning = true;
                     setupTcpConnection(info);
