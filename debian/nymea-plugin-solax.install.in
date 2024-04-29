@@ -1,2 +1,2 @@
 usr/lib/@DEB_HOST_MULTIARCH@/nymea/plugins/libnymea_integrationpluginsolax.so
-ssolax/translations/*qm usr/share/nymea/translations/
+solax/translations/*qm usr/share/nymea/translations/
