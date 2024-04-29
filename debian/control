@@ -69,6 +69,17 @@ Description: nymea modbus command line tool for testing modbus TCP communication
  This package contains the nymea modbus command line tool for testing modbus TCP communication.
 
 
+Package: nymea-plugin-aeberle
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for A-Eberle Modbus RTU based energy meters (e.g. PQI-DA smart)
+ This package contains the nymea integration plugin for Modbus RTU based energy meters
+ made by A-Eberle.
+
+
 Package: nymea-plugin-alphainnotec
 Architecture: any
 Section: libs
@@ -349,3 +360,12 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Webasto Live wallboxes
  This package contains the nymea integration plugin for wallboxes made
  by Webasto.
+
+Package: nymea-plugin-dvmodbusir
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Device dvModbusIR read-out adapters
+ This package contains the nymea integration plugin for read-out adapters made
+ by Device GmbH.
