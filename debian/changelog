@@ -1,11 +1,16 @@
-nymea-plugins-modbus (1.7.107) jammy; urgency=medium
+nymea-plugins-modbus (1.7.008) jammy; urgency=medium
 
 * New plugin: Solax inverter
 * Includes fixes for connection over Modbus TCP
 
  -- Sebastian Ringer <s.ringer@consolinno.de> Tue, 29 Apr 2024 15:00:00 +0200
 
-nymea-plugins-modbus (1.7.1) jammy; urgency=medium
+nymea-plugins-modbus (1.7.007) buster focal jammy; urgency=medium
+
+* Added plugin for alven eve single pro-line
+* Azzurro: set states to 0 when not connected. Added outlier detection to energy counters.
+
+ -- Luis Reber <l.reber@consolinno.de> Fri, 26 Apr 2024 09:50:00 +0200
 
 nymea-plugins-modbus (1.7.006) buster focal jammy; urgency=medium
 
