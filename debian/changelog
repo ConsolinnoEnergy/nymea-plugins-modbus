@@ -1,3 +1,10 @@
+nymea-plugins-modbus (1.7.007-1) jammy; urgency=medium
+
+* New plugin: Solax inverter
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Tue, 29 Apr 2024 15:00:00 +0200
+
+
 nymea-plugins-modbus (1.7.006) buster focal jammy; urgency=medium
 
  * Kaco SunSpec: set inverter power state to 0 when not connected.

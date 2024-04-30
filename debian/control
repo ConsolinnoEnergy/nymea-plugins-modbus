@@ -274,6 +274,12 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for SMA solar inverters and meters
  This package contains the nymea integration plugin for SMA solar inverters and meters.
 
+Package: nymea-plugin-solax
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for Solax solar inverters and meters
+ This package contains the nymea integration plugin for Solax solar inverters and meters.
 
 Package: nymea-plugin-stiebeleltron
 Architecture: any
