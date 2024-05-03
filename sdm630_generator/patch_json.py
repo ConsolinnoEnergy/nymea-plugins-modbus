@@ -48,7 +48,7 @@ if __name__ == "__main__":
         if key == "id":
             tmp = list(data[key])
             # Adding offset to ascii int of last character of uuid
-            new = f"%03d" % (ord(tmp[-1]) + 1)
+            new = f"%03d" % (ord(tmp[-1]) + uuid_offset)
             tmp[-3] = new[0]
             tmp[-2] = new[1]
             tmp[-1] = new[2]
