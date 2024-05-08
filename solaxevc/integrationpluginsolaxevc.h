@@ -59,9 +59,10 @@ private:
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, SolaxEvcModbusTcpConnection*> m_tcpConnections;
+    bool m_setupTcpConnectionRunning = false;
 
     void toggleCharging(SolaxEvcModbusTcpConnection *connection, bool power);
-
+    void setupTcpConnection(ThingSetupInfo *info);
 };
 
 #endif // INTEGRATIONPLUGINSOLAXEVC_H
