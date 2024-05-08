@@ -56,11 +56,11 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
-
-private:
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, SolaxEvcModbusTcpConnection*> m_tcpConnections;
+
+    void toggleCharging(SolaxEvcModbusTcpConnection *connection, bool power);
 
 };
 
