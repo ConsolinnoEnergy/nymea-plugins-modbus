@@ -59,13 +59,9 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
                 ThingDescriptor descriptor(solaxEvcThingClassId, "Solax Wallbox", result.networkDeviceInfo.address().toString());
                 qCInfo(dcSolaxEvc()) << "Discovered:" << descriptor.title() << descriptor.description();
 
-                // TODO: CHECK IF RECONFIGURE WORKING
-                // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
-                // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
-                // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
-                Things existingThings = myThings().filterByThingClassId(solaxEvcThingClassId).filterByParam(solaxEvcThingModbusIdParamTypeId, result.networkDeviceInfo.macAddress());
-                if (!existingThings.isEmpty())
-                {
+                // Check if we already have set up this device
+                Things existingThings = myThings().filterByParam(solaxEvcThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                if (existingThings.count() >= 1) {
                     qCDebug(dcSolaxEvc()) << "This solax inverter already exists in the system:" << result.networkDeviceInfo;
                     descriptor.setThingId(existingThings.first()->id());
                 }
@@ -76,6 +72,14 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
                 params << Param(solaxEvcThingPortParamTypeId, result.port);
                 params << Param(solaxEvcThingModbusIdParamTypeId, result.modbusId);
                 descriptor.setParams(params);
+
+                // TODO: CHECK IF RECONFIGURE WORKING
+                // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+                // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+                // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
+                Things existingThings = myThings().filterByThingClassId(solaxEvcThingClassId).filterByParam(solaxEvcThingModbusIdParamTypeId, result.networkDeviceInfo.macAddress());
+                if (!existingThings.isEmpty())
+                    descriptor.setThingId(existingThings.first()->id());
 
                 info->addThingDescriptor(descriptor);
             }
