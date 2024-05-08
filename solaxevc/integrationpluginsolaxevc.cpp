@@ -186,7 +186,6 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
             connection->initialize();
         } else {
             thing->setStateValue(solaxEvcConnectedStateTypeId, false);
-            thing->setStateValue(solaxEvcCurrentPowerStateTypeId, 0);
         }
     });
 
@@ -323,7 +322,6 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                                            {4,"Overvoltage L2 (4)"},{5,"Undervoltage L2 (5)"},{6,"Overvoltage L3 (6)"},{7,"Undervoltage L2 (7)"},{8,"Electronic Lock (8)"}, \
                                            {9,"Over Load (9)"},{10,"Over Current (10)"},{11,"Over Temperature (11)"},{12,"PE Ground (12)"},{13,"PE Leak Current (13)"}, \
                                            {14,"Over Leak Current (14)"},{15,"Meter Communication (15)"},{16,"485 Communication (16)"},{17,"CP Voltage (17)"}};
-        // Falls nicht funktioniert, else Zweig in stateChanged schieben
         if (thing->stateValue(solaxEvcStateStateTypeId) == SolaxEvcModbusTcpConnection::StateFaulted)
         {
             thing->setStateValue(solaxEvcFaultCodeStateTypeId, faultCodeMap[code]);
