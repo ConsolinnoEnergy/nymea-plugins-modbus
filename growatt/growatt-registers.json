@@ -1,0 +1,164 @@
+{
+    "className": "Growatt",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 20,
+    "checkReachableRegister": "inverterState",
+    "enums": [],
+    "blocks": [],
+    "registers": [
+        {
+            "name": "inverterState",
+            "address": 0,
+            "size": 1,
+            "type": "uint16",
+            "scale": 1,
+            "group": "status",
+            "access": "read"
+        },
+        {
+            "name": "pv1Voltage",
+            "address": 32000,
+            "size": 1,
+            "type": "uint16",
+            "scale": 0.1,
+            "group": "pv",
+            "access": "read"
+        },
+        {
+            "name": "pv1Current",
+            "address": 32001,
+            "size": 1,
+            "type": "uint16",
+            "scale": 0.1,
+            "group": "pv",
+            "access": "read"
+        },
+        {
+            "name": "pv1Power",
+            "address": 32002,
+            "size": 1,
+            "type": "uint16",
+            "scale": 1,
+            "group": "pv",
+            "access": "read"
+        },
+        {
+            "name": "pv2Voltage",
+            "address": 32003,
+            "size": 1,
+            "type": "uint16",
+            "scale": 0.1,
+            "group": "pv",
+            "access": "read"
+        },
+        {
+            "name": "pv2Current",
+            "address": 32004,
+            "size": 1,
+            "type": "uint16",
+            "scale": 0.1,
+            "group": "pv",
+            "access": "read"
+        },
+        {
+            "name": "pv2Power",
+            "address": 32005,
+            "size": 1,
+            "type": "uint16",
+            "scale": 1,
+            "group": "pv",
+            "access": "read"
+        },
+        {
+            "name": "totalPvPower",
+            "address": 32006,
+            "size": 1,
+            "type": "uint16",
+            "scale": 1,
+            "group": "pv",
+            "access": "read"
+        },
+        {
+            "name": "gridVoltage",
+            "address": 32007,
+            "size": 1,
+            "type": "uint16",
+            "scale": 0.1,
+            "group": "grid",
+            "access": "read"
+        },
+        {
+            "name": "gridFrequency",
+            "address": 32008,
+            "size": 1,
+            "type": "uint16",
+            "scale": 0.01,
+            "group": "grid",
+            "access": "read"
+        },
+        {
+            "name": "outputCurrent",
+            "address": 32009,
+            "size": 1,
+            "type": "uint16",
+            "scale": 0.1,
+            "group": "output",
+            "access": "read"
+        },
+        {
+            "name": "outputPower",
+            "address": 32010,
+            "size": 1,
+            "type": "uint16",
+            "scale": 1,
+            "group": "output",
+            "access": "read"
+        },
+        {
+            "name": "outputEnergyToday",
+            "address": 32011,
+            "size": 1,
+            "type": "uint16",
+            "scale": 0.1,
+            "group": "energy",
+            "access": "read"
+        },
+        {
+            "name": "outputEnergyTotal",
+            "address": 32012,
+            "size": 2,
+            "type": "uint32",
+            "scale": 0.1,
+            "group": "energy",
+            "access": "read"
+        },
+        {
+            "name": "totalHours",
+            "address": 32014,
+            "size": 2,
+            "type": "uint32",
+            "scale": 0.1,
+            "group": "runtime",
+            "access": "read"
+        },
+        {
+            "name": "faultCode",
+            "address": 32016,
+            "size": 1,
+            "type": "uint16",
+            "scale": 1,
+            "group": "status",
+            "access": "read"
+        },
+        {
+            "name": "temperature",
+            "address": 32017,
+            "size": 1,
+            "type": "int16",
+            "scale": 0.1,
+            "group": "status",
+            "access": "read"
+        }
+    ]
+}
