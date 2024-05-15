@@ -1,0 +1,13 @@
+{
+    "title": "A-Eberle",
+    "tagline": "Connect A-Eberle energy meters.",
+    "icon": "aeberle.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "modbus"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

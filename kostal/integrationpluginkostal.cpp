@@ -420,8 +420,8 @@ void IntegrationPluginKostal::setupKostalConnection(ThingSetupInfo *info)
                 batteryThing->setStateValue(kostalBatteryBatteryLevelStateTypeId, kostalConnection->batteryStateOfCharge());
                 batteryThing->setStateValue(kostalBatteryBatteryCriticalStateTypeId, kostalConnection->batteryStateOfCharge() < 5);
 
-                // Note: this is the wrong capacity, as of now not known.
-                //batteryThing->setStateValue(kostalBatteryCapacityStateTypeId, kostalConnection->batteryWorkCapacity() / 1000.0); // kWh
+                // TODO: Check if this is correct
+                batteryThing->setStateValue(kostalBatteryCapacityStateTypeId, kostalConnection->batteryWorkCapacity() / 1000.0); // kWh
 
                 double batteryPower = -kostalConnection->batteryActualPower();
                 batteryThing->setStateValue(kostalBatteryCurrentPowerStateTypeId, batteryPower);

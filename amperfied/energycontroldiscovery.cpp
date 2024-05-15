@@ -56,6 +56,7 @@ void EnergyControlDiscovery::startDiscovery()
 
     foreach (ModbusRtuMaster *master, candidateMasters) {
         if (master->connected()) {
+            // Start searching with Modbus ID 1.
             tryConnect(master, 1);
         } else {
             qCWarning(dcAmperfied()) << "Modbus RTU master" << master->modbusUuid().toString() << "is not connected.";
@@ -68,25 +69,84 @@ QList<EnergyControlDiscovery::Result> EnergyControlDiscovery::discoveryResults()
     return m_discoveryResults;
 }
 
-void EnergyControlDiscovery::tryConnect(ModbusRtuMaster *master, quint16 slaveId)
+void EnergyControlDiscovery::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
 {
-    qCDebug(dcAmperfied()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << slaveId;
+    qCDebug(dcAmperfied()) << "Scanning modbus RTU master" << master->modbusUuid() << "Slave ID:" << modbusId;
 
-    ModbusRtuReply *reply = master->readInputRegister(slaveId, 4);
+    ModbusRtuReply *reply = master->readInputRegister(modbusId, 4);
     connect(reply, &ModbusRtuReply::finished, this, [=](){
         qCDebug(dcAmperfied()) << "Test reply finished!" << reply->error() << reply->result();
-        if (reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
+        if (reply->error() != ModbusRtuReply::NoError || reply->result().length() == 0) {
+            qCDebug(dcAmperfied()) << "Error reading input register 4 (firmware version). This is not an Energy Control wallbox.";
+        } else {
             quint16 version = reply->result().first();
             if (version >= 0x0100) {
                 qCDebug(dcAmperfied()) << QString("Version is 0x%1").arg(version, 0, 16);
-                Result result {master->modbusUuid(), version, slaveId};
-                m_discoveryResults.append(result);
+                Result result {master->modbusUuid(), version, modbusId};
+
+                ModbusRtuReply *reply2 = master->readInputRegister(modbusId, 5);
+                connect(reply2, &ModbusRtuReply::finished, this, [=](){
+                    qCDebug(dcAmperfied()) << "Reading next test value" << reply2->error() << reply2->result();
+                    if (reply2->error() != ModbusRtuReply::NoError || reply2->result().length() == 0) {
+                        qCDebug(dcAmperfied()) << "Error reading input register 5 (charging state). This is not an Energy Control wallbox.";
+                        return;
+                    }
+
+                    quint16 chargingState = reply2->result().first();
+                    if (chargingState >= 1 && chargingState <= 11) {
+                        qCDebug(dcAmperfied()) << "Charging state is" << chargingState << ". Value is ok.";
+
+                        ModbusRtuReply *reply3 = master->readInputRegister(modbusId, 100);
+                        connect(reply3, &ModbusRtuReply::finished, this, [=](){
+                            qCDebug(dcAmperfied()) << "Reading next test value" << reply3->error() << reply3->result();
+                            if (reply3->error() != ModbusRtuReply::NoError || reply3->result().length() == 0) {
+                                qCDebug(dcAmperfied()) << "Error reading input register 100 (maximum charge current). This is not an Energy Control wallbox.";
+                                return;
+                            }
+
+                            quint16 maximumCurrent = reply3->result().first();
+                            if (maximumCurrent >= 6 && maximumCurrent <= 16) {
+                                qCDebug(dcAmperfied()) << "Maximum charge current is" << maximumCurrent << ". Value is ok.";
+
+                                ModbusRtuReply *reply4 = master->readInputRegister(modbusId, 101);
+                                connect(reply4, &ModbusRtuReply::finished, this, [=](){
+                                    qCDebug(dcAmperfied()) << "Reading next test value" << reply4->error() << reply4->result();
+                                    if (reply4->error() != ModbusRtuReply::NoError || reply4->result().length() == 0) {
+                                        qCDebug(dcAmperfied()) << "Error reading input register 101 (minimum charge current). This is not an Energy Control wallbox.";
+                                        return;
+                                    }
+
+                                    quint16 minimumCurrent = reply4->result().first();
+                                    if (minimumCurrent >= 6 && minimumCurrent <= 16) {
+                                        qCDebug(dcAmperfied()) << "Minimum charge current is" << minimumCurrent << ". Value is ok.";
+                                        qCDebug(dcAmperfied()) << "This device is an Energy Control wallbox. Adding it to the list.";
+                                        m_discoveryResults.append(result);
+                                    } else {
+                                        qCDebug(dcAmperfied()) << "Value in input register 101 (minimum charge current) should be in the range [6;16], but the value is"
+                                                               << maximumCurrent << ". This is not an Energy Control wallbox.";
+                                    }
+                                });
+
+                            } else {
+                                qCDebug(dcAmperfied()) << "Value in input register 100 (maximum charge current) should be in the range [6;16], but the value is"
+                                                       << maximumCurrent << ". This is not an Energy Control wallbox.";
+                            }
+                        });
+
+                    } else {
+                        qCDebug(dcAmperfied()) << "Value in input register 5 (charging state) should be in the range [1;11], but the value is"
+                                               << chargingState << ". This is not an Energy Control wallbox.";
+                    }
+                });
+
             } else {
                 qCDebug(dcAmperfied()) << "Version must be at least 1.0.0 (0x0100)";
             }
         }
-        if (slaveId < 20) {
-            tryConnect(master, slaveId+1);
+
+        // The possible Modbus IDs of the Energy Control are in the range [1;15].
+        if (modbusId < 15) {
+            tryConnect(master, modbusId+1);
         } else {
             emit discoveryFinished(true);
         }
