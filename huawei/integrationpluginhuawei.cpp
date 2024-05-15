@@ -269,7 +269,7 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
             Q_UNUSED(thing)
         });
 
-        connect(connection, &HuaweiModbusRtuConnection::inverterEnergyProducedChanged, thing, [thing](float inverterEnergyProduced){
+        connect(connection, &HuaweiModbusRtuConnection::inverterEnergyProducedChanged, thing, [this, thing](float inverterEnergyProduced){
             qCDebug(dcHuawei()) << "Inverter total energy produced changed" << inverterEnergyProduced << "kWh";
 
             // Test value first, to avoid jitter.
