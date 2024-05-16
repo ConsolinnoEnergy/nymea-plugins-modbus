@@ -183,7 +183,151 @@
             ]
         },
         {
-            "id": "meterStuff1",
+            "id": "inverterStuff",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "inverterInputPower",
+                    "address": 32064,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Inverter input power",
+                    "unit": "kW",
+                    "staticScaleFactor": -3,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister1",
+                    "address": 32066,
+                    "size": 14,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister1",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterActivePower",
+                    "address": 32080,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Inverter active power",
+                    "unit": "kW",
+                    "staticScaleFactor": -3,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister2",
+                    "address": 32082,
+                    "size": 7,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister2",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterDeviceStatus",
+                    "address": 32089,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Inverter device status",
+                    "enum": "InverterDeviceStatus",
+                    "defaultValue": "InverterDeviceStatusStandbyInitializing",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister3",
+                    "address": 32090,
+                    "size": 16,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister3",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterEnergyProduced",
+                    "address": 32106,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Inverter energy produced",
+                    "unit": "kWh",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "battery1",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "lunaBattery1Status",
+                    "address": 37000,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 1 status",
+                    "enum": "BatteryDeviceStatus",
+                    "defaultValue": "BatteryDeviceStatusOffline",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery1Power",
+                    "address": 37001,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 1 power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister4",
+                    "address": 37003,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister4",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery1Soc",
+                    "address": 37004,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 1 state of charge",
+                    "staticScaleFactor": -1,
+                    "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "meterStuff",
             "readSchedule": "update",
             "registers": [
                 {
@@ -338,13 +482,18 @@
                     "staticScaleFactor": -2,
                     "defaultValue": "0",
                     "access": "RO"
-                }
-            ]
-        },
-        {
-            "id": "meterStuff2",
-            "readSchedule": "update",
-            "registers": [
+                },
+                {
+                    "id": "fillerRegister5",
+                    "address": 37123,
+                    "size": 9,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister5",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
                 {
                     "id": "meterAphaseActivePower",
                     "address": 37132,
@@ -382,133 +531,72 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "battery2",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "lunaBattery2Soc",
+                    "address": 37738,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 2 state of charge",
+                    "staticScaleFactor": -1,
+                    "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister6",
+                    "address": 37739,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister6",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery2Status",
+                    "address": 37741,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 2 status",
+                    "enum": "BatteryDeviceStatus",
+                    "defaultValue": "BatteryDeviceStatusOffline",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister7",
+                    "address": 37742,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister7",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery2Power",
+                    "address": 37743,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 2 power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         }
     ],
-    "registers": [
-        {
-            "id": "inverterInputPower",
-            "address": 32064,
-            "size": 2,
-            "type": "int32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Inverter input power",
-            "unit": "kW",
-            "staticScaleFactor": -3,
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "inverterActivePower",
-            "address": 32080,
-            "size": 2,
-            "type": "int32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Inverter active power",
-            "unit": "kW",
-            "staticScaleFactor": -3,
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "inverterDeviceStatus",
-            "address": 32089,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Inverter device status",
-            "enum": "InverterDeviceStatus",
-            "defaultValue": "InverterDeviceStatusStandbyInitializing",
-            "access": "RO"
-        },
-        {
-            "id": "inverterEnergyProduced",
-            "address": 32106,
-            "size": 2,
-            "type": "uint32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Inverter energy produced",
-            "unit": "kWh",
-            "staticScaleFactor": -2,
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery1Status",
-            "address": 37000,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 1 status",
-            "enum": "BatteryDeviceStatus",
-            "defaultValue": "BatteryDeviceStatusOffline",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery1Power",
-            "address": 37001,
-            "size": 2,
-            "type": "int32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 1 power",
-            "unit": "W",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery1Soc",
-            "address": 37004,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 1 state of charge",
-            "staticScaleFactor": -1,
-            "unit": "%",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery2Status",
-            "address": 37741,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 2 status",
-            "enum": "BatteryDeviceStatus",
-            "defaultValue": "BatteryDeviceStatusOffline",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery2Power",
-            "address": 37743,
-            "size": 2,
-            "type": "int32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 2 power",
-            "unit": "W",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery2Soc",
-            "address": 37738,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 2 state of charge",
-            "staticScaleFactor": -1,
-            "unit": "%",
-            "defaultValue": "0",
-            "access": "RO"
-        }
-    ]
+    "registers": []
 }

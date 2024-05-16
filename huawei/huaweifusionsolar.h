@@ -52,13 +52,16 @@ private:
     QQueue<HuaweiFusionModbusTcpConnection::Registers> m_registersQueue;
     QModbusReply *m_initReply = nullptr;
 
-    int m_currentRegisterRequest = -1;
+    int m_currentRegisterRequest{-1};
     void finishRequest();
 
-    bool m_battery1Available = false;
-    bool m_battery2Available = false;
+    const uint MAX_BATTERY_TIMER{10};
+    bool m_battery1Available{false};
+    bool m_battery2Available{false};
+    uint m_battery1timer{MAX_BATTERY_TIMER};
+    uint m_battery2timer{MAX_BATTERY_TIMER};
 
-    double m_actualInverterPower = 0;
+    double m_actualInverterPower{0};
 
     QString exceptionToString(QModbusPdu::ExceptionCode exception);
 

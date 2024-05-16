@@ -819,3 +819,52 @@ void IntegrationPluginHuawei::evaluateEnergyProducedValue(Thing *inverterThing, 
         inverterThing->setStateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId, energyProduced);
     }
 }
+
+// This method uses the Hampel identifier (https://blogs.sas.com/content/iml/2021/06/01/hampel-filter-robust-outliers.html) to test if the value in the center of the window is an outlier or not.
+// The input is a list of floats that contains the window of values to look at. The method will return true if the center value of that list is an outlier according to the Hampel
+// identifier. If the value is not an outlier, the method will return false.
+// The center value of the list is the one at (length / 2) for even length and ((length - 1) / 2) for odd length.
+bool IntegrationPluginHuawei::isOutlier(const QList<float>& list)
+{
+    int const windowLength{list.length()};
+    if (windowLength < 3) {
+        qCWarning(dcHuawei()) << "Outlier check not working. Not enough values in the list.";
+        return true;    // Unknown if the value is an outlier, but return true to not use the value because it can't be checked.
+    }
+
+    // This is the variable you can change to tweak outlier detection. It scales the size of the range in which values are deemed not an outlier. Increase the number to increase the
+    // range (less values classified as an outlier), lower the number to reduce the range (more values classified as an outlier).
+    uint const hampelH{3};
+
+    float const madNormalizeFactor{1.4826};
+    //qCDebug(dcHuawei()) << "Hampel identifier: the input list -" << list;
+    QList<float> sortedList{list};
+    std::sort(sortedList.begin(), sortedList.end());
+    //qCDebug(dcHuawei()) << "Hampel identifier: the sorted list -" << sortedList;
+    uint medianIndex;
+    if (windowLength % 2 == 0) {
+        medianIndex = windowLength / 2;
+    } else {
+        medianIndex = (windowLength - 1)/ 2;
+    }
+    float const median{sortedList.at(medianIndex)};
+    //qCDebug(dcHuawei()) << "Hampel identifier: the median -" << median;
+
+    QList<float> madList;
+    for (int i = 0; i < windowLength; ++i) {
+        madList.append(std::abs(median - sortedList.at(i)));
+    }
+    //qCDebug(dcHuawei()) << "Hampel identifier: the mad list -" << madList;
+
+    std::sort(madList.begin(), madList.end());
+    //qCDebug(dcHuawei()) << "Hampel identifier: the sorted mad list -" << madList;
+    float const hampelIdentifier{hampelH * madNormalizeFactor * madList.at(medianIndex)};
+    //qCDebug(dcHuawei()) << "Hampel identifier: the calculated Hampel identifier" << hampelIdentifier;
+
+    bool isOutlier{std::abs(list.at(medianIndex) - median) > hampelIdentifier};
+    //qCDebug(dcHuawei()) << "Hampel identifier: the value" << list.at(medianIndex) << " is an outlier?" << isOutlier;
+
+    return isOutlier;
+}
+
+
