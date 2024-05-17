@@ -47,13 +47,20 @@ public:
 
     quint16 slaveId() const;
 
+signals:
+    void meterEnergyValuesUpdated();
+    void inverterEnergyValuesUpdated();
+
 private:
     quint16 m_slaveId;
     QQueue<HuaweiFusionModbusTcpConnection::Registers> m_registersQueue;
     QModbusReply *m_initReply = nullptr;
 
     int m_currentRegisterRequest{-1};
-    void finishRequest();
+    void finishRequestRetryIs(bool retryRequest);
+
+    uint m_requestRetryCounter{0};
+    const uint MAX_REQUEST_RETRY_COUNT{5};
 
     const uint MAX_BATTERY_TIMER{10};
     bool m_battery1Available{false};

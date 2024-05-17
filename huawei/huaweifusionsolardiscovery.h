@@ -41,12 +41,12 @@ class HuaweiFusionSolarDiscovery : public QObject
 {
     Q_OBJECT
 public:
-    explicit HuaweiFusionSolarDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port, const QList<quint16> &slaveIds, QObject *parent = nullptr);
+    explicit HuaweiFusionSolarDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port, const QList<quint16> &modbusIds, QObject *parent = nullptr);
 
     typedef struct Result {
         QString modelName;
         QString serialNumber;
-        quint16 slaveId;
+        quint16 modbusId;
         NetworkDeviceInfo networkDeviceInfo;
     } Result;
 
@@ -60,7 +60,7 @@ signals:
 private:
     NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
     quint16 m_port = 502;
-    QList<quint16> m_slaveIds;
+    QList<quint16> m_modbusIds;
     QDateTime m_startDateTime;
 
     QHash<QHostAddress, QQueue<HuaweiFusionSolar *>> m_pendingConnectionAttempts;

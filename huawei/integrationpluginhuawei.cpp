@@ -72,8 +72,8 @@ void IntegrationPluginHuawei::discoverThings(ThingDiscoveryInfo *info)
         }
 
         // Create a discovery with the info as parent for auto deleting the object once the discovery info is done
-        QList<quint16> slaveIds = {1, 2, 3};
-        HuaweiFusionSolarDiscovery *discovery = new HuaweiFusionSolarDiscovery(hardwareManager()->networkDeviceDiscovery(), 502, slaveIds, info);
+        QList<quint16> modbusIds = {1, 2, 3};
+        HuaweiFusionSolarDiscovery *discovery = new HuaweiFusionSolarDiscovery(hardwareManager()->networkDeviceDiscovery(), 502, modbusIds, info);
         connect(discovery, &HuaweiFusionSolarDiscovery::discoveryFinished, info, [=](){
             foreach (const HuaweiFusionSolarDiscovery::Result &result, discovery->results()) {
 
@@ -98,7 +98,7 @@ void IntegrationPluginHuawei::discoverThings(ThingDiscoveryInfo *info)
 
                 ParamList params;
                 params << Param(huaweiFusionSolarInverterThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
-                params << Param(huaweiFusionSolarInverterThingSlaveIdParamTypeId, result.slaveId);
+                params << Param(huaweiFusionSolarInverterThingSlaveIdParamTypeId, result.modbusId);
                 descriptor.setParams(params);
                 info->addThingDescriptor(descriptor);
             }
@@ -157,13 +157,26 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
         m_huaweiFusionSetupRunning = false;
 
         // Handle reconfigure
-        if (m_connections.contains(thing))
-            m_connections.take(thing)->deleteLater();
+        if (m_tcpConnections.contains(thing)) {
+            qCDebug(dcHuawei()) << "Reconfiguring existing thing" << thing->name();
+            HuaweiFusionSolar *connection = m_tcpConnections.take(thing);
+            connection->disconnectDevice(); // Make sure it does not interfere with new connection we are about to create.
+            connection->deleteLater();
+        }
+
+        if (m_pvEnergyProducedValues.contains(thing))
+            m_pvEnergyProducedValues.remove(thing);
+
+        if (m_energyConsumedValues.contains(thing))
+            m_energyConsumedValues.remove(thing);
+
+        if (m_energyProducedValues.contains(thing))
+            m_energyProducedValues.remove(thing);
 
         if (m_monitors.contains(thing))
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
 
-        // Make sure we have a valid mac address, otherwise no monitor and not auto searching is possible
+        // Test for null, because registering a monitor with null will cause a segfault. Mac is loaded from config, you can't be sure config contains a valid mac.
         MacAddress macAddress = MacAddress(thing->paramValue(huaweiFusionSolarInverterThingMacAddressParamTypeId).toString());
         if (macAddress.isNull()) {
             qCWarning(dcHuawei()) << "Failed to set up Fusion Solar because the MAC address is not valid:" << thing->paramValue(huaweiFusionSolarInverterThingMacAddressParamTypeId).toString() << macAddress.toString();
@@ -175,29 +188,25 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
         NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
         m_monitors.insert(thing, monitor);
         connect(info, &ThingSetupInfo::aborted, monitor, [=](){
+            qCDebug(dcHuawei()) << "Unregistering monitor because setup has been aborted.";
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         });
 
 
-        // Continue with setup only if we know that the network device is reachable
-        if (info->isInitialSetup()) {
-            if (monitor->reachable()) {
-                setupFusionSolar(info);
-            } else {
-                // otherwise wait until we reach the networkdevice before setting up the device
-                qCDebug(dcHuawei()) << "Network device" << thing->name() << "is not reachable yet. Continue with the setup once reachable.";
-                connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [=](bool reachable){
-                    if (reachable && !m_huaweiFusionSetupRunning) {
-                        m_huaweiFusionSetupRunning = true;
-                        qCDebug(dcHuawei()) << "Network device" << thing->name() << "is now reachable. Continue with the setup...";
-                        setupFusionSolar(info);
-                    }
-                });
-            }
-        } else {
+        qCDebug(dcHuawei()) << "Monitor reachable" << monitor->reachable() << macAddress.toString();
+        if (monitor->reachable()) {
             setupFusionSolar(info);
+        } else {
+            qCDebug(dcHuawei()) << "Network device" << thing->name() << "is not reachable yet. Continue with the setup once reachable.";
+            connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [=](bool reachable){
+                qCDebug(dcHuawei()) << "Monitor reachable changed!" << reachable;
+                if (reachable && !m_huaweiFusionSetupRunning) {
+                    // The monitor is unreliable and can change reachable true->false->true before setup is done. Make sure this runs only once.
+                    m_huaweiFusionSetupRunning = true;
+                    setupFusionSolar(info);
+                }
+            });
         }
-
         return;
     }
 
@@ -420,10 +429,8 @@ void IntegrationPluginHuawei::postSetupThing(Thing *thing)
         if (!m_pluginTimer) {
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
-                foreach(HuaweiFusionSolar *connection, m_connections) {
-                    if (connection->reachable()) {
-                        connection->update();
-                    }
+                foreach(HuaweiFusionSolar *connection, m_tcpConnections) {
+                    connection->update();
                 }
 
                 foreach(HuaweiModbusRtuConnection *connection, m_rtuConnections) {
@@ -455,8 +462,8 @@ void IntegrationPluginHuawei::thingRemoved(Thing *thing)
         hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
     }
 
-    if (m_connections.contains(thing)) {
-        HuaweiFusionSolar *connection = m_connections.take(thing);
+    if (m_tcpConnections.contains(thing)) {
+        HuaweiFusionSolar *connection = m_tcpConnections.take(thing);
         connection->disconnectDevice();
         delete connection;
     }
@@ -465,23 +472,38 @@ void IntegrationPluginHuawei::thingRemoved(Thing *thing)
         m_rtuConnections.take(thing)->deleteLater();
     }
 
+    if (m_pvEnergyProducedValues.contains(thing))
+        m_pvEnergyProducedValues.remove(thing);
+
+    if (m_energyConsumedValues.contains(thing))
+        m_energyConsumedValues.remove(thing);
+
+    if (m_energyProducedValues.contains(thing))
+        m_energyProducedValues.remove(thing);
+
     if (myThings().isEmpty() && m_pluginTimer) {
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;
     }
 }
 
+// Setup TCP connection
 void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(thing);
     uint port = thing->paramValue(huaweiFusionSolarInverterThingPortParamTypeId).toUInt();
-    quint16 slaveId = thing->paramValue(huaweiFusionSolarInverterThingSlaveIdParamTypeId).toUInt();
+    quint16 modbusId = thing->paramValue(huaweiFusionSolarInverterThingSlaveIdParamTypeId).toUInt();
 
-    qCDebug(dcHuawei()) << "Setup connection to fusion solar dongle" << monitor->networkDeviceInfo().address().toString() << port << slaveId;
+    qCDebug(dcHuawei()) << "Setting up connection to fusion solar dongle" << monitor->networkDeviceInfo().address().toString() << port << modbusId;
 
-    HuaweiFusionSolar *connection = new HuaweiFusionSolar(monitor->networkDeviceInfo().address(), port, slaveId, this);
-    connect(info, &ThingSetupInfo::aborted, connection, &HuaweiFusionSolar::deleteLater);
+    HuaweiFusionSolar *connection = new HuaweiFusionSolar(monitor->networkDeviceInfo().address(), port, modbusId, thing);
+    connect(info, &ThingSetupInfo::aborted, connection, [=](){
+        qCDebug(dcHuawei()) << "Cleaning up ModbusTCP connection because setup has been aborted.";
+        connection->disconnectDevice();
+        connection->deleteLater();
+    });
+
     connect(connection, &HuaweiFusionSolar::reachableChanged, info, [=](bool reachable){
         if (!reachable) {
             qCWarning(dcHuawei()) << "Connection init finished with errors" << thing->name() << connection->hostAddress().toString();
@@ -492,10 +514,10 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
             return;
         }
 
-        m_connections.insert(thing, connection);
+        m_tcpConnections.insert(thing, connection);
         info->finish(Thing::ThingErrorNoError);
 
-        qCDebug(dcHuawei()) << "Setup huawei fusion solar smart dongle finished successfully" << monitor->networkDeviceInfo().address().toString() << port << slaveId;
+        qCDebug(dcHuawei()) << "Setup huawei fusion solar smart dongle finished successfully" << monitor->networkDeviceInfo().address().toString() << port << modbusId;
 
         // Set connected state
         thing->setStateValue("connected", true);

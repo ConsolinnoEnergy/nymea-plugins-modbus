@@ -61,7 +61,7 @@ private:
     PluginTimer *m_pluginTimer = nullptr;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, HuaweiFusionSolar *> m_connections;
+    QHash<Thing *, HuaweiFusionSolar *> m_tcpConnections;
     QHash<Thing *, HuaweiModbusRtuConnection *> m_rtuConnections;
 
     void setupFusionSolar(ThingSetupInfo *info);
@@ -69,6 +69,12 @@ private:
     QHash<Thing *, QList<float>> m_inverterEnergyProducedHistory;
     void evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced);
     bool checkEnergyValueReasonable(Thing *inverterThing, float newValue);
+
+    bool isOutlier(const QList<float>& list);
+    const int WINDOW_LENGTH{7};
+    QHash<Thing *, QList<float>> m_pvEnergyProducedValues;
+    QHash<Thing *, QList<float>> m_energyConsumedValues;
+    QHash<Thing *, QList<float>> m_energyProducedValues;
 };
 
 #endif // INTEGRATIONPLUGINHUAWEI_H

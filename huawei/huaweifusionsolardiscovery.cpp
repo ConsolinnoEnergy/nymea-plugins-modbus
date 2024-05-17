@@ -31,11 +31,11 @@
 #include "huaweifusionsolardiscovery.h"
 #include "extern-plugininfo.h"
 
-HuaweiFusionSolarDiscovery::HuaweiFusionSolarDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port, const QList<quint16> &slaveIds, QObject *parent)
+HuaweiFusionSolarDiscovery::HuaweiFusionSolarDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port, const QList<quint16> &modbusIds, QObject *parent)
     : QObject{parent},
       m_networkDeviceDiscovery{networkDeviceDiscovery},
       m_port{port},
-      m_slaveIds{slaveIds}
+      m_modbusIds{modbusIds}
 {
 
 }
@@ -74,10 +74,10 @@ void HuaweiFusionSolarDiscovery::testNextConnection(const QHostAddress &address)
     // but retry only once to communicate with the device for reachability check...
     connection->setCheckReachableRetries(1);
 
-    qCDebug(dcHuawei()) << "Discovery: Start searching on" << QString("%1:%2").arg(address.toString()).arg(connection->port()) << "slave ID:" << connection->slaveId();
+    qCDebug(dcHuawei()) << "Discovery: Start searching on" << QString("%1:%2").arg(address.toString()).arg(connection->port()) << "modbus ID:" << connection->slaveId();
     // Try to connect, maybe it works, maybe not...
     if (!connection->connectDevice()) {
-        qCDebug(dcHuawei()) << "Discovery: Failed to connect to" << QString("%1:%2").arg(address.toString()).arg(connection->port()) << "slave ID:" << connection->slaveId() << "Continue...";;
+        qCDebug(dcHuawei()) << "Discovery: Failed to connect to" << QString("%1:%2").arg(address.toString()).arg(connection->port()) << "modbus ID:" << connection->slaveId() << "Continue...";;
         cleanupConnection(connection);
     }
 }
@@ -85,8 +85,8 @@ void HuaweiFusionSolarDiscovery::testNextConnection(const QHostAddress &address)
 void HuaweiFusionSolarDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo)
 {
     QQueue<HuaweiFusionSolar *> connectionQueue;
-    foreach (quint16 slaveId, m_slaveIds) {
-        HuaweiFusionSolar *connection = new HuaweiFusionSolar(networkDeviceInfo.address(), m_port, slaveId, this);
+    foreach (quint16 modbusId, m_modbusIds) {
+        HuaweiFusionSolar *connection = new HuaweiFusionSolar(networkDeviceInfo.address(), m_port, modbusId, this);
         m_connections.append(connection);
         connectionQueue.enqueue(connection);
 
@@ -101,7 +101,7 @@ void HuaweiFusionSolarDiscovery::checkNetworkDevice(const NetworkDeviceInfo &net
             connect(connection, &HuaweiFusionSolar::initializationFinished, this, [=](bool success){
                 Result result;
                 result.networkDeviceInfo = networkDeviceInfo;
-                result.slaveId = slaveId;
+                result.modbusId = modbusId;
 
                 if (success) {
                     qCDebug(dcHuawei()) << "Huawei init finished successfully:" << connection->model() << connection->serialNumber() << connection->productNumber();
@@ -109,7 +109,7 @@ void HuaweiFusionSolarDiscovery::checkNetworkDevice(const NetworkDeviceInfo &net
                     result.serialNumber = connection->serialNumber();
                 }
 
-                qCInfo(dcHuawei()) << "Discovery: --> Found" << networkDeviceInfo << "slave ID:" << slaveId;
+                qCInfo(dcHuawei()) << "Discovery: --> Found" << networkDeviceInfo << "slave ID:" << modbusId;
                 m_results.append(result);
             });
 
