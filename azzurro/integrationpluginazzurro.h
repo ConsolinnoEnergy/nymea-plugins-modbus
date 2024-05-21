@@ -47,7 +47,7 @@ public:
 private:
     bool isOutlier(const QList<float>& list);
     PluginTimer *m_pluginTimer = nullptr;
-    int m_windowLength{7};
+    int m_windowLength{15};
 
     QHash<Thing *, QList<float>> m_pvEnergyProducedValues;
     QHash<Thing *, QList<float>> m_energyConsumedValues;
