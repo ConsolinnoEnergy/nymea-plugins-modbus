@@ -98,6 +98,7 @@ void IntegrationPluginAzzurro::discoverThings(ThingDiscoveryInfo *info)
 void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
+    qCDebug(dcAzzurro()) << "Plugin last modified on 21. 5. 2024."; // Use this to check which version of the plugin is installed on devices.
     qCDebug(dcAzzurro()) << "Setup" << thing << thing->params();
 
     if (thing->thingClassId() == azzurroInverterRTUThingClassId) {
