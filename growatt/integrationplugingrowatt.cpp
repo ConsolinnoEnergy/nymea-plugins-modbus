@@ -216,14 +216,26 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
         connect(connection, &GrowattModbusRtuConnection::Vac1Changed, this, [this, thing](double value){
             qCDebug(dcGrowatt()) << "Inverter Voltage L1 changed to" << value;
             thing->setStateValue(growattInverterRTUVoltagePhaseAStateTypeId, value);
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                meterThings.first()->setStateValue(growattMeterVoltagePhaseAStateTypeId, value);
+            }
         });
         connect(connection, &GrowattModbusRtuConnection::Vac2Changed, this, [this, thing](double value){
             qCDebug(dcGrowatt()) << "Inverter Voltage L2 changed to" << value;
             thing->setStateValue(growattInverterRTUVoltagePhaseBStateTypeId, value);
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                meterThings.first()->setStateValue(growattMeterVoltagePhaseBStateTypeId, value);
+            }
         });
         connect(connection, &GrowattModbusRtuConnection::Vac3Changed, this, [this, thing](double value){
             qCDebug(dcGrowatt()) << "Inverter Voltage L3 changed to" << value;
             thing->setStateValue(growattInverterRTUVoltagePhaseCStateTypeId, value);
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                meterThings.first()->setStateValue(growattMeterVoltagePhaseCStateTypeId, value);
+            }
         });
 
         connect(connection, &GrowattModbusRtuConnection::Pac1Changed, this, [this, thing](double value){
@@ -240,8 +252,37 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
         });
 
         connect(connection, &GrowattModbusRtuConnection::FacChanged, this, [this, thing](double value){
-            qCDebug(dcGrowatt()) << "Inverter frequency changed to" << value;
+            qCDebug(dcGrowatt()) << "Frequency changed to" << value;
             thing->setStateValue(growattInverterRTUFrequencyStateTypeId, value);
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+                meterThings.first()->setStateValue(growattMeterFrequencyStateTypeId, value);
+            }
+        });
+
+        //meter power values
+        connect(connection, &GrowattModbusRtuConnection::Ptouser_totalChanged, this, [this, thing](double value){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
+            qCDebug(dcGrowatt()) << "Grid supply changed to" << value;
+            if (!meterThings.isEmpty()) {
+                meterThings.first()->setStateValue(growattMeterCurrentPowerStateTypeId, value);
+            }
+        });
+        connect(connection, &GrowattModbusRtuConnection::Ptogrid_totalChanged, this, [this, thing](double value){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
+            qCDebug(dcGrowatt()) << "Grid feed-in changed to" << value;
+            if (!meterThings.isEmpty()) {
+                meterThings.first()->setStateValue(growattMeterCurrentPowerStateTypeId, -value);
+            }
+        });
+
+        //consumption power
+        connect(connection, &GrowattModbusRtuConnection::Ptoload_totalChanged, this, [this, thing](double value){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
+            qCDebug(dcGrowatt()) << "Consumption changed to" << value;
+            if (!meterThings.isEmpty()) {
+                meterThings.first()->setStateValue(growattMeterLoadPowerStateTypeId, value);
+            }
         });
 
         // FIXME: make async and check if this is really a Growatt

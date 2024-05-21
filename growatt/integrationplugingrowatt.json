@@ -379,6 +379,15 @@
                             "unit": "Hertz",
                             "defaultValue": 0.0,
                             "cached": false
+                        },
+                        {
+                            "id": "c7ecc4b2-7034-4a2f-a9bd-e6e506e00198",
+                            "name": "loadPower",
+                            "displayName": "Total Consumption Power (Growatt)",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "cached": false
                         }
                     ],
                     "actionTypes": []
