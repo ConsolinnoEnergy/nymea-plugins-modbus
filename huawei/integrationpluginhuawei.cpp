@@ -217,6 +217,15 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
             m_rtuConnections.take(thing)->deleteLater();
         }
 
+        if (m_pvEnergyProducedValues.contains(thing))
+            m_pvEnergyProducedValues.remove(thing);
+
+        if (m_energyConsumedValues.contains(thing))
+            m_energyConsumedValues.remove(thing);
+
+        if (m_energyProducedValues.contains(thing))
+            m_energyProducedValues.remove(thing);
+
         quint16 modbusId = thing->paramValue(huaweiRtuInverterThingModbusIdParamTypeId).toUInt();
         if (modbusId > 247 || modbusId == 0) {
             qCWarning(dcHuawei()) << "Setup failed, modbus ID is not valid" << modbusId;
@@ -244,17 +253,7 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
                 childThing->setStateValue("connected", reachable);
             }
 
-            if (reachable) {
-                qCDebug(dcHuawei()) << "Device" << thing << "is reachable via Modbus RTU on" << connection->modbusRtuMaster()->serialPort();
-
-                // Reset history, just incase
-                m_inverterEnergyProducedHistory[thing].clear();
-
-                // Add the current value to the history
-                checkEnergyValueReasonable(thing, thing->stateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId).toFloat());
-            } else {
-                qCWarning(dcHuawei()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
-            }
+            // ToDo: set values to 0 when connection lost.
         });
 
         connect(connection, &HuaweiModbusRtuConnection::initializationFinished, thing, [this, thing, connection](bool success){
@@ -278,12 +277,36 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
             Q_UNUSED(thing)
         });
 
-        connect(connection, &HuaweiModbusRtuConnection::inverterEnergyProducedChanged, thing, [this, thing](float inverterEnergyProduced){
-            qCDebug(dcHuawei()) << "Inverter total energy produced changed" << inverterEnergyProduced << "kWh";
+        connect(connection, &HuaweiModbusRtuConnection::updateFinished, thing, [this, thing, connection](){
 
-            // Test value first, to avoid jitter.
-            if (checkEnergyValueReasonable(thing, inverterEnergyProduced)) {
-                thing->setStateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId, inverterEnergyProduced);
+            // Check for outliers. As a consequence of that, the value written to the state is not the most recent. It is several cycles old, depending on the window size.
+            if (m_pvEnergyProducedValues.contains(thing)) {
+                QList<float>& valueList = m_pvEnergyProducedValues.operator[](thing);
+                valueList.append(connection->inverterEnergyProduced());
+                if (valueList.length() > WINDOW_LENGTH) {
+                    valueList.removeFirst();
+                    uint centerIndex;
+                    if (WINDOW_LENGTH % 2 == 0) {
+                        centerIndex = WINDOW_LENGTH / 2;
+                    } else {
+                        centerIndex = (WINDOW_LENGTH - 1)/ 2;
+                    }
+                    float testValue{valueList.at(centerIndex)};
+                    if (isOutlier(valueList)) {
+                        qCDebug(dcHuawei()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                    } else {
+                        //qCDebug(dcHuawei()) << "Outlier check: the value" << testValue << " is legit.";
+
+                        float currentValue{thing->stateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId).toFloat()};
+                        if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                            //qCDebug(dcHuawei()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                            thing->setStateValue(huaweiRtuInverterTotalEnergyProducedStateTypeId, testValue);
+                        }
+                    }
+                }
+            } else {
+                QList<float> pvEnergyProducedList{};
+                m_pvEnergyProducedValues.insert(thing, pvEnergyProducedList);
             }
         });
 
@@ -325,6 +348,9 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
             qCDebug(dcHuawei()) << "Battery 1 power changed" << lunaBattery1Power << "W";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId).filterByParam(huaweiBatteryThingUnitParamTypeId, 1);
             if (!batteryThings.isEmpty()) {
+                if (lunaBattery1Power < 10 && lunaBattery1Power > -10) {
+                    lunaBattery1Power = 0;
+                }
                 batteryThings.first()->setStateValue(huaweiBatteryCurrentPowerStateTypeId, lunaBattery1Power);
                 if (lunaBattery1Power < 0) {
                     batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "discharging");
@@ -373,8 +399,10 @@ void IntegrationPluginHuawei::setupThing(ThingSetupInfo *info)
             qCDebug(dcHuawei()) << "Battery 2 power changed" << lunaBattery2Power << "W";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId).filterByParam(huaweiBatteryThingUnitParamTypeId, 2);
             if (!batteryThings.isEmpty()) {
+                if (lunaBattery2Power < 10 && lunaBattery2Power > -10) {
+                    lunaBattery2Power = 0;
+                }
                 batteryThings.first()->setStateValue(huaweiBatteryCurrentPowerStateTypeId, lunaBattery2Power);
-
                 if (lunaBattery2Power < 0) {
                     batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "discharging");
                 } else if (lunaBattery2Power > 0) {
@@ -427,7 +455,7 @@ void IntegrationPluginHuawei::postSetupThing(Thing *thing)
 {
     if (thing->thingClassId() == huaweiFusionSolarInverterThingClassId || thing->thingClassId() == huaweiRtuInverterThingClassId) {
         if (!m_pluginTimer) {
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(1);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(HuaweiFusionSolar *connection, m_tcpConnections) {
                     connection->update();
@@ -504,6 +532,8 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
         connection->deleteLater();
     });
 
+    // This connect gets deleted when info gets deleted. So it should only execute once.
+    // Why this is done like this is probably because the inverter is quite slow and error prone on TCP and may take a few seconds before reachable actually becomes true.
     connect(connection, &HuaweiFusionSolar::reachableChanged, info, [=](bool reachable){
         if (!reachable) {
             qCWarning(dcHuawei()) << "Connection init finished with errors" << thing->name() << connection->hostAddress().toString();
@@ -525,31 +555,50 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
             childThing->setStateValue("connected", true);
         }
 
-        // Reset history, just incase
-        m_inverterEnergyProducedHistory[thing].clear();
-
-        // Add the current value to the history
-        evaluateEnergyProducedValue(thing, thing->stateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId).toFloat());
-
         connect(connection, &HuaweiFusionSolar::reachableChanged, thing, [=](bool reachable){
             qCDebug(dcHuawei()) << "Reachable changed to" << reachable << "for" << thing;
             thing->setStateValue("connected", reachable);
+
+            if (!reachable) {
+                // Set values to 0 since we don't know what the current value is
+                thing->setStateValue(huaweiFusionSolarInverterCurrentPowerStateTypeId, 0);
+                thing->setStateValue(huaweiFusionSolarInverterActivePowerStateTypeId, 0);
+                thing->setStateValue(huaweiFusionSolarInverterDeviceStatusStateTypeId, "unknown");
+
+                if (!monitor->reachable()) {
+                    // If the monitor is not reachable, set the connection to disconnectDevice() to stop sending modbus calls.
+                    connection->disconnectDevice();
+                } else {
+                    // If the monitor is reachable, set the IP address (it might have changed) and connect the device.
+                    connection->setHostAddress(monitor->networkDeviceInfo().address());
+                    connection->connectDevice();
+                }
+            }
+
             foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
                 childThing->setStateValue("connected", reachable);
 
                 if (!reachable) {
-                    // Set power values to 0 since we don't know what the current value is
-                    if (childThing->thingClassId() == huaweiFusionSolarInverterThingClassId) {
-                        thing->setStateValue(huaweiFusionSolarInverterCurrentPowerStateTypeId, 0);
-                    }
-
                     if (childThing->thingClassId() == huaweiMeterThingClassId) {
-                        thing->setStateValue(huaweiMeterCurrentPowerStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterCurrentPowerStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterCurrentReactivePowerStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterPowerFactorStateTypeId, 1);
+                        childThing->setStateValue(huaweiMeterCurrentPhaseAStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterCurrentPhaseBStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterCurrentPhaseCStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterCurrentPowerPhaseAStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterCurrentPowerPhaseBStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterCurrentPowerPhaseCStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterVoltagePhaseAStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterVoltagePhaseBStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterVoltagePhaseCStateTypeId, 0);
+                        childThing->setStateValue(huaweiMeterFrequencyStateTypeId, 0);
                     }
 
                     if (childThing->thingClassId() == huaweiBatteryThingClassId) {
-                        thing->setStateValue(huaweiBatteryCurrentPowerStateTypeId, 0);
-                    }
+                        childThing->setStateValue(huaweiBatteryCurrentPowerStateTypeId, 0);
+                        childThing->setStateValue(huaweiBatteryChargingStateStateTypeId, "idle");
+                    }                    
                 }
             }
         });
@@ -560,13 +609,30 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
 
             qCDebug(dcHuawei()) << "Network device monitor for" << thing->name() << (reachable ? "is now reachable" : "is not reachable any more" );
 
-            if (reachable && !thing->stateValue("connected").toBool()) {
-                connection->setHostAddress(monitor->networkDeviceInfo().address());
-                connection->connectDevice();
-            } else if (!reachable) {
-                // Note: We disable autoreconnect explicitly and we will
-                // connect the device once the monitor says it is reachable again
-                connection->disconnectDevice();
+            // The monitor is not reliable and can say the device is not reachable while the connection is still working. Only react to monitor reachableChanged
+            // when the connection is not working. Don't kill a working connection.
+            if (!thing->stateValue("connected").toBool()) {
+                // When the connection is set to disconnectDevice(), no more modbus calls will be sent. The monitor says the device is not reachable, so we
+                // assume modbus calls won't be answered anyway and it makes no sense to send any. When the monitor says the device can be reached, set the
+                // IP address (it might have changed) and connect the device (this starts modbus communication).
+                if (reachable) {
+                    connection->setHostAddress(monitor->networkDeviceInfo().address());
+                    connection->connectDevice();
+                } else {
+                    connection->disconnectDevice();
+                }
+            }
+
+        });
+
+        connect(connection, &HuaweiFusionSolar::initializationFinished, thing, [this, thing, connection](bool success){
+            if (success) {
+                qCDebug(dcHuawei()) << "Huawei inverter initialized." << connection->model() << connection->serialNumber() << connection->productNumber();
+                thing->setStateValue(huaweiFusionSolarInverterModelStateTypeId, connection->model());
+                thing->setStateValue(huaweiFusionSolarInverterSerialNumberStateTypeId, connection->serialNumber());
+                thing->setStateValue(huaweiFusionSolarInverterProductNumberStateTypeId, connection->productNumber());
+            } else {
+                qCWarning(dcHuawei()) << "Huawei inverter initialization failed.";
             }
         });
 
@@ -578,37 +644,51 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
             thing->setStateValue(huaweiFusionSolarInverterCurrentPowerStateTypeId, inverterInputPower * -1000.0);
         });
 
-        connect(connection, &HuaweiFusionSolar::inverterDeviceStatusReadFinished, thing, [thing](HuaweiFusionSolar::InverterDeviceStatus inverterDeviceStatus){
-            qCDebug(dcHuawei()) << "Inverter device status changed" << inverterDeviceStatus;
-            Q_UNUSED(thing)
-        });
+        connect(connection, &HuaweiFusionSolar::inverterValuesUpdated, thing, [this, thing, connection](){
 
-        connect(connection, &HuaweiFusionSolar::inverterEnergyProducedReadFinished, thing, [this, thing](float inverterEnergyProduced){
-            qCDebug(dcHuawei()) << "Inverter total energy produced changed" << inverterEnergyProduced << "kWh";
+            qCDebug(dcHuawei()) << "Inverter device status" << inverterStateToString(connection->inverterDeviceStatus());
+            thing->setStateValue(huaweiFusionSolarInverterDeviceStatusStateTypeId, inverterStateToString(connection->inverterDeviceStatus()));
 
-            // Note: sometimes this value is suddenly 0 or absurd high > 100000000
-            // We try here to filer out such random values. Sadly the values seem to
-            // come like that from the device, without exception or error.
-            evaluateEnergyProducedValue(thing, inverterEnergyProduced);
+            // Check for outliers. As a consequence of that, the value written to the state is not the most recent. It is several cycles old, depending on the window size.
+            if (m_pvEnergyProducedValues.contains(thing)) {
+                QList<float>& valueList = m_pvEnergyProducedValues.operator[](thing);
+                valueList.append(connection->inverterEnergyProduced());
+                if (valueList.length() > WINDOW_LENGTH) {
+                    valueList.removeFirst();
+                    uint centerIndex;
+                    if (WINDOW_LENGTH % 2 == 0) {
+                        centerIndex = WINDOW_LENGTH / 2;
+                    } else {
+                        centerIndex = (WINDOW_LENGTH - 1)/ 2;
+                    }
+                    float testValue{valueList.at(centerIndex)};
+                    if (isOutlier(valueList)) {
+                        qCDebug(dcHuawei()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                    } else {
+                        //qCDebug(dcHuawei()) << "Outlier check: the value" << testValue << " is legit.";
+
+                        float currentValue{thing->stateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId).toFloat()};
+                        if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                            //qCDebug(dcHuawei()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                            thing->setStateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId, testValue);
+                        }
+                    }
+                }
+            } else {
+                QList<float> pvEnergyProducedList{};
+                m_pvEnergyProducedValues.insert(thing, pvEnergyProducedList);
+            }
         });
 
         // Meter
-        connect(connection, &HuaweiFusionSolar::powerMeterActivePowerReadFinished, thing, [this, thing](qint32 powerMeterActivePower){
-            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiMeterThingClassId);
-            if (!meterThings.isEmpty()) {
-                qCDebug(dcHuawei()) << "Meter power changed" << powerMeterActivePower << "W";
-                // Note: > 0 -> return, < 0 consume
-                meterThings.first()->setStateValue(huaweiMeterCurrentPowerStateTypeId, -powerMeterActivePower);
-            }
-        });
-        connect(connection, &HuaweiFusionSolar::powerMeterEnergyReturnedReadFinished, thing, [this, thing](float powerMeterEnergyReturned){
+        connect(connection, &HuaweiFusionSolar::powerMeterEnergyReturnedChanged, thing, [this, thing](float powerMeterEnergyReturned){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcHuawei()) << "Meter power Returned changed" << powerMeterEnergyReturned << "kWh";
                 meterThings.first()->setStateValue(huaweiMeterTotalEnergyProducedStateTypeId, powerMeterEnergyReturned);
             }
         });
-        connect(connection, &HuaweiFusionSolar::powerMeterEnergyAquiredReadFinished, thing, [this, thing](float powerMeterEnergyAquired){
+        connect(connection, &HuaweiFusionSolar::powerMeterEnergyAquiredChanged, thing, [this, thing](float powerMeterEnergyAquired){
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcHuawei()) << "Meter power Aquired changed" << powerMeterEnergyAquired << "kWh";
@@ -616,103 +696,183 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
             }
         });
 
-        // Battery 1
-        connect(connection, &HuaweiFusionSolar::lunaBattery1StatusReadFinished, thing, [this, thing](HuaweiFusionSolar::BatteryDeviceStatus lunaBattery1Status){
-            qCDebug(dcHuawei()) << "Battery 1 status changed of" << thing << lunaBattery1Status;
-            Thing *batteryThing = nullptr;
-            foreach (Thing *bt, myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId)) {
-                if (bt->paramValue(huaweiBatteryThingUnitParamTypeId).toUInt() == 1) {
-                    batteryThing = bt;
-                    break;
-                }
-            }
 
-            // Check if w have to create the energy storage
-            if (lunaBattery1Status != HuaweiFusionSolar::BatteryDeviceStatusOffline && !batteryThing) {
-                qCDebug(dcHuawei()) << "Set up huawei energy storage 1 for" << thing;
-                ThingDescriptor descriptor(huaweiBatteryThingClassId, "Luna 2000 Battery 1", QString(), thing->id());
-                ParamList params;
-                params.append(Param(huaweiBatteryThingUnitParamTypeId, 1));
-                descriptor.setParams(params);
-                emit autoThingsAppeared(ThingDescriptors() << descriptor);
-            } else if (lunaBattery1Status == HuaweiFusionSolar::BatteryDeviceStatusOffline && batteryThing) {
-                qCDebug(dcHuawei()) << "Autoremove huawei energy storage 1 for" << thing << "because the battery is offline" << batteryThing;
-                emit autoThingDisappeared(batteryThing->id());
+        connect(connection, &HuaweiFusionSolar::meterValuesUpdated, thing, [this, thing, connection](){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiMeterThingClassId);
+            if (!meterThings.isEmpty()) {
+
+                // Note: > 0 -> return, < 0 consume
+                meterThings.first()->setStateValue(huaweiMeterCurrentPowerStateTypeId, -(connection->powerMeterActivePower()));
+                qCDebug(dcHuawei()) << "Meter power" << connection->powerMeterActivePower() << "W";
+
+                meterThings.first()->setStateValue(huaweiMeterCurrentReactivePowerStateTypeId, connection->meterReactivePower());
+                meterThings.first()->setStateValue(huaweiMeterPowerFactorStateTypeId, connection->meterPowerFactor());
+
+                meterThings.first()->setStateValue(huaweiMeterCurrentPhaseAStateTypeId, connection->meterGridCurrentAphase());
+                meterThings.first()->setStateValue(huaweiMeterCurrentPhaseBStateTypeId, connection->meterGridCurrentBphase());
+                meterThings.first()->setStateValue(huaweiMeterCurrentPhaseCStateTypeId, connection->meterGridCurrentCphase());
+                meterThings.first()->setStateValue(huaweiMeterCurrentPowerPhaseAStateTypeId, connection->meterAphaseActivePower());
+                meterThings.first()->setStateValue(huaweiMeterCurrentPowerPhaseBStateTypeId, connection->meterBphaseActivePower());
+                meterThings.first()->setStateValue(huaweiMeterCurrentPowerPhaseCStateTypeId, connection->meterCphaseActivePower());
+                meterThings.first()->setStateValue(huaweiMeterVoltagePhaseAStateTypeId, connection->meterGridVoltageAphase());
+                meterThings.first()->setStateValue(huaweiMeterVoltagePhaseBStateTypeId, connection->meterGridVoltageBphase());
+                meterThings.first()->setStateValue(huaweiMeterVoltagePhaseCStateTypeId, connection->meterGridVoltageCphase());
+                meterThings.first()->setStateValue(huaweiMeterFrequencyStateTypeId, connection->meterGridFrequency());
+
+
+
+                // So far, seems we don't need outlier detection for meter energy values.
+                /**
+                if (m_energyConsumedValues.contains(thing)) {
+                    QList<float>& valueList = m_energyConsumedValues.operator[](thing);
+                    valueList.append(connection->powerMeterEnergyAquired());
+                    if (valueList.length() > WINDOW_LENGTH) {
+                        valueList.removeFirst();
+                        uint centerIndex;
+                        if (WINDOW_LENGTH % 2 == 0) {
+                            centerIndex = WINDOW_LENGTH / 2;
+                        } else {
+                            centerIndex = (WINDOW_LENGTH - 1)/ 2;
+                        }
+                        float testValue{valueList.at(centerIndex)};
+                        if (isOutlier(valueList)) {
+                            qCDebug(dcHuawei()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                        } else {
+                            //qCDebug(dcHuawei()) << "Outlier check: the value" << testValue << " is legit.";
+
+                            float currentValue{meterThings.first()->stateValue(huaweiMeterTotalEnergyConsumedStateTypeId).toFloat()};
+                            if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                                //qCDebug(dcHuawei()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                                meterThings.first()->setStateValue(huaweiMeterTotalEnergyConsumedStateTypeId, testValue);
+                            }
+                        }
+                    }
+                } else {
+                    QList<float> energyConsumedList{};
+                    m_energyConsumedValues.insert(info->thing(), energyConsumedList);
+                }
+
+                if (m_energyProducedValues.contains(thing)) {
+                    QList<float>& valueList = m_energyProducedValues.operator[](thing);
+                    valueList.append(connection->powerMeterEnergyReturned());
+                    if (valueList.length() > WINDOW_LENGTH) {
+                        valueList.removeFirst();
+                        uint centerIndex;
+                        if (WINDOW_LENGTH % 2 == 0) {
+                            centerIndex = WINDOW_LENGTH / 2;
+                        } else {
+                            centerIndex = (WINDOW_LENGTH - 1)/ 2;
+                        }
+                        float testValue{valueList.at(centerIndex)};
+                        if (isOutlier(valueList)) {
+                            qCDebug(dcHuawei()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                        } else {
+                            //qCDebug(dcHuawei()) << "Outlier check: the value" << testValue << " is legit.";
+
+                            float currentValue{meterThings.first()->stateValue(huaweiMeterTotalEnergyProducedStateTypeId).toFloat()};
+                            if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                                //qCDebug(dcHuawei()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                                meterThings.first()->setStateValue(huaweiMeterTotalEnergyProducedStateTypeId, testValue);
+                            }
+                        }
+                    }
+                } else {
+                    QList<float> energyProducedList{};
+                    m_energyProducedValues.insert(info->thing(), energyProducedList);
+                }
+                **/
+
             }
         });
 
-        connect(connection, &HuaweiFusionSolar::lunaBattery1PowerReadFinished, thing, [this, thing](qint32 lunaBattery1Power){
-            qCDebug(dcHuawei()) << "Battery 1 power changed" << lunaBattery1Power << "W";
+
+        // Battery 1
+        connect(connection, &HuaweiFusionSolar::battery1ValuesUpdated, thing, [this, thing, connection](){
+
+            HuaweiFusionSolar::BatteryDeviceStatus batteryStatus = connection->lunaBattery1Status();
+            qCDebug(dcHuawei()) << "Battery 1 status of" << thing << batteryStateToString(batteryStatus);
+
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId).filterByParam(huaweiBatteryThingUnitParamTypeId, 1);
-            if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(huaweiBatteryCurrentPowerStateTypeId, lunaBattery1Power);
-                if (lunaBattery1Power < 0) {
+            if (batteryThings.isEmpty()) {
+                if (batteryStatus != HuaweiFusionSolar::BatteryDeviceStatusOffline) {
+                    // Battery needs to be created
+                    qCDebug(dcHuawei()) << "Set up Huawei energy storage 1 for" << thing;
+                    ThingDescriptor descriptor(huaweiBatteryThingClassId, "Luna 2000 Battery 1", QString(), thing->id());
+                    ParamList params;
+                    params.append(Param(huaweiBatteryThingUnitParamTypeId, 1));
+                    descriptor.setParams(params);
+                    emit autoThingsAppeared(ThingDescriptors() << descriptor);
+                }
+            } else {
+                batteryThings.first()->setStateValue(huaweiBatteryDeviceStatusStateTypeId, batteryStateToString(batteryStatus));
+
+                qint32 batteryPower = connection->lunaBattery1Power();
+                // Filter out small leakage <10 watt.
+                if (batteryPower < 10 && batteryPower > -10) {
+                    batteryPower = 0;
+                }
+                batteryThings.first()->setStateValue(huaweiBatteryCurrentPowerStateTypeId, batteryPower);
+                if (batteryPower < 0) {
                     batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "discharging");
-                } else if (lunaBattery1Power > 0) {
+                } else if (batteryPower > 0) {
                     batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "charging");
                 } else {
                     batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "idle");
                 }
-            }
-        });
 
-        connect(connection, &HuaweiFusionSolar::lunaBattery1SocReadFinished, thing, [this, thing](float lunaBattery1Soc){
-            qCDebug(dcHuawei()) << "Battery 1 SOC changed" << lunaBattery1Soc << "%";
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId).filterByParam(huaweiBatteryThingUnitParamTypeId, 1);
-            if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(huaweiBatteryBatteryLevelStateTypeId, lunaBattery1Soc);
-                batteryThings.first()->setStateValue(huaweiBatteryBatteryCriticalStateTypeId, lunaBattery1Soc < 10);
+                float batterySoc = connection->lunaBattery1Soc();
+                batteryThings.first()->setStateValue(huaweiBatteryBatteryLevelStateTypeId, batterySoc);
+                batteryThings.first()->setStateValue(huaweiBatteryBatteryCriticalStateTypeId, batterySoc < 10);
+
+                if (batteryStatus == HuaweiFusionSolar::BatteryDeviceStatusOffline) {
+                    qCDebug(dcHuawei()) << "Autoremove Huawei energy storage 1 for" << thing << "because the battery is offline" << batteryThings.first();
+                    emit autoThingDisappeared(batteryThings.first()->id());
+                }
             }
         });
 
         // Battery 2
-        connect(connection, &HuaweiFusionSolar::lunaBattery2StatusReadFinished, thing, [this, thing](HuaweiFusionSolar::BatteryDeviceStatus lunaBattery2Status){
+        connect(connection, &HuaweiFusionSolar::battery2ValuesUpdated, thing, [this, thing, connection](){
 
-            qCDebug(dcHuawei()) << "Battery 2 status changed of" << thing << lunaBattery2Status;
-            Thing *batteryThing = nullptr;
-            foreach (Thing *bt, myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId)) {
-                if (bt->paramValue(huaweiBatteryThingUnitParamTypeId).toUInt() == 2) {
-                    batteryThing = bt;
-                    break;
-                }
-            }
+            HuaweiFusionSolar::BatteryDeviceStatus batteryStatus = connection->lunaBattery2Status();
+            qCDebug(dcHuawei()) << "Battery 2 status of" << thing << batteryStateToString(batteryStatus);
 
-            // Check if w have to create the energy storage
-            if (lunaBattery2Status != HuaweiFusionSolar::BatteryDeviceStatusOffline && !batteryThing) {
-                qCDebug(dcHuawei()) << "Set up huawei energy storage 2 for" << thing;
-                ThingDescriptor descriptor(huaweiBatteryThingClassId, "Luna 2000 Battery 2", QString(), thing->id());
-                ParamList params;
-                params.append(Param(huaweiBatteryThingUnitParamTypeId, 2));
-                descriptor.setParams(params);
-                emit autoThingsAppeared(ThingDescriptors() << descriptor);
-            } else if (lunaBattery2Status == HuaweiFusionSolar::BatteryDeviceStatusOffline && batteryThing) {
-                qCDebug(dcHuawei()) << "Autoremove huawei energy storage 2 for" << thing << "because the battery is offline" << batteryThing;
-                emit autoThingDisappeared(batteryThing->id());
-            }
-        });
-
-        connect(connection, &HuaweiFusionSolar::lunaBattery2PowerReadFinished, thing, [this, thing](qint32 lunaBattery2Power){
-            qCDebug(dcHuawei()) << "Battery 2 power changed" << lunaBattery2Power << "W";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId).filterByParam(huaweiBatteryThingUnitParamTypeId, 2);
-            if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(huaweiBatteryCurrentPowerStateTypeId, lunaBattery2Power);
+            if (batteryThings.isEmpty()) {
+                if (batteryStatus != HuaweiFusionSolar::BatteryDeviceStatusOffline) {
+                    // Battery needs to be created
+                    qCDebug(dcHuawei()) << "Set up Huawei energy storage 2 for" << thing;
+                    ThingDescriptor descriptor(huaweiBatteryThingClassId, "Luna 2000 Battery 2", QString(), thing->id());
+                    ParamList params;
+                    params.append(Param(huaweiBatteryThingUnitParamTypeId, 2));
+                    descriptor.setParams(params);
+                    emit autoThingsAppeared(ThingDescriptors() << descriptor);
+                }
+            } else {
+                batteryThings.first()->setStateValue(huaweiBatteryDeviceStatusStateTypeId, batteryStateToString(batteryStatus));
 
-                if (lunaBattery2Power < 0) {
+                qint32 batteryPower = connection->lunaBattery2Power();
+                // Filter out small leakage <10 watt.
+                if (batteryPower < 10 && batteryPower > -10) {
+                    batteryPower = 0;
+                }
+                batteryThings.first()->setStateValue(huaweiBatteryCurrentPowerStateTypeId, batteryPower);
+                if (batteryPower < 0) {
                     batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "discharging");
-                } else if (lunaBattery2Power > 0) {
+                } else if (batteryPower > 0) {
                     batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "charging");
                 } else {
                     batteryThings.first()->setStateValue(huaweiBatteryChargingStateStateTypeId, "idle");
                 }
-            }
-        });
 
-        connect(connection, &HuaweiFusionSolar::lunaBattery2SocReadFinished, thing, [this, thing](float lunaBattery2Soc){
-            qCDebug(dcHuawei()) << "Battery 2 SOC changed" << lunaBattery2Soc << "%";
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(huaweiBatteryThingClassId).filterByParam(huaweiBatteryThingUnitParamTypeId, 2);
-            if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(huaweiBatteryBatteryLevelStateTypeId, lunaBattery2Soc);
-                batteryThings.first()->setStateValue(huaweiBatteryBatteryCriticalStateTypeId, lunaBattery2Soc < 10);
+                float batterySoc = connection->lunaBattery2Soc();
+                batteryThings.first()->setStateValue(huaweiBatteryBatteryLevelStateTypeId, batterySoc);
+                batteryThings.first()->setStateValue(huaweiBatteryBatteryCriticalStateTypeId, batterySoc < 10);
+
+                if (batteryStatus == HuaweiFusionSolar::BatteryDeviceStatusOffline) {
+                    qCDebug(dcHuawei()) << "Autoremove Huawei energy storage 2 for" << thing << "because the battery is offline" << batteryThings.first();
+                    emit autoThingDisappeared(batteryThings.first()->id());
+                }
             }
         });
     });
@@ -721,126 +881,121 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
         connection->connectDevice();
 }
 
-// This function checks if a value seems legit (return true) or appears to be an error (return false) based on analysis of past values.
-// The analysis is to look at the rate (change of one value to the next), and assume the rate should not change by more than x% (value of "percentLimit") over the timeframe of the
-// analysed values, if they are legit.
-bool IntegrationPluginHuawei::checkEnergyValueReasonable(Thing *inverterThing, float newValue)
+QString IntegrationPluginHuawei::inverterStateToString(int enumValue)
 {
-    const int percentLimit = 10; // Change this if needed.
-
-    // Add the value to the history
-    m_inverterEnergyProducedHistory[inverterThing].append(newValue);
-
-    int historyMaxSize = 3; // Don't change this.
-    int historySize = m_inverterEnergyProducedHistory.value(inverterThing).count();
-
-    if (historySize < historyMaxSize) {
-        // Not enough values in history to do proper analysis. Declare current value as not legit (return false), since we don't know, and that is the save thing to do.
-        return false;
+    switch (enumValue) {
+    case 0:
+        return "standby initializing";
+        break;
+    case 1:
+        return "standby detecting insulation resistance";
+        break;
+    case 2:
+        return "standby detecting irradiation";
+        break;
+    case 3:
+        return "standby grid detecting";
+        break;
+    case 256:
+        return "starting";
+        break;
+    case 512:
+        return "on grid";
+        break;
+    case 513:
+        return "power limited";
+        break;
+    case 514:
+        return "self derating";
+        break;
+    case 768:
+        return "shutdown fault";
+        break;
+    case 769:
+        return "shutdown command";
+        break;
+    case 770:
+        return "shutdown OVGR";
+        break;
+    case 771:
+        return "shutdown communication disconnected";
+        break;
+    case 772:
+        return "shutdown power limit";
+        break;
+    case 773:
+        return "shutdown manual startup required";
+        break;
+    case 774:
+        return "shutdown input underpower";
+        break;
+    case 1025:
+        return "grid scheduling P curve";
+        break;
+    case 1026:
+        return "grid scheduling QU curve";
+        break;
+    case 1027:
+        return "grid scheduling PFU curve";
+        break;
+    case 1028:
+        return "grid scheduling dry contact";
+        break;
+    case 1029:
+        return "grid scheduling QP curve";
+        break;
+    case 1280:
+        return "spot check ready";
+        break;
+    case 1281:
+        return "spot checking";
+        break;
+    case 1536:
+        return "inspecting";
+        break;
+    case 1792:
+        return "AFCI self check";
+        break;
+    case 2048:
+        return "IV scanning";
+        break;
+    case 2304:
+        return "DC input detection";
+        break;
+    case 2560:
+        return "running off grid charging";
+        break;
+    case 40960:
+        return "standby no irradiation";
+        break;
+    default:
+        return "unknown";
     }
-
-    if (historySize > historyMaxSize) {
-        m_inverterEnergyProducedHistory[inverterThing].removeFirst();
-    }
-
-    // This code is specific to a historyMaxSize of 3.
-    // How this works: Say the history has the following enties (oldest are first) [10, 11, 13].
-    // "deltaLast" is 11 - 10 = 1
-    // "deltaCurrent" is 13 - 11 = 2
-    // "differenceInPercent" is then 100 * (2 - 1) / 1 = 100
-    // This means the rate increased by 100%. Depending on the percentLimit variable, this is considered ok or not ok.
-    float deltaLast = m_inverterEnergyProducedHistory.value(inverterThing).at(1) - m_inverterEnergyProducedHistory.value(inverterThing).at(0);
-    float deltaCurrent = m_inverterEnergyProducedHistory.value(inverterThing).at(2) - m_inverterEnergyProducedHistory.value(inverterThing).at(1);
-    float differenceInPercent = 100 * (deltaCurrent - deltaLast) / deltaLast;
-    if ((differenceInPercent < -percentLimit) || (differenceInPercent > percentLimit)) {
-        // Jitter detected.
-        return false;
-    }
-
-    // Jitter test passed. The value is ok.
-    return true;
 }
 
-void IntegrationPluginHuawei::evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced)
+QString IntegrationPluginHuawei::batteryStateToString(int enumValue)
 {
-    // Add the value to our small history
-    m_inverterEnergyProducedHistory[inverterThing].append(energyProduced);
-
-    int historyMaxSize  = 3;
-    int absurdlyHighValueLimit= 25000000;
-    int historySize = m_inverterEnergyProducedHistory.value(inverterThing).count();
-
-    if (historySize > historyMaxSize) {
-        m_inverterEnergyProducedHistory[inverterThing].removeFirst();
-    }
-
-    if (historySize == 1) {
-        // First value add very high, add it to the history, but do not set this value until we get more absurde high value
-        if (energyProduced > absurdlyHighValueLimit) {
-            qCWarning(dcHuawei()) << "Energyfilter: First energy value absurdly high" << energyProduced << "...waiting for more values before accepting such values.";
-            return;
-        }
-
-        // First value, no need to speculate here, we have no history
-        inverterThing->setStateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId, energyProduced);
-        return;
-    }
-
-    // Check if the new value is smaller than the current one, if so, we have either a counter reset or an invalid value we want to filter out
-    float currentEnergyProduced = inverterThing->stateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId).toFloat();
-    if (energyProduced < currentEnergyProduced) {
-        // If more than 3 values arrive which are smaller than the current value,
-        // we are sure this is a meter rest growing again and we assume they are correct
-        // otherwise we just add the value to the history and wait for the next value before
-        // we update the state
-
-        if (historySize < historyMaxSize) {
-            qCWarning(dcHuawei()) << "Energyfilter: Energy value" << energyProduced << "smaller than the last one. Still collecting history data" << m_inverterEnergyProducedHistory.value(inverterThing);
-            return;
-        }
-
-        // Full history available, let's verify against the older values
-        bool allValuesSmaller = true;
-        for (int i = 0; i < historySize - 1; i++) {
-            if (m_inverterEnergyProducedHistory.value(inverterThing).at(i) >= currentEnergyProduced) {
-                allValuesSmaller = false;
-                break;
-            }
-        }
-
-        if (allValuesSmaller) {
-            // We belive it, meter has been resetted
-            qCDebug(dcHuawei()) << "Energyfilter: Energy value" << energyProduced << "seems to be really resetted back. Beliving it... History data:" << m_inverterEnergyProducedHistory.value(inverterThing);
-            inverterThing->setStateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId, energyProduced);
-        }
-
-        return;
-    } else if (energyProduced > absurdlyHighValueLimit) {
-        // First value add very high, add it to the history, but do not set this value until we get more in this hight
-        if (historySize < historyMaxSize) {
-            qCWarning(dcHuawei()) << "Energyfilter: Energy value" << energyProduced << "absurdly high. Still collecting history data" << m_inverterEnergyProducedHistory.value(inverterThing);
-            return;
-        }
-
-        // Full history available, let's verify against the older values
-        bool allValuesAbsurdlyHigh = true;
-        for (int i = 0; i < historySize - 1; i++) {
-            if (m_inverterEnergyProducedHistory.value(inverterThing).at(i) < absurdlyHighValueLimit) {
-                allValuesAbsurdlyHigh = false;
-                break;
-            }
-        }
-
-        if (allValuesAbsurdlyHigh) {
-            // We belive it, they realy seem all absurdly high...
-            qCDebug(dcHuawei()) << "Energyfilter: Energy value" << energyProduced << "seems to be really this absurdly high. Beliving it... History data:" << m_inverterEnergyProducedHistory.value(inverterThing);
-            inverterThing->setStateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId, energyProduced);
-        }
-    } else {
-        // Nothing strange detected, normal state update
-        inverterThing->setStateValue(huaweiFusionSolarInverterTotalEnergyProducedStateTypeId, energyProduced);
+    switch (enumValue) {
+    case 0:
+        return "offline";
+        break;
+    case 1:
+        return "standby";
+        break;
+    case 2:
+        return "running";
+        break;
+    case 3:
+        return "fault";
+        break;
+    case 4:
+        return "sleep mode";
+        break;
+    default:
+        return "unknown";
     }
 }
+
 
 // This method uses the Hampel identifier (https://blogs.sas.com/content/iml/2021/06/01/hampel-filter-robust-outliers.html) to test if the value in the center of the window is an outlier or not.
 // The input is a list of floats that contains the window of values to look at. The method will return true if the center value of that list is an outlier according to the Hampel

@@ -48,8 +48,10 @@ public:
     quint16 slaveId() const;
 
 signals:
-    void meterEnergyValuesUpdated();
-    void inverterEnergyValuesUpdated();
+    void meterValuesUpdated();
+    void inverterValuesUpdated();
+    void battery1ValuesUpdated();
+    void battery2ValuesUpdated();
 
 private:
     quint16 m_slaveId;

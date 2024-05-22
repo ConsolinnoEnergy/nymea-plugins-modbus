@@ -70,6 +70,15 @@
                             "cached": false
                         },
                         {
+                            "id": "87c158b6-7488-4017-9fdc-03be894a5160",
+                            "name": "deviceStatus",
+                            "displayName": "Inverter status",
+                            "displayNameEvent": "Inverter status changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
                             "id": "e97fe328-6ca4-4fe4-86f7-fee6e9e406a5",
                             "name": "totalEnergyProduced",
                             "displayName": "AC energy",
@@ -78,6 +87,33 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": true
+                        },
+                        {
+                            "id": "88bd1e8d-78c7-4e3d-a74b-9f9d24204765",
+                            "name": "model",
+                            "displayName": "Model",
+                            "displayNameEvent": "Model changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "92664d48-0955-4ab2-ae30-c33cbd22974c",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "displayNameEvent": "Serial number changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "88de8e64-cfbd-4b1a-a323-155e7d5c4446",
+                            "name": "productNumber",
+                            "displayName": "Product number",
+                            "displayNameEvent": "Product number changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
                         }
                     ],
                     "actionTypes": [ ]
@@ -193,6 +229,25 @@
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "39b18495-7326-4ac2-8f78-de4bd0df4505",
+                            "name": "currentReactivePower",
+                            "displayName": "Total reactive power",
+                            "displayNameEvent": "Total reactive power changed",
+                            "type": "double",
+                            "unit": "VoltAmpereReactive",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "ff1c3f03-0ac8-4746-9199-4cd3bd252cf9",
+                            "name": "powerFactor",
+                            "displayName": "Power factor",
+                            "displayNameEvent": "Power factor changed",
+                            "type": "double",
+                            "defaultValue": 1.00,
                             "cached": false
                         },
                         {
@@ -341,6 +396,15 @@
                             "displayNameEvent": "Connected changed",
                             "type": "bool",
                             "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "45583846-5f56-424a-863b-643555d242a8",
+                            "name": "deviceStatus",
+                            "displayName": "Battery status",
+                            "displayNameEvent": "Battery status changed",
+                            "type": "QString",
+                            "defaultValue": "",
                             "cached": false
                         },
                         {

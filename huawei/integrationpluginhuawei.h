@@ -66,9 +66,8 @@ private:
 
     void setupFusionSolar(ThingSetupInfo *info);
 
-    QHash<Thing *, QList<float>> m_inverterEnergyProducedHistory;
-    void evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced);
-    bool checkEnergyValueReasonable(Thing *inverterThing, float newValue);
+    QString inverterStateToString(int enumValue);
+    QString batteryStateToString(int enumValue);
 
     bool isOutlier(const QList<float>& list);
     const int WINDOW_LENGTH{7};
