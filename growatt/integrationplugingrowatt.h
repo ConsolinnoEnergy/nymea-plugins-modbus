@@ -55,6 +55,17 @@ private:
     PluginTimer *m_pluginTimer = nullptr;
 
     bool handleReply(ModbusRtuReply *reply);
+
+    std::map<int, QString> batteryStates = {
+        {0, "dormancy"},
+        {1, "charge"},
+        {2, "discharge"},
+        {3, "free"},
+        {4, "standby"},
+        {5, "softStart"},
+        {6, "fault"},
+        {7, "update"},
+    };
 };
 
 #endif // INTEGRATIONPLUGINGROWATT_H

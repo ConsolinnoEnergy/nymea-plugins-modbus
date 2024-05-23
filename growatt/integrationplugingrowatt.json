@@ -487,9 +487,27 @@
                             "cached": false
                         },
                         {
+                            "id": "684ef33e-a9a7-47fe-a8e4-e93b06380707",
+                            "name": "current",
+                            "displayName": "Current",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
                             "id": "c5b4ca61-1334-44b3-b35e-7eac2fedc7c3",
-                            "name": "temperature",
-                            "displayName": "Temperature",
+                            "name": "temperatureA",
+                            "displayName": "Temperature A",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
+                            "id": "e6a8fa3a-ffe0-44f6-886a-bbef4740c62b",
+                            "name": "temperatureB",
+                            "displayName": "Temperature B",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "defaultValue": 0.0,
@@ -514,6 +532,23 @@
                                 "discharging"
                             ],
                             "defaultValue": "idle"
+                        },
+                        {
+                            "id": "0c67ce40-bcd7-4b44-92c4-024ea5a1767a",
+                            "name": "batteryState",
+                            "displayName": "Battery state",
+                            "type": "QString",
+                            "possibleValues": [
+                                "dormancy",
+                                "charge",
+                                "discharge",
+                                "free",
+                                "standby",
+                                "softStart",
+                                "fault",
+                                "update"
+                            ],
+                            "defaultValue": "standby"
                         }
                     ],
                     "actionTypes": []

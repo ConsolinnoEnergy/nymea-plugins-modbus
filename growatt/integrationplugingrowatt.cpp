@@ -110,7 +110,9 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
 
     if (thing->thingClassId() == growattInverterRTUThingClassId) {
 
+        //nominal power
         thing->setStateValue(growattInverterRTUNominalPowerStateTypeId, thing->paramValue(growattInverterRTUThingNominalPowerParamTypeId));
+        
 
         uint address = thing->paramValue(growattInverterRTUThingSlaveAddressParamTypeId).toUInt();
         if (address > 247 || address < 1) {
@@ -147,6 +149,8 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
                 foreach (Thing *batteryThing, batteryThings) {
                     //TODO: check if battery really is available
                     batteryThing->setStateValue(growattBatteryConnectedStateTypeId, reachable);
+                    // capacity
+                    batteryThing->setStateValue(growattBatteryCapacityStateTypeId, thing->paramValue(growattInverterRTUThingBatteryCapacityParamTypeId));
                 }
             }
 
@@ -387,6 +391,88 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
                 meterThings.first()->setStateValue(growattMeterLoadPowerStateTypeId, value);
             }
         });
+
+
+        /// battery values
+        
+
+        //soc
+        connect(connection, &GrowattModbusRtuConnection::SOC_3000Changed, this, [this, thing](double value){
+            qCDebug(dcGrowatt()) << "SOC changed to" << value;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(growattBatteryBatteryLevelStateTypeId, value);
+            }
+        });
+        //power
+        connect(connection, &GrowattModbusRtuConnection::Pdischr_3000Changed, this, [this, thing](double value){
+            qCDebug(dcGrowatt()) << "discharge changed to" << value;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(growattBatteryCurrentPowerStateTypeId, -value);
+            }
+        });
+        connect(connection, &GrowattModbusRtuConnection::Pchr_3000Changed, this, [this, thing](double value){
+            qCDebug(dcGrowatt()) << "charge changed to" << value;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(growattBatteryCurrentPowerStateTypeId, value);
+            }
+        });
+        //voltage
+        connect(connection, &GrowattModbusRtuConnection::Vbat_3000Changed, this, [this, thing](double value){
+            qCDebug(dcGrowatt()) << "bat voltage changed to" << value;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(growattBatteryVoltageStateTypeId, value);
+            }
+        });
+        //current
+        connect(connection, &GrowattModbusRtuConnection::Ibat_3000Changed, this, [this, thing](double value){
+            qCDebug(dcGrowatt()) << "bat current changed to" << value;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(growattBatteryCurrentStateTypeId, value);
+            }
+        });
+        //temperature
+        connect(connection, &GrowattModbusRtuConnection::TempA_3000Changed, this, [this, thing](double value){
+            qCDebug(dcGrowatt()) << "bat temperature b changed to" << value;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(growattBatteryTemperatureAStateTypeId, value);
+            }
+        });
+        connect(connection, &GrowattModbusRtuConnection::TempB_3000Changed, this, [this, thing](double value){
+            qCDebug(dcGrowatt()) << "bat temperature a changed to" << value;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(growattBatteryTemperatureBStateTypeId, value);
+            }
+        });
+        // charging state
+        connect(connection, &GrowattModbusRtuConnection::BMS_StatusChanged, this, [this, thing](uint value){
+            qCDebug(dcGrowatt()) << "bat state changed to" << value;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                if (value == 1) {
+                    batteryThings.first()->setStateValue(growattBatteryChargingStateStateTypeId, "charging");
+                } else if (value == 2) {
+                    batteryThings.first()->setStateValue(growattBatteryChargingStateStateTypeId, "discharging");
+                } else {
+                    batteryThings.first()->setStateValue(growattBatteryChargingStateStateTypeId, "idle");
+                }
+
+                if (value == 6) {
+                    batteryThings.first()->setStateValue(growattBatteryBatteryCriticalStateTypeId, true);
+                } else {
+                    batteryThings.first()->setStateValue(growattBatteryBatteryCriticalStateTypeId, false);
+                }
+
+                batteryThings.first()->setStateValue(growattBatteryBatteryStateStateTypeId, batteryStates[value]);
+            }
+        });
+
 
         // FIXME: make async and check if this is really a Growatt
         m_rtuConnections.insert(thing, connection);

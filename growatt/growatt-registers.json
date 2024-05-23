@@ -1891,6 +1891,220 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "battery3000",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "SysState_Mode_3000",
+                    "address": 3166,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "System work State and mode",
+                    "defaultValue": "0",
+                    "unit": "",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "FaultCode_3000",
+                    "address": 3167,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Storage device fault code",
+                    "defaultValue": "0",
+                    "unit": "",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "WarnCode_3000",
+                    "address": 3168,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Storage device warning code",
+                    "defaultValue": "0",
+                    "unit": "",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "Vbat_3000",
+                    "address": 3169,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Battery voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "Ibat_3000",
+                    "address": 3170,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Battery current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -4,
+                    "access": "RO"
+                },
+                {
+                    "id": "SOC_3000",
+                    "address": 3171,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "State of charge",
+                    "defaultValue": "0",
+                    "unit": "%",
+                    "access": "RO"
+                },
+                {
+                    "id": "Vbus1_3000",
+                    "address": 3172,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Total BUS voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "Vbus2_3000",
+                    "address": 3173,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "On the BUS voltage",
+                    "defaultValue": "0",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "Ibb_3000",
+                    "address": 3174,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "BUCK-BOOST Current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "Illc_3000",
+                    "address": 3175,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "LLC Current",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "TempA_3000",
+                    "address": 3176,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Temperature A",
+                    "defaultValue": "0",
+                    "unit": "℃",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "TempB_3000",
+                    "address": 3177,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Temperature B",
+                    "defaultValue": "0",
+                    "unit": "℃",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "Pdischr_3000",
+                    "address": 3178,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Discharge power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "Pchr_3000",
+                    "address": 3180,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Charge power",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "staticScaleFactor": 0.1,
+                    "access": "RO"
+                },
+                {
+                    "id": "Edischr_total_3000",
+                    "address": 3182,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Discharge total energy of storage device",
+                    "defaultValue": "0",
+                    "unit": "kWh",
+                    "staticScaleFactor": 0.1,
+                    "access": "RO"
+                },
+                {
+                    "id": "Echr_total_3000",
+                    "address": 3184,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Charge total energy of storage device",
+                    "defaultValue": "0",
+                    "unit": "kWh",
+                    "staticScaleFactor": 0.1,
+                    "access": "RO"
+                }
+            ]
+            
         }
     ],
     "registers": [
@@ -1931,6 +2145,17 @@
             "unit": "%",
             "staticScaleFactor": -1,
             "access": "RW"
+        },
+        {
+            "id": "BMS_Status",
+            "address": 3212,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "battery working status",
+            "defaultValue": "0",
+            "access": "RO"
         }
     ]
 }
