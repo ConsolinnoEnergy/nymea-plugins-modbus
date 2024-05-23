@@ -1067,7 +1067,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "Etouser_today",
+                    "id": "Etouser_today_1000",
                     "address": 1044,
                     "size": 2,
                     "type": "uint32",
@@ -1080,7 +1080,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "Etouser_total",
+                    "id": "Etouser_total_1000",
                     "address": 1046,
                     "size": 2,
                     "type": "uint32",
@@ -1093,7 +1093,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "Etogrid_today",
+                    "id": "Etogrid_today_1000",
                     "address": 1048,
                     "size": 2,
                     "type": "uint32",
@@ -1106,7 +1106,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "Etogrid_total",
+                    "id": "Etogrid_total_1000",
                     "address": 1050,
                     "size": 2,
                     "type": "uint32",

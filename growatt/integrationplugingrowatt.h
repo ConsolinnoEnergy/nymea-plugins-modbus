@@ -51,11 +51,10 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
-    //void setupGrowattConnection(ThingSetupInfo *info);
-
     QHash<Thing *, GrowattModbusRtuConnection *> m_rtuConnections;
-    //QHash<Thing *, SerialPort *> m_serialPorts;
     PluginTimer *m_pluginTimer = nullptr;
+
+    bool handleReply(ModbusRtuReply *reply);
 };
 
 #endif // INTEGRATIONPLUGINGROWATT_H

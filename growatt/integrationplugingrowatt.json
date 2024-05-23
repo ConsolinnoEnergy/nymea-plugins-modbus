@@ -162,7 +162,6 @@
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.0,
-                            "writable": true,
                             "cached": true
                         },
                         {
