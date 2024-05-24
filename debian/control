@@ -371,3 +371,12 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Alfen Eve Single Pro-Line wallbox.
  This package contains the nymea integration plugin for wallboxes made
  by Alfen N.V.
+
+Package: nymea-plugin-growatt
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Growatt inverter including meter and battery. 
+  This Package contains the nymea integration for inverter, meter and battery made by
+  Growatt New Energy GmbH.
