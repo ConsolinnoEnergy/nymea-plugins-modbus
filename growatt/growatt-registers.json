@@ -1958,7 +1958,7 @@
                     "description": "Battery current",
                     "defaultValue": "0",
                     "unit": "A",
-                    "staticScaleFactor": -4,
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 },
                 {
@@ -2074,7 +2074,7 @@
                     "description": "Charge power",
                     "defaultValue": "0",
                     "unit": "W",
-                    "staticScaleFactor": 0.1,
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 },
                 {
@@ -2087,7 +2087,7 @@
                     "description": "Discharge total energy of storage device",
                     "defaultValue": "0",
                     "unit": "kWh",
-                    "staticScaleFactor": 0.1,
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 },
                 {
@@ -2100,7 +2100,7 @@
                     "description": "Charge total energy of storage device",
                     "defaultValue": "0",
                     "unit": "kWh",
-                    "staticScaleFactor": 0.1,
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 }
             ]

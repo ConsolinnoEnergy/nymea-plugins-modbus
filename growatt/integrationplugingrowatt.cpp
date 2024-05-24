@@ -20,6 +20,7 @@
 #include "integrationplugingrowatt.h"
 #include "plugininfo.h"
 #include <iostream>
+#include<cmath>
 
 #include <network/networkdevicediscovery.h>
 //#include <types/param.h>
@@ -432,7 +433,14 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
             qCDebug(dcGrowatt()) << "bat current changed to" << value;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(growattBatteryCurrentStateTypeId, value);
+                // if charge the scale factor for current is -1, if discharge it is -4
+                QString chargeState = batteryThings.first()->stateValue(growattBatteryChargingStateStateTypeId).toString();
+                if (chargeState == "charging") {
+                    batteryThings.first()->setStateValue(growattBatteryCurrentStateTypeId, value);
+                } else if (chargeState == "discharging") {
+                    batteryThings.first()->setStateValue(growattBatteryCurrentStateTypeId, value * pow(10, -3));
+                }
+                
             }
         });
         //temperature
