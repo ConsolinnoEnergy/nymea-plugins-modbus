@@ -205,6 +205,9 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
     // connect current charging power
     connect(connection, &SolaxEvcModbusTcpConnection::totalPowerChanged, thing, [thing](quint16 totalPower) {
         qCDebug(dcSolaxEvc()) << "Total charging power changed" << totalPower << "W";
+        // EVC show 2-3W even when not charging, this fixes the displayed value
+        if (totalPower <= 100)
+            totalPower = 0;
         thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
     });
 
@@ -273,38 +276,44 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
         switch (state)
         {
             case SolaxEvcModbusTcpConnection::StateAvailable:
+                thing->setStateValue(solaxEvcStateStateTypeId, "Available");
                 thing->setStateValue(solaxEvcChargingStateTypeId, false);
                 thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
-                thing->setStateValue(solaxEvcStateStateTypeId, "Available");
                 break;
             case SolaxEvcModbusTcpConnection::StatePreparing:
                 thing->setStateValue(solaxEvcStateStateTypeId, "Preparing");
+                thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                thing->setStateValue(solaxEvcChargingStateTypeId, false);
                 break;
             case SolaxEvcModbusTcpConnection::StateCharging:
+                thing->setStateValue(solaxEvcStateStateTypeId, "Charging");
                 thing->setStateValue(solaxEvcChargingStateTypeId, true);
                 thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-                thing->setStateValue(solaxEvcStateStateTypeId, "Charging");
                 break;
             case SolaxEvcModbusTcpConnection::StateFinishing:
+                thing->setStateValue(solaxEvcStateStateTypeId, "Plugged In");
                 thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
                 thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                thing->setStateValue(solaxEvcStateStateTypeId, "Plugged In");
                 break;
             case SolaxEvcModbusTcpConnection::StateFaulted:
-                thing->setStateValue(solaxEvcChargingStateTypeId, false);
                 thing->setStateValue(solaxEvcStateStateTypeId, "Faulted");
+                thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                // thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
                 break;
             case SolaxEvcModbusTcpConnection::StateUnavailable:
                 thing->setStateValue(solaxEvcStateStateTypeId, "Unavailable");
+                thing->setStateValue(solaxEvcChargingStateTypeId, false);
                 break;
             case SolaxEvcModbusTcpConnection::StateReserved:
                 thing->setStateValue(solaxEvcStateStateTypeId, "Reserved");
                 break;
             case SolaxEvcModbusTcpConnection::StateSuspendedEV:
                 thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEV");
+                thing->setStateValue(solaxEvcChargingStateTypeId, false);
                 break;
             case SolaxEvcModbusTcpConnection::StateSuspendedEVSE:
                 thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEVSE");
+                thing->setStateValue(solaxEvcChargingStateTypeId, false);
                 break;
             case SolaxEvcModbusTcpConnection::StateUpdate:
                 thing->setStateValue(solaxEvcStateStateTypeId, "Update");
@@ -418,8 +427,9 @@ void IntegrationPluginSolaxEvc::toggleCharging(SolaxEvcModbusTcpConnection *conn
     QModbusReply *reply = connection->setControlCommand(power ? SolaxEvcModbusTcpConnection::ControlCommand::ControlCommandStartCharging : SolaxEvcModbusTcpConnection::ControlCommand::ControlCommandStopCharging);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, reply, connection, power]() {
-        if (reply->error() != QModbusDevice::NoError)
-        {
+        if (reply->error() == QModbusDevice::NoError) {
+            thing->setStateValue(solaxEvcPowerStateTypeId, power);
+        } else {
             qCWarning(dcSolaxEvc()) << "Error setting charging state: " << reply->error() << reply->errorString();
             toggleCharging(connection, power);
         }
