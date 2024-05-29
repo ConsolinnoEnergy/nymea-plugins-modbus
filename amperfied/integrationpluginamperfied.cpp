@@ -326,7 +326,7 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
             QString serialNumberConfig{thing->paramValue(energyControlThingSerialNumberParamTypeId).toString()};
             if (serialNumberRead != serialNumberConfig) {
                 // The wallbox found is a different one than configured. We assume the wallbox was replaced, and the new device should use this config.
-                // Step 1: update the serial number.
+                // Step 1: update the serial number. Note: this is not persistent as the updated config is not saved.
                 qCDebug(dcAmperfied()) << "The serial number of this device is" << serialNumberRead << ". It does not match the serial number in the config, which is"
                                      << serialNumberConfig << ". Updating config with new serial number.";
                 thing->setParamValue(energyControlThingSerialNumberParamTypeId, serialNumberRead);

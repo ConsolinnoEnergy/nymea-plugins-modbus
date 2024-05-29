@@ -82,7 +82,7 @@ void EnergyControlDiscovery::tryConnect(ModbusRtuMaster *master, quint16 modbusI
             qCDebug(dcAmperfied()) << "Error reading input register 4 (firmware version). This is not an Energy Control wallbox.";
         } else {
             quint16 version = reply->result().first();
-            if (version >= 0x0107) {
+            if (version >= 0x0100) {
                 qCDebug(dcAmperfied()) << QString("Version is 0x%1").arg(version, 0, 16);
 
                 ModbusRtuReply *reply2 = master->readInputRegister(modbusId, 5);
@@ -144,7 +144,9 @@ void EnergyControlDiscovery::tryConnect(ModbusRtuMaster *master, quint16 modbusI
                 });
 
             } else {
-                qCDebug(dcAmperfied()) << QString("Version is 0x%1, but version needs to be at least 1.0.7 (0x0107)").arg(version, 0, 16);
+                // Note: The minimum version needed is actually 1.0.7. But we don't check for that here, so that the wallbox can be discovered. During setup
+                // a warning is shown to notify the user he needs to update. We could not show that warning if we tested for the actual needed version here.
+                qCDebug(dcAmperfied()) << QString("Version is 0x%1, but version needs to be at least 1.0.0 (0x0100)").arg(version, 0, 16);
             }
         }
 
