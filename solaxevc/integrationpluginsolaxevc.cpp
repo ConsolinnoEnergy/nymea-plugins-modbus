@@ -246,12 +246,15 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
             if (mode == 1)
             {
                 toggleCharging(connection, true); 
+                thing->setStateValue(solaxEvcPowerStateTypeId, true);
             } else if (mode == 0) {
                 toggleCharging(connection, false);
+                thing->setStateValue(solaxEvcPowerStateTypeId, false);
             }
         } else {
             qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging disabled! Make sure the wallbox does not charge.";
             toggleCharging(connection, false);
+            thing->setStateValue(solaxEvcPowerStateTypeId, false);
         }
     });
 
@@ -428,7 +431,6 @@ void IntegrationPluginSolaxEvc::toggleCharging(SolaxEvcModbusTcpConnection *conn
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, reply, connection, power]() {
         if (reply->error() == QModbusDevice::NoError) {
-            thing->setStateValue(solaxEvcPowerStateTypeId, power);
         } else {
             qCWarning(dcSolaxEvc()) << "Error setting charging state: " << reply->error() << reply->errorString();
             toggleCharging(connection, power);
