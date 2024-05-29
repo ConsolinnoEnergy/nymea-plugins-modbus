@@ -37,7 +37,7 @@
 
 #include "extern-plugininfo.h"
 
-#include "amperfiedmodbusrtuconnection.h"
+#include "amperfiedenergycontrolmodbusrtuconnection.h"
 #include "amperfiedmodbustcpconnection.h"
 
 class IntegrationPluginAmperfied: public IntegrationPlugin
@@ -63,7 +63,7 @@ private:
 private:
     bool m_setupTcpConnectionRunning{false};
     PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, AmperfiedModbusRtuConnection*> m_rtuConnections;
+    QHash<Thing *, AmperfiedEnergyControlModbusRtuConnection*> m_rtuConnections;
     QHash<Thing *, AmperfiedModbusTcpConnection*> m_tcpConnections;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
 

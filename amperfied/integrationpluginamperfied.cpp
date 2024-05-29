@@ -49,7 +49,7 @@ void IntegrationPluginAmperfied::discoverThings(ThingDiscoveryInfo *info)
 
         connect(discovery, &EnergyControlDiscovery::discoveryFinished, info, [this, info, discovery](bool modbusMasterAvailable){
             if (!modbusMasterAvailable) {
-                info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master with appropriate settings found. Please set up a modbus RTU master with a baudrate of 19200, 8 data bis, 1 stop bit and even parity first."));
+                info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master with appropriate settings found. Please set up a modbus RTU master with a baudrate of 19200, 8 data bits, 1 stop bit and even parity first."));
                 return;
             }
 
@@ -181,7 +181,7 @@ void IntegrationPluginAmperfied::postSetupThing(Thing *thing)
         qCDebug(dcAmperfied()) << "Starting plugin timer...";
         m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
-            foreach(AmperfiedModbusRtuConnection *connection, m_rtuConnections) {
+            foreach(AmperfiedEnergyControlModbusRtuConnection *connection, m_rtuConnections) {
                 qCDebug(dcAmperfied()) << "Updating connection" << connection->modbusRtuMaster() << connection->slaveId();
                 connection->update();
             }
@@ -197,7 +197,7 @@ void IntegrationPluginAmperfied::postSetupThing(Thing *thing)
 void IntegrationPluginAmperfied::executeAction(ThingActionInfo *info)
 {
     if (info->thing()->thingClassId() == energyControlThingClassId) {
-        AmperfiedModbusRtuConnection *connection = m_rtuConnections.value(info->thing());
+        AmperfiedEnergyControlModbusRtuConnection *connection = m_rtuConnections.value(info->thing());
 
         if (info->action().actionTypeId() == energyControlPowerActionTypeId) {
             bool power = info->action().paramValue(energyControlPowerActionPowerParamTypeId).toBool();
@@ -302,26 +302,29 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
         return;
     }
     quint16 modbusId = thing->paramValue(energyControlThingModbusIdParamTypeId).toUInt();
-    AmperfiedModbusRtuConnection *connection = new AmperfiedModbusRtuConnection(master, modbusId, thing);
+
+    // The parent object given to the connection object should be thing. The point of a parent relation is to delete all children when the parent gets deleted.
+    // The connection object should be deleted when the thing gets deleted, to avoid segfault problems.
+    AmperfiedEnergyControlModbusRtuConnection *connection = new AmperfiedEnergyControlModbusRtuConnection(master, modbusId, thing);
     connect(info, &ThingSetupInfo::aborted, connection, [=](){
         qCDebug(dcAmperfied()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
         connection->deleteLater();
     });
 
-    connect(connection, &AmperfiedModbusRtuConnection::reachableChanged, thing, [connection, thing](bool reachable){
+    connect(connection, &AmperfiedEnergyControlModbusRtuConnection::reachableChanged, thing, [connection, thing](bool reachable){
         if (reachable) {
             connection->initialize();
         } else {
-            thing->setStateValue(energyControlCurrentPowerStateTypeId, 0);
+            qCDebug(dcAmperfied()) << "The wallbox is not reachable anymore. Connected changed to false.";
             thing->setStateValue(energyControlConnectedStateTypeId, false);
+            thing->setStateValue(energyControlCurrentPowerStateTypeId, 0);
         }
     });
-    connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, thing, [connection, thing](bool success){
+    connect(connection, &AmperfiedEnergyControlModbusRtuConnection::initializationFinished, thing, [connection, thing](bool success){
         if (success) {
             QString serialNumberRead{connection->serialNumber()};
             QString serialNumberConfig{thing->paramValue(energyControlThingSerialNumberParamTypeId).toString()};
-            int stringsNotEqual = QString::compare(serialNumberRead, serialNumberConfig, Qt::CaseInsensitive);  // if strings are equal, stringsNotEqual should be 0.
-            if (stringsNotEqual) {
+            if (serialNumberRead != serialNumberConfig) {
                 // The wallbox found is a different one than configured. We assume the wallbox was replaced, and the new device should use this config.
                 // Step 1: update the serial number.
                 qCDebug(dcAmperfied()) << "The serial number of this device is" << serialNumberRead << ". It does not match the serial number in the config, which is"
@@ -333,13 +336,16 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
             }
 
             thing->setStateValue(energyControlConnectedStateTypeId, true);
+            qCDebug(dcAmperfied()) << "Initialization successful. The wallbox is now reachable. Connected changed to true.";
 
             // Disabling the auto-standby as it will shut down modbus
-            connection->setStandby(AmperfiedModbusRtuConnection::StandbyStandbyDisabled);
+            connection->setStandby(AmperfiedEnergyControlModbusRtuConnection::StandbyStandbyDisabled);
+        } else {
+            qCDebug(dcAmperfied()) << "Initialization failed.";
         }
     });
 
-    connect(connection, &AmperfiedModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
+    connect(connection, &AmperfiedEnergyControlModbusRtuConnection::initializationFinished, info, [this, info, connection](bool success){
         if (success) {
             if (connection->version() < 0x0107) {
                 qCWarning(dcAmperfied()) << "We require at least version 1.0.7.";
@@ -354,7 +360,7 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
         }
     });
 
-    connect(connection, &AmperfiedModbusRtuConnection::updateFinished, thing, [connection, thing](){
+    connect(connection, &AmperfiedEnergyControlModbusRtuConnection::updateFinished, thing, [connection, thing](){
         qCDebug(dcAmperfied()) << "Updated:" << connection;
 
         if (connection->chargingCurrent() == 0) {
@@ -368,21 +374,21 @@ void IntegrationPluginAmperfied::setupRtuConnection(ThingSetupInfo *info)
         thing->setStateValue(energyControlTotalEnergyConsumedStateTypeId, connection->totalEnergy() / 1000.0);
         thing->setStateValue(energyControlSessionEnergyStateTypeId, connection->sessionEnergy() / 1000.0);
         switch (connection->chargingState()) {
-        case AmperfiedModbusRtuConnection::ChargingStateUndefined:
-        case AmperfiedModbusRtuConnection::ChargingStateA1:
-        case AmperfiedModbusRtuConnection::ChargingStateA2:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateUndefined:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateA1:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateA2:
             thing->setStateValue(energyControlPluggedInStateTypeId, false);
             break;
-        case AmperfiedModbusRtuConnection::ChargingStateB1:
-        case AmperfiedModbusRtuConnection::ChargingStateB2:
-        case AmperfiedModbusRtuConnection::ChargingStateC1:
-        case AmperfiedModbusRtuConnection::ChargingStateC2:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateB1:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateB2:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateC1:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateC2:
             thing->setStateValue(energyControlPluggedInStateTypeId, true);
             break;
-        case AmperfiedModbusRtuConnection::ChargingStateDerating:
-        case AmperfiedModbusRtuConnection::ChargingStateE:
-        case AmperfiedModbusRtuConnection::ChargingStateError:
-        case AmperfiedModbusRtuConnection::ChargingStateF:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateDerating:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateE:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateError:
+        case AmperfiedEnergyControlModbusRtuConnection::ChargingStateF:
             qCWarning(dcAmperfied()) << "Unhandled charging state:" << connection->chargingState();
         }
 
@@ -416,6 +422,9 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
     qCDebug(dcAmperfied()) << "setting up TCP connection";
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
+
+    // The parent object given to the connection object should be thing. The point of a parent relation is to delete all children when the parent gets deleted.
+    // The connection object should be deleted when the thing gets deleted, to avoid segfault problems.
     AmperfiedModbusTcpConnection *connection = new AmperfiedModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, thing);
     connect(info, &ThingSetupInfo::aborted, connection, [=](){
         qCDebug(dcAmperfied()) << "Cleaning up ModbusTCP connection because setup has been aborted.";
