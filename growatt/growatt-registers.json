@@ -2156,6 +2156,28 @@
             "description": "battery working status",
             "defaultValue": "0",
             "access": "RO"
+        },
+        {
+            "id": "inverterSerial",
+            "address": 3001,
+            "size": 5,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "inverter serial number",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "batterySerial",
+            "address": 3087,
+            "size": 8,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "inverter serial number",
+            "defaultValue": "0",
+            "access": "RO"
         }
     ]
 }

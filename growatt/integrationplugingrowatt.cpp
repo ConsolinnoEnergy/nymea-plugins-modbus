@@ -164,6 +164,25 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
 
         // Handle property changed signals
 
+        //inverter serial
+        connect(connection, &GrowattModbusRtuConnection::inverterSerialChanged, this, [this, thing](QString value){
+            qCDebug(dcGrowatt()) << "Inverter serial changed to" << value;
+            thing->setStateValue(growattInverterRTUSerialInverterStateTypeId, value);
+        });
+        //battery serial
+        connect(connection, &GrowattModbusRtuConnection::batterySerialChanged, this, [this, thing](QString value){
+            qCDebug(dcGrowatt()) << "battery serial changed to" << value;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryThings.first()->setStateValue(growattBatterySerialBatteryStateTypeId, value);
+                // if battery serial is only x set connected to false
+                if (value == "XXXXXXXXXXXXXXXX") {
+                    batteryThings.first()->setStateValue(growattBatteryConnectedStateTypeId, false);
+                }
+            }
+           
+        });
+
         // PV DC values
         //total
         connect(connection, &GrowattModbusRtuConnection::PpvChanged, this, [this, thing](double value){

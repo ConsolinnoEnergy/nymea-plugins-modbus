@@ -75,6 +75,14 @@
                             "cached": false
                         },
                         {
+                            "id": "e03fca89-8e8f-4f17-b743-57488327fd1b",
+                            "name": "serialInverter",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "xx",
+                            "cached": false
+                        },
+                        {
                             "id": "bf3dca4c-c61f-42d0-b22c-fefe9155eac3",
                             "name": "currentPower",
                             "displayName": "PV total power (DC)",
@@ -457,6 +465,14 @@
                             "displayName": "Battery critical",
                             "type": "bool",
                             "defaultValue": false
+                        },
+                        {
+                            "id": "e046b6a1-3436-49bf-b906-6c67862f2775",
+                            "name": "serialBattery",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "xx",
+                            "cached": false
                         },
                         {
                             "id": "50745e16-3fce-4b64-a232-adb6ed4f15a3",
