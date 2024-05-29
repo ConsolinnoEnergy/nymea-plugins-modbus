@@ -369,7 +369,7 @@ void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
     if (!m_pluginTimer)
     {
         qCDebug(dcSolaxEvc()) << "Starting plugin timer..";
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcSolaxEvc()) << "Updating Solax EVC..";
             foreach (SolaxEvcModbusTcpConnection *connection, m_tcpConnections) {
