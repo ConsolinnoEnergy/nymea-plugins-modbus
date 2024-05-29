@@ -220,15 +220,27 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
     // connect total energy consumption
     connect(connection, &SolaxEvcModbusTcpConnection::totalEnergyChanged, thing, [thing](double totalEnergy) {
         qCDebug(dcSolaxEvc()) << "Total energy changed" << totalEnergy << "kWh";
-        thing->setStateValue(solaxEvcTotalEnergyConsumedStateTypeId, totalEnergy);
+        double oldEnergy = thing->stateValue(solaxEvcTotalEnergyConsumedStateTypeId).toDouble();
+        if (((totalEnergy - oldEnergy) > 100) || (totalEnergy == 0 && oldEnergy != 0))
+        {
+            qCWarning(dcSolaxEvc()) << "Old total Energy: " << oldEnergy;
+            qCWarning(dcSolaxEvc()) << "New total Energy: " << totalEnergy;
+            qCWarning(dcSolaxEvc()) << "Difference to previous energy is to high; or new energy is 0, when is previously was not.";
+        } else {
+            thing->setStateValue(solaxEvcTotalEnergyConsumedStateTypeId, totalEnergy);
+        }
     });
 
     // connect time of current charging session
     connect(connection, &SolaxEvcModbusTcpConnection::chargingTimeChanged, thing, [thing](quint32 time) {
         qCDebug(dcSolaxEvc()) << "Charging Time changed" << time << "s";
-        // Every once in a while, nonsense values are received, charging session unlikely to be above 55h
-        if (time < 200000)
+        quint32 oldTime = thing->stateValue(solaxEvcChargingStateTypeId).toUInt();
+        if ((time - oldTime) > 30)
+        {
+            qCWarning(dcSolaxEvc()) << "Difference in charging time is to high.";
+        } else {
             thing->setStateValue(solaxEvcChargingTimeStateTypeId, time);
+        }
     });
 
     // connect max charging current
@@ -326,7 +338,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 break;
             default:
                 qCWarning(dcSolaxEvc()) << "State changed to unknown value";
-                thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
+                // thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
                 break;
         }
     });
