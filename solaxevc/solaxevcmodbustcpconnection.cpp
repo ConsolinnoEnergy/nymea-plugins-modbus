@@ -151,7 +151,7 @@ SolaxEvcModbusTcpConnection::ControlCommand SolaxEvcModbusTcpConnection::control
 
 QModbusReply *SolaxEvcModbusTcpConnection::setControlCommand(ControlCommand controlCommand)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(static_cast<quint32>(controlCommand), m_endianness);
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(static_cast<quint32>((0x0C80 << 16) | controlCommand), m_endianness);
     qCDebug(dcSolaxEvcModbusTcpConnection()) << "--> Write \"Control command\" register:" << 4135 << "size:" << 2 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4135, values.count());
     request.setValues(values);
