@@ -158,6 +158,9 @@ void IntegrationPluginAmperfied::setupThing(ThingSetupInfo *info)
             }
         });
 
+        // During Nymea startup, it can happen that the monitor is not yet ready when this code triggers. Not ready means, the monitor has not yet scanned the network and
+        // does not yet have a mapping of mac<->IP. Because of this, the monitor can't give an IP address when asked for, and setup would fail. To circumvent this problem,
+        // wait for the monitor to signal "reachable". When the monitor emits this signal, it is ready to give an IP address.
         qCDebug(dcAmperfied()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(connectHomeThingMacAddressParamTypeId).toString();
         if (monitor->reachable()) {
             setupTcpConnection(info);
