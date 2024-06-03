@@ -85,17 +85,22 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
                 }
 
                 ThingDescriptor descriptor(webastoNextThingClassId, title, description);
-
-                // Check if we already have set up this device
-                Things existingThings = myThings().filterByParam(webastoNextThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
-                if (existingThings.count() == 1) {
-                    qCDebug(dcWebasto()) << "This thing already exists in the system." << existingThings.first() << result.networkDeviceInfo;
-                    descriptor.setThingId(existingThings.first()->id());
-                }
+                qCDebug(dcWebasto()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 ParamList params;
                 params << Param(webastoNextThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
                 descriptor.setParams(params);
+
+                // Check if we already have set up this device
+                Thing *existingThing = myThings().findByParams(descriptor.params());
+                if (existingThing) {
+                    qCDebug(dcWebasto()) << "Found already existing" << thingClass.name() << "ev-charger:" << existingThing->name() << networkDeviceInfo;
+                    descriptor.setThingId(existingThing->id());
+                } else {
+                    qCDebug(dcWebasto()) << "Found new" << thingClass.name() << "ev-charger";
+                }
+
+
                 info->addThingDescriptor(descriptor);
             }
 
@@ -121,16 +126,19 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
                 ThingDescriptor descriptor(webastoUniteThingClassId, name, description);
                 qCDebug(dcWebasto()) << "Discovered:" << descriptor.title() << descriptor.description();
 
-                // Check if we already have set up this device
-                Things existingThings = myThings().filterByParam(webastoUniteThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
-                if (existingThings.count() == 1) {
-                    qCDebug(dcWebasto()) << "This wallbox already exists in the system:" << result.networkDeviceInfo;
-                    descriptor.setThingId(existingThings.first()->id());
-                }
-
                 ParamList params;
                 params << Param(webastoUniteThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
                 descriptor.setParams(params);
+
+                // Check if we already have set up this device
+                Thing *existingThing = myThings().findByParams(descriptor.params());
+                if (existingThing) {
+                    qCDebug(dcWebasto()) << "Found already existing" << thingClass.name() << "ev-charger:" << existingThing->name() << networkDeviceInfo;
+                    descriptor.setThingId(existingThing->id());
+                } else {
+                    qCDebug(dcWebasto()) << "Found new" << thingClass.name() << "ev-charger";
+                }
+
                 info->addThingDescriptor(descriptor);
             }
 
@@ -489,7 +497,7 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
         }
     });
 
-    connect(webastoNextConnection, &WebastoNextModbusTcpConnection::reachableChanged, thing, [thing, webastoNextConnection, monitor](bool reachable){
+    connect(webastoNextConnection, &WebastoNextModbusTcpConnection::reachableChanged, thing, [this, thing, webastoNextConnection, monitor](bool reachable){
         qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing;
         thing->setStateValue(webastoNextConnectedStateTypeId, reachable);
         if (reachable) {
@@ -612,7 +620,7 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             thing->setStateValue(webastoNextUsedPhasesStateTypeId, Electricity::convertPhasesToString(phases));
             thing->setStateValue(webastoNextPhaseCountStateTypeId, Electricity::getPhaseCount(phases));
         } else {
-            thing->setStateValue(webastoNextPhaseCountStateTypeId, 0);
+            thing->setStateValue(webastoNextPhaseCountStateTypeId, 1);
         }
 
 
