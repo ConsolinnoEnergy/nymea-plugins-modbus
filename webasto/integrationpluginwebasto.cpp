@@ -193,24 +193,19 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
             }
         });
 
-        // If this is the first setup, the monitor must become reachable before we finish the setup
-        if (info->isInitialSetup()) {
-            // Wait for the monitor to be ready
-            if (monitor->reachable()) {
-                // Thing already reachable...let's continue with the setup
-                setupWebastoNextConnection(info);
-            } else {
-                qCDebug(dcWebasto()) << "Waiting for the network monitor to get reachable before continue to set up the connection" << thing->name() << address.toString() << "...";
-                connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [=](bool reachable){
-                    if (reachable) {
-                        qCDebug(dcWebasto()) << "The monitor for thing setup" << thing->name() << "is now reachable. Continue setup...";
-                        setupWebastoNextConnection(info);
-                    }
-                });
-            }
-        } else {
-            // Not the first setup, just add and let the monitor do the check reachable work
+        // During Nymea startup, it can happen that the monitor is not yet ready when this code triggers. Not ready means, the monitor has not yet scanned the network and
+        // does not yet have a mapping of mac<->IP. Because of this, the monitor can't give an IP address when asked for, and setup would fail. To circumvent this problem,
+        // wait for the monitor to signal "reachable". When the monitor emits this signal, it is ready to give an IP address.
+        if (monitor->reachable()) {
             setupWebastoNextConnection(info);
+        } else {
+            qCDebug(dcWebasto()) << "Waiting for the network monitor to get reachable before continue to set up the connection" << thing->name() << address.toString() << "...";
+            connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [=](bool reachable){
+                if (reachable) {
+                    qCDebug(dcWebasto()) << "The monitor for thing setup" << thing->name() << "is now reachable. Continue setup...";
+                    setupWebastoNextConnection(info);
+                }
+            });
         }
 
         return;
@@ -243,6 +238,9 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
             }
         });
 
+        // During Nymea startup, it can happen that the monitor is not yet ready when this code triggers. Not ready means, the monitor has not yet scanned the network and
+        // does not yet have a mapping of mac<->IP. Because of this, the monitor can't give an IP address when asked for, and setup would fail. To circumvent this problem,
+        // wait for the monitor to signal "reachable". When the monitor emits this signal, it is ready to give an IP address.
         if (monitor->reachable()) {
             setupEVC04Connection(info);
         } else {
