@@ -1,0 +1,215 @@
+{
+    "displayName": "Alfen",
+    "name": "Alfen",
+    "id": "d82e88e7-1cde-477e-93f1-1b2b4e98d7aa",
+    "vendors": [
+        {
+            "displayName": "Alfen",
+            "name": "Alfen",
+            "id": "bc9d8661-7984-4076-953c-a226eb591845",
+            "thingClasses": [
+                {
+                    "id": "f5eef340-6747-4985-8c50-dc715f11db45",
+                    "displayName": "Alfen Eve Single Pro-Line",
+                    "name": "alfenEveSinglePro",
+                    "createMethods": [
+                        "discovery",
+                        "user"
+                    ],
+                    "interfaces": [
+                        "evcharger",
+                        "smartmeterconsumer",
+                        "connectable"
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "0b464569-2e44-46dd-a034-efca06c165a2",
+                            "displayName": "MAC address",
+                            "name": "mac",
+                            "type": "QString",
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "e3cf4289-0b9b-4ab9-a3e2-024ea504e6c4",
+                            "name": "port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502
+                        },
+                        {
+                            "id": "e4fb5320-b845-42bf-b338-be2e6a573864",
+                            "name": "slaveId",
+                            "displayName": "Modbus slave ID",
+                            "type": "int",
+                            "defaultValue": 1
+                        },
+                        {
+                            "id": "37524f63-8978-4915-9981-949aba468457",
+                            "name": "minChargeCurrent",
+                            "displayName": "Minimum charge current",
+                            "type": "int",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 6
+                        },
+                        {
+                            "id": "56f9d8a4-b29b-445d-99c4-b67ba202d8f1",
+                            "name": "maxChargeCurrent",
+                            "displayName": "Maximum charge current",
+                            "type": "int",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 16
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "3bf008cc-ba2f-4bc0-8075-9ecd7f832b29",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "73b86e88-6700-476e-859a-e7942a049907",
+                            "name": "pluggedIn",
+                            "displayName": "Plugged in",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "427fcf58-b5dc-4590-b6c6-edabb20271b6",
+                            "name": "power",
+                            "displayName": "Charging enabled",
+                            "displayNameEvent": "Charging status changed",
+                            "displayNameAction": "Set charging enabled",
+                            "type": "bool",
+                            "writable": true,
+                            "defaultValue": false,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "80dfa465-6dd0-4359-9c53-4e0d0791ea9b",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Maximal charging current",
+                            "displayNameEvent": "Maximal charging current changed",
+                            "displayNameAction": "Set maximal charging current",
+                            "type": "uint",
+                            "unit": "Ampere",
+                            "defaultValue": 6,
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "writable": true,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "dff81182-0958-41fa-94e8-c5f6ee1285a1",
+                            "name": "currentPower",
+                            "displayName": "Active Power",
+                            "displayNameEvent": "Active Power consumtion changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "d418be72-18cc-445e-9fdb-083bcbd3e8ea",
+                            "name": "currentPhaseA",
+                            "displayName": "Current L1",
+                            "displayNameEvent": "Current L1 changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "d83c2a71-760c-4d93-bee0-1786b13553c2",
+                            "name": "currentPhaseB",
+                            "displayName": "Current L2",
+                            "displayNameEvent": "Current L2 changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "9148c650-2eb9-4934-92e1-890bc9692902",
+                            "name": "currentPhaseC",
+                            "displayName": "Current L3",
+                            "displayNameEvent": "Current L3 changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "f4e186c7-f048-4e2f-9e46-714af3b31e28",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total consumed energy",
+                            "displayNameEvent": "Total energy consumption changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "7bace022-4f1e-45d7-a2af-83f37e9659d0",
+                            "name": "phaseCount",
+                            "displayName": "Phase count",
+                            "displayNameEvent": "Phase count changed",
+                            "type": "uint",
+                            "minValue": 0,
+                            "maxValue": 3,
+                            "defaultValue": 1,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "087f90ff-8d42-45ab-91b1-61a55c1f3bb4",
+                            "name": "availability",
+                            "displayName": "EVSE available",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Operative",
+                                "Inoperative"
+                            ],
+                            "defaultValue": "Inoperative",
+                            "displayNameEvent": "availability changed",
+                            "cached": false
+                        },
+                        {
+                            "id": "a661f15f-5b4f-4a40-8042-2808c67e80d6",
+                            "name": "mode3State",
+                            "displayName": "State (61851)",
+                            "type": "QString",
+                            "possibleValues": [
+                                "A - EV not connected",
+                                "B1 - EVSE not ready",
+                                "B2 - EVSE ready",
+                                "C1 - EVSE not ready (charging interrupted)",
+                                "C2 - Charging",
+                                "D1 - EVSE not ready (ventilation required)",
+                                "D2 - Charging (ventilation required)",
+                                "E - Error: Grid not available (short on CP)",
+                                "F - Error: EVSE not available"
+                            ],
+                            "defaultValue": "A - EV not connected",
+                            "displayNameEvent": "mode3State changed",
+                            "cached": false
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

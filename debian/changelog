@@ -1,8 +1,10 @@
 nymea-plugins-modbus (1.7.007) buster focal jammy; urgency=medium
 
   * Update interface of evcharger plugin to match new interface. 
+  * Added plugin for alven eve single pro-line
+  * Azzurro: set states to 0 when not connected. Added outlier detection to energy counters.
 
- -- Leonhard Heizinger <l.heizinger@consolinno.de>  Tue, 04 Jun 2024 10:28:48 +0100
+ -- Luis Reber <l.reber@consolinno.de> Fri, 26 Apr 2024 09:50:00 +0200
 
 nymea-plugins-modbus (1.7.006) buster focal jammy; urgency=medium
 
