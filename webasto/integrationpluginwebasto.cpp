@@ -91,13 +91,15 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
                 params << Param(webastoNextThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
                 descriptor.setParams(params);
 
-                // Check if we already have set up this device
+                // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+                // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+                // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
                 Thing *existingThing = myThings().findByParams(descriptor.params());
                 if (existingThing) {
-                    qCDebug(dcWebasto()) << "Found already existing" << thingClass.name() << "ev-charger:" << existingThing->name() << networkDeviceInfo;
+                    qCDebug(dcWebasto()) << "A configuration already exists for the discovered" << title;
                     descriptor.setThingId(existingThing->id());
                 } else {
-                    qCDebug(dcWebasto()) << "Found new" << thingClass.name() << "ev-charger";
+                    qCDebug(dcWebasto()) << "Found new" << title;
                 }
 
 
@@ -121,22 +123,24 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
                     //qCDebug(dcWebasto()) << "Skipping Vestel wallbox without Webasto branding...";
                     //continue;
                 }
-                QString name = result.brand + " " + result.model;
+                QString title = result.brand + " " + result.model;
                 QString description = result.chargepointId;
-                ThingDescriptor descriptor(webastoUniteThingClassId, name, description);
+                ThingDescriptor descriptor(webastoUniteThingClassId, title, description);
                 qCDebug(dcWebasto()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 ParamList params;
                 params << Param(webastoUniteThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
                 descriptor.setParams(params);
 
-                // Check if we already have set up this device
+                // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+                // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+                // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
                 Thing *existingThing = myThings().findByParams(descriptor.params());
                 if (existingThing) {
-                    qCDebug(dcWebasto()) << "Found already existing" << thingClass.name() << "ev-charger:" << existingThing->name() << networkDeviceInfo;
+                    qCDebug(dcWebasto()) << "A configuration already exists for the discovered" << title;
                     descriptor.setThingId(existingThing->id());
                 } else {
-                    qCDebug(dcWebasto()) << "Found new" << thingClass.name() << "ev-charger";
+                    qCDebug(dcWebasto()) << "Found new" << title;
                 }
 
                 info->addThingDescriptor(descriptor);
