@@ -28,49 +28,47 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINWEBASTO_H
-#define INTEGRATIONPLUGINWEBASTO_H
+#ifndef INTEGRATIONPLUGINVESTEL_H
+#define INTEGRATIONPLUGINVESTEL_H
 
 #include <plugintimer.h>
 #include <integrations/integrationplugin.h>
 #include <network/networkdevicemonitor.h>
 
-#include "webastonextmodbustcpconnection.h"
+#include "extern-plugininfo.h"
+
 #include "evc04modbustcpconnection.h"
 
-#include <QUuid>
-#include <QObject>
-#include <QHostAddress>
-
-class IntegrationPluginWebasto : public IntegrationPlugin
+class IntegrationPluginVestel: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginwebasto.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginvestel.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit IntegrationPluginWebasto();
-    void init() override;
+    explicit IntegrationPluginVestel();
+
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
     void executeAction(ThingActionInfo *info) override;
+    void thingRemoved(Thing *thing) override;
 
 private:
-    PluginTimer *m_pluginTimer = nullptr;
+    void setupEVC04Connection(ThingSetupInfo *info);
 
-    QHash<Thing *, WebastoNextModbusTcpConnection *> m_webastoNextConnections;
+    void updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTcpConnection *connection);
+
+    PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, EVC04ModbusTcpConnection *> m_evc04Connections;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
 
-    void setupWebastoNextConnection(ThingSetupInfo *info);
-    void executeWebastoNextPowerAction(ThingActionInfo *info, bool power);
-    void setupEVC04Connection(ThingSetupInfo *info);
-    void updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTcpConnection *connection);
     QHash<Thing *, quint32> m_lastWallboxTime;
     QHash<Thing *, quint16> m_timeoutCount;
+
 };
 
-#endif // INTEGRATIONPLUGINWEBASTO_H
+#endif // INTEGRATIONPLUGINVESTEL_H
+
+

@@ -28,49 +28,41 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINWEBASTO_H
-#define INTEGRATIONPLUGINWEBASTO_H
+#ifndef DISCOVERYRTU_H
+#define DISCOVERYRTU_H
 
-#include <plugintimer.h>
-#include <integrations/integrationplugin.h>
-#include <network/networkdevicemonitor.h>
-
-#include "webastonextmodbustcpconnection.h"
-#include "evc04modbustcpconnection.h"
-
-#include <QUuid>
 #include <QObject>
-#include <QHostAddress>
+#include <QTimer>
 
-class IntegrationPluginWebasto : public IntegrationPlugin
+#include <hardware/modbus/modbusrtuhardwareresource.h>
+
+class DiscoveryRtu : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginwebasto.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginWebasto();
-    void init() override;
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
+    explicit DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
+    struct Result {
+        quint16 modbusId;
+        QString productName;
+        QString manufacturerName;
+        quint16 powerRating;
+        QUuid modbusRtuMasterId;        
+    };
+
+    void startDiscovery();
+
+    QList<Result> discoveryResults() const;
+
+signals:
+    void discoveryFinished(bool modbusRtuMasterAvailable);
+
+private slots:
+    void tryConnect(ModbusRtuMaster *master, quint16 slaveId);
 
 private:
-    PluginTimer *m_pluginTimer = nullptr;
+    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
 
-    QHash<Thing *, WebastoNextModbusTcpConnection *> m_webastoNextConnections;
-    QHash<Thing *, EVC04ModbusTcpConnection *> m_evc04Connections;
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-
-    void setupWebastoNextConnection(ThingSetupInfo *info);
-    void executeWebastoNextPowerAction(ThingActionInfo *info, bool power);
-    void setupEVC04Connection(ThingSetupInfo *info);
-    void updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTcpConnection *connection);
-    QHash<Thing *, quint32> m_lastWallboxTime;
-    QHash<Thing *, quint16> m_timeoutCount;
+    QList<Result> m_discoveryResults;
 };
 
-#endif // INTEGRATIONPLUGINWEBASTO_H
+#endif // DISCOVERYRTU_H
