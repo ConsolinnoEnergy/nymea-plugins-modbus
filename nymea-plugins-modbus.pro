@@ -8,7 +8,7 @@ SUBDIRS += nymea-modbus-cli libnymea-modbus libnymea-sunspec
 PLUGIN_DIRS = \
     aeberle                 \
     alphainnotec            \
-    alphatec                \    
+    alphatec                \
     azzurro                 \
     amperfied               \
     bgetech                 \
