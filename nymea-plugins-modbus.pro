@@ -9,7 +9,7 @@ PLUGIN_DIRS = \
     aeberle                 \
     alfen                   \
     alphainnotec            \
-    alphatec                \    
+    alphatec                \
     azzurro                 \
     amperfied               \
     bgetech                 \
@@ -36,6 +36,7 @@ PLUGIN_DIRS = \
     sunspec                 \
     technivolt              \
     unipi                   \
+    vestel                  \
     webasto                 \
     e3dc                    \
     dvmodbusir
