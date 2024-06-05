@@ -260,6 +260,16 @@ Description: nymea integration plugin for M-TEC heat pumps
  This package contains the nymea integration plugin for M-TEC heat pumps.
 
 
+Package: nymea-plugin-sax
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Sax energy storage
+ This package contains the nymea integration plugin for energy storages made
+ by Sax.
+
+
 Package: nymea-plugin-schneider
 Architecture: any
 Section: libs
