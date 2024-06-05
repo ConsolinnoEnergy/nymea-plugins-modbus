@@ -112,6 +112,16 @@
                             "cached": true
                         },
                         {
+                            "id": "78e8262a-5d41-4749-ab8a-a50d5c661cbb",
+                            "name": "sessionEnergy",
+                            "displayName": "Session energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "suggestLogging": true,
+                            "cached": false
+                        },
+                        {
                             "id": "8fab231b-0270-4528-81b0-84c89b8ced1c",
                             "name": "currentPhaseA",
                             "displayName": "Current phase A",
@@ -211,16 +221,6 @@
                             "cached": false
                         },
                         {
-                            "id": "78e8262a-5d41-4749-ab8a-a50d5c661cbb",
-                            "name": "sessionEnergy",
-                            "displayName": "Session energy",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0.0,
-                            "suggestLogging": true,
-                            "cached": false
-                        },
-                        {
                             "id": "10ef29ff-1af9-4f55-a5ed-4d6029030b53",
                             "name": "safeCurrent",
                             "displayName": "Maximum current on communication failure",
@@ -275,6 +275,29 @@
                             "cached": false
                         },
                         {
+                            "id": "ebc0e32e-648e-468f-9566-585768a0d970",
+                            "name": "power",
+                            "displayName": "Charging enabled",
+                            "displayNameAction": "Set charging enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "04aaf21a-9fd3-46f1-8fca-8cbed2117737",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Maximum charging current",
+                            "displayNameAction": "Set maximum charging current",
+                            "type": "uint",
+                            "unit": "Ampere",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 6,
+                            "writable": true,
+                            "cached": false
+                        },
+                        {
                             "id": "dfa057e0-4e25-48da-967f-2821356ad44f",
                             "name": "pluggedIn",
                             "displayName": "Plugged in",
@@ -319,29 +342,6 @@
                             "cached": true
                         },
                         {
-                            "id": "ebc0e32e-648e-468f-9566-585768a0d970",
-                            "name": "power",
-                            "displayName": "Charging enabled",
-                            "displayNameAction": "Set charging enabled",
-                            "type": "bool",
-                            "defaultValue": false,
-                            "writable": true,
-                            "cached": false
-                        },
-                        {
-                            "id": "04aaf21a-9fd3-46f1-8fca-8cbed2117737",
-                            "name": "maxChargingCurrent",
-                            "displayName": "Maximum charging current",
-                            "displayNameAction": "Set maximum charging current",
-                            "type": "uint",
-                            "unit": "Ampere",
-                            "minValue": 6,
-                            "maxValue": 32,
-                            "defaultValue": 6,
-                            "writable": true,
-                            "cached": false
-                        },
-                        {
                             "id": "106b2bd3-4bd5-4774-8571-d64a2d5bf78b",
                             "name": "sessionEnergy",
                             "displayName": "Session energy",
@@ -351,9 +351,44 @@
                             "cached": false
                         },
                         {
+                            "id": "12308edb-bb91-4c5d-b307-3650443fe6aa",
+                            "name": "currentPhaseA",
+                            "displayName": "Current phase A",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "5c1e1e34-dcb9-411a-8aa0-e3449c645d7b",
+                            "name": "currentPhaseB",
+                            "displayName": "Current phase B",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "e02973ea-8a83-4cc5-bad1-cbf73887f1c6",
+                            "name": "currentPhaseC",
+                            "displayName": "Current phase C",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
                             "id": "ac1917a8-3445-4774-b0ec-042ebc7258aa",
                             "name": "version",
                             "displayName": "Firmware version",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "3c442749-4b5c-40e9-99cc-e252325d03fa",
+                            "name": "evseFaultCode",
+                            "displayName": "EVSE fault code",
                             "type": "QString",
                             "defaultValue": "",
                             "cached": false
