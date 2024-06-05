@@ -1,4 +1,10 @@
-nymea-plugins-modbus (1.7.008) buster focal jammy; urgency=medium
+nymea-plugins-modbus (1.7.008) jammy; urgency=medium
+
+* Fixes for Solax power calculation (RTU)
+
+ -- Luis Reber <l.reber@consolinno.de> Tue, 04 Jun 2024 10:29:00 +0200
+
+nymea-plugins-modbus (1.7.007) buster focal jammy; urgency=medium
 
   * Added ABB terra plugin
   * Update interface of evcharger plugin to match new interface. 
