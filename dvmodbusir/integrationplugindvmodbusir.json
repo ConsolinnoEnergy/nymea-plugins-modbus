@@ -60,11 +60,25 @@
                             "defaultValue": "0"
                         },
                         {
+                            "id": "4f15b4ae-0ddb-4ffd-8901-2e22a94b7f39",
+                            "name": "totalEnergyConsumedExponent",
+                            "displayName": "Total consumed energy exponent",
+                            "type": "int",
+                            "defaultValue": "0"
+                        },
+                        {
                             "id": "c8d066c9-ca46-468a-aea7-a37a6464cc6b",
                             "name": "totalEnergyProduced",
                             "displayName": "Total produced energy",
                             "type": "double",
                             "unit": "KiloWattHour",
+                            "defaultValue": "0"
+                        },
+                        {
+                            "id": "0aa0914c-53d0-407a-a8de-60de296a3da9",
+                            "name": "totalEnergyProducedExponent",
+                            "displayName": "Total produced energy exponent",
+                            "type": "int",
                             "defaultValue": "0"
                         },
                         {

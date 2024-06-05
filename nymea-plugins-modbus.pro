@@ -6,39 +6,43 @@ TEMPLATE = subdirs
 SUBDIRS += nymea-modbus-cli libnymea-modbus
 
 PLUGIN_DIRS = \
-#    aeberle                 \
-#    alfen                   \
-#    alphainnotec            \
-#    alphatec                \    
-#    azzurro                 \
-#    amperfied               \
-#    bgetech                 \
-#    drexelundweiss          \
-#    goodwe                  \
+    abb                     \
+    aeberle                 \
+    alfen                   \
+    alphainnotec            \
+    alphatec                \
+    azzurro                 \
+    amperfied               \
+    bgetech                 \
+    drexelundweiss          \
+    goodwe                  \
     growatt                 \
-#    huawei                  \
-#    idm                     \
-#    inepro                  \
-#    kacosunspec             \
-#    kostal                  \
-#    mennekes                \
-#    modbuscommander         \
-#    mtec                    \
-#    mypv                    \
-#    phoenixconnect          \
-#    schneider               \
-#    schneiderIEM            \
-#    schrack                 \
-#    senseair                \
-#    sma                     \
-#    stiebeleltron           \
-#    sungrow                 \
-#    sunspec                 \
-#    technivolt              \
-#    unipi                   \
-#    webasto                 \
-#    e3dc                    \
-#    dvmodbusir
+    huawei                  \
+    idm                     \
+    inepro                  \
+    kacosunspec             \
+    kostal                  \
+    mennekes                \
+    modbuscommander         \
+    mtec                    \
+    mypv                    \
+    phoenixconnect          \
+    sax                     \
+    schneider               \
+    schneiderIEM            \
+    schrack                 \
+    senseair                \
+    sma                     \
+    solax                   \
+    stiebeleltron           \
+    sungrow                 \
+    sunspec                 \
+    technivolt              \
+    unipi                   \
+    vestel                  \
+    webasto                 \
+    e3dc                    \
+    dvmodbusir
 
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
