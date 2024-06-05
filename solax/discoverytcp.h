@@ -28,25 +28,28 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef ENERGYCONTROLDISCOVERY_H
-#define ENERGYCONTROLDISCOVERY_H
+#ifndef DISCOVERYTCP_H
+#define DISCOVERYTCP_H
 
 #include <QObject>
 #include <QTimer>
 
-#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <network/networkdevicediscovery.h>
 
-class EnergyControlDiscovery : public QObject
+#include "solaxmodbustcpconnection.h"
+
+class DiscoveryTcp : public QObject
 {
     Q_OBJECT
 public:
-    explicit EnergyControlDiscovery(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
+    explicit DiscoveryTcp(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
     struct Result {
-        QUuid modbusRtuMasterId;
-        quint16 firmwareVersion;
+        quint16 port;
         quint16 modbusId;
-        QString serialPort;
-        QString serialNumber;
+        QString productName;
+        QString manufacturerName;
+        quint16 powerRating;
+        NetworkDeviceInfo networkDeviceInfo;
     };
 
     void startDiscovery();
@@ -54,15 +57,21 @@ public:
     QList<Result> discoveryResults() const;
 
 signals:
-    void discoveryFinished(bool modbusRtuMasterAvailable);
-
-private slots:
-    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
+    void discoveryFinished();
 
 private:
-    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+
+    QDateTime m_startDateTime;
+
+    QList<SolaxModbusTcpConnection *> m_connections;
 
     QList<Result> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SolaxModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // ENERGYCONTROLDISCOVERY_H
+#endif // DISCOVERYTCP_H

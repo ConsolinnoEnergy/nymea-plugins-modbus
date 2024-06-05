@@ -28,41 +28,53 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef ENERGYCONTROLDISCOVERY_H
-#define ENERGYCONTROLDISCOVERY_H
+#ifndef WEBASTODISCOVERY_H
+#define WEBASTODISCOVERY_H
 
 #include <QObject>
-#include <QTimer>
 
-#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <network/networkdevicediscovery.h>
 
-class EnergyControlDiscovery : public QObject
+#include "webastonextmodbustcpconnection.h"
+
+class WebastoDiscovery : public QObject
 {
     Q_OBJECT
 public:
-    explicit EnergyControlDiscovery(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
-    struct Result {
-        QUuid modbusRtuMasterId;
-        quint16 firmwareVersion;
-        quint16 modbusId;
-        QString serialPort;
-        QString serialNumber;
+    enum Type {
+        TypeWebastoLive,
+        TypeWebastoNext
     };
+    Q_ENUM(Type)
+
+    typedef struct Result {
+        QString productName;
+        Type type;
+        NetworkDeviceInfo networkDeviceInfo;
+    } Result;
+
+    explicit WebastoDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
 
     void startDiscovery();
 
-    QList<Result> discoveryResults() const;
+    QList<Result> results() const;
 
 signals:
-    void discoveryFinished(bool modbusRtuMasterAvailable);
-
-private slots:
-    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
+    void discoveryFinished();
 
 private:
-    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
 
-    QList<Result> m_discoveryResults;
+    QList<WebastoNextModbusTcpConnection *> m_connections;
+
+    QList<Result> m_results;
+
+    QDateTime m_startDateTime;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(WebastoNextModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // ENERGYCONTROLDISCOVERY_H
+#endif // WEBASTODISCOVERY_H

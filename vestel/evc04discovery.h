@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2023, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,25 +28,28 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef ENERGYCONTROLDISCOVERY_H
-#define ENERGYCONTROLDISCOVERY_H
+#ifndef AMTRONECUDISCOVERY_H
+#define AMTRONECUDISCOVERY_H
 
 #include <QObject>
 #include <QTimer>
+#include <QLoggingCategory>
 
-#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <network/networkdevicediscovery.h>
 
-class EnergyControlDiscovery : public QObject
+#include "evc04modbustcpconnection.h"
+
+class EVC04Discovery : public QObject
 {
     Q_OBJECT
 public:
-    explicit EnergyControlDiscovery(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
+    explicit EVC04Discovery(NetworkDeviceDiscovery *networkDeviceDiscovery, const QLoggingCategory &dc, QObject *parent = nullptr);
     struct Result {
-        QUuid modbusRtuMasterId;
-        quint16 firmwareVersion;
-        quint16 modbusId;
-        QString serialPort;
-        QString serialNumber;
+        QString chargepointId;
+        QString firmwareVersion;
+        QString brand;
+        QString model;
+        NetworkDeviceInfo networkDeviceInfo;
     };
 
     void startDiscovery();
@@ -54,15 +57,22 @@ public:
     QList<Result> discoveryResults() const;
 
 signals:
-    void discoveryFinished(bool modbusRtuMasterAvailable);
-
-private slots:
-    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
+    void discoveryFinished();
 
 private:
-    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+
+    QLoggingCategory m_dc;
+    QDateTime m_startDateTime;
+
+    QList<EVC04ModbusTcpConnection*> m_connections;
 
     QList<Result> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(EVC04ModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // ENERGYCONTROLDISCOVERY_H
+#endif // AMTRONECUDISCOVERY_H

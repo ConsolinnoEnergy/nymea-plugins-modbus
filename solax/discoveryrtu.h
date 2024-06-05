@@ -28,25 +28,25 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef ENERGYCONTROLDISCOVERY_H
-#define ENERGYCONTROLDISCOVERY_H
+#ifndef DISCOVERYRTU_H
+#define DISCOVERYRTU_H
 
 #include <QObject>
 #include <QTimer>
 
 #include <hardware/modbus/modbusrtuhardwareresource.h>
 
-class EnergyControlDiscovery : public QObject
+class DiscoveryRtu : public QObject
 {
     Q_OBJECT
 public:
-    explicit EnergyControlDiscovery(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
+    explicit DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
     struct Result {
-        QUuid modbusRtuMasterId;
-        quint16 firmwareVersion;
         quint16 modbusId;
-        QString serialPort;
-        QString serialNumber;
+        QString productName;
+        QString manufacturerName;
+        quint16 powerRating;
+        QUuid modbusRtuMasterId;        
     };
 
     void startDiscovery();
@@ -57,7 +57,7 @@ signals:
     void discoveryFinished(bool modbusRtuMasterAvailable);
 
 private slots:
-    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
+    void tryConnect(ModbusRtuMaster *master, quint16 slaveId);
 
 private:
     ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
@@ -65,4 +65,4 @@ private:
     QList<Result> m_discoveryResults;
 };
 
-#endif // ENERGYCONTROLDISCOVERY_H
+#endif // DISCOVERYRTU_H

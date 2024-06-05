@@ -1,40 +1,50 @@
-nymea-plugins-modbus (1.7.007) buster focal jammy; urgency=medium
+nymea-plugins-modbus (1.7.008) buster focal jammy; urgency=medium
 
-* Added plugin for alven eve single pro-line
-* Azzurro: set states to 0 when not connected. Added outlier detection to energy counters.
-* Added ABB terra plugin
+  * Added ABB terra plugin
+  * Update interface of evcharger plugin to match new interface. 
+  * Added plugin for alven eve single pro-line
+  * Azzurro: set states to 0 when not connected. Added outlier detection to energy counters.
+  * New plugin: Solax inverter
+  * Amperfied Energy Control: code improvement & bugfixes.
+  * Webasto ev-charger: removed Live, added Next and Unite.
 
  -- Luis Reber <l.reber@consolinno.de> Fri, 26 Apr 2024 09:50:00 +0200
 
 nymea-plugins-modbus (1.7.006) buster focal jammy; urgency=medium
 
-* Kaco SunSpec: set inverter power state to 0 when not connected.
-* Kaco SunSpec: improved modbus RTU discovery.
+  * Kaco SunSpec: set inverter power state to 0 when not connected.
+  * Kaco SunSpec: improved modbus RTU discovery.
 
  -- Sebastian Ringer <s.ringer@consolinno.de> Thu, 13 Mar 2024 17:21:53 +0200
 
+nymea-plugins-modbus (1.7.005-1) buster focal jammy; urgency=medium
+
+  * Nymea Interface: Use old interface for evcharger - Hotfix 1.1.1 build
+
+ -- Florian Knab <f.knab@consolinno.de> Mon, 8 Jan 2024 13:44:53 +0100
+
 nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
 
-* GoodWe: fixed some meter values sign and scaling.
+  * GoodWe: fixed some meter values sign and scaling.
 
  -- Sebastian Ringer <s.ringer@consolinno.de> Wed, 20 Dec 2023 17:21:53 +0200
 
 nymea-plugins-modbus (1.7.004) buster focal jammy; urgency=medium
 
-* Removed caching of unnecessary states for SDM630 & SDM72.
-* Amperfied Energy Control discovery improved.
+  * Amperfied Energy Control discovery improved.
+  * Removed caching of unnecessary states for SDM630 & SDM72.
 
- -- Sebastian Ringer <s.ringer@consolinno.de> Fr, 1 Dec 2023 16:46:53 +0200
+ -- Sebastian Ringer <s.ringer@consolinno.de> Thu, 30 Nov 2023 14:08:53 +0200
 
 nymea-plugins-modbus (1.7.003) buster focal jammy; urgency=medium
 
-* Amperfied bugfixes & improvements.
+  * Amperfied bugfixes & improvements.
 
  -- Sebastian Ringer <s.ringer@consolinno.de> Mon, 27 Nov 2023 16:13:53 +0200
 
 nymea-plugins-modbus (1.7.002-1) buster focal jammy; urgency=medium
 
-* Adapt to new versioning schema
+  * Adapt to new versioning schema
 
  -- Florian Knab <f.knab@consolinno.de> Thu, 19 Sep 2023 7:50:53 +0200
 

@@ -28,41 +28,47 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef ENERGYCONTROLDISCOVERY_H
-#define ENERGYCONTROLDISCOVERY_H
+#ifndef INTEGRATIONPLUGINVESTEL_H
+#define INTEGRATIONPLUGINVESTEL_H
 
-#include <QObject>
-#include <QTimer>
+#include <plugintimer.h>
+#include <integrations/integrationplugin.h>
+#include <network/networkdevicemonitor.h>
 
-#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include "extern-plugininfo.h"
 
-class EnergyControlDiscovery : public QObject
+#include "evc04modbustcpconnection.h"
+
+class IntegrationPluginVestel: public IntegrationPlugin
 {
     Q_OBJECT
+
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginvestel.json")
+    Q_INTERFACES(IntegrationPlugin)
+
 public:
-    explicit EnergyControlDiscovery(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
-    struct Result {
-        QUuid modbusRtuMasterId;
-        quint16 firmwareVersion;
-        quint16 modbusId;
-        QString serialPort;
-        QString serialNumber;
-    };
+    explicit IntegrationPluginVestel();
 
-    void startDiscovery();
-
-    QList<Result> discoveryResults() const;
-
-signals:
-    void discoveryFinished(bool modbusRtuMasterAvailable);
-
-private slots:
-    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
+    void discoverThings(ThingDiscoveryInfo *info) override;
+    void setupThing(ThingSetupInfo *info) override;
+    void postSetupThing(Thing *thing) override;
+    void executeAction(ThingActionInfo *info) override;
+    void thingRemoved(Thing *thing) override;
 
 private:
-    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
+    void setupEVC04Connection(ThingSetupInfo *info);
 
-    QList<Result> m_discoveryResults;
+    void updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTcpConnection *connection);
+
+    PluginTimer *m_pluginTimer = nullptr;
+    QHash<Thing *, EVC04ModbusTcpConnection *> m_evc04Connections;
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+
+    QHash<Thing *, quint32> m_lastWallboxTime;
+    QHash<Thing *, quint16> m_timeoutCount;
+
 };
 
-#endif // ENERGYCONTROLDISCOVERY_H
+#endif // INTEGRATIONPLUGINVESTEL_H
+
+
