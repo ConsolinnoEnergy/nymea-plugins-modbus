@@ -2,6 +2,7 @@ nymea-plugins-modbus (1.7.008) jammy; urgency=medium
 
   * Fixes for Solax power calculation (RTU)
   * Added Sax energy storage plugin.
+  * Added plugin for Growatt inverter including meter and battery.
 
  -- Luis Reber <l.reber@consolinno.de> Tue, 04 Jun 2024 10:29:00 +0200
 

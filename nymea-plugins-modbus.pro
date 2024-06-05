@@ -16,6 +16,7 @@ PLUGIN_DIRS = \
     bgetech                 \
     drexelundweiss          \
     goodwe                  \
+    growatt                 \
     huawei                  \
     idm                     \
     inepro                  \
