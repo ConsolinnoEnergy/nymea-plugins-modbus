@@ -216,6 +216,53 @@
             "access": "RO"
         },
         {
+            "id": "evseFaultCode",
+            "address": 1006,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "EVSE Fault Code",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "currentL1",
+            "address": 1008,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Current L1",
+            "unit": "mA",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "currentL2",
+            "address": 1010,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Current L2",
+            "unit": "mA",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "currentL3",
+            "address": 1012,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "inputRegister",
+            "description": "Current L3",
+            "unit": "mA",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
             "id": "activePowerTotal",
             "address": 1020,
             "size": 2,

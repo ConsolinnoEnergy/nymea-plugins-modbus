@@ -424,25 +424,42 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             QModbusReply *reply = evc04Connection->setChargingCurrent(power ? info->thing()->stateValue(webastoUniteMaxChargingCurrentStateTypeId).toUInt() : 0);
             connect(reply, &QModbusReply::finished, info, [info, reply, power](){
                 if (reply->error() == QModbusDevice::NoError) {
+                    if (!power) {
+                        qCDebug(dcWebasto()) << "Turning off wallbox by setting maxChargingCurrent to 0 finished successfully.";
+                    } else {
+                        qCDebug(dcWebasto()) << "Turning on wallbox by setting maxChargingCurrent to" << info->thing()->stateValue(webastoUniteMaxChargingCurrentStateTypeId).toUInt() << "finished successfully.";
+                    }
                     info->thing()->setStateValue(webastoUnitePowerStateTypeId, power);
                     info->finish(Thing::ThingErrorNoError);
                 } else {
-                    qCWarning(dcWebasto()) << "Error setting power:" << reply->error() << reply->errorString();
+                    qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
             });
         }
         if (info->action().actionTypeId() == webastoUniteMaxChargingCurrentActionTypeId) {
+
+            // Setting a charge current will turn on the wallbox. So only send a charge current when the wallbox should be on. Otherwise, just write the charge current
+            // to the state. The current will be set when the power action is triggered.
+            bool power = info->thing()->stateValue(webastoUnitePowerStateTypeId).toBool();
             int maxChargingCurrent = info->action().paramValue(webastoUniteMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toInt();
-            QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
-            connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
-                if (reply->error() == QModbusDevice::NoError) {
-                    info->thing()->setStateValue(webastoUniteMaxChargingCurrentStateTypeId, maxChargingCurrent);
-                    info->finish(Thing::ThingErrorNoError);
-                } else {
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                }
-            });
+            if (power) {
+                QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
+                connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
+                    if (reply->error() == QModbusDevice::NoError) {
+                        qCDebug(dcWebasto()) << "Setting max charging current finished successfully.";
+                        info->thing()->setStateValue(webastoUniteMaxChargingCurrentStateTypeId, maxChargingCurrent);
+                        info->finish(Thing::ThingErrorNoError);
+                    } else {
+                        qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                    }
+                });
+            } else {
+                qCDebug(dcWebasto()) << "Setting max charging current registered, but not sending modbus call because the wallbox should be off.";
+                info->thing()->setStateValue(webastoUniteMaxChargingCurrentStateTypeId, maxChargingCurrent);
+                info->finish(Thing::ThingErrorNoError);
+            }
         }
         return;
     }
@@ -845,6 +862,44 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
 
         updateEVC04MaxCurrent(thing, evc04Connection);
 
+        double currentPhaseA = evc04Connection->currentL1() / 1000.0;
+        double currentPhaseB = evc04Connection->currentL2() / 1000.0;
+        double currentPhaseC = evc04Connection->currentL3() / 1000.0;
+        thing->setStateValue(webastoUniteCurrentPhaseAStateTypeId, currentPhaseA);
+        thing->setStateValue(webastoUniteCurrentPhaseBStateTypeId, currentPhaseB);
+        thing->setStateValue(webastoUniteCurrentPhaseCStateTypeId, currentPhaseC);
+
+        quint16 phaseCount{0};
+        if (currentPhaseA > 1) {
+            phaseCount++;
+        }
+        if (currentPhaseB > 1) {
+            phaseCount++;
+        }
+        if (currentPhaseC > 1) {
+            phaseCount++;
+        }
+
+        // phaseCount not allowed to be 0 in current version of ConEMS
+        if (phaseCount < 1) {
+            phaseCount = 1;
+        }
+        thing->setStateValue(webastoUnitePhaseCountStateTypeId, phaseCount);
+
+        quint32 evseFaultCode = evc04Connection->evseFaultCode();
+        if (evseFaultCode == 0) {
+            thing->setStateValue(webastoUniteEvseFaultCodeStateTypeId, "No error");
+        } else {
+            thing->setStateValue(webastoUniteEvseFaultCodeStateTypeId, evseFaultCode);
+        }
+
+        // The wallbox starts charging as soon as you plug in the car. We don't want that. We want it to only charge when Nymea says so.
+        quint16 chargingCurrent = evc04Connection->chargingCurrent();
+        bool power = thing->stateValue(webastoUnitePowerStateTypeId).toBool();
+        if (chargingCurrent > 1 && !power) {
+            evc04Connection->setChargingCurrent(0);
+        }
+
         // I've been observing the wallbox getting stuck on modbus. It is still functional, but modbus keeps on returning the same old values
         // until the TCP connection is closed and reopened. Checking the wallbox time register to detect that and auto-reconnect.
         if (m_lastWallboxTime[thing] == evc04Connection->time()) {
@@ -919,21 +974,10 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::chargingCurrentChanged, thing, [thing](quint16 chargingCurrent) {
         qCDebug(dcWebasto()) << "Charging current changed:" << chargingCurrent;
-        if (chargingCurrent > 0) {
-            thing->setStateValue(webastoUnitePowerStateTypeId, true);
+
+        // This wallbox is turned off by setting the charging current to 0. Only set the value when it is not zero, otherwise turning the wallbox off will change this value.
+        if (chargingCurrent > 1) {
             thing->setStateValue(webastoUniteMaxChargingCurrentStateTypeId, chargingCurrent);
-        } else {
-            thing->setStateValue(webastoUnitePowerStateTypeId, false);
-        }
-    });
-    connect(evc04Connection, &EVC04ModbusTcpConnection::numPhasesChanged, thing, [thing](EVC04ModbusTcpConnection::NumPhases numPhases) {
-        switch (numPhases) {
-        case EVC04ModbusTcpConnection::NumPhases1:
-            thing->setStateValue(webastoUnitePhaseCountStateTypeId, 1);
-            break;
-        case EVC04ModbusTcpConnection::NumPhases3:
-            thing->setStateValue(webastoUnitePhaseCountStateTypeId, 3);
-            break;
         }
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::cableStateChanged, thing, [evc04Connection, thing](EVC04ModbusTcpConnection::CableState cableState) {
@@ -945,13 +989,6 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         case EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnected:
         case EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnectedCableLocked:
             thing->setStateValue(webastoUnitePluggedInStateTypeId, true);
-
-            // The car was plugged in, sync the power state now as the wallbox only allows to set that when the car is connected
-            if (thing->stateValue(webastoUnitePowerStateTypeId).toBool() == false) {
-                qCInfo(dcWebasto()) << "Car plugged in. Syncing cached power off state to wallbox";
-                evc04Connection->setChargingCurrent(0);
-            }
-
             break;
         }
     });
