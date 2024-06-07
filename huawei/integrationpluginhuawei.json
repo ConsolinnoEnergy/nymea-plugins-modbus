@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "huaweiFusionSolarInverter",
-                    "displayName": "Huawei FusionSolar Inverter (SmartDongle)",
+                    "displayName": "Huawei SUN2000 (TCP)",
                     "id": "87e75ee0-d544-457b-add3-bd4e58160fcd",
                     "createMethods": ["discovery", "user"],
                     "interfaces": ["solarinverter", "connectable"],
@@ -22,21 +22,24 @@
                             "displayName": "MAC address",
                             "type": "QString",
                             "inputType": "MacAddress",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "readOnly": true
                         },
                         {
                             "id": "55c4ec99-6342-4309-84a8-d1615f19b2e8",
                             "name":"port",
                             "displayName": "Port",
                             "type": "int",
-                            "defaultValue": 502
+                            "defaultValue": 502,
+                            "readOnly": true
                         },
                         {
                             "id": "aa6e978e-a16b-4722-8330-e706f3c7c21e",
                             "name":"slaveId",
                             "displayName": "Slave ID",
                             "type": "int",
-                            "defaultValue": 1
+                            "defaultValue": 1,
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [
@@ -81,8 +84,8 @@
                         {
                             "id": "e97fe328-6ca4-4fe4-86f7-fee6e9e406a5",
                             "name": "totalEnergyProduced",
-                            "displayName": "AC energy",
-                            "displayNameEvent": "AC energy changed",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,

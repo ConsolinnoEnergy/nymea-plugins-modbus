@@ -155,7 +155,7 @@ void HuaweiFusionSolar::readNextRegister()
                 const QModbusDataUnit unit = reply->result();
                 const QVector<quint16> blockValues = unit.values();
                 qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"identifyer\" register" << 30000 << "size:" << 35 << blockValues;
-                if (!valuesAreVaild(unit.values(), 44)) {
+                if (!valuesAreVaild(unit.values(), 35)) {
                     qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 35 << "but received" << unit.values();
                     finishRequestRetryIs(true);
                 } else {
