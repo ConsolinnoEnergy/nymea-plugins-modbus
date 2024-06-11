@@ -66,6 +66,12 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
     if (info->thingClassId() == webastoNextThingClassId) {
 
         qCInfo(dcWebasto()) << "Start discovering Webasto NEXT in the local network...";
+        m_nextDiscoveryRunning = true;
+        foreach(WebastoNextModbusTcpConnection *connection, m_webastoNextConnections) {
+            qCDebug(dcWebasto()) << "Disconnecting existing device temporarily to not interfere with discovery" << connection->hostAddress().toString();
+            connection->disconnectDevice();
+        }
+
 
         // Create a discovery with the info as parent for auto deleting the object once the discovery info is done
         WebastoDiscovery *discovery = new WebastoDiscovery(hardwareManager()->networkDeviceDiscovery(), info);
@@ -107,6 +113,11 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
             }
 
             info->finish(Thing::ThingErrorNoError);
+            m_nextDiscoveryRunning = false;
+            foreach(WebastoNextModbusTcpConnection *connection, m_webastoNextConnections) {
+                qCDebug(dcWebasto()) << "Discovery is done, reconnecting existing device" << connection->hostAddress().toString();
+                connection->reconnectDevice();
+            }
         });
 
         discovery->startDiscovery();
@@ -114,6 +125,15 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
     }
 
     if (info->thingClassId() == webastoUniteThingClassId) {
+
+        qCInfo(dcWebasto()) << "Start discovering Webasto Unite in the local network...";
+        m_uniteDiscoveryRunning = true;
+        foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
+            qCDebug(dcWebasto()) << "Disconnecting existing device temporarily to not interfere with discovery" << connection->hostAddress().toString();
+            connection->disconnectDevice();
+        }
+
+        // Create a discovery with the info as parent for auto deleting the object once the discovery info is done
         EVC04Discovery *discovery = new EVC04Discovery(hardwareManager()->networkDeviceDiscovery(), dcWebasto(), info);
         connect(discovery, &EVC04Discovery::discoveryFinished, info, [=](){
             foreach (const EVC04Discovery::Result &result, discovery->discoveryResults()) {
@@ -147,6 +167,11 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
             }
 
             info->finish(Thing::ThingErrorNoError);
+            m_uniteDiscoveryRunning = false;
+            foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
+                qCDebug(dcWebasto()) << "Discovery is done, reconnecting existing device" << connection->hostAddress().toString();
+                connection->reconnectDevice();
+            }
         });
         discovery->startDiscovery();
 
@@ -272,19 +297,24 @@ void IntegrationPluginWebasto::postSetupThing(Thing *thing)
         m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(1);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
 
-            foreach(WebastoNextModbusTcpConnection *webastoNext, m_webastoNextConnections) {
-                if (webastoNext->reachable()) {
-                    webastoNext->update();
+            if (!m_nextDiscoveryRunning) {
+                foreach(WebastoNextModbusTcpConnection *connection, m_webastoNextConnections) {
+                    if (connection->reachable()) {
+                        connection->update();
+                    }
                 }
             }
 
-            foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
-                qCDebug(dcWebasto()) << "Updating connection" << connection->hostAddress().toString();
-                if (connection->reachable()) {
-                    connection->update();
-                    connection->setAliveRegister(1);
+            if (!m_uniteDiscoveryRunning) {
+                foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
+                    qCDebug(dcWebasto()) << "Updating connection" << connection->hostAddress().toString();
+                    if (connection->reachable()) {
+                        connection->update();
+                        connection->setAliveRegister(1);
+                    }
                 }
             }
+
         });
 
         m_pluginTimer->start();
