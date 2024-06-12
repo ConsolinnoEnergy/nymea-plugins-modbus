@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2023, nymea GmbH
+* Copyright 2013 - 2024, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This fileDescriptor is part of nymea.
@@ -92,7 +92,10 @@ public:
         RegisterSolarEnergyTotal = 148,
         RegisterSolarEnergyToday = 150,
         RegisterMeter1CommunicationState = 184,
-        RegisterInverterType = 186
+        RegisterInverterType = 186,
+        RegisterPvVoltage3 = 290,
+        RegisterPvCurrent3 = 291,
+        RegisterPowerDc3 = 292
     };
     Q_ENUM(Registers)
 
@@ -256,6 +259,15 @@ public:
     /* Solar energy produced today (0x96) [kWh] - Address: 150, Size: 1 */
     float solarEnergyToday() const;
 
+    /* PV voltage 3 (0x0122) [V] - Address: 290, Size: 1 */
+    quint16 pvVoltage3() const;
+
+    /* PV current 3 (0x0122) [A] - Address: 291, Size: 1 */
+    quint16 pvCurrent3() const;
+
+    /* Power DC 3 (0x0123) [W] - Address: 292, Size: 1 */
+    quint16 powerDc3() const;
+
     /* Read block from start addess 0 with size of 21 registers containing following 3 properties:
       - Serial number (0x00) - Address: 0, Size: 7
       - Factory name (0x07) - Address: 7, Size: 7
@@ -317,6 +329,13 @@ public:
     */
     void updateSolarEnergyBlock();
 
+    /* Read block from start addess 290 with size of 3 registers containing following 3 properties:
+      - PV voltage 3 (0x0122) [V] - Address: 290, Size: 1
+      - PV current 3 (0x0122) [A] - Address: 291, Size: 1
+      - Power DC 3 (0x0123) [W] - Address: 292, Size: 1
+    */
+    void updatePv3Block();
+
     void updateBatteryCapacity();
     void updateBmsWarningLsb();
     void updateBmsWarningMsb();
@@ -361,6 +380,9 @@ public:
     void updateGridFrequencyT();
     void updateSolarEnergyTotal();
     void updateSolarEnergyToday();
+    void updatePvVoltage3();
+    void updatePvCurrent3();
+    void updatePowerDc3();
 
     QModbusReply *readBatteryCapacity();
     QModbusReply *readBmsWarningLsb();
@@ -407,6 +429,9 @@ public:
     QModbusReply *readGridFrequencyT();
     QModbusReply *readSolarEnergyTotal();
     QModbusReply *readSolarEnergyToday();
+    QModbusReply *readPvVoltage3();
+    QModbusReply *readPvCurrent3();
+    QModbusReply *readPowerDc3();
 
     /* Read block from start addess 0 with size of 21 registers containing following 3 properties:
      - Serial number (0x00) - Address: 0, Size: 7
@@ -469,6 +494,13 @@ public:
     */
     QModbusReply *readBlockSolarEnergy();
 
+    /* Read block from start addess 290 with size of 3 registers containing following 3 properties:
+     - PV voltage 3 (0x0122) [V] - Address: 290, Size: 1
+     - PV current 3 (0x0122) [A] - Address: 291, Size: 1
+     - Power DC 3 (0x0123) [W] - Address: 292, Size: 1
+    */
+    QModbusReply *readBlockPv3();
+
 
     virtual bool initialize();
     virtual void initialize2();
@@ -484,6 +516,7 @@ public:
     virtual void update9();
     virtual void update10();
     virtual void update11();
+    virtual void update12();
 
 signals:
     void reachableChanged(bool reachable);
@@ -586,6 +619,12 @@ signals:
     void solarEnergyTotalReadFinished(float solarEnergyTotal);
     void solarEnergyTodayChanged(float solarEnergyToday);
     void solarEnergyTodayReadFinished(float solarEnergyToday);
+    void pvVoltage3Changed(quint16 pvVoltage3);
+    void pvVoltage3ReadFinished(quint16 pvVoltage3);
+    void pvCurrent3Changed(quint16 pvCurrent3);
+    void pvCurrent3ReadFinished(quint16 pvCurrent3);
+    void powerDc3Changed(quint16 powerDc3);
+    void powerDc3ReadFinished(quint16 powerDc3);
 
 protected:
     quint16 m_batteryCapacity = 0;
@@ -633,6 +672,9 @@ protected:
     float m_gridFrequencyT = 0;
     float m_solarEnergyTotal = 0;
     float m_solarEnergyToday = 0;
+    quint16 m_pvVoltage3 = 0;
+    quint16 m_pvCurrent3 = 0;
+    quint16 m_powerDc3 = 0;
 
     void processBatteryCapacityRegisterValues(const QVector<quint16> values);
     void processBmsWarningLsbRegisterValues(const QVector<quint16> values);
@@ -685,6 +727,10 @@ protected:
 
     void processSolarEnergyTotalRegisterValues(const QVector<quint16> values);
     void processSolarEnergyTodayRegisterValues(const QVector<quint16> values);
+
+    void processPvVoltage3RegisterValues(const QVector<quint16> values);
+    void processPvCurrent3RegisterValues(const QVector<quint16> values);
+    void processPowerDc3RegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();

@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2023, nymea GmbH
+* Copyright 2013 - 2024, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This fileDescriptor is part of nymea.
@@ -341,6 +341,21 @@ float SolaxModbusTcpConnection::solarEnergyTotal() const
 float SolaxModbusTcpConnection::solarEnergyToday() const
 {
     return m_solarEnergyToday;
+}
+
+quint16 SolaxModbusTcpConnection::pvVoltage3() const
+{
+    return m_pvVoltage3;
+}
+
+quint16 SolaxModbusTcpConnection::pvCurrent3() const
+{
+    return m_pvCurrent3;
+}
+
+quint16 SolaxModbusTcpConnection::powerDc3() const
+{
+    return m_powerDc3;
 }
 
 bool SolaxModbusTcpConnection::initialize()
@@ -933,11 +948,51 @@ void SolaxModbusTcpConnection::update11()
         qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"solarEnergy\" register" << 148 << "size:" << 3 << blockValues;
         processSolarEnergyTotalRegisterValues(blockValues.mid(0, 2));
         processSolarEnergyTodayRegisterValues(blockValues.mid(2, 1));
-        verifyUpdateFinished();
+        update12();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"solarEnergy\" registers" << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::update12()
+{
+    QModbusReply *reply = nullptr;
+    // Read pv3
+    reply = readBlockPv3();
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read block \"pv3\" registers from:" << 290 << "size:" << 3;
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading block \"pv3\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        const QVector<quint16> blockValues = unit.values();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"pv3\" register" << 290 << "size:" << 3 << blockValues;
+        processPvVoltage3RegisterValues(blockValues.mid(0, 1));
+        processPvCurrent3RegisterValues(blockValues.mid(1, 1));
+        processPowerDc3RegisterValues(blockValues.mid(2, 1));
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"pv3\" registers" << error << reply->errorString();
     });
 }
 
@@ -1818,6 +1873,39 @@ void SolaxModbusTcpConnection::updateSolarEnergyBlock()
     });
 }
 
+void SolaxModbusTcpConnection::updatePv3Block()
+{
+    // Update register block "pv3"
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read block \"pv3\" registers from:" << 290 << "size:" << 3;
+    QModbusReply *reply = readBlockPv3();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading block \"pv3\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            const QVector<quint16> blockValues = unit.values();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"pv3\" register" << 290 << "size:" << 3 << blockValues;
+            processPvVoltage3RegisterValues(blockValues.mid(0, 1));
+            processPvCurrent3RegisterValues(blockValues.mid(1, 1));
+            processPowerDc3RegisterValues(blockValues.mid(2, 1));
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"pv3\" registers" << error << reply->errorString();
+    });
+}
+
 QModbusReply *SolaxModbusTcpConnection::readBatteryCapacity()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 28, 1);
@@ -2088,6 +2176,24 @@ QModbusReply *SolaxModbusTcpConnection::readSolarEnergyToday()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *SolaxModbusTcpConnection::readPvVoltage3()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 290, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readPvCurrent3()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 291, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readPowerDc3()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 292, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *SolaxModbusTcpConnection::readBlockIdentification()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0, 21);
@@ -2121,6 +2227,12 @@ QModbusReply *SolaxModbusTcpConnection::readBlockPhasesData()
 QModbusReply *SolaxModbusTcpConnection::readBlockSolarEnergy()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 148, 3);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readBlockPv3()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 290, 3);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -2619,6 +2731,39 @@ void SolaxModbusTcpConnection::processSolarEnergyTodayRegisterValues(const QVect
     }
 }
 
+void SolaxModbusTcpConnection::processPvVoltage3RegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedPvVoltage3 = ModbusDataUtils::convertToUInt16(values);
+    emit pvVoltage3ReadFinished(receivedPvVoltage3);
+
+    if (m_pvVoltage3 != receivedPvVoltage3) {
+        m_pvVoltage3 = receivedPvVoltage3;
+        emit pvVoltage3Changed(m_pvVoltage3);
+    }
+}
+
+void SolaxModbusTcpConnection::processPvCurrent3RegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedPvCurrent3 = ModbusDataUtils::convertToUInt16(values);
+    emit pvCurrent3ReadFinished(receivedPvCurrent3);
+
+    if (m_pvCurrent3 != receivedPvCurrent3) {
+        m_pvCurrent3 = receivedPvCurrent3;
+        emit pvCurrent3Changed(m_pvCurrent3);
+    }
+}
+
+void SolaxModbusTcpConnection::processPowerDc3RegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedPowerDc3 = ModbusDataUtils::convertToUInt16(values);
+    emit powerDc3ReadFinished(receivedPowerDc3);
+
+    if (m_powerDc3 != receivedPowerDc3) {
+        m_powerDc3 = receivedPowerDc3;
+        emit powerDc3Changed(m_powerDc3);
+    }
+}
+
 void SolaxModbusTcpConnection::handleModbusError(QModbusDevice::Error error)
 {
     if (error == QModbusDevice::NoError) {
@@ -2777,6 +2922,9 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - Phase T frequency (0x75): " << solaxModbusTcpConnection->gridFrequencyT() << " [Hz]" << "\n";
     debug.nospace().noquote() << "    - Solar energy produced total (0x94): " << solaxModbusTcpConnection->solarEnergyTotal() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Solar energy produced today (0x96): " << solaxModbusTcpConnection->solarEnergyToday() << " [kWh]" << "\n";
+    debug.nospace().noquote() << "    - PV voltage 3 (0x0122): " << solaxModbusTcpConnection->pvVoltage3() << " [V]" << "\n";
+    debug.nospace().noquote() << "    - PV current 3 (0x0122): " << solaxModbusTcpConnection->pvCurrent3() << " [A]" << "\n";
+    debug.nospace().noquote() << "    - Power DC 3 (0x0123): " << solaxModbusTcpConnection->powerDc3() << " [W]" << "\n";
     return debug.quote().space();
 }
 
