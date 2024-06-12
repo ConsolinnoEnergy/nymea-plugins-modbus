@@ -57,7 +57,7 @@
                             "defaultValue": 0
                         },
                         {
-                            "id": "10facbb7-1ec4-40e5-ad56-55ae8f7bcdad",
+                            "id": "9903f4e0-ae33-42fc-99a4-4b59ec23f6a0",
                             "name": "batteryCapacity2",
                             "displayName": "Battery 2 capacity (if present) [kWh]",
                             "type": "uint",
