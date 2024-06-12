@@ -68,7 +68,8 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
         qCInfo(dcWebasto()) << "Start discovering Webasto NEXT in the local network...";
         m_nextDiscoveryRunning = true;
         foreach(WebastoNextModbusTcpConnection *connection, m_webastoNextConnections) {
-            qCDebug(dcWebasto()) << "Disconnecting existing device temporarily to not interfere with discovery" << connection->hostAddress().toString();
+            qCWarning(dcWebasto()) << "Disconnecting existing device" << connection->hostAddress().toString()
+                                   << "temporarily to not interfere with discovery. Nothing to worry about, the device will reconnect after discovery is done.";
             connection->disconnectDevice();
         }
 
@@ -117,6 +118,9 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
             foreach(WebastoNextModbusTcpConnection *connection, m_webastoNextConnections) {
                 qCDebug(dcWebasto()) << "Discovery is done, reconnecting existing device" << connection->hostAddress().toString();
                 connection->reconnectDevice();
+
+                // Warning: This code needs to execute, otherwise the plugin is effectively disabled.
+                // Research needed: Is it guaranteed, that this code will trigger? Is a different code path possible, for example when the discovery fails?
             }
         });
 
@@ -129,6 +133,7 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
         qCInfo(dcWebasto()) << "Start discovering Webasto Unite in the local network...";
         m_uniteDiscoveryRunning = true;
         foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
+            // Reconfigure won't work without this. The device will not answer modbus calls (discovery will skip it) if there already is another active connection.
             qCDebug(dcWebasto()) << "Disconnecting existing device temporarily to not interfere with discovery" << connection->hostAddress().toString();
             connection->disconnectDevice();
         }
@@ -529,6 +534,7 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
         if (!thing->setupComplete())
             return;
 
+        // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
         if (m_webastoNextConnections.contains(thing)) {
             // The monitor is not very reliable. Sometimes it says monitor is not reachable, even when the connection ist still working.
             // So we need to test if the connection is actually not working before triggering a reconnect. Don't reconnect when the connection is actually working.
@@ -547,11 +553,17 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
     });
 
     connect(webastoNextConnection, &WebastoNextModbusTcpConnection::reachableChanged, thing, [this, thing, webastoNextConnection, monitor](bool reachable){
+        if (m_nextDiscoveryRunning == true) {
+            // Don't do anything if this triggers because of a discovery.
+            return;
+        }
+
         qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing;
+
         thing->setStateValue(webastoNextConnectedStateTypeId, reachable);
         if (reachable) {
             webastoNextConnection->update();
-        } else {
+        } else {            
             thing->setStateValue(webastoNextCurrentPowerStateTypeId, 0);
             thing->setStateValue(webastoNextCurrentPowerPhaseAStateTypeId, 0);
             thing->setStateValue(webastoNextCurrentPowerPhaseBStateTypeId, 0);
@@ -560,25 +572,33 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             thing->setStateValue(webastoNextCurrentPhaseBStateTypeId, 0);
             thing->setStateValue(webastoNextCurrentPhaseCStateTypeId, 0);
 
+            // Check the monitor. If the monitor is reachable, get the current IP (maybe it changed) and reconnect.
             if (monitor->reachable()) {
-                m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
-                webastoNextConnection->reconnectDevice();
+                // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+                if (m_webastoNextConnections.contains(thing)) {
+                    m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_webastoNextConnections.value(thing)->reconnectDevice();
+                }
             }
         }
     });
 
-    connect(webastoNextConnection, &WebastoNextModbusTcpConnection::checkReachabilityFailed, thing, [webastoNextConnection, monitor, thing](){
-        // If the reachability failed, try again 10 seconds later. This is needed to reconnect to the device after it was turned off.
-        // After startup, apparently the ModbusMaster can connecte to the device long before it will actually answer a modbus call. The
-        // modbus call will return an error and the reachability will fail. After a while the device will answer modbus calls, so just try
-        // again a bit later.
-        qCDebug(dcWebasto()) << "Failed communication attempt with" << thing << ". Trying again in 10 seconds.";
-        QTimer::singleShot(10000, thing, [webastoNextConnection, monitor, thing](){
-            if (monitor->reachable() && !webastoNextConnection->reachable()) {
-                qCDebug(dcWebasto()) << "Next communication attempt with" << thing;
-                webastoNextConnection->reconnectDevice();
-            }
-        });
+    connect(webastoNextConnection, &WebastoNextModbusTcpConnection::checkReachabilityFailed, thing, [this, monitor, thing](){
+        // Get the connection from the list, to avoid problems when the device is beeing deleted. If it is in the process of beeing deleted, the connection will not be in the list.
+        if (m_webastoNextConnections.contains(thing)) {
+            // If the reachability failed, try again 10 seconds later. This is needed to reconnect to the device after it was turned off.
+            // After startup, apparently the ModbusMaster can connecte to the device long before it will actually answer a modbus call. The
+            // modbus call will return an error and the reachability will fail. After a while the device will answer modbus calls, so just try
+            // again a bit later.
+            qCDebug(dcWebasto()) << "Failed communication attempt with" << thing << ". Trying again in 10 seconds.";
+            QTimer::singleShot(10000, thing, [this, monitor, thing](){
+                // Again, check the list for the connection object to not reconnect a device that is beeing removed.
+                if (m_webastoNextConnections.contains(thing) && monitor->reachable() && !m_webastoNextConnections.value(thing)->reachable()) {
+                    qCDebug(dcWebasto()) << "Next communication attempt with" << thing;
+                    m_webastoNextConnections.value(thing)->reconnectDevice();
+                }
+            });
+        }
     });
 
     connect(webastoNextConnection, &WebastoNextModbusTcpConnection::updateFinished, thing, [thing, webastoNextConnection](){
@@ -816,32 +836,61 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
 
     // Reconnect on monitor reachable changed
     NetworkDeviceMonitor *monitor = m_monitors.value(thing);
-    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
-        qCDebug(dcWebasto()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool monitorReachable){
+
+        if (monitorReachable) {
+            qCDebug(dcWebasto()) << "Network device is now reachable for" << thing << monitor->networkDeviceInfo();
+        } else {
+            qCDebug(dcWebasto()) << "Network device not reachable any more" << thing;
+        }
+
         if (!thing->setupComplete())
             return;
 
-        if (reachable && !thing->stateValue("connected").toBool()) {
-            evc04Connection->setHostAddress(monitor->networkDeviceInfo().address());
-            evc04Connection->connectDevice();
-        } else if (!reachable) {
-            // Note: We disable autoreconnect explicitly and we will
-            // connect the device once the monitor says it is reachable again
-            evc04Connection->disconnectDevice();
+        // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+        if (m_evc04Connections.contains(thing)) {
+            // The monitor is not very reliable. Sometimes it says monitor is not reachable, even when the connection ist still working.
+            // So we need to test if the connection is actually not working before triggering a reconnect. Don't reconnect when the connection is actually working.
+            if (!thing->stateValue(webastoUniteConnectedStateTypeId).toBool()) {
+                // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
+                if (monitorReachable) {
+                    // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
+                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->reconnectDevice();
+                } else {
+                    // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    m_evc04Connections.value(thing)->disconnectDevice();
+                }
+            }
         }
     });
 
-    connect(evc04Connection, &EVC04ModbusTcpConnection::reachableChanged, thing, [thing, evc04Connection](bool reachable){
+    connect(evc04Connection, &EVC04ModbusTcpConnection::reachableChanged, thing, [this, thing, evc04Connection, monitor](bool reachable){
+        if (m_uniteDiscoveryRunning == true) {
+            // Don't do anything if this triggers because of a discovery.
+            return;
+        }
+
         qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing;
+
         if (reachable) {
             evc04Connection->initialize();
         } else {
             thing->setStateValue(webastoUniteConnectedStateTypeId, false);
             thing->setStateValue(webastoUniteCurrentPowerStateTypeId, 0);
+
+            // Check the monitor. If the monitor is reachable, get the current IP (maybe it changed) and reconnect.
+            if (monitor->reachable()) {
+                // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+                if (m_evc04Connections.contains(thing)) {
+                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->reconnectDevice();
+                }
+            }
         }
     });
 
-    connect(evc04Connection, &EVC04ModbusTcpConnection::initializationFinished, thing, [=](bool success){
+    connect(evc04Connection, &EVC04ModbusTcpConnection::initializationFinished, thing, [thing, evc04Connection](bool success){
         if (!thing->setupComplete())
             return;
 
