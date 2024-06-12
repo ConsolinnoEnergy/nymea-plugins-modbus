@@ -68,6 +68,7 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
         qCInfo(dcWebasto()) << "Start discovering Webasto NEXT in the local network...";
         m_nextDiscoveryRunning = true;
         foreach(WebastoNextModbusTcpConnection *connection, m_webastoNextConnections) {
+            // Reconfigure won't work without this. The device will not answer modbus calls (discovery will skip it) if there already is another active connection.
             qCWarning(dcWebasto()) << "Disconnecting existing device" << connection->hostAddress().toString()
                                    << "temporarily to not interfere with discovery. Nothing to worry about, the device will reconnect after discovery is done.";
             connection->disconnectDevice();
@@ -134,7 +135,8 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
         m_uniteDiscoveryRunning = true;
         foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
             // Reconfigure won't work without this. The device will not answer modbus calls (discovery will skip it) if there already is another active connection.
-            qCDebug(dcWebasto()) << "Disconnecting existing device temporarily to not interfere with discovery" << connection->hostAddress().toString();
+            qCWarning(dcWebasto()) << "Disconnecting existing device" << connection->hostAddress().toString()
+                                   << "temporarily to not interfere with discovery. Nothing to worry about, the device will reconnect after discovery is done.";
             connection->disconnectDevice();
         }
 
@@ -176,6 +178,9 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
             foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
                 qCDebug(dcWebasto()) << "Discovery is done, reconnecting existing device" << connection->hostAddress().toString();
                 connection->reconnectDevice();
+
+                // Warning: This code needs to execute, otherwise the plugin is effectively disabled.
+                // Research needed: Is it guaranteed, that this code will trigger? Is a different code path possible, for example when the discovery fails?
             }
         });
         discovery->startDiscovery();
