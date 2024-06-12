@@ -40,7 +40,7 @@ void IntegrationPluginSolax::init()
 
 void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
 {
-    if (info->thingClassId() == solaxX3InverterTCPThingClassId) {
+    if (info->thingClassId() == solaxX3UltraThingClassId) {
         if (!hardwareManager()->networkDeviceDiscovery()->available()) {
             qCWarning(dcSolaxUltra()) << "The network discovery is not available on this platform.";
             info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
@@ -52,21 +52,21 @@ void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &DiscoveryTcp::discoveryFinished, info, [=](){
             foreach (const DiscoveryTcp::Result &result, discovery->discoveryResults()) {
 
-                ThingDescriptor descriptor(solaxX3InverterTCPThingClassId, result.manufacturerName + " Inverter " + result.productName, QString("rated power: %1").arg(result.powerRating) + "W - " + result.networkDeviceInfo.address().toString());
+                ThingDescriptor descriptor(solaxX3UltraThingClassId, result.manufacturerName + " Inverter " + result.productName, QString("rated power: %1").arg(result.powerRating) + "W - " + result.networkDeviceInfo.address().toString());
                 qCInfo(dcSolaxUltra()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 // Check if we already have set up this device
-                Things existingThings = myThings().filterByParam(solaxX3InverterTCPThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                Things existingThings = myThings().filterByParam(solaxX3UltraThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
                 if (existingThings.count() >= 1) {
                     qCDebug(dcSolaxUltra()) << "This solax inverter already exists in the system:" << result.networkDeviceInfo;
                     descriptor.setThingId(existingThings.first()->id());
                 }
 
                 ParamList params;
-                params << Param(solaxX3InverterTCPThingIpAddressParamTypeId, result.networkDeviceInfo.address().toString());
-                params << Param(solaxX3InverterTCPThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
-                params << Param(solaxX3InverterTCPThingPortParamTypeId, result.port);
-                params << Param(solaxX3InverterTCPThingModbusIdParamTypeId, result.modbusId);
+                params << Param(solaxX3UltraThingIpAddressParamTypeId, result.networkDeviceInfo.address().toString());
+                params << Param(solaxX3UltraThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                params << Param(solaxX3UltraThingPortParamTypeId, result.port);
+                params << Param(solaxX3UltraThingModbusIdParamTypeId, result.modbusId);
                 descriptor.setParams(params);
                 info->addThingDescriptor(descriptor);
             }
@@ -85,7 +85,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
     Thing *thing = info->thing();
     qCDebug(dcSolaxUltra()) << "Setup" << thing << thing->params();
 
-    if (thing->thingClassId() == solaxX3InverterTCPThingClassId) {
+    if (thing->thingClassId() == solaxX3UltraThingClassId) {
 
         // Handle reconfigure
         if (m_tcpConnections.contains(thing)) {
@@ -109,9 +109,9 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
         // Make sure we have a valid mac address, otherwise no monitor and no auto searching is possible.
         // Testing for null is necessary, because registering a monitor with a zero mac adress will cause a segfault.
-        MacAddress macAddress = MacAddress(thing->paramValue(solaxX3InverterTCPThingMacAddressParamTypeId).toString());
+        MacAddress macAddress = MacAddress(thing->paramValue(solaxX3UltraThingMacAddressParamTypeId).toString());
         if (macAddress.isNull()) {
-            qCWarning(dcSolaxUltra()) << "Failed to set up Solax inverter because the MAC address is not valid:" << thing->paramValue(solaxX3InverterTCPThingMacAddressParamTypeId).toString() << macAddress.toString();
+            qCWarning(dcSolaxUltra()) << "Failed to set up Solax inverter because the MAC address is not valid:" << thing->paramValue(solaxX3UltraThingMacAddressParamTypeId).toString() << macAddress.toString();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
             return;
         }
@@ -124,7 +124,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         m_monitors.insert(thing, monitor);
 
         // If the ip address was not found in the cache, wait for the for the network discovery cache to be updated
-        qCDebug(dcSolaxUltra()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(solaxX3InverterTCPThingMacAddressParamTypeId).toString();
+        qCDebug(dcSolaxUltra()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(solaxX3UltraThingMacAddressParamTypeId).toString();
         m_setupTcpConnectionRunning = false;
         if (monitor->reachable()) 
         {
@@ -145,8 +145,8 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
-            if (parentThing->thingClassId() == solaxX3InverterTCPThingClassId) {
-                thing->setStateValue(solaxMeterConnectedStateTypeId, parentThing->stateValue(solaxX3InverterTCPConnectedStateTypeId).toBool());
+            if (parentThing->thingClassId() == solaxX3UltraThingClassId) {
+                thing->setStateValue(solaxMeterConnectedStateTypeId, parentThing->stateValue(solaxX3UltraConnectedStateTypeId).toBool());
             }
         }
         return;
@@ -165,8 +165,8 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
 
             // Set capacity from parent parameter.
-            if (parentThing->thingClassId() == solaxX3InverterTCPThingClassId) {
-                thing->setStateValue(solaxBatteryCapacityStateTypeId, parentThing->paramValue(solaxX3InverterTCPThingBatteryCapacityParamTypeId).toUInt());
+            if (parentThing->thingClassId() == solaxX3UltraThingClassId) {
+                thing->setStateValue(solaxBatteryCapacityStateTypeId, parentThing->paramValue(solaxX3UltraThingBatteryCapacityParamTypeId).toUInt());
             }
         }
         return;
@@ -178,8 +178,8 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         qCDebug(dcSolaxUltra()) << "Setup TCP connection.";
         Thing *thing = info->thing();
         NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
-        uint port = thing->paramValue(solaxX3InverterTCPThingPortParamTypeId).toUInt();
-        quint16 modbusId = thing->paramValue(solaxX3InverterTCPThingModbusIdParamTypeId).toUInt();
+        uint port = thing->paramValue(solaxX3UltraThingPortParamTypeId).toUInt();
+        quint16 modbusId = thing->paramValue(solaxX3UltraThingModbusIdParamTypeId).toUInt();
         SolaxModbusTcpConnection *connection = new SolaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
         m_tcpConnections.insert(thing, connection);
         MeterStates meterStates{};
@@ -200,7 +200,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         // Reconnect on monitor reachable changed.
         connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
             qCDebug(dcSolaxUltra()) << "Network device monitor reachable changed for" << thing->name() << reachable;
-            if (reachable && !thing->stateValue(solaxX3InverterTCPConnectedStateTypeId).toBool()) {
+            if (reachable && !thing->stateValue(solaxX3UltraConnectedStateTypeId).toBool()) {
                 connection->setHostAddress(monitor->networkDeviceInfo().address());
                 connection->reconnectDevice();
             } else if (!reachable) {
@@ -216,8 +216,8 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 // Connected true will be set after successfull init.
                 connection->initialize();
             } else {
-                thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, false);
-                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, 0);
+                thing->setStateValue(solaxX3UltraConnectedStateTypeId, false);
+                thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, 0);
                 foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
                     childThing->setStateValue("connected", false);
                 }
@@ -234,7 +234,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         });
 
         connect(connection, &SolaxModbusTcpConnection::initializationFinished, thing, [=](bool success){
-            thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, success);
+            thing->setStateValue(solaxX3UltraConnectedStateTypeId, success);
 
             // Set connected state for meter
             m_meterstates.find(thing)->modbusReachable = success;
@@ -260,8 +260,8 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
             if (success) {
                 qCDebug(dcSolaxUltra()) << "Solax inverter initialized.";
-                thing->setStateValue(solaxX3InverterTCPFirmwareVersionStateTypeId, connection->firmwareVersion());
-                thing->setStateValue(solaxX3InverterTCPRatedPowerStateTypeId, connection->inverterType());
+                thing->setStateValue(solaxX3UltraFirmwareVersionStateTypeId, connection->firmwareVersion());
+                thing->setStateValue(solaxX3UltraRatedPowerStateTypeId, connection->inverterType());
             } else {
                 qCDebug(dcSolaxUltra()) << "Solax inverter initialization failed.";
                 // Try once to reconnect the device
@@ -287,47 +287,47 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 batteryPower = 0;
             }
             qCDebug(dcSolaxUltra()) << "Subtract from InverterPower";
-            // thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
+            // thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -inverterPower-batteryPower);
         });
 
         connect(connection, &SolaxModbusTcpConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
             qCDebug(dcSolaxUltra()) << "Inverter voltage changed" << inverterVoltage << "V";
-            thing->setStateValue(solaxX3InverterTCPInverterVoltageStateTypeId, inverterVoltage);
+            thing->setStateValue(solaxX3UltraInverterVoltageStateTypeId, inverterVoltage);
         });
 
         connect(connection, &SolaxModbusTcpConnection::inverterCurrentChanged, thing, [thing](double inverterCurrent){
             qCDebug(dcSolaxUltra()) << "Inverter current changed" << inverterCurrent << "A";
-            thing->setStateValue(solaxX3InverterTCPInverterCurrentStateTypeId, inverterCurrent);
+            thing->setStateValue(solaxX3UltraInverterCurrentStateTypeId, inverterCurrent);
         });
 
         connect(connection, &SolaxModbusTcpConnection::powerDc1Changed, thing, [thing](double powerDc1){
             qCDebug(dcSolaxUltra()) << "Inverter DC1 power changed" << powerDc1 << "W";
-            thing->setStateValue(solaxX3InverterTCPPv1PowerStateTypeId, powerDc1);
+            thing->setStateValue(solaxX3UltraPv1PowerStateTypeId, powerDc1);
         });
 
         connect(connection, &SolaxModbusTcpConnection::pvVoltage1Changed, thing, [thing](double pvVoltage1){
             qCDebug(dcSolaxUltra()) << "Inverter PV1 voltage changed" << pvVoltage1 << "V";
-            thing->setStateValue(solaxX3InverterTCPPv1VoltageStateTypeId, pvVoltage1);
+            thing->setStateValue(solaxX3UltraPv1VoltageStateTypeId, pvVoltage1);
         });
 
         connect(connection, &SolaxModbusTcpConnection::pvCurrent1Changed, thing, [thing](double pvCurrent1){
             qCDebug(dcSolaxUltra()) << "Inverter PV1 current changed" << pvCurrent1 << "A";
-            thing->setStateValue(solaxX3InverterTCPPv1CurrentStateTypeId, pvCurrent1);
+            thing->setStateValue(solaxX3UltraPv1CurrentStateTypeId, pvCurrent1);
         });
 
         connect(connection, &SolaxModbusTcpConnection::powerDc2Changed, thing, [thing](double powerDc2){
             qCDebug(dcSolaxUltra()) << "Inverter DC2 power changed" << powerDc2 << "W";
-            thing->setStateValue(solaxX3InverterTCPPv2PowerStateTypeId, powerDc2);
+            thing->setStateValue(solaxX3UltraPv2PowerStateTypeId, powerDc2);
         });
 
         connect(connection, &SolaxModbusTcpConnection::pvVoltage2Changed, thing, [thing](double pvVoltage2){
             qCDebug(dcSolaxUltra()) << "Inverter PV2 voltage changed" << pvVoltage2 << "V";
-            thing->setStateValue(solaxX3InverterTCPPv2VoltageStateTypeId, pvVoltage2);
+            thing->setStateValue(solaxX3UltraPv2VoltageStateTypeId, pvVoltage2);
         });
 
         connect(connection, &SolaxModbusTcpConnection::pvCurrent2Changed, thing, [thing](double pvCurrent2){
             qCDebug(dcSolaxUltra()) << "Inverter PV2 current changed" << pvCurrent2 << "A";
-            thing->setStateValue(solaxX3InverterTCPPv2CurrentStateTypeId, pvCurrent2);
+            thing->setStateValue(solaxX3UltraPv2CurrentStateTypeId, pvCurrent2);
         });
 
         connect(connection, &SolaxModbusTcpConnection::runModeChanged, thing, [this, thing](SolaxModbusTcpConnection::RunMode runMode){
@@ -338,22 +338,22 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::temperatureChanged, thing, [thing](quint16 temperature){
             qCDebug(dcSolaxUltra()) << "Inverter temperature changed" << temperature << "°C";
-            thing->setStateValue(solaxX3InverterTCPTemperatureStateTypeId, temperature);
+            thing->setStateValue(solaxX3UltraTemperatureStateTypeId, temperature);
         });
 
         connect(connection, &SolaxModbusTcpConnection::solarEnergyTotalChanged, thing, [thing](double solarEnergyTotal){
             qCDebug(dcSolaxUltra()) << "Inverter solar energy total changed" << solarEnergyTotal << "kWh";
-            thing->setStateValue(solaxX3InverterTCPTotalEnergyProducedStateTypeId, solarEnergyTotal);
+            thing->setStateValue(solaxX3UltraTotalEnergyProducedStateTypeId, solarEnergyTotal);
         });
 
         connect(connection, &SolaxModbusTcpConnection::solarEnergyTodayChanged, thing, [thing](double solarEnergyToday){
             qCDebug(dcSolaxUltra()) << "Inverter solar energy today changed" << solarEnergyToday << "kWh";
-            thing->setStateValue(solaxX3InverterTCPEnergyProducedTodayStateTypeId, solarEnergyToday);
+            thing->setStateValue(solaxX3UltraEnergyProducedTodayStateTypeId, solarEnergyToday);
         });
 
         connect(connection, &SolaxModbusTcpConnection::activePowerLimitChanged, thing, [thing](quint16 activePowerLimit){
             qCDebug(dcSolaxUltra()) << "Inverter active power limit changed" << activePowerLimit << "%";
-            thing->setStateValue(solaxX3InverterTCPActivePowerLimitStateTypeId, activePowerLimit);
+            thing->setStateValue(solaxX3UltraActivePowerLimitStateTypeId, activePowerLimit);
         });
 
         connect(connection, &SolaxModbusTcpConnection::inverterFaultBitsChanged, thing, [this, thing](quint32 inverterFaultBits){
@@ -595,7 +595,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             // PvPower1 + PvPower2 + PvPower3 and write to current power
             quint16 powerDc1 = connection->powerDc1();
             quint16 powerDc2 = connection->powerDc2();
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2));
+            thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -(powerDc1+powerDc2));
         });
 
 
@@ -609,7 +609,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
 void IntegrationPluginSolax::postSetupThing(Thing *thing)
 {
-    if (thing->thingClassId() == solaxX3InverterTCPThingClassId) {
+    if (thing->thingClassId() == solaxX3UltraThingClassId) {
 
         bool connectionWasCreated = m_tcpConnections.contains(thing);
         if (!connectionWasCreated) {
@@ -644,7 +644,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
     Thing *thing = info->thing();
     Action action = info->action();
 
-    if (thing->thingClassId() == solaxX3InverterTCPThingClassId) {
+    if (thing->thingClassId() == solaxX3UltraThingClassId) {
         SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
         if (!connection) {
             qCWarning(dcSolaxUltra()) << "Modbus connection not available";
@@ -658,8 +658,8 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             return;
         }
 
-        if (action.actionTypeId() == solaxX3InverterTCPActivePowerLimitActionTypeId) {
-            quint16 powerLimit = action.paramValue(solaxX3InverterTCPActivePowerLimitActionActivePowerLimitParamTypeId).toUInt();
+        if (action.actionTypeId() == solaxX3UltraActivePowerLimitActionTypeId) {
+            quint16 powerLimit = action.paramValue(solaxX3UltraActivePowerLimitActionActivePowerLimitParamTypeId).toUInt();
             qCDebug(dcSolaxUltra()) << "Trying to set active power limit to" << powerLimit;
             QModbusReply *reply = connection->setActivePowerLimit(powerLimit);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
@@ -669,7 +669,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
                     info->finish(Thing::ThingErrorHardwareFailure);
                 } else {
                     qCDebug(dcSolaxUltra()) << "Active power limit set to" << powerLimit;
-                    thing->setStateValue(solaxX3InverterTCPActivePowerLimitStateTypeId, powerLimit);
+                    thing->setStateValue(solaxX3UltraActivePowerLimitStateTypeId, powerLimit);
                     info->finish(Thing::ThingErrorNoError);
                 }
             });
@@ -773,8 +773,8 @@ void IntegrationPluginSolax::setRunMode(Thing *thing, quint16 runModeAsInt)
             runModeAsString = "Idle";
             break;
     }
-    if (thing->thingClassId() == solaxX3InverterTCPThingClassId) {
-        thing->setStateValue(solaxX3InverterTCPInverterStatusStateTypeId, runModeAsString);
+    if (thing->thingClassId() == solaxX3UltraThingClassId) {
+        thing->setStateValue(solaxX3UltraInverterStatusStateTypeId, runModeAsString);
     }
 }
 
@@ -864,8 +864,8 @@ void IntegrationPluginSolax::setErrorMessage(Thing *thing, quint32 errorBits)
         }
     }
     qCDebug(dcSolaxUltra()) << errorMessage;
-    if (thing->thingClassId() == solaxX3InverterTCPThingClassId) {
-        thing->setStateValue(solaxX3InverterTCPErrorMessageStateTypeId, errorMessage);
+    if (thing->thingClassId() == solaxX3UltraThingClassId) {
+        thing->setStateValue(solaxX3UltraErrorMessageStateTypeId, errorMessage);
     }
 }
 
