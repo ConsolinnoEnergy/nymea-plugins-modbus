@@ -216,6 +216,36 @@
                             "cached": false
                         },
                         {
+                            "id": "38d5cf9e-fd3b-4306-9c6b-c4a71d2622f5",
+                            "name": "pv3Power",
+                            "displayName": "PV3 power",
+                            "displayNameEvent": "PV3 power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "c7cd49c7-d19a-4fae-8990-f9c29275d982",
+                            "name": "pv3Voltage",
+                            "displayName": "PV3 voltage",
+                            "displayNameEvent": "PV3 voltage changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
+                            "id": "cce3fc22-d6e1-414b-8a13-c7dc881962e5",
+                            "name": "pv3Current",
+                            "displayName": "PV3 current",
+                            "displayNameEvent": "PV3 current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
                             "id": "65f47ea5-9577-47cf-b647-d617b542caaa",
                             "name": "temperature",
                             "displayName": "Temperature",
