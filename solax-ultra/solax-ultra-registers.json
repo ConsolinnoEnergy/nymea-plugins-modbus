@@ -525,6 +525,45 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "pv3",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "pvVoltage3",
+                    "address": 290,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "PV voltage 3 (0x0122)",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pvCurrent3",
+                    "address": 291,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "PV current 3 (0x0122)",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerDc3",
+                    "address": 292,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power DC 3 (0x0123)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         }
     ],
     "registers": [
