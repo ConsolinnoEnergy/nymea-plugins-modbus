@@ -287,7 +287,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 batteryPower = 0;
             }
             qCDebug(dcSolaxUltra()) << "Subtract from InverterPower";
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
+            // thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
         });
 
         connect(connection, &SolaxModbusTcpConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
@@ -589,6 +589,13 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 qCDebug(dcSolaxUltra()) << "Battery temperature changed" << temperatureBat << "°C";
                 batteryThings.first()->setStateValue(solaxBatteryTemperatureStateTypeId, temperatureBat);
             }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
+            // PvPower1 + PvPower2 + PvPower3 and write to current power
+            quint16 powerDc1 = connection->powerDc1();
+            quint16 powerDc2 = connection->powerDc2();
+            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2));
         });
 
 
