@@ -527,7 +527,7 @@
             ]
         },
         {
-            "id": "pv3",
+            "id": "pv3andbms3",
             "readSchedule": "update",
             "registers": [
                 {
@@ -547,7 +547,7 @@
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
-                    "description": "PV current 3 (0x0122)",
+                    "description": "PV current 3 (0x0123)",
                     "unit": "A",
                     "defaultValue": "0",
                     "access": "RO"
@@ -558,8 +558,133 @@
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
-                    "description": "Power DC 3 (0x0123)",
+                    "description": "Power DC 3 (0x0124)",
                     "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3VoltFaultValue",
+                    "address": 293,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "wPv3VoltFaultValue (0x0125)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3VoltFaultValue2",
+                    "address": 294,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "wPv3VoltFaultValue2 (0x0126)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batVoltageCharge2",
+                    "address": 295,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery voltage charge 3 (0x0127)",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentCharge2",
+                    "address": 296,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery current charge 3 (0x0128)",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batPowerCharge3",
+                    "address": 297,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery power charge 1 (0x0129)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bms2FaultLsb",
+                    "address": 298,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery Fault Message LSB (0x012A)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bms2FaulMLsb",
+                    "address": 299,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery Fault Message MSB (0x012B)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batDataReference2",
+                    "address": 300,
+                    "size": 1,
+                    "type": "inputRegister",
+                    "description": "Battery Data Reference (0x012C)",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryCapacity2",
+                    "address": 301,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery2 state of charge (0x012D)",
+                    "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "totalBatteryCapacity2",
+                    "address": 302,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery2 state of charge (0x012E)",
+                    "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "EoutPowerTotal",
+                    "address": 303,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "inputRegister",
+                    "description": "Inv Total AC Power (0x012F)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "temperatureBat2",
+                    "address": 305,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery temperature 2 (0x0131)",
+                    "unit": "°C",
                     "defaultValue": "0",
                     "access": "RO"
                 }
