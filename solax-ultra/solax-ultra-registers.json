@@ -606,10 +606,10 @@
                     "access": "RO"
                 },
                 {
-                    "id": "batPowerCharge3",
+                    "id": "batPowerCharge2",
                     "address": 297,
                     "size": 1,
-                    "type": "uint16",
+                    "type": "int16",
                     "registerType": "inputRegister",
                     "description": "Battery power charge 1 (0x0129)",
                     "unit": "W",
@@ -682,7 +682,7 @@
                     "id": "temperatureBat2",
                     "address": 305,
                     "size": 1,
-                    "type": "uint16",
+                    "type": "int16",
                     "registerType": "inputRegister",
                     "description": "Battery temperature 2 (0x0131)",
                     "unit": "°C",

@@ -168,6 +168,31 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             if (parentThing->thingClassId() == solaxX3UltraThingClassId) {
                 thing->setStateValue(solaxBatteryCapacityStateTypeId, parentThing->paramValue(solaxX3UltraThingBatteryCapacityParamTypeId).toUInt());
             }
+
+            BatteryStates batteryStates{};
+            m_batterystates.insert(thing, batteryStates);
+        }
+        return;
+    }
+
+    if (thing->thingClassId() == solaxBattery2ThingClassId) {
+        // Nothing to to here, we get all information from the inverter connection
+        info->finish(Thing::ThingErrorNoError);
+        Thing *parentThing = myThings().findById(thing->parentId());
+        if (parentThing) {
+            if (m_batterystates.value(parentThing).bmsCommStatus && m_batterystates.value(parentThing).modbusReachable) {
+                thing->setStateValue(solaxBattery2ConnectedStateTypeId, true);
+            } else {
+                thing->setStateValue(solaxBattery2ConnectedStateTypeId, false);
+                thing->setStateValue(solaxBattery2CurrentPowerStateTypeId, 0);
+            }
+
+            if (parentThing->thingClassId() == solaxX3UltraThingClassId) {
+                thing->setStateValue(solaxBattery2CapacityStateTypeId, parentThing->paramValue(solaxX3UltraThingBattery2CapacityParamTypeId).toUInt());
+            }
+
+            BatteryStates batteryStates{};
+            m_batterystates.insert(thing, batteryStates);
         }
         return;
     }
@@ -272,6 +297,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         // Handle property changed signals for inverter
         connect(connection, &SolaxModbusTcpConnection::inverterPowerChanged, thing, [thing, this](double inverterPower){
+            // TODO: use EoutPowerTotal
             qCDebug(dcSolaxUltra()) << "Inverter power changed" << inverterPower << "W";
             // https://consolinno.atlassian.net/wiki/spaces/~62f39a8532850ea2a3268713/pages/462848121/Bugfixing+Solax+EX3
            
@@ -328,6 +354,21 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         connect(connection, &SolaxModbusTcpConnection::pvCurrent2Changed, thing, [thing](double pvCurrent2){
             qCDebug(dcSolaxUltra()) << "Inverter PV2 current changed" << pvCurrent2 << "A";
             thing->setStateValue(solaxX3UltraPv2CurrentStateTypeId, pvCurrent2);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::powerDc3Changed, thing, [thing](double powerDc3){
+            qCDebug(dcSolaxUltra()) << "Inverter DC3 power changed" << powerDc3 << "W";
+            thing->setStateValue(solaxX3UltraPv3PowerStateTypeId, powerDc3);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::pvVoltage3Changed, thing, [thing](double pvVoltage3){
+            qCDebug(dcSolaxUltra()) << "Inverter PV3 voltage changed" << pvVoltage3 << "V";
+            thing->setStateValue(solaxX3UltraPv3VoltageStateTypeId, pvVoltage3);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::pvCurrent3Changed, thing, [thing](double pvCurrent3){
+            qCDebug(dcSolaxUltra()) << "Inverter PV3 current changed" << pvCurrent3 << "A";
+            thing->setStateValue(solaxX3UltraPv3CurrentStateTypeId, pvCurrent3);
         });
 
         connect(connection, &SolaxModbusTcpConnection::runModeChanged, thing, [this, thing](SolaxModbusTcpConnection::RunMode runMode){
@@ -591,11 +632,76 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             }
         });
 
+        connect(connection, &SolaxModbusTcpConnection::batVoltageCharge2Changed, thing, [this, thing](double batVoltCharge2) {
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolaxUltra()) << "Batter 2 voltage changed" << batVoltCharge2 << "W";
+                batteryThings.first()->setStateValue(solaxBattery2BatteryVoltageStateTypeId, batVoltCharge2);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::batCurrentCharge2Changed, thing, [this, thing](double batCurrentCharge2){
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolaxUltra()) << "Battery 2 current changed" << batCurrentCharge2 << "A";
+                batteryThings.first()->setStateValue(solaxBattery2BatteryCurrentStateTypeId, batCurrentCharge2);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::temperatureBat2Changed, thing, [this, thing](qint16 bat2Temperature) {
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolaxUltra()) << "Batter 2 temperature changed" << bat2Temperature << "°C";
+                batteryThings.first()->setStateValue(solaxBattery2TemperatureStateTypeId, bat2Temperature);
+            }
+        });
+
+        // TODO 3 -> 2
+        connect(connection, &SolaxModbusTcpConnection::batPowerCharge3Changed, thing, [this, thing](qint16 powerBat2){
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolaxUltra()) << "Battery power (batpowerCharge2) changed" << powerBat2 << "W";
+
+                // ToDo: Check if sign for charge / dischage is correct.
+                batteryThings.first()->setStateValue(solaxBattery2CurrentPowerStateTypeId, double(powerBat2));
+                if (powerBat2 < 0) {
+                    batteryThings.first()->setStateValue(solaxBattery2ChargingStateStateTypeId, "discharging");
+                } else if (powerBat2 > 0) {
+                    batteryThings.first()->setStateValue(solaxBattery2ChargingStateStateTypeId, "charging");
+                } else {
+                    batteryThings.first()->setStateValue(solaxBattery2ChargingStateStateTypeId, "idle");
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::batteryCapacity2Changed, thing, [this, thing](quint16 socBat2){
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            if (!batteryThings.isEmpty()) {
+                qCDebug(dcSolaxUltra()) << "Battery 2 state of charge (batteryCapacity) changed" << socBat2 << "%";
+                batteryThings.first()->setStateValue(solaxBattery2BatteryLevelStateTypeId, socBat2);
+                batteryThings.first()->setStateValue(solaxBattery2BatteryCriticalStateTypeId, socBat2 < 10);
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::bms2FaultLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
+            qCDebug(dcSolaxUltra()) << "Battery 2 warning bits LSB recieved" << batteryWarningBitsLsb;
+            m_batterystates.find(thing)->bmsWarningLsb = batteryWarningBitsLsb;
+            setBmsWarningMessage(thing);
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::bms2FaulMLsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
+            qCDebug(dcSolaxUltra()) << "Battery 2 warning bits MSB recieved" << batteryWarningBitsMsb;
+            m_batterystates.find(thing)->bmsWarningMsb = batteryWarningBitsMsb;
+            setBmsWarningMessage(thing);
+        });
+
         connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
-            // PvPower1 + PvPower2 + PvPower3 and write to current power
+            // TODO: handle currentpower in line 294
+            qCDebug(dcSolaxUltra()) << "Calculate total inverter power";
             quint16 powerDc1 = connection->powerDc1();
             quint16 powerDc2 = connection->powerDc2();
-            thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -(powerDc1+powerDc2));
+            quint16 powerDc3 = connection->powerDc3();
+            thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -(powerDc1+powerDc2+powerDc3));
         });
 
 
@@ -686,7 +792,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
 
         if (!connection->modbusRtuMaster()->connected()) {
             qCWarning(dcSolaxUltra()) << "Could not execute action. The modbus connection is currently not available.";
-            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            info->finish(Thing::ThingErrorHardwareNotAvailable);2
             return;
         }
 
