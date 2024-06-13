@@ -602,7 +602,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 // Temperature of Bat 2 is unlikely 0 if it is connected
                 qCDebug(dcSolaxUltra()) << "Set up Solax battery 2 for" << thing;
                 ThingDescriptor descriptor(solaxBattery2ThingClassId, "Solax battery 2", QString(), thing->id());
-                emit autoThingsAppeared(ThingDescriptor() << descriptor);
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
             }
         });
 
