@@ -68,6 +68,14 @@ Depends: ${shlibs:Depends},
 Description: nymea modbus command line tool for testing modbus TCP communication
  This package contains the nymea modbus command line tool for testing modbus TCP communication.
 
+Package: nymea-plugin-abb
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for abb wallboxes
+ This package contains the nymea integration plugin for a abb wallbox.
+
 
 Package: nymea-plugin-aeberle
 Architecture: any
@@ -252,6 +260,16 @@ Description: nymea integration plugin for M-TEC heat pumps
  This package contains the nymea integration plugin for M-TEC heat pumps.
 
 
+Package: nymea-plugin-sax
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Sax energy storage
+ This package contains the nymea integration plugin for energy storages made
+ by Sax.
+
+
 Package: nymea-plugin-schneider
 Architecture: any
 Section: libs
@@ -388,3 +406,12 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Alfen Eve Single Pro-Line wallbox.
  This package contains the nymea integration plugin for wallboxes made
  by Alfen N.V.
+
+Package: nymea-plugin-growatt
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Growatt inverter including meter and battery. 
+  This Package contains the nymea integration for inverter, meter and battery made by
+  Growatt New Energy GmbH.

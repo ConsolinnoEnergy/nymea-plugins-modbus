@@ -1,12 +1,21 @@
-nymea-plugins-modbus (1.7.009) buster focal jammy; urgency=medium
+nymea-plugins-modbus (1.7.009) jammy; urgency=medium
 
   * Webasto Next: fixed reconfigure functionality.
   * Webasto Unite: fixed reconfigure functionality.
 
  -- Sebastian Ringer <s.ringer@consolinno.de> Thu, 13 Jun 2024 15:12:53 +0200
 
-nymea-plugins-modbus (1.7.008) buster focal jammy; urgency=medium
+nymea-plugins-modbus (1.7.008) jammy; urgency=medium
 
+  * Fixes for Solax power calculation (RTU)
+  * Added Sax energy storage plugin.
+  * Added plugin for Growatt inverter including meter and battery.
+
+ -- Luis Reber <l.reber@consolinno.de> Tue, 04 Jun 2024 10:29:00 +0200
+
+nymea-plugins-modbus (1.7.007) buster focal jammy; urgency=medium
+
+  * Added ABB terra plugin
   * Update interface of evcharger plugin to match new interface. 
   * Added plugin for alven eve single pro-line
   * Azzurro: set states to 0 when not connected. Added outlier detection to energy counters.

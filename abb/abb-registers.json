@@ -1,0 +1,279 @@
+{
+    "className": "ABB",
+    "protocol": "BOTH",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 20,
+    "checkReachableRegister": "voltageL1",
+    "enums": [
+        {
+            "name": "ChargingState",
+            "values": [
+                {
+                    "key": "Undefined",
+                    "value": 11
+                },
+                {
+                    "key": "A0",
+                    "value": 0
+                },
+                {
+                    "key": "A1",
+                    "value": 32768
+                },
+                {
+                    "key": "B1",
+                    "value": 33024
+                },
+                {
+                    "key": "B2",
+                    "value": 33280
+                },
+                {
+                    "key": "B20",
+                    "value": 512
+                },
+                {
+                    "key": "C1",
+                    "value": 33536
+                },
+                {
+                    "key": "C2",
+                    "value": 33792
+                },
+                {
+                    "key": "C20",
+                    "value": 1024
+                },
+                {
+                    "key": "others",
+                    "value": 34048
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "chargingCurrent",
+            "address": 16640,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Set Charging current Limit",
+            "unit": "A",
+            "staticScaleFactor":-3,
+            "defaultValue": "0",
+            "access": "RW"
+        },
+        {
+            "id": "toggleCharging",
+            "address": 16645,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Enable or disable charging session",
+            "defaultValue": "0",
+            "access": "RW"
+        }
+    ],
+    "blocks": [
+        {
+            "id": "chargingInformation",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "settableMaxCurrent",
+                    "address": 16390,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "User Settable Max Current",
+                    "unit": "A",
+                    "staticScaleFactor":-3,
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "errorCode",
+                    "address": 16392,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Error Code",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "socketLock",
+                    "address": 16394,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Socket Lock State",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "chargingState",
+                    "address": 16396,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "ChargingState",
+                    "enum": "ChargingState",
+                    "defaultValue": "ChargingStateUndefined",
+                    "access": "RO"
+                },
+                {
+                    "id": "chargingCurrentLimit",
+                    "address": 16398,
+                    "size": 2,
+                    "type": "uint32",
+                    "unit": "A",
+                    "staticScaleFactor":-3,
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Charging Current Limit",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentL1",
+                    "address": 16400,
+                    "size": 2,
+                    "type": "uint32",
+                    "unit": "A",
+                    "staticScaleFactor":-3,
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Current L1",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentL2",
+                    "address": 16402,
+                    "size": 2,
+                    "type": "uint32",
+                    "unit": "A",
+                    "staticScaleFactor":-3,
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Current L2",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentL3",
+                    "address": 16404,
+                    "size": 2,
+                    "type": "uint32",
+                    "unit": "A",
+                    "staticScaleFactor":-3,
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Current L3",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "voltageL1",
+                    "address": 16406,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Voltage L1",
+                    "unit": "V",
+                    "staticScaleFactor":-1,
+                    "cached": false,
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "voltageL2",
+                    "address": 16408,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Voltage L2",
+                    "unit": "V",
+                    "staticScaleFactor":-1,
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "voltageL3",
+                    "address": 16410,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Voltage L3",
+                    "unit": "V",
+                    "staticScaleFactor":-1,
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPower",
+                    "address": 16412,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Active Power (L1+L2+L3)",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "sessionEnergy",
+                    "address": 16414,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Energy since PowerOn",
+                    "unit": "Wh",
+                    "defaultValue": 0,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "deviceInfo",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "serialnumber",
+                    "address": 16384,
+                    "size": 4,
+                    "type": "uint64",
+                    "readSchedule": "init",
+                    "registerType": "holdingRegister",
+                    "description": "Serial Number",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "fwversion",
+                    "address": 16388,
+                    "size": 2,
+                    "type": "uint32",
+                    "readSchedule": "init",
+                    "registerType": "holdingRegister",
+                    "description": "Firmware Version",
+                    "defaultValue": 268435456,
+                    "access": "RO"
+                }
+            ]
+        }
+    ]
+}
