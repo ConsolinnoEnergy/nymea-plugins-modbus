@@ -378,9 +378,9 @@ quint16 SolaxModbusTcpConnection::batCurrentCharge2() const
     return m_batCurrentCharge2;
 }
 
-quint16 SolaxModbusTcpConnection::batPowerCharge3() const
+qint16 SolaxModbusTcpConnection::batPowerCharge2() const
 {
-    return m_batPowerCharge3;
+    return m_batPowerCharge2;
 }
 
 quint16 SolaxModbusTcpConnection::bms2FaultLsb() const
@@ -413,7 +413,7 @@ qint32 SolaxModbusTcpConnection::EoutPowerTotal() const
     return m_EoutPowerTotal;
 }
 
-quint16 SolaxModbusTcpConnection::temperatureBat2() const
+qint16 SolaxModbusTcpConnection::temperatureBat2() const
 {
     return m_temperatureBat2;
 }
@@ -1052,7 +1052,7 @@ void SolaxModbusTcpConnection::update12()
         processPv3VoltFaultValue2RegisterValues(blockValues.mid(4, 1));
         processBatVoltageCharge2RegisterValues(blockValues.mid(5, 1));
         processBatCurrentCharge2RegisterValues(blockValues.mid(6, 1));
-        processBatPowerCharge3RegisterValues(blockValues.mid(7, 1));
+        processBatPowerCharge2RegisterValues(blockValues.mid(7, 1));
         processBms2FaultLsbRegisterValues(blockValues.mid(8, 1));
         processBms2FaulMLsbRegisterValues(blockValues.mid(9, 1));
         processBatDataReference2RegisterValues(blockValues.mid(10, 1));
@@ -1974,7 +1974,7 @@ void SolaxModbusTcpConnection::updatePv3andbms3Block()
             processPv3VoltFaultValue2RegisterValues(blockValues.mid(4, 1));
             processBatVoltageCharge2RegisterValues(blockValues.mid(5, 1));
             processBatCurrentCharge2RegisterValues(blockValues.mid(6, 1));
-            processBatPowerCharge3RegisterValues(blockValues.mid(7, 1));
+            processBatPowerCharge2RegisterValues(blockValues.mid(7, 1));
             processBms2FaultLsbRegisterValues(blockValues.mid(8, 1));
             processBms2FaulMLsbRegisterValues(blockValues.mid(9, 1));
             processBatDataReference2RegisterValues(blockValues.mid(10, 1));
@@ -2302,7 +2302,7 @@ QModbusReply *SolaxModbusTcpConnection::readBatCurrentCharge2()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *SolaxModbusTcpConnection::readBatPowerCharge3()
+QModbusReply *SolaxModbusTcpConnection::readBatPowerCharge2()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 297, 1);
     return sendReadRequest(request, m_slaveId);
@@ -2964,14 +2964,14 @@ void SolaxModbusTcpConnection::processBatCurrentCharge2RegisterValues(const QVec
     }
 }
 
-void SolaxModbusTcpConnection::processBatPowerCharge3RegisterValues(const QVector<quint16> values)
+void SolaxModbusTcpConnection::processBatPowerCharge2RegisterValues(const QVector<quint16> values)
 {
-    quint16 receivedBatPowerCharge3 = ModbusDataUtils::convertToUInt16(values);
-    emit batPowerCharge3ReadFinished(receivedBatPowerCharge3);
+    qint16 receivedBatPowerCharge2 = ModbusDataUtils::convertToInt16(values);
+    emit batPowerCharge2ReadFinished(receivedBatPowerCharge2);
 
-    if (m_batPowerCharge3 != receivedBatPowerCharge3) {
-        m_batPowerCharge3 = receivedBatPowerCharge3;
-        emit batPowerCharge3Changed(m_batPowerCharge3);
+    if (m_batPowerCharge2 != receivedBatPowerCharge2) {
+        m_batPowerCharge2 = receivedBatPowerCharge2;
+        emit batPowerCharge2Changed(m_batPowerCharge2);
     }
 }
 
@@ -3032,7 +3032,7 @@ void SolaxModbusTcpConnection::processTotalBatteryCapacity2RegisterValues(const 
 
 void SolaxModbusTcpConnection::processEoutPowerTotalRegisterValues(const QVector<quint16> values)
 {
-    qint32 receivedEoutPowerTotal = ModbusDataUtils::convertToInt32(values, m_endianness);
+    qint32 receivedEoutPowerTotal = ModbusDataUtils::convertToInt32(values, ModbusDataUtils::ByteOrderBigEndian);
     emit EoutPowerTotalReadFinished(receivedEoutPowerTotal);
 
     if (m_EoutPowerTotal != receivedEoutPowerTotal) {
@@ -3043,7 +3043,7 @@ void SolaxModbusTcpConnection::processEoutPowerTotalRegisterValues(const QVector
 
 void SolaxModbusTcpConnection::processTemperatureBat2RegisterValues(const QVector<quint16> values)
 {
-    quint16 receivedTemperatureBat2 = ModbusDataUtils::convertToUInt16(values);
+    qint16 receivedTemperatureBat2 = ModbusDataUtils::convertToInt16(values);
     emit temperatureBat2ReadFinished(receivedTemperatureBat2);
 
     if (m_temperatureBat2 != receivedTemperatureBat2) {
@@ -3217,7 +3217,7 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - wPv3VoltFaultValue2 (0x0126): " << solaxModbusTcpConnection->pv3VoltFaultValue2() << "\n";
     debug.nospace().noquote() << "    - Battery voltage charge 3 (0x0127): " << solaxModbusTcpConnection->batVoltageCharge2() << " [V]" << "\n";
     debug.nospace().noquote() << "    - Battery current charge 3 (0x0128): " << solaxModbusTcpConnection->batCurrentCharge2() << " [A]" << "\n";
-    debug.nospace().noquote() << "    - Battery power charge 1 (0x0129): " << solaxModbusTcpConnection->batPowerCharge3() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - Battery power charge 1 (0x0129): " << solaxModbusTcpConnection->batPowerCharge2() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Battery Fault Message LSB (0x012A): " << solaxModbusTcpConnection->bms2FaultLsb() << "\n";
     debug.nospace().noquote() << "    - Battery Fault Message MSB (0x012B): " << solaxModbusTcpConnection->bms2FaulMLsb() << "\n";
     debug.nospace().noquote() << "    - Battery Data Reference (0x012C): " << solaxModbusTcpConnection->batDataReference2() << "\n";

@@ -100,7 +100,7 @@ public:
         RegisterPv3VoltFaultValue2 = 294,
         RegisterBatVoltageCharge2 = 295,
         RegisterBatCurrentCharge2 = 296,
-        RegisterBatPowerCharge3 = 297,
+        RegisterBatPowerCharge2 = 297,
         RegisterBms2FaultLsb = 298,
         RegisterBms2FaulMLsb = 299,
         RegisterBatDataReference2 = 300,
@@ -293,7 +293,7 @@ public:
     quint16 batCurrentCharge2() const;
 
     /* Battery power charge 1 (0x0129) [W] - Address: 297, Size: 1 */
-    quint16 batPowerCharge3() const;
+    qint16 batPowerCharge2() const;
 
     /* Battery Fault Message LSB (0x012A) - Address: 298, Size: 1 */
     quint16 bms2FaultLsb() const;
@@ -314,7 +314,7 @@ public:
     qint32 EoutPowerTotal() const;
 
     /* Battery temperature 2 (0x0131) [°C] - Address: 305, Size: 1 */
-    quint16 temperatureBat2() const;
+    qint16 temperatureBat2() const;
 
     /* Read block from start addess 0 with size of 21 registers containing following 3 properties:
       - Serial number (0x00) - Address: 0, Size: 7
@@ -447,7 +447,7 @@ public:
     void updatePv3VoltFaultValue2();
     void updateBatVoltageCharge2();
     void updateBatCurrentCharge2();
-    void updateBatPowerCharge3();
+    void updateBatPowerCharge2();
     void updateBms2FaultLsb();
     void updateBms2FaulMLsb();
     void updateBatDataReference2();
@@ -508,7 +508,7 @@ public:
     QModbusReply *readPv3VoltFaultValue2();
     QModbusReply *readBatVoltageCharge2();
     QModbusReply *readBatCurrentCharge2();
-    QModbusReply *readBatPowerCharge3();
+    QModbusReply *readBatPowerCharge2();
     QModbusReply *readBms2FaultLsb();
     QModbusReply *readBms2FaulMLsb();
     QModbusReply *readBatDataReference2();
@@ -729,8 +729,8 @@ signals:
     void batVoltageCharge2ReadFinished(quint16 batVoltageCharge2);
     void batCurrentCharge2Changed(quint16 batCurrentCharge2);
     void batCurrentCharge2ReadFinished(quint16 batCurrentCharge2);
-    void batPowerCharge3Changed(quint16 batPowerCharge3);
-    void batPowerCharge3ReadFinished(quint16 batPowerCharge3);
+    void batPowerCharge2Changed(qint16 batPowerCharge2);
+    void batPowerCharge2ReadFinished(qint16 batPowerCharge2);
     void bms2FaultLsbChanged(quint16 bms2FaultLsb);
     void bms2FaultLsbReadFinished(quint16 bms2FaultLsb);
     void bms2FaulMLsbChanged(quint16 bms2FaulMLsb);
@@ -743,8 +743,8 @@ signals:
     void totalBatteryCapacity2ReadFinished(quint16 totalBatteryCapacity2);
     void EoutPowerTotalChanged(qint32 EoutPowerTotal);
     void EoutPowerTotalReadFinished(qint32 EoutPowerTotal);
-    void temperatureBat2Changed(quint16 temperatureBat2);
-    void temperatureBat2ReadFinished(quint16 temperatureBat2);
+    void temperatureBat2Changed(qint16 temperatureBat2);
+    void temperatureBat2ReadFinished(qint16 temperatureBat2);
 
 protected:
     quint16 m_batteryCapacity = 0;
@@ -799,14 +799,14 @@ protected:
     quint16 m_pv3VoltFaultValue2 = 0;
     quint16 m_batVoltageCharge2 = 0;
     quint16 m_batCurrentCharge2 = 0;
-    quint16 m_batPowerCharge3 = 0;
+    qint16 m_batPowerCharge2 = 0;
     quint16 m_bms2FaultLsb = 0;
     quint16 m_bms2FaulMLsb = 0;
     quint16 m_batDataReference2 = 0;
     quint16 m_batteryCapacity2 = 0;
     quint16 m_totalBatteryCapacity2 = 0;
     qint32 m_EoutPowerTotal = 0;
-    quint16 m_temperatureBat2 = 0;
+    qint16 m_temperatureBat2 = 0;
 
     void processBatteryCapacityRegisterValues(const QVector<quint16> values);
     void processBmsWarningLsbRegisterValues(const QVector<quint16> values);
@@ -867,7 +867,7 @@ protected:
     void processPv3VoltFaultValue2RegisterValues(const QVector<quint16> values);
     void processBatVoltageCharge2RegisterValues(const QVector<quint16> values);
     void processBatCurrentCharge2RegisterValues(const QVector<quint16> values);
-    void processBatPowerCharge3RegisterValues(const QVector<quint16> values);
+    void processBatPowerCharge2RegisterValues(const QVector<quint16> values);
     void processBms2FaultLsbRegisterValues(const QVector<quint16> values);
     void processBms2FaulMLsbRegisterValues(const QVector<quint16> values);
     void processBatDataReference2RegisterValues(const QVector<quint16> values);
