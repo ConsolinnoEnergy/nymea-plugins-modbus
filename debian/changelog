@@ -1,3 +1,10 @@
+nymea-plugins-modbus (1.7.009) buster focal jammy; urgency=medium
+
+  * Webasto Next: fixed reconfigure functionality.
+  * Webasto Unite: fixed reconfigure functionality.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Thu, 13 Jun 2024 15:12:53 +0200
+
 nymea-plugins-modbus (1.7.008) buster focal jammy; urgency=medium
 
   * Update interface of evcharger plugin to match new interface. 

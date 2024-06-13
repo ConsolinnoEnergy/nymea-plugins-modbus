@@ -46,6 +46,12 @@
 
 #include "../vestel/evc04discovery.h"
 
+// Known problems: For the Webasto Next, the registers 5004 (chargePower) and 5006 (chargingAction) are read only. But the current Nymea version (1.7) is buggy for
+// read only registers (compile error), so the workaround is to set them to RW. This will constantly give errors when the plugin tries to read them (which is not
+// possible, hence the error), but other than that it works.
+// Another thing for the Next: When the wallbox is power cycled, it takes a really long time before it starts answering modbus calls again (~5 min). The plugin will
+// recover the connected state, but it takes unusually long.
+
 IntegrationPluginWebasto::IntegrationPluginWebasto()
 {
 }
