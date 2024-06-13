@@ -598,14 +598,19 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::bmsWarningLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
             qCDebug(dcSolaxUltra()) << "Battery warning bits LSB recieved" << batteryWarningBitsLsb;
-            m_batterystates.find(thing)->bmsWarningLsb = batteryWarningBitsLsb;
-            setBmsWarningMessage(thing);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Thing* batteryThing = batteryThings.first();
+            m_batterystates.find(batteryThing)->bmsWarningLsb = batteryWarningBitsLsb;
+            setBmsWarningMessage(batteryThing);
+
         });
 
         connect(connection, &SolaxModbusTcpConnection::bmsWarningMsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
             qCDebug(dcSolaxUltra()) << "Battery warning bits MSB recieved" << batteryWarningBitsMsb;
-            m_batterystates.find(thing)->bmsWarningMsb = batteryWarningBitsMsb;
-            setBmsWarningMessage(thing);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Thing* batteryThing = batteryThings.first();
+            m_batterystates.find(batteryThing)->bmsWarningMsb = batteryWarningBitsMsb;
+            setBmsWarningMessage(batteryThing);
         });
 
         connect(connection, &SolaxModbusTcpConnection::batVoltageCharge1Changed, thing, [this, thing](double batVoltageCharge1){
@@ -685,14 +690,18 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::bms2FaultLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
             qCDebug(dcSolaxUltra()) << "Battery 2 warning bits LSB recieved" << batteryWarningBitsLsb;
-            m_batterystates.find(thing)->bmsWarningLsb = batteryWarningBitsLsb;
-            setBmsWarningMessage(thing);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Thing* batteryThing = batteryThings.first();
+            m_batterystates.find(batteryThing)->bmsWarningLsb = batteryWarningBitsLsb;
+            setBmsWarningMessage(batteryThing);
         });
 
         connect(connection, &SolaxModbusTcpConnection::bms2FaulMLsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
             qCDebug(dcSolaxUltra()) << "Battery 2 warning bits MSB recieved" << batteryWarningBitsMsb;
-            m_batterystates.find(thing)->bmsWarningMsb = batteryWarningBitsMsb;
-            setBmsWarningMessage(thing);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Thing* batteryThing = batteryThings.first();
+            m_batterystates.find(batteryThing)->bmsWarningMsb = batteryWarningBitsMsb;
+            setBmsWarningMessage(batteryThing);
         });
 
         connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
@@ -977,90 +986,87 @@ void IntegrationPluginSolax::setErrorMessage(Thing *thing, quint32 errorBits)
 
 void IntegrationPluginSolax::setBmsWarningMessage(Thing *thing)
 {
-    Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-    if (!batteryThings.isEmpty()) {
-        QString warningMessage{""};
-        quint16 warningBitsLsb = m_batterystates.value(thing).bmsWarningLsb;
-        quint16 warningBitsMsb = m_batterystates.value(thing).bmsWarningMsb;
+    QString warningMessage{""};
+    quint16 warningBitsLsb = m_batterystates.value(thing).bmsWarningLsb;
+    quint16 warningBitsMsb = m_batterystates.value(thing).bmsWarningMsb;
 
-        quint32 warningBits = warningBitsMsb;
-        warningBits = (warningBits << 16) + warningBitsLsb;
+    quint32 warningBits = warningBitsMsb;
+    warningBits = (warningBits << 16) + warningBitsLsb;
 
-        if (warningBits == 0) {
-            warningMessage = "No warning, everything ok.";
-        } else {
-            warningMessage.append("The following warning bits are active: ");
-            quint32 testBit{0b01};
-            for (int var = 0; var < 32; ++var) {
-                if (warningBits & (testBit << var)) {
-                    warningMessage.append(QStringLiteral("bit %1").arg(var));
-                    if (var == 0) {
-                        warningMessage.append(" BMS_External_Err, ");
-                    } else if (var == 1) {
-                        warningMessage.append(" BMS_Internal_Err, ");
-                    } else if (var == 2) {
-                        warningMessage.append(" BMS_OverVoltage, ");
-                    } else if (var == 3) {
-                        warningMessage.append(" BMS_LowerVoltage, ");
-                    } else if (var == 4) {
-                        warningMessage.append(" BMS_ChargeOverCurrent, ");
-                    } else if (var == 5) {
-                        warningMessage.append(" BMS_DishargeOverCurrent, ");
-                    } else if (var == 6) {
-                        warningMessage.append(" BMS_TemHigh, ");
-                    } else if (var == 7) {
-                        warningMessage.append(" BMS_TemLow, ");
-                    } else if (var == 8) {
-                        warningMessage.append(" BMS_CellImblance, ");
-                    } else if (var == 9) {
-                        warningMessage.append(" BMS_Hardware_Prot, ");
-                    } else if (var == 10) {
-                        warningMessage.append(" BMS_Inlock_Fault, ");
-                    } else if (var == 11) {
-                        warningMessage.append(" BMS_ISO_Fault, ");
-                    } else if (var == 12) {
-                        warningMessage.append(" BMS_VolSen_Fault, ");
-                    } else if (var == 13) {
-                        warningMessage.append(" BMS_TempSen_Fault, ");
-                    } else if (var == 14) {
-                        warningMessage.append(" BMS_CurSen_Fault, ");
-                    } else if (var == 15) {
-                        warningMessage.append(" BMS_Relay_Fault, ");
-                    } else if (var == 16) {
-                        warningMessage.append(" BMS_Type_Unmatch, ");
-                    } else if (var == 17) {
-                        warningMessage.append(" BMS_Ver_Unmatch, ");
-                    } else if (var == 18) {
-                        warningMessage.append(" BMS_Manufacturer_Unmatch, ");
-                    } else if (var == 19) {
-                        warningMessage.append(" BMS_SW&HW_Unmatch, ");
-                    } else if (var == 20) {
-                        warningMessage.append(" BMS_M&S_Unmatch, ");
-                    } else if (var == 21) {
-                        warningMessage.append(" BMS_CR_Unresponsive, ");
-                    } else if (var == 22) {
-                        warningMessage.append(" BMS_Software_Protect, ");
-                    } else if (var == 23) {
-                        warningMessage.append(" BMS_536_Fault, ");
-                    } else if (var == 24) {
-                        warningMessage.append(" Selfchecking_Fault, ");
-                    } else if (var == 25) {
-                        warningMessage.append(" BMS_Tempdiff_Fault, ");
-                    } else if (var == 26) {
-                        warningMessage.append(" BMS_Break, ");
-                    } else if (var == 27) {
-                        warningMessage.append(" BMS_Flash_Fault, ");
-                    } else {
-                        warningMessage.append(", ");
-                    }
+    if (warningBits == 0) {
+        warningMessage = "No warning, everything ok.";
+    } else {
+        warningMessage.append("The following warning bits are active: ");
+        quint32 testBit{0b01};
+        for (int var = 0; var < 32; ++var) {
+            if (warningBits & (testBit << var)) {
+                warningMessage.append(QStringLiteral("bit %1").arg(var));
+                if (var == 0) {
+                    warningMessage.append(" BMS_External_Err, ");
+                } else if (var == 1) {
+                    warningMessage.append(" BMS_Internal_Err, ");
+                } else if (var == 2) {
+                    warningMessage.append(" BMS_OverVoltage, ");
+                } else if (var == 3) {
+                    warningMessage.append(" BMS_LowerVoltage, ");
+                } else if (var == 4) {
+                    warningMessage.append(" BMS_ChargeOverCurrent, ");
+                } else if (var == 5) {
+                    warningMessage.append(" BMS_DishargeOverCurrent, ");
+                } else if (var == 6) {
+                    warningMessage.append(" BMS_TemHigh, ");
+                } else if (var == 7) {
+                    warningMessage.append(" BMS_TemLow, ");
+                } else if (var == 8) {
+                    warningMessage.append(" BMS_CellImblance, ");
+                } else if (var == 9) {
+                    warningMessage.append(" BMS_Hardware_Prot, ");
+                } else if (var == 10) {
+                    warningMessage.append(" BMS_Inlock_Fault, ");
+                } else if (var == 11) {
+                    warningMessage.append(" BMS_ISO_Fault, ");
+                } else if (var == 12) {
+                    warningMessage.append(" BMS_VolSen_Fault, ");
+                } else if (var == 13) {
+                    warningMessage.append(" BMS_TempSen_Fault, ");
+                } else if (var == 14) {
+                    warningMessage.append(" BMS_CurSen_Fault, ");
+                } else if (var == 15) {
+                    warningMessage.append(" BMS_Relay_Fault, ");
+                } else if (var == 16) {
+                    warningMessage.append(" BMS_Type_Unmatch, ");
+                } else if (var == 17) {
+                    warningMessage.append(" BMS_Ver_Unmatch, ");
+                } else if (var == 18) {
+                    warningMessage.append(" BMS_Manufacturer_Unmatch, ");
+                } else if (var == 19) {
+                    warningMessage.append(" BMS_SW&HW_Unmatch, ");
+                } else if (var == 20) {
+                    warningMessage.append(" BMS_M&S_Unmatch, ");
+                } else if (var == 21) {
+                    warningMessage.append(" BMS_CR_Unresponsive, ");
+                } else if (var == 22) {
+                    warningMessage.append(" BMS_Software_Protect, ");
+                } else if (var == 23) {
+                    warningMessage.append(" BMS_536_Fault, ");
+                } else if (var == 24) {
+                    warningMessage.append(" Selfchecking_Fault, ");
+                } else if (var == 25) {
+                    warningMessage.append(" BMS_Tempdiff_Fault, ");
+                } else if (var == 26) {
+                    warningMessage.append(" BMS_Break, ");
+                } else if (var == 27) {
+                    warningMessage.append(" BMS_Flash_Fault, ");
+                } else {
+                    warningMessage.append(", ");
                 }
             }
-            int stringLength = warningMessage.length();
-            if (stringLength > 1) { // stringLength should be > 1, but just in case.
-                warningMessage.replace(stringLength - 2, 2, "."); // Replace ", " at the end with ".".
-            }
         }
-        qCDebug(dcSolaxUltra()) << warningMessage;
-        batteryThings.first()->setStateValue(solaxBatteryWarningMessageStateTypeId, warningMessage);
+        int stringLength = warningMessage.length();
+        if (stringLength > 1) { // stringLength should be > 1, but just in case.
+            warningMessage.replace(stringLength - 2, 2, "."); // Replace ", " at the end with ".".
+        }
     }
+    qCDebug(dcSolaxUltra()) << warningMessage;
+    thing->setStateValue(solaxBatteryWarningMessageStateTypeId, warningMessage);
 }
