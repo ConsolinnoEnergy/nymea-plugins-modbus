@@ -296,15 +296,21 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
 
         // Handle property changed signals for inverter
-        connect(connection, &SolaxModbusTcpConnection::inverterPowerChanged, thing, [thing, this](double inverterPower){
+        connect(connection, &SolaxModbusTcpConnection::EoutPowerTotalChanged, thing, [thing, this](double inverterPower){
             // TODO: use EoutPowerTotal
             qCDebug(dcSolaxUltra()) << "Inverter power changed" << inverterPower << "W";
             // https://consolinno.atlassian.net/wiki/spaces/~62f39a8532850ea2a3268713/pages/462848121/Bugfixing+Solax+EX3
            
             double batteryPower = 0;
+            double batteryPower2 = 0;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 batteryPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toDouble();
+            }
+
+            Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryPower2 = batteryThings.first()->stateValue(solaxBattery2CurrentPowerStateTypeId).toDouble();
             }
            
             if (batteryPower < 0)
@@ -312,8 +318,15 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 // Battery is discharging
                 batteryPower = 0;
             }
+
+            if (batteryPower2 < 0)
+            {
+                // Batter 2 is discharging
+                batteryPower2 = 0;
+            }
+
             qCDebug(dcSolaxUltra()) << "Subtract from InverterPower";
-            // thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -inverterPower-batteryPower);
+            thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -inverterPower-batteryPower-batteryPower2);
         });
 
         connect(connection, &SolaxModbusTcpConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
@@ -551,6 +564,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         // Battery        
         connect(connection, &SolaxModbusTcpConnection::bmsConnectStateChanged, thing, [this, thing](quint16 bmsConnect){
+            // TODO: create BMS2 thing
             // Debug output even if there is no battery thing, since this signal creates it.
             qCDebug(dcSolaxUltra()) << "Battery connect state (bmsConnectState) changed" << bmsConnect;
             bool bmsCommStatusBool = (bmsConnect != 0);
@@ -704,14 +718,14 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             setBmsWarningMessage(batteryThing);
         });
 
-        connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
-            // TODO: handle currentpower in line 294
-            qCDebug(dcSolaxUltra()) << "Calculate total inverter power";
-            quint16 powerDc1 = connection->powerDc1();
-            quint16 powerDc2 = connection->powerDc2();
-            quint16 powerDc3 = connection->powerDc3();
-            thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -(powerDc1+powerDc2+powerDc3));
-        });
+        // connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
+        //     // TODO: handle currentpower in line 294
+        //     qCDebug(dcSolaxUltra()) << "Calculate total inverter power";
+        //     quint16 powerDc1 = connection->powerDc1();
+        //     quint16 powerDc2 = connection->powerDc2();
+        //     quint16 powerDc3 = connection->powerDc3();
+        //     thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -(powerDc1+powerDc2+powerDc3));
+        // });
 
 
         if (monitor->reachable())
