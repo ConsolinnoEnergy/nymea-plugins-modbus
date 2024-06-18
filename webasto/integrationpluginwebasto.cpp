@@ -201,6 +201,7 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
     qCDebug(dcWebasto()) << "Setup thing" << thing->name();
 
     if (thing->thingClassId() == webastoNextThingClassId) {
+        m_nextSetupRunning = false;
 
         // Handle reconfigure
         if (m_webastoNextConnections.contains(thing)) {
@@ -246,7 +247,9 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
         } else {
             qCDebug(dcWebasto()) << "Waiting for the network monitor to get reachable before continue to set up the connection" << thing->name() << address.toString() << "...";
             connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [=](bool reachable){
-                if (reachable) {
+                if (reachable && !m_nextSetupRunning) {
+                    // The monitor is unreliable and can change reachable true->false->true before setup is done. Make sure this runs only once.
+                    m_nextSetupRunning = true;
                     qCDebug(dcWebasto()) << "The monitor for thing setup" << thing->name() << "is now reachable. Continue setup...";
                     setupWebastoNextConnection(info);
                 }
@@ -257,6 +260,7 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
     }
 
     if (thing->thingClassId() == webastoUniteThingClassId) {
+        m_uniteSetupRunning = false;
 
         if (m_evc04Connections.contains(thing)) {
             qCDebug(dcWebasto()) << "Reconfiguring existing thing" << thing->name();
@@ -291,7 +295,9 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
         } else {
             qCDebug(dcWebasto()) << "Waiting for the network monitor to get reachable before continuing to set up the connection" << thing->name() << "...";
             connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [=](bool reachable){
-                if (reachable) {
+                if (reachable && !m_uniteSetupRunning) {
+                    // The monitor is unreliable and can change reachable true->false->true before setup is done. Make sure this runs only once.
+                    m_uniteSetupRunning = true;
                     qCDebug(dcWebasto()) << "The monitor for thing setup" << thing->name() << "is now reachable. Continuing setup on" << monitor->networkDeviceInfo().address().toString();
                     setupEVC04Connection(info);
                 }
@@ -323,8 +329,8 @@ void IntegrationPluginWebasto::postSetupThing(Thing *thing)
 
             if (!m_uniteDiscoveryRunning) {
                 foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
-                    qCDebug(dcWebasto()) << "Updating connection" << connection->hostAddress().toString();
                     if (connection->reachable()) {
+                        qCDebug(dcWebasto()) << "Updating connection" << connection->hostAddress().toString();
                         connection->update();
                         connection->setAliveRegister(1);
                     }
@@ -537,9 +543,9 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
     connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool monitorReachable){
 
         if (monitorReachable) {
-            qCDebug(dcWebasto()) << "Network device is now reachable for" << thing << monitor->networkDeviceInfo();
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "is now reachable at" << monitor->networkDeviceInfo();
         } else {
-            qCDebug(dcWebasto()) << "Network device not reachable any more" << thing;
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "is offline";
         }
 
         if (!thing->setupComplete())
@@ -553,10 +559,12 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
                 // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
                 if (monitorReachable) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
+                    qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
                     m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
                     m_webastoNextConnections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    qCDebug(dcWebasto()) << "The device is offline. Stopping communication attempts.";
                     m_webastoNextConnections.value(thing)->disconnectDevice();
                 }
             }
@@ -569,7 +577,7 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             return;
         }
 
-        qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing;
+        qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing << ". Monitor is" << monitor->reachable();
 
         thing->setStateValue(webastoNextConnectedStateTypeId, reachable);
         if (reachable) {
@@ -587,6 +595,7 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             if (monitor->reachable()) {
                 // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
                 if (m_webastoNextConnections.contains(thing)) {
+                    qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
                     m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
                     m_webastoNextConnections.value(thing)->reconnectDevice();
                 }
@@ -605,7 +614,8 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             QTimer::singleShot(10000, thing, [this, monitor, thing](){
                 // Again, check the list for the connection object to not reconnect a device that is beeing removed.
                 if (m_webastoNextConnections.contains(thing) && monitor->reachable() && !m_webastoNextConnections.value(thing)->reachable()) {
-                    qCDebug(dcWebasto()) << "Next communication attempt with" << thing;
+                    qCDebug(dcWebasto()) << "Next communication attempt with" << thing << ", trying IP address" << monitor->networkDeviceInfo().address();
+                    m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
                     m_webastoNextConnections.value(thing)->reconnectDevice();
                 }
             });
@@ -614,7 +624,13 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
 
     connect(webastoNextConnection, &WebastoNextModbusTcpConnection::updateFinished, thing, [thing, webastoNextConnection](){
 
-        qCDebug(dcWebasto()) << "Update finished" << webastoNextConnection;
+        if (!webastoNextConnection->connected()) {
+            qCDebug(dcWebasto()) << "Skipping Webasto Next updateFinished, device is not connected.";
+            return;
+        }
+
+        //qCDebug(dcWebasto()) << "Update finished" << webastoNextConnection;
+        qCDebug(dcWebasto()) << "Update finished";
         // States
         switch (webastoNextConnection->chargeState()) {
         case WebastoNextModbusTcpConnection::ChargeStateIdle:
@@ -850,9 +866,9 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool monitorReachable){
 
         if (monitorReachable) {
-            qCDebug(dcWebasto()) << "Network device is now reachable for" << thing << monitor->networkDeviceInfo();
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "is now reachable at" << monitor->networkDeviceInfo();
         } else {
-            qCDebug(dcWebasto()) << "Network device not reachable any more" << thing;
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "is offline";
         }
 
         if (!thing->setupComplete())
@@ -866,10 +882,12 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
                 // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
                 if (monitorReachable) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
+                    qCDebug(dcWebasto()) << "Connection is not working. Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
                     m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
                     m_evc04Connections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    qCDebug(dcWebasto()) << "The device is offline. Stopping communication attempts.";
                     m_evc04Connections.value(thing)->disconnectDevice();
                 }
             }
@@ -882,7 +900,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
             return;
         }
 
-        qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing;
+        qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing << ". Monitor is" << monitor->reachable();
 
         if (reachable) {
             evc04Connection->initialize();
@@ -894,25 +912,69 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
             if (monitor->reachable()) {
                 // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
                 if (m_evc04Connections.contains(thing)) {
+                    qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
                     m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
                     m_evc04Connections.value(thing)->reconnectDevice();
+                }
+            } else {
+                // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                m_evc04Connections.value(thing)->disconnectDevice();
+            }
+        }
+    });
+
+    // This is needed because the monitor is sometimes too slow to trigger reachableChanged when the address changed.
+    connect(monitor, &NetworkDeviceMonitor::networkDeviceInfoChanged, thing, [=](NetworkDeviceInfo networkDeviceInfo){
+
+        if (monitor->reachable()) {
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "has changed it's network address and is now reachable at" << networkDeviceInfo;
+        } else {
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "has changed it's network address and is offline";
+        }
+
+        if (!thing->setupComplete())
+            return;
+
+        // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+        if (m_evc04Connections.contains(thing)) {
+            // The monitor is not very reliable. Sometimes it says monitor is not reachable, even when the connection ist still working.
+            // So we need to test if the connection is actually not working before triggering a reconnect. Don't reconnect when the connection is actually working.
+            if (!thing->stateValue(webastoUniteConnectedStateTypeId).toBool()) {
+                // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
+                if (monitor->reachable()) {
+                    // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
+                    qCDebug(dcWebasto()) << "Connection is not working. Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
+                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->reconnectDevice();
+                } else {
+                    // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    qCDebug(dcWebasto()) << "The device is offline. Stopping communication attempts.";
+                    m_evc04Connections.value(thing)->disconnectDevice();
                 }
             }
         }
     });
 
-    connect(evc04Connection, &EVC04ModbusTcpConnection::initializationFinished, thing, [thing, evc04Connection](bool success){
+    connect(evc04Connection, &EVC04ModbusTcpConnection::initializationFinished, thing, [this, thing, evc04Connection, monitor](bool success){
         if (!thing->setupComplete())
             return;
 
         if (success) {
             thing->setStateValue(webastoUniteConnectedStateTypeId, true);
         } else {
+            qCDebug(dcWebasto()) << "Initialization failed";
             thing->setStateValue(webastoUniteConnectedStateTypeId, false);
             thing->setStateValue(webastoUniteCurrentPowerStateTypeId, 0);
 
             // Try once to reconnect the device
-            evc04Connection->reconnectDevice();
+            if (monitor->reachable()) {
+                // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+                if (m_evc04Connections.contains(thing)) {
+                    qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
+                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->reconnectDevice();
+                }
+            }
         }
     });
 
@@ -943,12 +1005,13 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
             return;
         }
 
-        qCDebug(dcWebasto()) << "EVC04 update finished:" << thing->name() << evc04Connection;
+        //qCDebug(dcWebasto()) << "EVC04 update finished:" << thing->name() << evc04Connection;
+        qCDebug(dcWebasto()) << "EVC04 update finished:" << thing->name();
 
-        qCDebug(dcWebasto()) << "Serial:" << QString(QString::fromUtf16(evc04Connection->serialNumber().data(), evc04Connection->serialNumber().length()).toUtf8()).trimmed();
-        qCDebug(dcWebasto()) << "ChargePoint ID:" << QString(QString::fromUtf16(evc04Connection->chargepointId().data(), evc04Connection->chargepointId().length()).toUtf8()).trimmed();
-        qCDebug(dcWebasto()) << "Brand:" << QString(QString::fromUtf16(evc04Connection->brand().data(), evc04Connection->brand().length()).toUtf8()).trimmed();
-        qCDebug(dcWebasto()) << "Model:" << QString(QString::fromUtf16(evc04Connection->model().data(), evc04Connection->model().length()).toUtf8()).trimmed();
+        //qCDebug(dcWebasto()) << "Serial:" << QString(QString::fromUtf16(evc04Connection->serialNumber().data(), evc04Connection->serialNumber().length()).toUtf8()).trimmed();
+        //qCDebug(dcWebasto()) << "ChargePoint ID:" << QString(QString::fromUtf16(evc04Connection->chargepointId().data(), evc04Connection->chargepointId().length()).toUtf8()).trimmed();
+        //qCDebug(dcWebasto()) << "Brand:" << QString(QString::fromUtf16(evc04Connection->brand().data(), evc04Connection->brand().length()).toUtf8()).trimmed();
+        //qCDebug(dcWebasto()) << "Model:" << QString(QString::fromUtf16(evc04Connection->model().data(), evc04Connection->model().length()).toUtf8()).trimmed();
 
         updateEVC04MaxCurrent(thing, evc04Connection);
 
