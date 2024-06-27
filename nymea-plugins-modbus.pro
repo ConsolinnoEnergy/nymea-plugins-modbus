@@ -3,15 +3,20 @@ TEMPLATE = subdirs
 # Note: In the loop at the end of this file the plugin
 # dependency on the libs will be defined
 SUBDIRS += nymea-modbus-cli libnymea-modbus libnymea-sunspec
+#SUBDIRS += nymea-modbus-cli libnymea-modbus
 
 PLUGIN_DIRS = \
+    abb                     \
+    aeberle                 \
+    alfen                   \
     alphainnotec            \
-    alphatec                \    
+    alphatec                \
     azzurro                 \
     amperfied               \
     bgetech                 \
     drexelundweiss          \
     goodwe                  \
+    growatt                 \
     huawei                  \
     idm                     \
     inepro                  \
@@ -22,18 +27,22 @@ PLUGIN_DIRS = \
     mtec                    \
     mypv                    \
     phoenixconnect          \
+    sax                     \
     schneider               \
     schneiderIEM            \
     schrack                 \
     senseair                \
     sma                     \
+    solax                   \
     stiebeleltron           \
     sungrow                 \
     sunspec                 \
     technivolt              \
     unipi                   \
+    vestel                  \
     webasto                 \
-    e3dc
+    e3dc                    \
+    dvmodbusir
 
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")

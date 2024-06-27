@@ -1,0 +1,121 @@
+{
+    "name": "DvModbusIR",
+    "displayName": "dvModbusIR",
+    "id": "9faa3082-011a-4126-bf09-da93dd8d57c7",
+    "vendors": [
+        {
+            "name": "device",
+            "displayName": "Device GmbH",
+            "id": "26fe3a91-befc-448a-8bd3-249114abd2f2",
+            "thingClasses": [
+                {
+                    "name": "dvModbusIR",
+                    "displayName": "DvModbusIR",
+                    "id": "e4babb85-8679-40f0-b6e7-7fda422117b0",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["smartmeterconsumer", "smartmeterproducer", "connectable"],
+                    "discoveryParamTypes": [
+                        {
+                            "id": "3646c862-2c78-4338-a41b-4f84a019b7ab",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
+                            "type": "uint",
+                            "defaultValue": 1
+                        }
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "74ab93ec-3e22-4768-be5b-4cb3b71f5af9",
+                            "name": "modbusMasterUuid",
+                            "displayName": "Modbus RTU master",
+                            "type": "QUuid",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "ff0be475-c35e-44dc-8f9c-6770adc87312",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
+                            "type": "uint",
+                            "defaultValue": 1,
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes":  [
+                        {
+                            "id": "6bd35355-be95-4691-84c0-9f6ff42382d1",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "f2754bbe-ff10-40e2-9eb4-1524bfdef8c6",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total consumed energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0"
+                        },
+                        {
+                            "id": "4f15b4ae-0ddb-4ffd-8901-2e22a94b7f39",
+                            "name": "totalEnergyConsumedExponent",
+                            "displayName": "Total consumed energy exponent",
+                            "type": "int",
+                            "defaultValue": "0"
+                        },
+                        {
+                            "id": "c8d066c9-ca46-468a-aea7-a37a6464cc6b",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total produced energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0"
+                        },
+                        {
+                            "id": "0aa0914c-53d0-407a-a8de-60de296a3da9",
+                            "name": "totalEnergyProducedExponent",
+                            "displayName": "Total produced energy exponent",
+                            "type": "int",
+                            "defaultValue": "0"
+                        },
+                        {
+                            "id": "66a87bb9-1e6e-451f-9c94-a1a10589d72d",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": "0"
+                        },
+                        {
+                            "id": "b36ed4a0-9271-433f-98a1-1fcd3c004915",
+                            "name": "meterId",
+                            "displayName": "Meter ID",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "36b7d4d8-27aa-48f1-9050-c12847d52b91",
+                            "name": "serialNumber",
+                            "displayName": "Serial Number",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "a8bb1147-6468-403f-b427-3e5fa9c7e215",
+                            "name": "deviceStatus",
+                            "displayName": "Device Status",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "cached": true
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

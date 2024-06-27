@@ -45,7 +45,13 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
+    bool isOutlier(const QList<float>& list);
     PluginTimer *m_pluginTimer = nullptr;
+    int m_windowLength{7};
+
+    QHash<Thing *, QList<float>> m_pvEnergyProducedValues;
+    QHash<Thing *, QList<float>> m_energyConsumedValues;
+    QHash<Thing *, QList<float>> m_energyProducedValues;
 
     struct PvPower {
         quint16 power1 {0};
