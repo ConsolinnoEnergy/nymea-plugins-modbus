@@ -343,12 +343,12 @@ float SolaxModbusTcpConnection::solarEnergyToday() const
     return m_solarEnergyToday;
 }
 
-quint16 SolaxModbusTcpConnection::pvVoltage3() const
+float SolaxModbusTcpConnection::pvVoltage3() const
 {
     return m_pvVoltage3;
 }
 
-quint16 SolaxModbusTcpConnection::pvCurrent3() const
+float SolaxModbusTcpConnection::pvCurrent3() const
 {
     return m_pvCurrent3;
 }
@@ -2889,7 +2889,7 @@ void SolaxModbusTcpConnection::processSolarEnergyTodayRegisterValues(const QVect
 
 void SolaxModbusTcpConnection::processPvVoltage3RegisterValues(const QVector<quint16> values)
 {
-    quint16 receivedPvVoltage3 = ModbusDataUtils::convertToUInt16(values);
+    float receivedPvVoltage3 = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
     emit pvVoltage3ReadFinished(receivedPvVoltage3);
 
     if (m_pvVoltage3 != receivedPvVoltage3) {
@@ -2900,7 +2900,7 @@ void SolaxModbusTcpConnection::processPvVoltage3RegisterValues(const QVector<qui
 
 void SolaxModbusTcpConnection::processPvCurrent3RegisterValues(const QVector<quint16> values)
 {
-    quint16 receivedPvCurrent3 = ModbusDataUtils::convertToUInt16(values);
+    float receivedPvCurrent3 = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
     emit pvCurrent3ReadFinished(receivedPvCurrent3);
 
     if (m_pvCurrent3 != receivedPvCurrent3) {

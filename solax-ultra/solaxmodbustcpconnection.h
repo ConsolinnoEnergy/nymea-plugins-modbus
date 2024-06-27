@@ -272,10 +272,10 @@ public:
     float solarEnergyToday() const;
 
     /* PV voltage 3 (0x0122) [V] - Address: 290, Size: 1 */
-    quint16 pvVoltage3() const;
+    float pvVoltage3() const;
 
     /* PV current 3 (0x0123) [A] - Address: 291, Size: 1 */
-    quint16 pvCurrent3() const;
+    float pvCurrent3() const;
 
     /* Power DC 3 (0x0124) [W] - Address: 292, Size: 1 */
     quint16 powerDc3() const;
@@ -715,10 +715,10 @@ signals:
     void solarEnergyTotalReadFinished(float solarEnergyTotal);
     void solarEnergyTodayChanged(float solarEnergyToday);
     void solarEnergyTodayReadFinished(float solarEnergyToday);
-    void pvVoltage3Changed(quint16 pvVoltage3);
-    void pvVoltage3ReadFinished(quint16 pvVoltage3);
-    void pvCurrent3Changed(quint16 pvCurrent3);
-    void pvCurrent3ReadFinished(quint16 pvCurrent3);
+    void pvVoltage3Changed(float pvVoltage3);
+    void pvVoltage3ReadFinished(float pvVoltage3);
+    void pvCurrent3Changed(float pvCurrent3);
+    void pvCurrent3ReadFinished(float pvCurrent3);
     void powerDc3Changed(quint16 powerDc3);
     void powerDc3ReadFinished(quint16 powerDc3);
     void pv3VoltFaultValueChanged(quint16 pv3VoltFaultValue);
@@ -792,8 +792,8 @@ protected:
     float m_gridFrequencyT = 0;
     float m_solarEnergyTotal = 0;
     float m_solarEnergyToday = 0;
-    quint16 m_pvVoltage3 = 0;
-    quint16 m_pvCurrent3 = 0;
+    float m_pvVoltage3 = 0;
+    float m_pvCurrent3 = 0;
     quint16 m_powerDc3 = 0;
     quint16 m_pv3VoltFaultValue = 0;
     quint16 m_pv3VoltFaultValue2 = 0;

@@ -537,6 +537,7 @@
                     "type": "uint16",
                     "registerType": "inputRegister",
                     "description": "PV voltage 3 (0x0122)",
+                    "staticScaleFactor": -1,
                     "unit": "V",
                     "defaultValue": "0",
                     "access": "RO"
@@ -548,6 +549,7 @@
                     "type": "uint16",
                     "registerType": "inputRegister",
                     "description": "PV current 3 (0x0123)",
+                    "staticScaleFactor": -1,
                     "unit": "A",
                     "defaultValue": "0",
                     "access": "RO"
