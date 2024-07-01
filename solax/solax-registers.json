@@ -1,6 +1,6 @@
 {
     "className": "Solax",
-    "protocol": "TCP",
+    "protocol": "RTU",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 15,
     "checkReachableRegister": "inverterType",
