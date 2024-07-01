@@ -606,11 +606,11 @@ void SolaxModbusTcpConnection::update2()
 {
     QModbusReply *reply = nullptr;
 
-    // Read BMS warning bits lsb (0x1F)
-    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"BMS warning bits lsb (0x1F)\" register:" << 31 << "size:" << 1;
+    // Read BMS warning bits lsb (0x44)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"BMS warning bits lsb (0x44)\" register:" << 68 << "size:" << 1;
     reply = readBmsWarningLsb();
     if (!reply) {
-        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"BMS warning bits lsb (0x1F)\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"BMS warning bits lsb (0x44)\" registers from" << hostAddress().toString() << errorString();
         return;
     }
 
@@ -630,13 +630,13 @@ void SolaxModbusTcpConnection::update2()
         }
 
         const QModbusDataUnit unit = reply->result();
-        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"BMS warning bits lsb (0x1F)\" register" << 31 << "size:" << 1 << unit.values();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"BMS warning bits lsb (0x44)\" register" << 68 << "size:" << 1 << unit.values();
         processBmsWarningLsbRegisterValues(unit.values());
         update3();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"BMS warning bits lsb (0x1F)\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"BMS warning bits lsb (0x44)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -644,11 +644,11 @@ void SolaxModbusTcpConnection::update3()
 {
     QModbusReply *reply = nullptr;
 
-    // Read BMS warning bits msb (0x26)
-    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"BMS warning bits msb (0x26)\" register:" << 38 << "size:" << 1;
+    // Read BMS warning bits msb (0x45)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"BMS warning bits msb (0x45)\" register:" << 69 << "size:" << 1;
     reply = readBmsWarningMsb();
     if (!reply) {
-        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"BMS warning bits msb (0x26)\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"BMS warning bits msb (0x45)\" registers from" << hostAddress().toString() << errorString();
         return;
     }
 
@@ -668,13 +668,13 @@ void SolaxModbusTcpConnection::update3()
         }
 
         const QModbusDataUnit unit = reply->result();
-        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"BMS warning bits msb (0x26)\" register" << 38 << "size:" << 1 << unit.values();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"BMS warning bits msb (0x45)\" register" << 69 << "size:" << 1 << unit.values();
         processBmsWarningMsbRegisterValues(unit.values());
         update4();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"BMS warning bits msb (0x26)\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"BMS warning bits msb (0x45)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1100,11 +1100,11 @@ void SolaxModbusTcpConnection::updateBatteryCapacity()
 
 void SolaxModbusTcpConnection::updateBmsWarningLsb()
 {
-    // Update registers from BMS warning bits lsb (0x1F)
-    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"BMS warning bits lsb (0x1F)\" register:" << 31 << "size:" << 1;
+    // Update registers from BMS warning bits lsb (0x44)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"BMS warning bits lsb (0x44)\" register:" << 68 << "size:" << 1;
     QModbusReply *reply = readBmsWarningLsb();
     if (!reply) {
-        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"BMS warning bits lsb (0x1F)\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"BMS warning bits lsb (0x44)\" registers from" << hostAddress().toString() << errorString();
         return;
     }
 
@@ -1118,23 +1118,23 @@ void SolaxModbusTcpConnection::updateBmsWarningLsb()
         handleModbusError(reply->error());
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
-            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"BMS warning bits lsb (0x1F)\" register" << 31 << "size:" << 1 << unit.values();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"BMS warning bits lsb (0x44)\" register" << 68 << "size:" << 1 << unit.values();
             processBmsWarningLsbRegisterValues(unit.values());
         }
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"BMS warning bits lsb (0x1F)\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"BMS warning bits lsb (0x44)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
 void SolaxModbusTcpConnection::updateBmsWarningMsb()
 {
-    // Update registers from BMS warning bits msb (0x26)
-    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"BMS warning bits msb (0x26)\" register:" << 38 << "size:" << 1;
+    // Update registers from BMS warning bits msb (0x45)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"BMS warning bits msb (0x45)\" register:" << 69 << "size:" << 1;
     QModbusReply *reply = readBmsWarningMsb();
     if (!reply) {
-        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"BMS warning bits msb (0x26)\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"BMS warning bits msb (0x45)\" registers from" << hostAddress().toString() << errorString();
         return;
     }
 
@@ -1148,13 +1148,13 @@ void SolaxModbusTcpConnection::updateBmsWarningMsb()
         handleModbusError(reply->error());
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
-            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"BMS warning bits msb (0x26)\" register" << 38 << "size:" << 1 << unit.values();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"BMS warning bits msb (0x45)\" register" << 69 << "size:" << 1 << unit.values();
             processBmsWarningMsbRegisterValues(unit.values());
         }
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"BMS warning bits msb (0x26)\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"BMS warning bits msb (0x45)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1998,13 +1998,13 @@ QModbusReply *SolaxModbusTcpConnection::readBatteryCapacity()
 
 QModbusReply *SolaxModbusTcpConnection::readBmsWarningLsb()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 31, 1);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 68, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
 QModbusReply *SolaxModbusTcpConnection::readBmsWarningMsb()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 38, 1);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 69, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -3166,8 +3166,8 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
 {
     debug.nospace().noquote() << "SolaxModbusTcpConnection(" << solaxModbusTcpConnection->hostAddress().toString() << ":" << solaxModbusTcpConnection->port() << ")" << "\n";
     debug.nospace().noquote() << "    - Battery state of charge (0x1C): " << solaxModbusTcpConnection->batteryCapacity() << " [%]" << "\n";
-    debug.nospace().noquote() << "    - BMS warning bits lsb (0x1F): " << solaxModbusTcpConnection->bmsWarningLsb() << "\n";
-    debug.nospace().noquote() << "    - BMS warning bits msb (0x26): " << solaxModbusTcpConnection->bmsWarningMsb() << "\n";
+    debug.nospace().noquote() << "    - BMS warning bits lsb (0x44): " << solaxModbusTcpConnection->bmsWarningLsb() << "\n";
+    debug.nospace().noquote() << "    - BMS warning bits msb (0x45): " << solaxModbusTcpConnection->bmsWarningMsb() << "\n";
     debug.nospace().noquote() << "    - Inverter fault bits (0x40): " << solaxModbusTcpConnection->inverterFaultBits() << "\n";
     debug.nospace().noquote() << "    - Meter 1 communication status (0xB8): " << solaxModbusTcpConnection->meter1CommunicationState() << "\n";
     debug.nospace().noquote() << "    - Active power limit (0x25): " << solaxModbusTcpConnection->activePowerLimit() << " [%]" << "\n";
