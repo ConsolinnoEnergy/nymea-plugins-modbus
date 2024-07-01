@@ -709,23 +709,23 @@
         },
         {
             "id": "bmsWarningLsb",
-            "address": 31,
+            "address": 68,
             "size": 1,
             "type": "uint16",
             "registerType": "inputRegister",
             "readSchedule": "update",
-            "description": "BMS warning bits lsb (0x1F)",
+            "description": "BMS warning bits lsb (0x44)",
             "defaultValue": "0",
             "access": "RO"
         },
         {
             "id": "bmsWarningMsb",
-            "address": 38,
+            "address": 69,
             "size": 1,
             "type": "uint16",
             "registerType": "inputRegister",
             "readSchedule": "update",
-            "description": "BMS warning bits msb (0x26)",
+            "description": "BMS warning bits msb (0x45)",
             "defaultValue": "0",
             "access": "RO"
         },
