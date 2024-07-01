@@ -641,18 +641,23 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         connect(connection, &SolaxModbusTcpConnection::bmsWarningLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
             qCDebug(dcSolaxUltra()) << "Battery warning bits LSB recieved" << batteryWarningBitsLsb;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            Thing* batteryThing = batteryThings.first();
-            m_batterystates.find(batteryThing)->bmsWarningLsb = batteryWarningBitsLsb;
-            setBmsWarningMessage(batteryThing);
-
+            if (!batteryThings.isEmpty())
+            {
+                Thing* batteryThing = batteryThings.first();
+                m_batterystates.find(batteryThing)->bmsWarningLsb = batteryWarningBitsLsb;
+                setBmsWarningMessage(batteryThing);
+            }
         });
 
         connect(connection, &SolaxModbusTcpConnection::bmsWarningMsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
             qCDebug(dcSolaxUltra()) << "Battery warning bits MSB recieved" << batteryWarningBitsMsb;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            Thing* batteryThing = batteryThings.first();
-            m_batterystates.find(batteryThing)->bmsWarningMsb = batteryWarningBitsMsb;
-            setBmsWarningMessage(batteryThing);
+            if (!batteryThings.isEmpty())
+            {
+                Thing* batteryThing = batteryThings.first();
+                m_batterystates.find(batteryThing)->bmsWarningMsb = batteryWarningBitsMsb;
+                setBmsWarningMessage(batteryThing);
+            }
         });
 
         connect(connection, &SolaxModbusTcpConnection::batVoltageCharge1Changed, thing, [this, thing](double batVoltageCharge1){
@@ -732,17 +737,23 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         connect(connection, &SolaxModbusTcpConnection::bms2FaultLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
             qCDebug(dcSolaxUltra()) << "Battery 2 warning bits LSB recieved" << batteryWarningBitsLsb;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
-            Thing* batteryThing = batteryThings.first();
-            m_batterystates.find(batteryThing)->bmsWarningLsb = batteryWarningBitsLsb;
-            setBmsWarningMessage(batteryThing);
+            if (!batteryThings.isEmpty())
+            {
+                Thing* batteryThing = batteryThings.first();
+                m_batterystates.find(batteryThing)->bmsWarningLsb = batteryWarningBitsLsb;
+                setBmsWarningMessage(batteryThing);
+            }
         });
 
         connect(connection, &SolaxModbusTcpConnection::bms2FaulMLsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
             qCDebug(dcSolaxUltra()) << "Battery 2 warning bits MSB recieved" << batteryWarningBitsMsb;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
-            Thing* batteryThing = batteryThings.first();
-            m_batterystates.find(batteryThing)->bmsWarningMsb = batteryWarningBitsMsb;
-            setBmsWarningMessage(batteryThing);
+            if (!batteryThings.isEmpty())
+            {
+                Thing* batteryThing = batteryThings.first();
+                m_batterystates.find(batteryThing)->bmsWarningMsb = batteryWarningBitsMsb;
+                setBmsWarningMessage(batteryThing);
+            }
         });
 
         connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
@@ -1020,7 +1031,7 @@ void IntegrationPluginSolax::setErrorMessage(Thing *thing, quint32 errorBits)
     }
     qCDebug(dcSolaxUltra()) << errorMessage;
     if (thing->thingClassId() == solaxX3UltraThingClassId) {
-        //thing->setStateValue(solaxX3UltraErrorMessageStateTypeId, errorMessage);
+        thing->setStateValue(solaxX3UltraErrorMessageStateTypeId, errorMessage);
     }
 }
 
@@ -1108,6 +1119,6 @@ void IntegrationPluginSolax::setBmsWarningMessage(Thing *thing)
         }
     }
     qCDebug(dcSolaxUltra()) << warningMessage;
-    // thing->setStateValue(solaxBatteryWarningMessageStateTypeId, warningMessage);
+    thing->setStateValue("warningMessage", warningMessage);
     qCDebug(dcSolaxUltra()) << "Setting BMS Warning Message successfull";
 }
