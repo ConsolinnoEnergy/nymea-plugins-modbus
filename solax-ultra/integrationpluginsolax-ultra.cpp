@@ -258,6 +258,11 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 if (!batteryThings.isEmpty()) {
                     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
                 }
+
+                Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+                if (!batteryThings2.isEmpty()) {
+                    batteryThings2.first()->setStateValue(solaxBattery2CurrentPowerStateTypeId, 0);
+                }
             }
         });
 
