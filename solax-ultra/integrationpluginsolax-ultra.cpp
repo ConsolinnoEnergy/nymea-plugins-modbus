@@ -634,14 +634,14 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &SolaxModbusTcpConnection::batteryCapacityChanged, thing, [this, thing](quint16 socBat1){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                qCDebug(dcSolaxUltra()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
-                batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
-            }
-        });
+        // connect(connection, &SolaxModbusTcpConnection::batteryCapacityChanged, thing, [this, thing](quint16 socBat1){
+        //     Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+        //     if (!batteryThings.isEmpty()) {
+        //         qCDebug(dcSolaxUltra()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
+        //         batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+        //         batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
+        //     }
+        // });
 
         connect(connection, &SolaxModbusTcpConnection::bmsWarningLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
             qCDebug(dcSolaxUltra()) << "Battery warning bits LSB recieved" << batteryWarningBitsLsb;
@@ -730,14 +730,14 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &SolaxModbusTcpConnection::batteryCapacity2Changed, thing, [this, thing](quint16 socBat2){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
-            if (!batteryThings.isEmpty()) {
-                qCDebug(dcSolaxUltra()) << "Battery 2 state of charge (batteryCapacity) changed" << socBat2 << "%";
-                batteryThings.first()->setStateValue(solaxBattery2BatteryLevelStateTypeId, socBat2);
-                batteryThings.first()->setStateValue(solaxBattery2BatteryCriticalStateTypeId, socBat2 < 10);
-            }
-        });
+        // connect(connection, &SolaxModbusTcpConnection::batteryCapacity2Changed, thing, [this, thing](quint16 socBat2){
+        //     Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+        //     if (!batteryThings.isEmpty()) {
+        //         qCDebug(dcSolaxUltra()) << "Battery 2 state of charge (batteryCapacity) changed" << socBat2 << "%";
+        //         batteryThings.first()->setStateValue(solaxBattery2BatteryLevelStateTypeId, socBat2);
+        //         batteryThings.first()->setStateValue(solaxBattery2BatteryCriticalStateTypeId, socBat2 < 10);
+        //     }
+        // });
 
         connect(connection, &SolaxModbusTcpConnection::bms2FaultLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
             qCDebug(dcSolaxUltra()) << "Battery 2 warning bits LSB recieved" << batteryWarningBitsLsb;
@@ -767,6 +767,24 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             quint16 powerDc2 = connection->powerDc2();
             quint16 powerDc3 = connection->powerDc3();
             thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -(powerDc1+powerDc2+powerDc3));
+
+            // Set battery 1 state of charge
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                quint16 socBat1 = connection->batteryCapacity();
+                qCDebug(dcSolaxUltra()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
+                batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+                batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
+            }
+
+            // Set battery 2 state of charge
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            if (!batteryThings.isEmpty()) {
+                quint16 socBat2 = connection->batteryCapacity2();
+                qCDebug(dcSolaxUltra()) << "Battery 2 state of charge (batteryCapacity) changed" << socBat2 << "%";
+                batteryThings.first()->setStateValue(solaxBattery2BatteryLevelStateTypeId, socBat2);
+                batteryThings.first()->setStateValue(solaxBattery2BatteryCriticalStateTypeId, socBat2 < 10);
+            }
         });
 
 
