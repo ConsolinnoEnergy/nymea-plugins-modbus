@@ -195,7 +195,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
             qCDebug(dcSolaxEvc()) << "Solax wallbox initialized.";
             thing->setStateValue(solaxEvcFirmwareVersionStateTypeId, connection->firmwareVersion());
             thing->setStateValue(solaxEvcSerialNumberStateTypeId, connection->serialNumber());
-            // make wallbox follow app
+            // TODO TEST if this is needed or line 269 | make wallbox follow app
             /* 
             if (thing->stateValue(solaxEvcPowerStateTypeId).toBool() == true)
             {
@@ -262,12 +262,14 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
     connect(connection, &SolaxEvcModbusTcpConnection::MaxCurrentChanged, thing, [thing](float maxCurrent) {
         qCDebug(dcSolaxEvc()) << "Max current changed" << maxCurrent << "A";
         // Every once in a while, nonsense values are received, only change when value between 6 and 16 received
-        if (maxCurrent >= 6 && maxCurrent <= 16)
+        if (maxCurrent >= 6 && maxCurrent <= 32)
             thing->setStateValue(solaxEvcMaxChargingCurrentStateTypeId, maxCurrent);
     });
 
     connect(connection, &SolaxEvcModbusTcpConnection::deviceModeChanged, thing, [this, thing, connection](quint16 mode) {
         qCDebug(dcSolaxEvc()) << "Device mode changed" << mode;
+        // TODO: Test if this causes issues
+        // make app follow wallbox
         if (thing->stateValue(solaxEvcPowerStateTypeId).toBool() == true)
         {
             if (mode == 1)
@@ -338,6 +340,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 break;
             case SolaxEvcModbusTcpConnection::StateReserved:
                 thing->setStateValue(solaxEvcStateStateTypeId, "Reserved");
+                thing->setStateValue(solaxEvcChargingStateTypeId, false);
                 break;
             case SolaxEvcModbusTcpConnection::StateSuspendedEV:
                 thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEV");
@@ -349,6 +352,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 break;
             case SolaxEvcModbusTcpConnection::StateUpdate:
                 thing->setStateValue(solaxEvcStateStateTypeId, "Update");
+                thing->setStateValue(solaxEvcChargingStateTypeId, false);
                 break;
             case SolaxEvcModbusTcpConnection::StateCardActivation:
                 thing->setStateValue(solaxEvcStateStateTypeId, "Card Activation");
@@ -432,6 +436,7 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
             // set maximal charging current
             quint32 maxCurrent = info->action().paramValue(solaxEvcMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
             QModbusReply *reply = connection->setMaxCurrent(maxCurrent);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, thing, [info, thing, reply, maxCurrent]() {
                 if (reply->error() == QModbusDevice::NoError)
                 {
@@ -450,7 +455,8 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
             // start / stop the charging session
             bool power = info->action().paramValue(solaxEvcPowerActionPowerParamTypeId).toBool();
             QModbusReply *reply = connection->setControlCommand(power ? SolaxEvcModbusTcpConnection::ControlCommand::ControlCommandStartCharging : SolaxEvcModbusTcpConnection::ControlCommand::ControlCommandStopCharging);
-            connect(reply, &QModbusReply::finished, thing, [this, info, thing, reply, power]() {
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, power]() {
                 if (reply->error() == QModbusDevice::NoError)
                 {
                     thing->setStateValue(solaxEvcPowerStateTypeId, power);
