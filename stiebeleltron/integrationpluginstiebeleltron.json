@@ -16,34 +16,21 @@
                     "interfaces": ["smartgridheatpump", "connectable"],
                     "paramTypes": [
                         {
-                            "id": "47d221fa-f6d2-400e-b80f-bb90abccb72c",
-                            "name": "ipAddress",
-                            "displayName": "IP address",
-                            "type": "QString",
-                            "inputType": "IPv4Address",
-                            "defaultValue": "127.0.0.1"
-                        },
-                        {
                             "id": "05cd59b8-3068-460f-b0d2-6d49f27458df",
                             "name":"macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
                             "inputType": "MacAddress",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "readOnly": true
                         },
                         {
-                            "id": "6842321f-1f1a-47e2-b12d-59ee322eb8a6",
-                            "name":"port",
-                            "displayName": "Port",
-                            "type": "int",
-                            "defaultValue": 502
-                        },
-                        {
-                            "id": "732de6da-bd0a-4215-b320-602117ebc75c",
-                            "name":"slaveId",
-                            "displayName": "Modbus slave ID",
-                            "type": "int",
-                            "defaultValue": 1
+                            "id": "2cb0a118-bfbd-4631-acf4-922a2cdd429f",
+                            "name": "controllerType",
+                            "displayName": "Controller type",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [

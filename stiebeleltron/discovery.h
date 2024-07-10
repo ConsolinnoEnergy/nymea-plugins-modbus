@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH, Consolinno Energy GmbH, L. Heizinger  
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,44 +28,44 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSTIEBELELTRON_H
-#define INTEGRATIONPLUGINSTIEBELELTRON_H
+#ifndef DISCOVERY_H
+#define DISCOVERY_H
 
-#include <plugintimer.h>
-#include <integrations/integrationplugin.h>
+#include <QObject>
 
-#include "wpmmodbustcpconnection.h"
-#include "lwzmodbustcpconnection.h"
+#include <network/networkdevicediscovery.h>
 
-class IntegrationPluginStiebelEltron: public IntegrationPlugin
+#include "testmodbustcpconnection.h"
+
+class Discovery : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginstiebeleltron.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginStiebelEltron();
+    explicit Discovery(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    struct Result {
+        quint16 controllerType;
+        NetworkDeviceInfo networkDeviceInfo;
+    };
 
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void startMonitoringAutoThings() override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
+    void startDiscovery();
+
+    QList<Result> discoveryResults() const;
+
+signals:
+    void discoveryFinished();
+    void repliesFinished();
 
 private:
-    bool m_setupConnectionRunning{false};
-    PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, WpmModbusTcpConnection *> m_wpmConnections;
-    QHash<Thing *, LwzModbusTcpConnection *> m_lwzConnections;
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
 
-    void setupConnection(ThingSetupInfo *info);
-    void setupWpmConnection(ThingSetupInfo *info);
-    void setupLwzConnection(ThingSetupInfo *info);
+    QList<TestModbusTcpConnection *> m_connections;
+
+    qint16 m_openReplies;
+
+    QList<Result> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(TestModbusTcpConnection *connection);
 };
 
-#endif // INTEGRATIONPLUGINSTIEBELELTRON_H
-
-
+#endif // DISCOVERY_H
