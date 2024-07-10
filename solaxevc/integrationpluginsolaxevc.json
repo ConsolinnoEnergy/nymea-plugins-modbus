@@ -1,16 +1,16 @@
 {
     "name": "solaxEvc",
-    "displayName": "Solax EVC",
+    "displayName": "Solax",
     "id": "cd3707ed-d79f-4aba-a5cc-bff1f2d90329",
     "vendors": [
         {
             "name": "solaxEvc",
-            "displayName": "Solax EVC",
+            "displayName": "Solax",
             "id": "b0115ec5-8ffa-40ab-98ab-bfc97ae5449d",
             "thingClasses": [
                 {
                     "name": "solaxEvc",
-                    "displayName": "Solax EVC",
+                    "displayName": "Solax X3 EVC",
                     "id": "2ed6595f-f3b9-47e8-ad0e-41b404aa1a36",
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
