@@ -605,9 +605,9 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
             if (!batteryThings2.isEmpty()) {
                 if (bmsCommStatusBool && m_batterystates.value(thing).modbusReachable) {
-                    batteryThings.first()->setStateValue(solaxBattery2ConnectedStateTypeId, true);
+                    batteryThings2.first()->setStateValue(solaxBattery2ConnectedStateTypeId, true);
                 } else {
-                    batteryThings.first()->setStateValue(solaxBattery2ConnectedStateTypeId, false);
+                    batteryThings2.first()->setStateValue(solaxBattery2ConnectedStateTypeId, false);
                 }
             } else if (connection->temperatureBat2() != 0) {
                 // Temperature of Bat 2 is unlikely 0 if it is connected
@@ -778,12 +778,12 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             }
 
             // Set battery 2 state of charge
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
-            if (!batteryThings.isEmpty()) {
+            Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            if (!batteryThings2.isEmpty()) {
                 quint16 socBat2 = connection->batteryCapacity2();
                 qCDebug(dcSolaxUltra()) << "Battery 2 state of charge (batteryCapacity) changed" << socBat2 << "%";
-                batteryThings.first()->setStateValue(solaxBattery2BatteryLevelStateTypeId, socBat2);
-                batteryThings.first()->setStateValue(solaxBattery2BatteryCriticalStateTypeId, socBat2 < 10);
+                batteryThings2.first()->setStateValue(solaxBattery2BatteryLevelStateTypeId, socBat2);
+                batteryThings2.first()->setStateValue(solaxBattery2BatteryCriticalStateTypeId, socBat2 < 10);
             }
         });
 
