@@ -6,8 +6,10 @@ MODBUS_CONNECTIONS += wpm-registers.json lwz-registers.json test-registers.json
 include(../modbus.pri)
 
 HEADERS += \
-    integrationpluginstiebeleltron.h
+    integrationpluginstiebeleltron.h \
+    discovery.h
 
 SOURCES += \
-    integrationpluginstiebeleltron.cpp
+    integrationpluginstiebeleltron.cpp \
+    discovery.cpp
 

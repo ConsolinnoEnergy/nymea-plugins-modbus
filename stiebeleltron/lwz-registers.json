@@ -1,5 +1,5 @@
 {
-    "className": "lwz",
+    "className": "Lwz",
     "protocol": "TCP",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 10,

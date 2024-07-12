@@ -1,8 +1,8 @@
 {
-    "className": "test",
+    "className": "Test",
     "protocol": "TCP",
     "endianness": "BigEndian",
-    "errorLimitUntilNotReachable": 10,
+    "errorLimitUntilNotReachable": 3,
     "checkReachableRegister": "controllerType",
     "enums": [],
     "registers": [

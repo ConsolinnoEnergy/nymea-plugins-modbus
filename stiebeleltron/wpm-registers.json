@@ -1,5 +1,5 @@
 {
-    "className": "wpm",
+    "className": "Wpm",
     "protocol": "TCP",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 10,
