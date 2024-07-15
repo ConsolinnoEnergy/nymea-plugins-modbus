@@ -32,7 +32,16 @@
                             "maxValue": 248,
                             "defaultValue": 1,
                             "readOnly": true
+                        },
+                        {
+                            "id": "fbac4f07-8e14-4385-b1af-0c4c0c8a9f25",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
                         }
+
                     ],
                     "stateTypes": [
                         {
@@ -64,7 +73,7 @@
                             "name": "phaseCount",
                             "displayName": "Connected phases",
                             "type": "uint",
-                            "minValue": 1,
+                            "minValue": 0,
                             "maxValue": 3,
                             "defaultValue": 1,
                             "cached": false
@@ -165,7 +174,7 @@
                             "name": "phaseCount",
                             "displayName": "Connected phases",
                             "type": "uint",
-                            "minValue": 1,
+                            "minValue": 0,
                             "maxValue": 3,
                             "defaultValue": 1,
                             "cached": false
@@ -205,7 +214,7 @@
                             "type": "uint",
                             "unit": "Ampere",
                             "minValue": 6,
-                            "maxValue": 32,
+                            "maxValue": 16,
                             "defaultValue": 6,
                             "writable": true
                         },

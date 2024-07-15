@@ -287,8 +287,13 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 batteryPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toDouble();
             }
            
+            if (batteryPower < 0)
+            {
+                // Battery is discharging
+                batteryPower = 0;
+            }
             qCDebug(dcSolax()) << "Subtract from InverterPower";
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(inverterPower-batteryPower));
+            thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -inverterPower-batteryPower);
         });
 
         connect(connection, &SolaxModbusRtuConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
@@ -725,6 +730,11 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 batteryPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toDouble();
             }
            
+            if (batteryPower < 0)
+            {
+                // Battery is discharging
+                batteryPower = 0;
+            }
             qCDebug(dcSolax()) << "Subtract from InverterPower";
             thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
         });
@@ -1156,14 +1166,14 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
 
 void IntegrationPluginSolax::thingRemoved(Thing *thing)
 {
-    if (m_monitors.contains(thing)) {
-        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-    }
-
     if (m_tcpConnections.contains(thing)) {
         SolaxModbusTcpConnection *connection = m_tcpConnections.take(thing);
         connection->disconnectDevice();
         connection->deleteLater();
+    }
+
+    if (m_monitors.contains(thing)) {
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
     }
 
     if (m_rtuConnections.contains(thing)) {
