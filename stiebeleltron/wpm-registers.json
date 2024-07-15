@@ -150,6 +150,17 @@
             "access": "RO"
         },
         {
+            "id": "faultStatus",
+            "address": 2503,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Fault status",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
             "id": "heatingEnergy",
             "address": 3501,
             "size": 2,

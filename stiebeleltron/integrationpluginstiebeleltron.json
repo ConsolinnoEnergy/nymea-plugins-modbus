@@ -147,10 +147,21 @@
                                 "Program",
                                 "Comfort",
                                 "Eco",
-                                "Hot water"
+                                "Hot water",
+                                "Automatic",
+                                "Manual"
                             ],
                             "writable": false,
                             "defaultValue": "Standby",
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "3a401054-1e80-4c35-a8c5-f797c319c305",
+                            "name": "error",
+                            "displayName": "Error",
+                            "displayNameEvent": "Error changed",
+                            "type": "bool",
+                            "defaultValue": false,
                             "suggestLogging": true
                         },
                         {
@@ -290,23 +301,18 @@
                             "suggestLogging": true
                         },
                         {
-                            "id": "5833ceb6-5e7c-437b-a44a-e9f5eb42b6ac",
-                            "name": "sourceTemperature",
-                            "displayName": "Source temperature (tbd)",
-                            "displayNameEvent": "Source temperature changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "d1959819-9e56-47f7-b619-a393ce50738a",
-                            "name": "roomTemperature1",
-                            "displayName": "Room temperature (tbd)",
-                            "displayNameEvent": "Room temperature changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0,
+                            "id": "7c2c5446-900a-473c-8f42-792ad5fda02b",
+                            "name": "sgReadyRead",
+                            "displayName": "SG Ready mode read",
+                            "displayNameEvent": "SG Ready mode read changed",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Off",
+                                "Low",
+                                "Standard",
+                                "High"
+                            ],
+                            "defaultValue": "Standard",
                             "suggestLogging": true
                         }
                     ],
