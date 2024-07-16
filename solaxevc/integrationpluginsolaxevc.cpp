@@ -56,7 +56,7 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &SolaxEvcTCPDiscovery::discoveryFinished, info, [=](){
             foreach (const SolaxEvcTCPDiscovery::Result &result, discovery->discoveryResults()) {
 
-                ThingDescriptor descriptor(solaxEvcThingClassId, "Solax Wallbox", result.networkDeviceInfo.address().toString());
+                ThingDescriptor descriptor(solaxEvcThingClassId, "Solax X3 EVCharger", result.networkDeviceInfo.address().toString());
                 qCInfo(dcSolaxEvc()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 // TODO: CHECK IF RECONFIGURE WORKING
@@ -184,6 +184,16 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
         } else {
             thing->setStateValue(solaxEvcConnectedStateTypeId, false);
             thing->setStateValue(solaxEvcCurrentPowerStateTypeId, 0);
+        }
+    });
+
+    connect(connection, &SolaxEvcModbusTcpConnection::typePowerChanged, thing, [this, connection, thing](quint16 type) {
+        qCDebug(dcSolaxEvc()) << "Received info about EV type.";
+        if (type == 1)
+        {
+            thing->setStateMaxValue("maxChargingCurrent", 16);
+        } else {
+            thing->setStateMaxValue("maxChargingCurrent", 32);
         }
     });
 
