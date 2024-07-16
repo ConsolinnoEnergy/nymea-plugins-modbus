@@ -221,7 +221,16 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
         // EVC show 2-3W even when not charging, this fixes the displayed value
         if (totalPower <= 100)
             totalPower = 0;
-        thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
+
+        if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging")
+        {
+            if (totalPower != 0)
+            {
+                thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
+            }
+        } else {
+            thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
+        }
     });
 
     // connect energy consumption of current session
@@ -290,16 +299,41 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseAChanged, thing, [thing](double currentPhase) {
-        qCDebug(dcSolaxEvc()) << "Current Phase" << currentPhase << "A";
-        thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, currentPhase);
+        qCDebug(dcSolaxEvc()) << "Current PhaseA" << currentPhase << "A";
+        if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging")
+        {
+            if (currentPhase != 0)
+            {
+                thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, currentPhase);
+            }
+        } else {
+            thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, currentPhase);
+        }
     });
     connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseBChanged, thing, [thing](double currentPhase) {
-        qCDebug(dcSolaxEvc()) << "Current Phase" << currentPhase << "A";
-        thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, currentPhase);
+        qCDebug(dcSolaxEvc()) << "Current PhaseB" << currentPhase << "A";
+        if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging")
+        {
+            if (currentPhase != 0)
+            {
+                thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, currentPhase);
+            }
+        } else {
+            thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, currentPhase);
+        }
     });
     connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseCChanged, thing, [thing](double currentPhase) {
-        qCDebug(dcSolaxEvc()) << "Current Phase" << currentPhase << "A";
+        qCDebug(dcSolaxEvc()) << "Current PhaseC" << currentPhase << "A";
         thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
+        if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging")
+        {
+            if (currentPhase != 0)
+            {
+                thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
+            }
+        } else {
+            thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
+        }
     });
 
     // connect current state of evcharger
