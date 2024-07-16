@@ -196,7 +196,6 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(solaxEvcFirmwareVersionStateTypeId, connection->firmwareVersion());
             thing->setStateValue(solaxEvcSerialNumberStateTypeId, connection->serialNumber());
             // TODO TEST if this is needed or line 269 | make wallbox follow app
-            /* 
             if (thing->stateValue(solaxEvcPowerStateTypeId).toBool() == true)
             {
                 qCDebug(dcSolaxEvc()) << "Toggle charging true.";
@@ -207,7 +206,6 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 toggleCharging(connection, false);
                 thing->setStateValue(solaxEvcPowerStateTypeId, false);
             }
-            */
         } else {
             qCDebug(dcSolaxEvc()) << "Solax wallbox initialization failed.";
             // Try to reconnect to device
@@ -229,7 +227,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
             }
         } else {
-            thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
+            thing->setStateValue(solaxEvcCurrentPowerStateTypeId, 0);
         }
     });
 
@@ -287,9 +285,9 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 toggleCharging(connection, true); 
                 thing->setStateValue(solaxEvcPowerStateTypeId, true);
             } else if (mode == 0) {
-                qCDebug(dcSolaxEvc()) << "Toggle charging false.";
-                toggleCharging(connection, false);
-                thing->setStateValue(solaxEvcPowerStateTypeId, false);
+                qCDebug(dcSolaxEvc()) << "Charging allowed, but car says it is not charging.";
+                // toggleCharging(connection, false);
+                // thing->setStateValue(solaxEvcPowerStateTypeId, false);
             }
         } else {
             qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging disabled! Make sure the wallbox does not charge.";
@@ -307,7 +305,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, currentPhase);
             }
         } else {
-            thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, currentPhase);
+            thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, 0);
         }
     });
     connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseBChanged, thing, [thing](double currentPhase) {
@@ -319,12 +317,11 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, currentPhase);
             }
         } else {
-            thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, currentPhase);
+            thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, 0);
         }
     });
     connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseCChanged, thing, [thing](double currentPhase) {
         qCDebug(dcSolaxEvc()) << "Current PhaseC" << currentPhase << "A";
-        thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
         if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging")
         {
             if (currentPhase != 0)
@@ -332,7 +329,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
             }
         } else {
-            thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
+            thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, 0);
         }
     });
 
