@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1">
+<TS version="2.1" language="de">
 <context>
     <name>IntegrationPluginStiebelEltron</name>
     <message>
         <location filename="../integrationpluginstiebeleltron.cpp" line="44"/>
         <source>The network device discovery is not available.</source>
-        <translation type="unfinished"></translation>
+        <translation>Die Netzwerksuche ist nicht verfügbar.</translation>
     </message>
     <message>
         <location filename="../integrationpluginstiebeleltron.cpp" line="105"/>
         <source>The MAC address is not vaild. Please reconfigure the device to fix this.</source>
-        <translation type="unfinished"></translation>
+        <translation>Die MAC Adresse ist ungültig. Bitte das Gerät erneut konfigurieren, um das Problem zu beheben.</translation>
     </message>
     <message>
         <location filename="../integrationpluginstiebeleltron.cpp" line="198"/>
         <location filename="../integrationpluginstiebeleltron.cpp" line="400"/>
         <source>The controller type is not vaild. Please reconfigure the device to fix this.</source>
-        <translation type="unfinished"></translation>
+        <translation>Die Reglerkennung ist ungültig. Bitte das Gerät erneut konfigurieren, um das Problem zu beheben.</translation>
     </message>
     <message>
         <location filename="../integrationpluginstiebeleltron.cpp" line="546"/>
         <location filename="../integrationpluginstiebeleltron.cpp" line="858"/>
         <source>Error communicating with the heat pump.</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler bei der Kommunikation mit der Wärmepumpe.</translation>
     </message>
     <message>
         <location filename="../integrationpluginstiebeleltron.cpp" line="564"/>
         <location filename="../integrationpluginstiebeleltron.cpp" line="875"/>
         <source>Wrong configuration. Please reconfigure the device to fix this.</source>
-        <translation type="unfinished"></translation>
+        <translation>Falsche Konfiguration. Bitte das Gerät erneut konfigurieren, um das Problem zu beheben.</translation>
     </message>
 </context>
 <context>

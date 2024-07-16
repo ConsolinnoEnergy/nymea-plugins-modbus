@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.009) jammy; urgency=medium
+
+  * Stiebel Eltron: Expanded plugin to also work with LWZ type heat pumps.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Tue, 16 Jul 2024 15:19:53 +0200
+
 nymea-plugins-modbus (1.7.008) jammy; urgency=medium
 
   * Fixes for Solax power calculation (RTU)
