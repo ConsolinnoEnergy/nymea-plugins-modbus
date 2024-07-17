@@ -4,12 +4,12 @@
 <context>
     <name>IntegrationPluginSolaxEvc</name>
     <message>
-        <location filename="../integrationpluginsolaxevc.cpp" line="50"/>
+        <location filename="../integrationpluginsolaxevc.cpp" line="47"/>
         <source>The network device discovery is not available.</source>
         <translation>Die Erkennung von Netzwerkgeräten ist nicht möglich.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolaxevc.cpp" line="113"/>
+        <location filename="../integrationpluginsolaxevc.cpp" line="130"/>
         <source>The MAC address is not vaild. Please reconfigure the device to fix this.</source>
         <translation>Die MAC Adresse ist nicht valide. Bitte konfigurieren Sie das Gerät neu.</translation>
     </message>
@@ -151,14 +151,17 @@ The name of the StateType ({2eed9fdc-6ca3-4895-866d-76f503beb75a}) of ThingClass
     <message>
         <location filename="../plugininfo.h" line="122"/>
         <location filename="../plugininfo.h" line="125"/>
-        <location filename="../plugininfo.h" line="128"/>
-        <source>Solax EVC</source>
-        <extracomment>The name of the ThingClass ({2ed6595f-f3b9-47e8-ad0e-41b404aa1a36})
-----------
-The name of the vendor ({b0115ec5-8ffa-40ab-98ab-bfc97ae5449d})
+        <source>Solax</source>
+        <extracomment>The name of the vendor ({b0115ec5-8ffa-40ab-98ab-bfc97ae5449d})
 ----------
 The name of the plugin solaxEvc ({cd3707ed-d79f-4aba-a5cc-bff1f2d90329})</extracomment>
-        <translation>Solax EV-Ladegerät</translation>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="128"/>
+        <source>Solax X3 EVC</source>
+        <extracomment>The name of the ThingClass ({2ed6595f-f3b9-47e8-ad0e-41b404aa1a36})</extracomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="../plugininfo.h" line="131"/>
