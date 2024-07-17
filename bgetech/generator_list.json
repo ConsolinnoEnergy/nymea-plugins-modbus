@@ -1,9 +1,9 @@
 {
   "Kostal": {
     "Kostal Kem P, Kostal SDM72": {
-      "filename": "kostal-sdm630",
+      "filename": "kostalmeter",
       "interfaces": "null",
-      "uuid_offset": 1
+      "uuid_offset": 3
     }
   }
 }
