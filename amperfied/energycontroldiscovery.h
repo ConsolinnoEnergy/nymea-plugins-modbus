@@ -45,6 +45,8 @@ public:
         QUuid modbusRtuMasterId;
         quint16 firmwareVersion;
         quint16 modbusId;
+        QString serialPort;
+        QString serialNumber;
     };
 
     void startDiscovery();
