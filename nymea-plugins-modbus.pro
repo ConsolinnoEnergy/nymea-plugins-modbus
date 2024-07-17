@@ -44,13 +44,6 @@ PLUGIN_DIRS = \
     webasto                 \
     e3dc                    \
     dvmodbusir
-    stiebeleltron           \
-    sungrow                 \
-    sunspec                 \
-    technivolt              \
-    unipi                   \
-    webasto                 \
-    e3dc
 
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
