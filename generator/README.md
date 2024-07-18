@@ -9,12 +9,8 @@ Um den Generator zu starten, im Projekt Ordner folgenden Befehl ausführen:
 
 ## TODOS
 
-- ~~Das Interfaces Keyword in der JSON optional machen.~~
-- ~~Vorgehen für die allgemeineres Vorgehen in Größeren Repos:~~
-  - ~~deviceList.json wird in jeden Ordner verschoben, der als Template dienen soll~~
-  - ~~Neue Datei im 'generator' Ordner, in denen die Template Integrationen angegeben sind~~
-- Unterstützung for das optional keyword
-- ~~Bei CIGate Implementieren und testen~~
+- Bei CIGate Implementieren und testen
+- Für modbus-nymea-plugins-testen
 
 ## Vorgehensweise
 
