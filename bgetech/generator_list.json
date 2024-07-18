@@ -6,8 +6,8 @@
       "uuid_offset": 3
     },
     "Kostal Kem P Inverter, Kostal SDM72 Inverter": {
-      "filename": "solarinverter connectable",
-      "interfaces": "null",
+      "filename": "kostalmeterinverter",
+      "interfaces": "solarinverter connectable",
       "uuid_offset": 7
     }
   }
