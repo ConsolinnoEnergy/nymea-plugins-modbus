@@ -67,6 +67,7 @@ if __name__ == "__main__":
     # print("DisplayName will be replace with", args.display_name)
     for i in range(len(args.display_name.split(','))):
         data["vendors"][0]["thingClasses"][i]["displayName"] = args.vendor+" "+args.display_name.split(',')[i].strip()
+        data["vendors"][0]["thingClasses"][i]["discoveryParamTypes"][0]["defaultValue"] = args.display_name.split(',')[i].strip()
         if args.interfaces != ['null']:
             # print("Vendor will be replace with", args.interfaces)
             data["vendors"][0]["thingClasses"][i]["interfaces"] = args.interfaces
