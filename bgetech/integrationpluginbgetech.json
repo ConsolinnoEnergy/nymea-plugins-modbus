@@ -17,14 +17,6 @@
                     "interfaces": ["energymeter", "connectable"],
                     "discoveryParamTypes": [
                         {
-                            "id": "67e4018c-b724-425a-a8b0-76bd86b6fc22",
-                            "name": "deviceName",
-                            "displayName": "Device Name",
-                            "type": "QString",
-                            "defaultValue": "SDM630",
-                            "readOnly": true
-                        },
-                        {
                             "id": "6ab43559-53ec-47ba-b8a0-8d3b7f8d90c2",
                             "name": "slaveAddress",
                             "displayName": "Slave address",
@@ -258,14 +250,6 @@
                     "createMethods": ["discovery"],
                     "interfaces": ["energymeter", "connectable"],
                     "discoveryParamTypes": [
-                        {
-                            "id": "69c95e3e-1062-48aa-a48a-f0b6d92506a9",
-                            "name": "deviceName",
-                            "displayName": "Device Name",
-                            "type": "QString",
-                            "defaultValue": "SDM72",
-                            "readOnly": true
-                        },
                         {
                             "id": "27219539-443b-43dc-ad8b-11e7cfb862b5",
                             "name": "slaveAddress",
