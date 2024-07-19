@@ -81,7 +81,7 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
             if (!modbusMaster->connected())
                 continue;
 
-            ThingDescriptor descriptor(info->thingClassId(), "SDM630", QString::number(slaveAddress) + " " + modbusMaster->serialPort());
+            ThingDescriptor descriptor(info->thingClassId(), info->params().paramValue(sdm630DiscoveryDeviceNameParamTypeId).toString(), QString::number(slaveAddress) + " " + modbusMaster->serialPort());
             ParamList params;
             params << Param(sdm630ThingSlaveAddressParamTypeId, slaveAddress);
             params << Param(sdm630ThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
@@ -103,7 +103,7 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
             if (!modbusMaster->connected())
                 continue;
 
-            ThingDescriptor descriptor(info->thingClassId(), "SDM72", QString::number(slaveAddress) + " " + modbusMaster->serialPort());
+            ThingDescriptor descriptor(info->thingClassId(), info->params().paramValue(sdm72DiscoveryDeviceNameParamTypeId).toString(), QString::number(slaveAddress) + " " + modbusMaster->serialPort());
             ParamList params;
             params << Param(sdm72ThingSlaveAddressParamTypeId, slaveAddress);
             params << Param(sdm72ThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
