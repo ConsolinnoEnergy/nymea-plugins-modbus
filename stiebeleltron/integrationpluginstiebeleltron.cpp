@@ -102,7 +102,8 @@ void IntegrationPluginStiebelEltron::setupThing(ThingSetupInfo *info) {
         MacAddress macAddress = MacAddress(thing->paramValue(stiebelEltronThingMacAddressParamTypeId).toString());
         if (macAddress.isNull()) {
             qCWarning(dcStiebelEltron()) << "Failed to set up Stiebel Eltron heat pump because the MAC address is not valid:" << thing->paramValue(stiebelEltronThingMacAddressParamTypeId).toString() << macAddress.toString();
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
+            qCWarning(dcStiebelEltron()) << "Please delete the device and add it again to fix this.";
+            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please delete the device and add it again to fix this."));
             return;
         }
 

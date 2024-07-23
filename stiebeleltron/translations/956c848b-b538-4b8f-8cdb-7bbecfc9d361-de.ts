@@ -9,25 +9,25 @@
         <translation>Die Netzwerksuche ist nicht verfügbar.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginstiebeleltron.cpp" line="105"/>
-        <source>The MAC address is not vaild. Please reconfigure the device to fix this.</source>
-        <translation>Die MAC Adresse ist ungültig. Bitte das Gerät erneut konfigurieren, um das Problem zu beheben.</translation>
+        <location filename="../integrationpluginstiebeleltron.cpp" line="106"/>
+        <source>The MAC address is not vaild. Please delete the device and add it again to fix this.</source>
+        <translation>Die MAC Adresse ist ungültig. Bitte das Gerät löschen und nochmals hinzufügen um das Problem zu beheben.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginstiebeleltron.cpp" line="198"/>
-        <location filename="../integrationpluginstiebeleltron.cpp" line="400"/>
+        <location filename="../integrationpluginstiebeleltron.cpp" line="199"/>
+        <location filename="../integrationpluginstiebeleltron.cpp" line="401"/>
         <source>The controller type is not vaild. Please reconfigure the device to fix this.</source>
         <translation>Die Reglerkennung ist ungültig. Bitte das Gerät erneut konfigurieren, um das Problem zu beheben.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginstiebeleltron.cpp" line="546"/>
-        <location filename="../integrationpluginstiebeleltron.cpp" line="858"/>
+        <location filename="../integrationpluginstiebeleltron.cpp" line="547"/>
+        <location filename="../integrationpluginstiebeleltron.cpp" line="859"/>
         <source>Error communicating with the heat pump.</source>
         <translation>Fehler bei der Kommunikation mit der Wärmepumpe.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginstiebeleltron.cpp" line="564"/>
-        <location filename="../integrationpluginstiebeleltron.cpp" line="875"/>
+        <location filename="../integrationpluginstiebeleltron.cpp" line="565"/>
+        <location filename="../integrationpluginstiebeleltron.cpp" line="876"/>
         <source>Wrong configuration. Please reconfigure the device to fix this.</source>
         <translation>Falsche Konfiguration. Bitte das Gerät erneut konfigurieren, um das Problem zu beheben.</translation>
     </message>
