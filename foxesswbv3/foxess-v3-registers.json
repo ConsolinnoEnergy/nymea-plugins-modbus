@@ -1,0 +1,446 @@
+{
+    "className": "WebastoNext",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 10,
+    "checkReachableRegister": "maxChargingCurrent",
+    "enums": [
+        {
+            "name": "StopReason",
+            "values": [
+                {
+                    "key": "None",
+                    "value": 0
+                },
+                {
+                    "key": "Stopped on command",
+                    "value": 1
+                },
+                {
+                    "key": "Timed charge complete",
+                    "value": 2
+                },
+                {
+                    "key": "S2 timeout",
+                    "value": 3
+                },
+                {
+                    "key": "charging puase timeout",
+                    "value": 4
+                },
+                {
+                    "key": "Emergency stop button",
+                    "value": 5
+                },
+                {
+                    "key": "Abnormal CP voltage",
+                    "value": 6
+                },
+                {
+                    "key": "Abnormality drawing connector",
+                    "value": 7
+                },
+                {
+                    "key": "Abnormal AC contactor",
+                    "value": 8
+                },
+                {
+                    "key": "Abnormal electronic lock",
+                    "value": 9
+                },
+                {
+                    "key": "Abnormal card reader",
+                    "value": 10
+                },
+                {
+                    "key": "Abnormal overcurrent",
+                    "value": 11
+                },
+                {
+                    "key": "Abnormal overvoltage",
+                    "value": 12
+                },
+                {
+                    "key": "Abnormal undervoltage",
+                    "value": 13
+                },
+                {
+                    "key": "Charging port over-temperature",
+                    "value": 14
+                },
+                {
+                    "key": "Abnormal leakage current",
+                    "value": 15
+                },
+                {
+                    "key": "N line reverse connection",
+                    "value": 16
+                },
+                {
+                    "key": "Abnormal frequency",
+                    "value": 17
+                },
+                {
+                    "key": "Charging stop button pressed",
+                    "value": 18
+                },
+                {
+                    "key": "Abnormal circuit breaker",
+                    "value": 19
+                },
+                {
+                    "key": "Phase loss",
+                    "value": 20
+                },
+                {
+                    "key": "Abnormal PE",
+                    "value": 21
+                },
+                {
+                    "key": "Abnormal external electric meter",
+                    "value": 22
+                },
+                {
+                    "key": "Environment over-temperature",
+                    "value": 23
+                },
+                {
+                    "key": "Metering chip failure",
+                    "value": 24
+                },
+                {
+                    "key": "Access control failure",
+                    "value": 25
+                },
+                {
+                    "key": "Abnormal switching phase sequence",
+                    "value": 26
+                },
+                {
+                    "key": "Reached set energy",
+                    "value": 27
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "chargingInfo",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "deviceAddress",
+                    "description": "Modbus Address of the EVC",
+                    "address": 4096,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    "id": "softwareVersion",
+                    "description": "Software version of EVC",
+                    "address": 4097,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0x1000",
+                    "access": "RO"
+                },
+                {
+                    # TODO: ENUM HINZFÜGEN
+                    "id": "stopReason",
+                    "description": "Stop reason of the EVC",
+                    "address": 4098,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    # TODO: ENUM hinzufügen
+                    "id": "deviceStatus",
+                    "description": "Status of the EVC",
+                    "address": 4099,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "1",
+                    "access": "RO"
+                },
+                {
+                    # TODO: ENUM hinfügen
+                    "id": "cpStatus",
+                    "description": "CP voltage level status of the EVC",
+                    "address": 4100,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "plugStatus",
+                    "description": "Plug status of the EVC",
+                    "address": 4101,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "cpTemperature",
+                    "description": "Charging Port Temperature of the EVC",
+                    "address": 4102,
+                    "size": 1,
+                    "type": "uint16",
+                    "unit": "°C",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "envTemperature",
+                    "description": "Environment Temperature of the EVC",
+                    "address": 4103,
+                    "size": 1,
+                    "type": "uint16",
+                    "unit": "°C",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseA",
+                    "description": "Voltage of phase A",
+                    "address": 4104,
+                    "size": 1,
+                    "type": "uint16",
+                    "unit": "V",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseB",
+                    "description": "Voltage of phase B",
+                    "address": 4105,
+                    "size": 1,
+                    "type": "uint16",
+                    "unit": "V",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseC",
+                    "description": "Voltage of phase C",
+                    "address": 4106,
+                    "size": 1,
+                    "type": "uint16",
+                    "unit": "V",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseA",
+                    "description": "Current of phase A",
+                    "address": 4107,
+                    "size": 1,
+                    "type": "uint16",
+                    "unit": "A",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseB",
+                    "description": "Current of phase B",
+                    "address": 4108,
+                    "size": 1,
+                    "type": "uint16",
+                    "unit": "A",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseC",
+                    "description": "Current of phase C",
+                    "address": 4109,
+                    "size": 1,
+                    "type": "uint16",
+                    "unit": "A",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPower",
+                    "description": "Current power of the EVC",
+                    "address": 4110,
+                    "size": 1,
+                    "type": "uint16",
+                    "unit": "kW",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "lockState",
+                    "description": "State of the electronic lock",
+                    "address": 4111,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "chargePhase",
+                    "description": "Charging phase of EVC",
+                    "address": 4112,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "maxSupportedPower",
+                    "description": "Maximum supported power of the EVC",
+                    "address": 4113,
+                    "size": 1,
+                    "unit": "kW",
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "minSupportedPower",
+                    "description": "Minimum supported power of the EVC",
+                    "address": 4114,
+                    "size": 1,
+                    "unit": "kW",
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "maxSupportedCurrent",
+                    "description": "Maximum supported current of the EVC",
+                    "address": 4115,
+                    "size": 1,
+                    "unit": "A",
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "minSupportedCurrent",
+                    "description": "Minimum supported current of the EVC",
+                    "address": 4116,
+                    "size": 1,
+                    "unit": "A",
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "alarmInfo",
+                    "description": "System alarm info of the EVC",
+                    "address": 4117,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "sessionEnergyConsumed",
+                    "description": "Session energy consumed by the EVC",
+                    "address": 4118,
+                    "size": 2,
+                    "unit": "kWh",
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "totalEnergy",
+                    "description": "Total energy conumed by the EVC",
+                    "address": 4120,
+                    "size": 2,
+                    "unit": "kWh",
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "faultInfo",
+                    "description": "System fault info of the EVC",
+                    "address": 4122,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "systemInfo",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "serialNumber",
+                    "description": "Serial number of the EVC",
+                    "address": 4126,
+                    "size": 4,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "serialNumber",
+                    "description": "Serial number of the EVC",
+                    "address": 4130,
+                    "size": 16,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        
+    ]
+}
