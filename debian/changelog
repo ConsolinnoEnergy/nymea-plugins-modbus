@@ -1,8 +1,9 @@
 nymea-plugins-modbus (1.7.009) jammy; urgency=medium
 
   * Add generator to duplicate existing integrations with different names
+  * Fix for Solax X3 Inverter: Wrong warning message
 
- -- Luis Reber <l.reber@consolinno.de> Mon, 22 Jul 2024 14:50:00 +0200
+ -- Luis Reber <l.reber@consolinno.de> Tue, 16 Jul 2024 15:48:00 +0200
 
 nymea-plugins-modbus (1.7.008) jammy; urgency=medium
 
