@@ -33,6 +33,7 @@ PLUGIN_DIRS = \
     schrack                 \
     senseair                \
     sma                     \
+    solaxevc                \
     solax                   \
     stiebeleltron           \
     sungrow                 \

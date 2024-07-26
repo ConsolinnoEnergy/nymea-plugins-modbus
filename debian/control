@@ -415,3 +415,10 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Growatt inverter including meter and battery. 
   This Package contains the nymea integration for inverter, meter and battery made by
   Growatt New Energy GmbH.
+
+Package: nymea-plugin-solaxevc
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for Solax X3 EV Charger
+ This package contains the nymea integration plugin for the Solax X3 EV Charger.
