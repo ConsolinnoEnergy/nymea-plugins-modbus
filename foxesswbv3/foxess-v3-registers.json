@@ -4,125 +4,6 @@
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "deviceAddress",
-    "enums": [
-        {
-            "name": "StopReason",
-            "values": [
-                {
-                    "key": "None",
-                    "value": 0
-                },
-                {
-                    "key": "Stopped on command",
-                    "value": 1
-                },
-                {
-                    "key": "Timed charge complete",
-                    "value": 2
-                },
-                {
-                    "key": "S2 timeout",
-                    "value": 3
-                },
-                {
-                    "key": "charging puase timeout",
-                    "value": 4
-                },
-                {
-                    "key": "Emergency stop button",
-                    "value": 5
-                },
-                {
-                    "key": "Abnormal CP voltage",
-                    "value": 6
-                },
-                {
-                    "key": "Abnormality drawing connector",
-                    "value": 7
-                },
-                {
-                    "key": "Abnormal AC contactor",
-                    "value": 8
-                },
-                {
-                    "key": "Abnormal electronic lock",
-                    "value": 9
-                },
-                {
-                    "key": "Abnormal card reader",
-                    "value": 10
-                },
-                {
-                    "key": "Abnormal overcurrent",
-                    "value": 11
-                },
-                {
-                    "key": "Abnormal overvoltage",
-                    "value": 12
-                },
-                {
-                    "key": "Abnormal undervoltage",
-                    "value": 13
-                },
-                {
-                    "key": "Charging port over-temperature",
-                    "value": 14
-                },
-                {
-                    "key": "Abnormal leakage current",
-                    "value": 15
-                },
-                {
-                    "key": "N line reverse connection",
-                    "value": 16
-                },
-                {
-                    "key": "Abnormal frequency",
-                    "value": 17
-                },
-                {
-                    "key": "Charging stop button pressed",
-                    "value": 18
-                },
-                {
-                    "key": "Abnormal circuit breaker",
-                    "value": 19
-                },
-                {
-                    "key": "Phase loss",
-                    "value": 20
-                },
-                {
-                    "key": "Abnormal PE",
-                    "value": 21
-                },
-                {
-                    "key": "Abnormal external electric meter",
-                    "value": 22
-                },
-                {
-                    "key": "Environment over-temperature",
-                    "value": 23
-                },
-                {
-                    "key": "Metering chip failure",
-                    "value": 24
-                },
-                {
-                    "key": "Access control failure",
-                    "value": 25
-                },
-                {
-                    "key": "Abnormal switching phase sequence",
-                    "value": 26
-                },
-                {
-                    "key": "Reached set energy",
-                    "value": 27
-                }
-            ]
-        }
-    ],
     "blocks": [
         {
             "id": "chargingInfo",
@@ -139,7 +20,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "softwareVersion",
+                    "id": "firmwareVersion",
                     "description": "Software version of EVC (0x1001)",
                     "address": 4097,
                     "size": 1,
@@ -153,9 +34,9 @@
                     "description": "Stop reason of the EVC (0x1002)",
                     "address": 4098,
                     "size": 1,
-                    "type": "StopReason",
+                    "type": "uint16",
                     "registerType": "holdingRegister",
-                    "defaultValue": "None",
+                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
@@ -498,7 +379,7 @@
                 {
                     "id": "timeValidity",
                     "description": "Maximum charge time (minutes) of the EVC (0x3005)",
-                    "address": 12292,
+                    "address": 12293,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
@@ -509,7 +390,7 @@
                 {
                     "id": "defaultCurrent",
                     "description": "Default charging current of the EVC (0x3006)",
-                    "address": 12293,
+                    "address": 12294,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",

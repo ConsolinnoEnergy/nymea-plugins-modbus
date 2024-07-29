@@ -7,8 +7,8 @@ include(../modbus.pri)
 
 SOURCES += \
     integrationpluginfoxesswbv3.cpp \
-    discovery.cpp \
+    discoverytcp.cpp
 
 HEADERS += \
     integrationpluginfoxesswbv3.h \
-    discovery.h \
+    discoverytcp.h

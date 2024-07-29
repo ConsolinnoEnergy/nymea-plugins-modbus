@@ -1,15 +1,15 @@
 {
-    "name": "FoxESS",
+    "name": "foxEss",
     "displayName": "FoxESS",
     "id": "cd3707ed-d79f-4aba-a5cc-bff1f2d90329",
     "vendors": [
         {
-            "name": "FoxESS",
+            "name": "foxEss",
             "displayName": "FoxESS",
             "id": "b0115ec5-8ffa-40ab-98ab-bfc97ae5449d",
             "thingClasses": [
                 {
-                    "name": "foxessWB",
+                    "name": "foxEss",
                     "displayName": "FoxESS Wallbox 3rd Gen",
                     "id": "2ed6595f-f3b9-47e8-ad0e-41b404aa1a36",
                     "createMethods": ["discovery"],
