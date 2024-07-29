@@ -1,4 +1,4 @@
-# Webasto
+# FoxESS
 
 Connects nymea to FoxESS wallboxes. Currently supported models:
 

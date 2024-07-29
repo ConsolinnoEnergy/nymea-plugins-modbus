@@ -130,7 +130,7 @@
             "registers": [
                 {
                     "id": "deviceAddress",
-                    "description": "Modbus Address of the EVC",
+                    "description": "Modbus Address of the EVC (0x1000)",
                     "address": 4096,
                     "size": 1,
                     "type": "uint16",
@@ -140,7 +140,7 @@
                 },
                 {
                     "id": "softwareVersion",
-                    "description": "Software version of EVC",
+                    "description": "Software version of EVC (0x1001)",
                     "address": 4097,
                     "size": 1,
                     "type": "uint16",
@@ -149,20 +149,18 @@
                     "access": "RO"
                 },
                 {
-                    # TODO: ENUM HINZFÜGEN
                     "id": "stopReason",
-                    "description": "Stop reason of the EVC",
+                    "description": "Stop reason of the EVC (0x1002)",
                     "address": 4098,
                     "size": 1,
-                    "type": "uint16",
+                    "type": "StopReason",
                     "registerType": "holdingRegister",
-                    "defaultValue": "0",
+                    "defaultValue": "None",
                     "access": "RO"
                 },
                 {
-                    # TODO: ENUM hinzufügen
                     "id": "deviceStatus",
-                    "description": "Status of the EVC",
+                    "description": "Status of the EVC (0x1003)",
                     "address": 4099,
                     "size": 1,
                     "type": "uint16",
@@ -171,9 +169,8 @@
                     "access": "RO"
                 },
                 {
-                    # TODO: ENUM hinfügen
                     "id": "cpStatus",
-                    "description": "CP voltage level status of the EVC",
+                    "description": "CP voltage level status of the EVC (0x1004)",
                     "address": 4100,
                     "size": 1,
                     "type": "uint16",
@@ -183,7 +180,7 @@
                 },
                 {
                     "id": "plugStatus",
-                    "description": "Plug status of the EVC",
+                    "description": "Plug status of the EVC (0x1005)",
                     "address": 4101,
                     "size": 1,
                     "type": "uint16",
@@ -193,7 +190,7 @@
                 },
                 {
                     "id": "cpTemperature",
-                    "description": "Charging Port Temperature of the EVC",
+                    "description": "Charging Port Temperature of the EVC (0x1006)",
                     "address": 4102,
                     "size": 1,
                     "type": "uint16",
@@ -205,7 +202,7 @@
                 },
                 {
                     "id": "envTemperature",
-                    "description": "Environment Temperature of the EVC",
+                    "description": "Environment Temperature of the EVC (0x1007)",
                     "address": 4103,
                     "size": 1,
                     "type": "uint16",
@@ -217,7 +214,7 @@
                 },
                 {
                     "id": "voltagePhaseA",
-                    "description": "Voltage of phase A",
+                    "description": "Voltage of phase A (0x1008)",
                     "address": 4104,
                     "size": 1,
                     "type": "uint16",
@@ -229,7 +226,7 @@
                 },
                 {
                     "id": "voltagePhaseB",
-                    "description": "Voltage of phase B",
+                    "description": "Voltage of phase B (0x1009)",
                     "address": 4105,
                     "size": 1,
                     "type": "uint16",
@@ -241,7 +238,7 @@
                 },
                 {
                     "id": "voltagePhaseC",
-                    "description": "Voltage of phase C",
+                    "description": "Voltage of phase C (0x100A)",
                     "address": 4106,
                     "size": 1,
                     "type": "uint16",
@@ -253,7 +250,7 @@
                 },
                 {
                     "id": "currentPhaseA",
-                    "description": "Current of phase A",
+                    "description": "Current of phase A (0x100B)",
                     "address": 4107,
                     "size": 1,
                     "type": "uint16",
@@ -265,7 +262,7 @@
                 },
                 {
                     "id": "currentPhaseB",
-                    "description": "Current of phase B",
+                    "description": "Current of phase B (0x100C)",
                     "address": 4108,
                     "size": 1,
                     "type": "uint16",
@@ -277,7 +274,7 @@
                 },
                 {
                     "id": "currentPhaseC",
-                    "description": "Current of phase C",
+                    "description": "Current of phase C (0x100D)",
                     "address": 4109,
                     "size": 1,
                     "type": "uint16",
@@ -289,7 +286,7 @@
                 },
                 {
                     "id": "currentPower",
-                    "description": "Current power of the EVC",
+                    "description": "Current power of the EVC (0x100E)",
                     "address": 4110,
                     "size": 1,
                     "type": "uint16",
@@ -301,7 +298,7 @@
                 },
                 {
                     "id": "lockState",
-                    "description": "State of the electronic lock",
+                    "description": "State of the electronic lock (0x100F)",
                     "address": 4111,
                     "size": 1,
                     "type": "uint16",
@@ -311,7 +308,7 @@
                 },
                 {
                     "id": "chargePhase",
-                    "description": "Charging phase of EVC",
+                    "description": "Charging phase of EVC (0x1010)",
                     "address": 4112,
                     "size": 1,
                     "type": "uint16",
@@ -321,7 +318,7 @@
                 },
                 {
                     "id": "maxSupportedPower",
-                    "description": "Maximum supported power of the EVC",
+                    "description": "Maximum supported power of the EVC (0x1011)",
                     "address": 4113,
                     "size": 1,
                     "unit": "kW",
@@ -333,7 +330,7 @@
                 },
                 {
                     "id": "minSupportedPower",
-                    "description": "Minimum supported power of the EVC",
+                    "description": "Minimum supported power of the EVC (0x1012)",
                     "address": 4114,
                     "size": 1,
                     "unit": "kW",
@@ -345,7 +342,7 @@
                 },
                 {
                     "id": "maxSupportedCurrent",
-                    "description": "Maximum supported current of the EVC",
+                    "description": "Maximum supported current of the EVC (0x1013)",
                     "address": 4115,
                     "size": 1,
                     "unit": "A",
@@ -357,7 +354,7 @@
                 },
                 {
                     "id": "minSupportedCurrent",
-                    "description": "Minimum supported current of the EVC",
+                    "description": "Minimum supported current of the EVC (0x1014)",
                     "address": 4116,
                     "size": 1,
                     "unit": "A",
@@ -369,7 +366,7 @@
                 },
                 {
                     "id": "alarmInfo",
-                    "description": "System alarm info of the EVC",
+                    "description": "System alarm info of the EVC (0x1015)",
                     "address": 4117,
                     "size": 1,
                     "type": "uint16",
@@ -379,7 +376,7 @@
                 },
                 {
                     "id": "sessionEnergyConsumed",
-                    "description": "Session energy consumed by the EVC",
+                    "description": "Session energy consumed by the EVC (0x1016)",
                     "address": 4118,
                     "size": 2,
                     "unit": "kWh",
@@ -391,7 +388,7 @@
                 },
                 {
                     "id": "totalEnergy",
-                    "description": "Total energy conumed by the EVC",
+                    "description": "Total energy conumed by the EVC (0x101A)",
                     "address": 4120,
                     "size": 2,
                     "unit": "kWh",
@@ -403,7 +400,7 @@
                 },
                 {
                     "id": "faultInfo",
-                    "description": "System fault info of the EVC",
+                    "description": "System fault info of the EVC (0x101C)",
                     "address": 4122,
                     "size": 2,
                     "type": "uint32",
@@ -418,8 +415,8 @@
             "readSchedule": "init",
             "registers": [
                 {
-                    "id": "serialNumber",
-                    "description": "Serial number of the EVC",
+                    "id": "modelCode",
+                    "description": "Model code of the EVC (0x101E)",
                     "address": 4126,
                     "size": 4,
                     "type": "string",
@@ -429,7 +426,7 @@
                 },
                 {
                     "id": "serialNumber",
-                    "description": "Serial number of the EVC",
+                    "description": "Serial number of the EVC (0x1022)",
                     "address": 4130,
                     "size": 16,
                     "type": "string",
@@ -438,9 +435,135 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "chargeSettings",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "workMode",
+                    "description": "Work Mode of the EVC (0x3000)",
+                    "address": 12288,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "maxChargeCurrent",
+                    "description": "Maximum charging current of the EVC (0x3001)",
+                    "address": 12289,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RW"
+                },
+                {
+                    "id": "maxChargePower",
+                    "description": "Maximum charging power of the EVC (0x3002)",
+                    "address": 12290,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "unit": "kW",
+                    "staticScaleFactor": -1,
+                    "access": "RW"
+                },
+                {
+                    "id": "maxChargeTime",
+                    "description": "Maximum charge time (minutes) of the EVC (0x3003)",
+                    "address": 12291,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "maxChargeEnergy",
+                    "description": "Maximum charge energy of the EVC (0x3004)",
+                    "address": 12292,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "0",
+                    "unit": "kWh",
+                    "access": "RW"
+                },
+                {
+                    "id": "timeValidity",
+                    "description": "Maximum charge time (minutes) of the EVC (0x3005)",
+                    "address": 12292,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "30",
+                    "unit": "kWh",
+                    "access": "RW"
+                },
+                {
+                    "id": "defaultCurrent",
+                    "description": "Default charging current of the EVC (0x3006)",
+                    "address": 12293,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "6",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "access": "RW"
+                }
+            ] 
+        },
+        {
+            "id": "chargeControl",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "lockControl",
+                    "description": "State of the Lock of the EVC (0x4000)",
+                    "address": 16384,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "access": "RW"
+                },
+                {
+                    "id": "chargingControl",
+                    "description": "Control charing of the EVC (0x4001)",
+                    "address": 16385,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "access": "RW"
+                },
+                {
+                    "id": "phaseSwitching",
+                    "description": "Phase switching instructions of the EVC (0x4002)",
+                    "address": 16386,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "access": "RW"
+                },
+                {
+                    "id": "restartEVC",
+                    "description": "Restart the evc (0x4003)",
+                    "address": 16387,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "access": "RW"
+                }
+            ]
         }
     ],
     "registers": [
-        
+
     ]
 }
