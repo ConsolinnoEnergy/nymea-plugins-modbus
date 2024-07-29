@@ -7,8 +7,8 @@ include(../modbus.pri)
 
 SOURCES += \
     integrationpluginfoxesswbv3.cpp \
-    foxesswbdiscovery.cpp \
+    discovery.cpp \
 
 HEADERS += \
     integrationpluginfoxesswbv3.h \
-    foxesswbdicovery.h \
+    discovery.h \

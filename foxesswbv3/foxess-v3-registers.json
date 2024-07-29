@@ -1,9 +1,9 @@
 {
-    "className": "WebastoNext",
+    "className": "FoxESS",
     "protocol": "TCP",
-    "endianness": "BigEndian",
+    "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 10,
-    "checkReachableRegister": "maxChargingCurrent",
+    "checkReachableRegister": "deviceAddress",
     "enums": [
         {
             "name": "StopReason",
