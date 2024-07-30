@@ -35,6 +35,9 @@
 #include <integrations/integrationplugin.h>
 #include <network/networkdevicemonitor.h>
 
+#include "network/zeroconf/zeroconfservicebrowser.h"
+#include "network/zeroconf/zeroconfserviceentry.h"
+
 #include "extern-plugininfo.h"
 #include "foxessmodbustcpconnection.h"
 
@@ -47,7 +50,6 @@ class IntegrationPluginFoxEss : public IntegrationPlugin
 
 public:
     explicit IntegrationPluginFoxEss();
-
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
@@ -57,6 +59,7 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    ZeroConfServiceBrowser *m_serviceBrowser = nullptr;
     QHash<Thing *, FoxESSModbusTcpConnection *> m_tcpConnections;
     bool m_setupTcpConnectionRunning = false;
 

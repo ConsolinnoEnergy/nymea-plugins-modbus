@@ -1,22 +1,22 @@
 {
     "name": "foxEss",
     "displayName": "FoxESS",
-    "id": "cd3707ed-d79f-4aba-a5cc-bff1f2d90329",
+    "id": "e042d26a-94bd-4205-96e6-f7dd71d1671d",
     "vendors": [
         {
             "name": "foxEss",
             "displayName": "FoxESS",
-            "id": "b0115ec5-8ffa-40ab-98ab-bfc97ae5449d",
+            "id": "e188d01d-6f48-4de9-8c8f-4abd543afdd3",
             "thingClasses": [
                 {
                     "name": "foxEss",
                     "displayName": "FoxESS Wallbox 3rd Gen",
-                    "id": "2ed6595f-f3b9-47e8-ad0e-41b404aa1a36",
+                    "id": "ac5ad97c-2585-400c-8620-b31cb4171756",
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [
                         {
-                            "id": "45a120be-443e-42ee-a97f-dea0b6fbd4d9",
+                            "id": "756a9daa-ad65-4fb3-858c-bb5dd2915cc8",
                             "name": "ipAddress",
                             "displayName": "IP address",
                             "type": "QString",
@@ -25,15 +25,15 @@
                             "readOnly": true
                         },
                         {
-                            "id": "1b10e0b6-715d-483a-9a87-cd7a97a525a4",
-                            "name": "macAddress",
-                            "displayName": "MAC address",
+                            "id": "1f4155a1-0856-4382-a063-800e59284226",
+                            "name": "mdnsName",
+                            "displayName": "mDNS Name",
                             "type": "QString",
                             "defaultValue": "",
                             "readOnly": true
                         },
                         {
-                            "id": "c5f97cb4-6859-4a3a-b715-eeea81c72fa1",
+                            "id": "f41fa78a-ed7b-4fb1-863a-acd1b4792419",
                             "name": "port",
                             "displayName": "Port",
                             "type": "int",
@@ -41,7 +41,7 @@
                             "readOnly": true
                         }, 
                         {
-                            "id": "6e2de5d1-a187-408d-a276-78576ed5fec7",
+                            "id": "bc07edb5-5687-492b-b0c8-ba3c467e083c",
                             "name":"modbusId",
                             "displayName": "Modbus ID",
                             "type": "uint",
@@ -53,7 +53,7 @@
                     ],
                     "stateTypes": [
                         {
-                            "id": "5055c7a8-9b34-4289-b313-8c78c935263d",
+                            "id": "33509777-85da-498d-b3f6-e81b6040ef5a",
                             "name": "connected",
                             "displayName": "Connected",
                             "type": "bool",
@@ -61,7 +61,7 @@
                             "cached": false
                         },
                         {
-                            "id": "819b19e9-3395-472d-95f0-d5c28897eccd",
+                            "id": "45291974-d020-4ac9-9a46-acfeb4cf090e",
                             "name": "pluggedIn",
                             "displayName": "Plugged in",
                             "type": "bool",
@@ -69,7 +69,7 @@
                             "cached": false
                         },
                         {
-                            "id": "d4c499dc-f0fd-463d-acdd-b7151f3baf91",
+                            "id": "6e2248b7-b357-46e4-a50d-2092c0606f6b",
                             "name": "charging",
                             "displayName": "Charging",
                             "type": "bool",
@@ -77,7 +77,7 @@
                             "cached": false
                         },
                         {
-                            "id": "29f2f2e5-3b47-4737-9324-c852c6377037",
+                            "id": "5956c53a-5a01-4318-a75f-cdb1ef7284ba",
                             "name": "phaseCount",
                             "displayName": "Connected phases",
                             "type": "uint",
@@ -87,7 +87,7 @@
                             "cached": false
                         },
                         {
-                            "id": "b060adab-02b8-4892-aa51-18e5eaab852f",
+                            "id": "7570c1f5-543a-4ddc-adb7-6289db0e91af",
                             "name": "currentPower",
                             "displayName": "Active power",
                             "type": "double",
@@ -96,7 +96,7 @@
                             "cached": false
                         },
                         {
-                            "id": "e9d9e623-0ba0-4418-9271-747e31989438",
+                            "id": "b18f0654-cebb-40a9-ba95-a1e00ed31176",
                             "name": "totalEnergyConsumed",
                             "displayName": "Total consumed energy",
                             "type": "double",
@@ -105,7 +105,7 @@
                             "cached": true
                         },
                         {
-                            "id": "c81ca9b1-e9fa-4307-89d9-e3bbfb5262e9",
+                            "id": "e1b7aafd-fe89-4307-b809-9853b358073d",
                             "name": "sessionEnergy",
                             "displayName": "Session energy",
                             "type": "double",
@@ -114,7 +114,7 @@
                             "cached": false
                         },
                         {
-                            "id": "0ca25649-053c-40a8-9353-fd4afa0f9a98",
+                            "id": "b16aef33-c9ff-4119-a0f0-e316e66ea8ec",
                             "name": "chargingTime",
                             "displayName": "Charging time",
                             "type": "uint",
@@ -123,7 +123,7 @@
                             "cached": false
                         },
                         {
-                            "id": "32bfd377-24d8-4b34-b16a-d13f69c288de",
+                            "id": "6d77f96e-76b6-41ee-8a12-61b5b34d2f2f",
                             "name": "power",
                             "displayName": "Charging enabled",
                             "displayNameAction": "Set charging enabled",
@@ -132,7 +132,7 @@
                             "writable": true
                         },
                         {
-                            "id": "2eed9fdc-6ca3-4895-866d-76f503beb75a",
+                            "id": "9ad931cf-33b4-4088-b15b-97d6332fece7",
                             "name": "maxChargingCurrent",
                             "displayName": "Maximum charging current",
                             "displayNameAction": "Set maximum charging current",
@@ -144,7 +144,7 @@
                             "writable": true
                         },
                         {
-                            "id": "ce31d3da-5d1a-401a-9fb1-2a93cd9aa7b9",
+                            "id": "09b711e3-f0c1-48e6-bae6-c704f7c63bc8",
                             "name": "state",
                             "displayName": "State",
                             "type": "QString",
@@ -152,7 +152,7 @@
                             "cached": false
                         },
                         {
-                            "id": "38d022d5-c25c-41d4-bec0-d3701e66418f",
+                            "id": "3c444e41-3218-4069-a6bc-9fea7f7a998a",
                             "name": "faultCode",
                             "displayName": "Fault code",
                             "type": "QString",
@@ -160,7 +160,7 @@
                             "cached": false
                         },
                         {
-                            "id": "c94d9040-f240-4fc0-90fa-46dae726f42f",
+                            "id": "eb22ec3f-1833-4bd5-b3ae-abef0449c335",
                             "name": "firmwareVersion",
                             "displayName": "Firmware version",
                             "type": "uint",
@@ -168,7 +168,7 @@
                             "cached": false
                         },
                         {
-                            "id": "44feb2a5-3510-4bdc-a3d1-5d4fba38cee0",
+                            "id": "a63d137e-f7b2-40bb-b4b5-715c910fb720",
                             "name": "serialNumber",
                             "displayName": "Serial number",
                             "type": "QString",
@@ -176,7 +176,7 @@
                             "cached": false
                         },
                         {
-                            "id": "7234b907-0c10-437e-9824-a8ab706bd3b3",
+                            "id": "4ff171dd-0895-408a-bbc3-77418b31afce",
                             "name": "currentPhaseA",
                             "displayName": "Current Phase A",
                             "type": "double",
@@ -185,7 +185,7 @@
                             "cached": false
                         },
                         {
-                            "id": "3dd1efb6-92d7-4a34-856f-c6a20581af56",
+                            "id": "3318071d-5aa5-4f84-9bba-0101df460270",
                             "name": "currentPhaseB",
                             "displayName": "Current Phase B",
                             "type": "double",
@@ -194,7 +194,7 @@
                             "cached": false
                         },
                         {
-                            "id": "23a369af-7fb5-4e51-bfdd-c0cae2bee841",
+                            "id": "7352c9a2-823e-4c9e-b10b-e5e49e668b20",
                             "name": "currentPhaseC",
                             "displayName": "Current Phase C",
                             "type": "double",
