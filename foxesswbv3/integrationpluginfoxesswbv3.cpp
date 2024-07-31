@@ -202,6 +202,19 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
            }
     });
 
+    connect(connection, &FoxESSModbusTcpConnection::plugStatusChanged, thing, [thing](quint16 state) {
+        if (state == 0)
+        {
+            // not connected
+            qCDebug(dcFoxEss()) << "Plug not connected";
+            thing->setStateValue(foxEssPluggedInStateTypeId, false);
+        } else {
+            // connected
+            qCDebug(dcFoxEss()) << "Plug connected";
+            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+        }
+    });
+
     connect(connection, &FoxESSModbusTcpConnection::currentPhaseAChanged, thing, [thing](float current) {
         qCDebug(dcFoxEss()) << "Current Phase A changed to" << current << "A";
         thing->setStateValue(foxEssCurrentPhaseAStateTypeId, current);
@@ -215,6 +228,37 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
     connect(connection, &FoxESSModbusTcpConnection::currentPhaseCChanged, thing, [thing](float current) {
         qCDebug(dcFoxEss()) << "Current Phase C changed to" << current << "A";
         thing->setStateValue(foxEssCurrentPhaseCStateTypeId, current);
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::currentPowerChanged, thing, [thing](float power) {
+        qCDebug(dcFoxEss()) << "Current Power changed to" << power << "W";
+        thing->setStateValue(foxEssCurrentPowerStateTypeId, power);
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::sessionEnergyConsumedChanged, thing, [thing](float energy) {
+        qCDebug(dcFoxEss()) << "Session energy changed to" << energy << "kWh";
+        thing->setStateValue(foxEssSessionEnergyStateTypeId, energy);
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::totalEnergyChanged, thing, [thing](float energy) {
+        qCDebug(dcFoxEss()) << "Total energy changed to" << energy << "kWh";
+        thing->setStateValue(foxEssTotalEnergyConsumedStateTypeId, energy);
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
+        qCDebug(dcFoxEss()) << "Update finished";
+        float currentPhaseA = thing->stateValue(foxEssCurrentPhaseAStateTypeId).toFloat();
+        float currentPhaseB = thing->stateValue(foxEssCurrentPhaseBStateTypeId).toFloat();
+        float currentPhaseC = thing->stateValue(foxEssCurrentPhaseCStateTypeId).toFloat();
+
+        int phaseCount = 0;
+        if (currentPhaseA > 0)
+            phaseCount++;
+        if (currentPhaseB > 0)
+            phaseCount++;
+        if (currentPhaseC > 0)
+            phaseCount++;
+        thing->setStateValue(foxEssPhaseCountStateTypeId, qMax(phaseCount,1));
     });
     
     if (monitor->reachable())

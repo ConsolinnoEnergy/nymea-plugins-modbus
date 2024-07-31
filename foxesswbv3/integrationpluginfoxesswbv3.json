@@ -122,15 +122,6 @@
                             "cached": false
                         },
                         {
-                            "id": "178cb5a3-b42e-41ee-88ea-3c6fb63bea0a",
-                            "name": "chargingTime",
-                            "displayName": "Charging time",
-                            "type": "uint",
-                            "unit": "Seconds",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
                             "id": "faaf02d1-682e-49c3-8d3a-999366d28744",
                             "name": "power",
                             "displayName": "Charging enabled",

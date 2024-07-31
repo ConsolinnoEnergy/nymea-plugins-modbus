@@ -4,6 +4,41 @@
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "deviceAddress",
+    "enums": [
+        {
+            "name": "EVCStatus",
+            "values": [
+                {
+                    "key": "Idle",
+                    "value": 0
+                },
+                {
+                    "key": "Connected",
+                    "value": 1
+                },
+                {
+                    "key": "Starting",
+                    "value": 2
+                },
+                {
+                    "key": "Charging",
+                    "value": 3
+                },
+                {
+                    "key": "Pausing",
+                    "value": 4
+                },
+                {
+                    "key": "Finishing",
+                    "value": 5
+                },
+                {
+                    "key": "Faulted",
+                    "value": 6
+                }
+            ]
+        }
+    ],
     "blocks": [
         {
             "id": "chargingInfo",
@@ -45,8 +80,9 @@
                     "address": 4099,
                     "size": 1,
                     "type": "uint16",
+                    "enum": "EVCStatus",
                     "registerType": "holdingRegister",
-                    "defaultValue": "1",
+                    "defaultValue": "EVCStatusIdle",
                     "access": "RO"
                 },
                 {
