@@ -121,5 +121,8 @@ private slots:
     void onStorageBlockUpdated();
     void onSolarEdgeBatteryBlockUpdated();
 
+    void evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced);
+
+
 };
 #endif // INTEGRATIONPLUGINSUNSPEC_H
