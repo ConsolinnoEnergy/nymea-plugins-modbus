@@ -116,12 +116,12 @@ void IntegrationPluginFoxEss::setupThing(ThingSetupInfo *info)
             setupTcpConnection(info);
         } else {
             connect(hardwareManager()->networkDeviceDiscovery(),
-                    &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
-                        if (!m_setupTcpConnectionRunning) {
-                            m_setupTcpConnectionRunning = true;
-                            setupTcpConnection(info);
-                        }
-                    });
+                &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
+                    if (!m_setupTcpConnectionRunning) {
+                        m_setupTcpConnectionRunning = true;
+                        setupTcpConnection(info);
+                    }
+            });
         }
     }
 }
@@ -243,6 +243,29 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
     connect(connection, &FoxESSModbusTcpConnection::totalEnergyChanged, thing, [thing](float energy) {
         qCDebug(dcFoxEss()) << "Total energy changed to" << energy << "kWh";
         thing->setStateValue(foxEssTotalEnergyConsumedStateTypeId, energy);
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::alarmInfoChanged, thing, [thing](quint16 code) {
+        qCDebug(dcFoxEss()) << "Alarm info changed to" << code << "kWh";
+        QMap<int, QString> alarmInfoMap = {
+            {0, "Card reader"}, {1, "Phase cutting box"},
+            {2, "Phase loss"}
+        };
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::faultInfoChanged, thing, [thing](quint16 code) {
+        qCDebug(dcFoxEss()) << "Fault info changed to" << code << "kWh";
+        QMap<int, QString> faultInfoMap = {
+            {0, "Emergency stop"}, {1, "Overvoltage"},
+            {2, "Undervoltage"}, {3, "Overcurrent"},
+            {4, "Charge port temperature"}, {5, "PE grounding"},
+            {6, "Leakage current"}, {7, "Frequency"},
+            {8, "CP"}, {9, "Connector"},
+            {10, "AC contactor"}, {11, "Electronic lock"},
+            {12, "Breaker"}, {13, "CC"},
+            {14, "Ext. meter communiction"}, {15, "Metering chip"},
+            {16, "Environment temperature"}, {17, "Access control"},
+        }
     });
 
     connect(connection, &FoxESSModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
