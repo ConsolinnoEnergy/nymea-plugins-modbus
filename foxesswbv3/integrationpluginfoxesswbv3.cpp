@@ -48,23 +48,32 @@ void IntegrationPluginFoxEss::discoverThings(ThingDiscoveryInfo *info)
             info->finish(Thing::ThingErrorHardwareNotAvailable, "Thing discovery not possible");
             return;
         }
-        m_serviceBrowser = hardwareManager()->zeroConfController()->createServiceBrowser();
-        foreach (const ZeroConfServiceEntry &service, m_serviceBrowser->serviceEntries()) {
-            // qCDebug(dcFoxEss()) << "mDNS service entry:" << service;
-            if (service.hostName().contains("EVC-"))
-            {
-                ThingDescriptor descriptor(foxEssThingClassId, "FoxESS Wallbox", service.hostAddress().toString());
-                ParamList params;
-                // TODO: Get Mac Address
-                params << Param(foxEssThingIpAddressParamTypeId, service.hostAddress().toString());
-                params << Param(foxEssThingMdnsNameParamTypeId, service.name());
-                params << Param(foxEssThingPortParamTypeId, service.port());
-                params << Param(foxEssThingModbusIdParamTypeId, 1);
-                descriptor.setParams(params);
-                info->addThingDescriptor(descriptor);
+        NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
+        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=]() {
+        qCDebug(dcFoxEss()) << "Discovery: Network discovery finished. Found"
+                              << discoveryReply->networkDeviceInfos().count() << "network devices";
+            m_serviceBrowser = hardwareManager()->zeroConfController()->createServiceBrowser();
+            foreach (const ZeroConfServiceEntry &service, m_serviceBrowser->serviceEntries()) {
+                // qCDebug(dcFoxEss()) << "mDNS service entry:" << service;
+                if (service.hostName().contains("EVC-"))
+                {
+                    ThingDescriptor descriptor(foxEssThingClassId, "FoxESS Wallbox", service.hostAddress().toString());
+                    NetworkDeviceInfo foxESSWallbox = discoveryReply->networkDeviceInfos().get(service.hostAddress());
+                    qCDebug(dcFoxEss()) << "MacAddress of WB:" << foxESSWallbox.macAddress();
+                    ParamList params;
+                    // TODO: Get Mac Address
+                    params << Param(foxEssThingIpAddressParamTypeId, service.hostAddress().toString());
+                    params << Param(foxEssThingMdnsNameParamTypeId, service.name());
+                    params << Param(foxEssThingPortParamTypeId, service.port());
+                    params << Param(foxEssThingMacAddressParamTypeId, foxESSWallbox.macAddress());
+                    params << Param(foxEssThingModbusIdParamTypeId, 1);
+                    descriptor.setParams(params);
+                    info->addThingDescriptor(descriptor);
+                }
             }
-        }
-        info->finish(Thing::ThingErrorNoError);
+            discoveryReply->deleteLater();
+            info->finish(Thing::ThingErrorNoError);
+        });
     }
 }
 
@@ -74,6 +83,47 @@ void IntegrationPluginFoxEss::setupThing(ThingSetupInfo *info)
     qCDebug(dcFoxEss()) << "Setup" << thing << thing->params();
 
     if (thing->thingClassId() == foxEssThingClassId) {
+        // Make sure we have a valid mac address, otherwise no monitor and no auto searching is
+        // possible. Testing for null is necessary, because registering a monitor with a zero mac
+        // adress will cause a segfault.
+        MacAddress macAddress =
+                MacAddress(thing->paramValue(foxEssThingMacAddressParamTypeId).toString());
+        if (macAddress.isNull()) {
+            qCWarning(dcFoxEss())
+                    << "Failed to set up FoxESS wallbox because the MAC address is not valid:"
+                    << thing->paramValue(foxEssThingMacAddressParamTypeId).toString()
+                    << macAddress.toString();
+            info->finish(Thing::ThingErrorInvalidParameter,
+                         QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device "
+                                    "to fix this."));
+            return;
+        }
+
+        // Create a monitor so we always get the correct IP in the network and see if the device is
+        // reachable without polling on our own. In this call, nymea is checking a list for known
+        // mac addresses and associated ip addresses
+        NetworkDeviceMonitor *monitor =
+                hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        // If the mac address is not known, nymea is starting a internal network discovery.
+        // 'monitor' is returned while the discovery is still running -> monitor does not include ip
+        // address and is set to not reachable
+        m_monitors.insert(thing, monitor);
+    
+        qCDebug(dcFoxEss()) << "Monitor reachable" << monitor->reachable()
+                              << thing->paramValue(foxEssThingMacAddressParamTypeId).toString();
+        m_setupTcpConnectionRunning = false;
+        if (monitor->reachable()) {
+            setupTcpConnection(info);
+        } else {
+            connect(hardwareManager()->networkDeviceDiscovery(),
+                    &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
+                        if (!m_setupTcpConnectionRunning) {
+                            m_setupTcpConnectionRunning = true;
+                            setupTcpConnection(info);
+                        }
+                    });
+        }
+        info->finish(Thing::ThingErrorNoError);
     }
 }
 
