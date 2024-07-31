@@ -20,13 +20,13 @@
                     "access": "RO"
                 },
                 {
-                    "id": "firmwareVersion",
-                    "description": "Software version of EVC (0x1001)",
+                    "id": "firmwareVersionUnused",
+                    "description": "Unused Software version of EVC (0x1001)",
                     "address": 4097,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "defaultValue": "0x1000",
+                    "defaultValue": "0x0000",
                     "access": "RO"
                 },
                 {
@@ -198,8 +198,8 @@
                     "access": "RO"
                 },
                 {
-                    "id": "maxSupportedPower",
-                    "description": "Maximum supported power of the EVC (0x1011)",
+                    "id": "maxSupportedPowerUnused",
+                    "description": "Unused Maximum supported power of the EVC (0x1011)",
                     "address": 4113,
                     "size": 1,
                     "unit": "kW",
@@ -445,6 +445,29 @@
         }
     ],
     "registers": [
-
+        {
+            "id": "firmwareVersion",
+            "readSchedule": "init",
+            "description": "Software version of EVC (0x1001)",
+            "address": 4097,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": "0x0000",
+            "access": "RO"
+        },
+        {
+            "id": "maxSupportedPower",
+            "readSchedule": "init",
+            "description": "Maximum supported power of the EVC (0x1011)",
+            "address": 4113,
+            "size": 1,
+            "unit": "kW",
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": "0",
+            "staticScaleFactor": -1,
+            "access": "RO"
+        }
     ]
 }

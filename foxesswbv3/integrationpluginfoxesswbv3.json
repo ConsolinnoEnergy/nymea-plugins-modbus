@@ -171,8 +171,8 @@
                             "id": "3c4cfeec-6698-4f85-939f-ff1fdba29b68",
                             "name": "firmwareVersion",
                             "displayName": "Firmware version",
-                            "type": "uint",
-                            "defaultValue": 0,
+                            "type": "QString",
+                            "defaultValue": "0.0",
                             "cached": false
                         },
                         {

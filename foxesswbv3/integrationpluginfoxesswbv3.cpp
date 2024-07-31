@@ -123,14 +123,104 @@ void IntegrationPluginFoxEss::setupThing(ThingSetupInfo *info)
                         }
                     });
         }
-        info->finish(Thing::ThingErrorNoError);
     }
 }
 
 void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
 {
     qCDebug(dcFoxEss()) << "Setup TCP connection.";
-    Q_UNUSED(info)
+    Thing *thing = info->thing();
+    NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
+    uint port = thing->paramValue(foxEssThingPortParamTypeId).toUInt();
+    quint16 modbusId = thing->paramValue(foxEssThingModbusIdParamTypeId).toUInt();
+    FoxESSModbusTcpConnection *connection = new FoxESSModbusTcpConnection(
+            monitor->networkDeviceInfo().address(), port, modbusId, this);
+    m_tcpConnections.insert(thing, connection);
+
+    connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
+        // Is this needed? How can setup be aborted at this point?
+
+        // Clean up in case the setup gets aborted.
+        if (m_monitors.contains(thing)) {
+            qCDebug(dcFoxEss()) << "Unregister monitor because the setup has been aborted.";
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+        }
+    });
+
+    // Reconnect on monitor reachable changed
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
+        qCDebug(dcFoxEss()) << "Network device monitor reachable changed for" << thing->name()
+                              << reachable;
+        if (reachable && !thing->stateValue(foxEssConnectedStateTypeId).toBool()) {
+            connection->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->reconnectDevice();
+        } else {
+            // Note: We disable autoreconnect explicitly and we will
+            // connect the device once the monitor says it is reachable again
+            connection->disconnectDevice();
+        }
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::reachableChanged, thing,
+            [this, connection, thing](bool reachable) {
+                qCDebug(dcFoxEss()) << "Reachable state changed to" << reachable;
+                if (reachable) {
+                    // Connected true will be set after successfull init.
+                    connection->initialize();
+                } else {
+                    thing->setStateValue(foxEssConnectedStateTypeId, false);
+                    thing->setStateValue(foxEssCurrentPowerStateTypeId, 0);
+                }
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::initializationFinished, thing,
+       [this, connection, thing](bool success) {
+           thing->setStateValue(foxEssConnectedStateTypeId, success);
+
+           if (success) {
+               qCDebug(dcFoxEss()) << "FoxESS wallbox initialized.";
+               quint16 firmware = connection->firmwareVersion();
+               QString majorVersion = QString::number((firmware & 0xFF00) >> 8);
+               QString minorVersion = QString::number(firmware & 0xFF);
+               thing->setStateValue(foxEssFirmwareVersionStateTypeId,
+                                    majorVersion+"."+minorVersion);
+               thing->setStateValue(foxEssSerialNumberStateTypeId,
+                                    connection->serialNumber());
+
+               qCDebug(dcFoxEss()) << "Max Supported Power is" << connection->maxSupportedPower() << "kW";
+               if (connection->maxSupportedPower() == 11) {
+                   qCDebug(dcFoxEss()) << "Changed max current to 16"; 
+                   thing->setStateMaxValue(foxEssMaxChargingCurrentStateTypeId, 16);
+               } else {
+                   qCDebug(dcFoxEss()) << "Changed max current to 32"; 
+                   thing->setStateMaxValue(foxEssMaxChargingCurrentStateTypeId, 32);
+               }
+           } else {
+               qCDebug(dcFoxEss()) << "FoxESS wallbox initialization failed.";
+               // Try to reconnect to device
+               connection->reconnectDevice();
+           }
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::currentPhaseAChanged, thing, [thing](float current) {
+        qCDebug(dcFoxEss()) << "Current Phase A changed to" << current << "A";
+        thing->setStateValue(foxEssCurrentPhaseAStateTypeId, current);
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::currentPhaseBChanged, thing, [thing](float current) {
+        qCDebug(dcFoxEss()) << "Current Phase B changed to" << current << "A";
+        thing->setStateValue(foxEssCurrentPhaseBStateTypeId, current);
+    });
+
+    connect(connection, &FoxESSModbusTcpConnection::currentPhaseCChanged, thing, [thing](float current) {
+        qCDebug(dcFoxEss()) << "Current Phase C changed to" << current << "A";
+        thing->setStateValue(foxEssCurrentPhaseCStateTypeId, current);
+    });
+    
+    if (monitor->reachable())
+        connection->connectDevice();
+
+    info->finish(Thing::ThingErrorNoError);
 }
 
 void IntegrationPluginFoxEss::postSetupThing(Thing *thing)
