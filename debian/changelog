@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.009) jammy; urgency=medium
+
+  * Added plugin for Sofarsolar hybrid inverter.
+
+ -- Luis Reber <l.reber@consolinno.de> Tue, 04 Jun 2024 10:29:00 +0200
+
 nymea-plugins-modbus (1.7.008) jammy; urgency=medium
 
   * Fixes for Solax power calculation (RTU)
