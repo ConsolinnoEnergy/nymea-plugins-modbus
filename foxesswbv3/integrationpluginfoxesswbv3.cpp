@@ -202,18 +202,18 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
            }
     });
 
-    connect(connection, &FoxESSModbusTcpConnection::plugStatusChanged, thing, [thing](quint16 state) {
-        if (state == 0)
-        {
-            // not connected
-            qCDebug(dcFoxEss()) << "Plug not connected";
-            thing->setStateValue(foxEssPluggedInStateTypeId, false);
-        } else {
-            // connected
-            qCDebug(dcFoxEss()) << "Plug connected";
-            thing->setStateValue(foxEssPluggedInStateTypeId, true);
-        }
-    });
+    // connect(connection, &FoxESSModbusTcpConnection::plugStatusChanged, thing, [thing](quint16 state) {
+    //     if (state == 0)
+    //     {
+    //         // not connected
+    //         qCDebug(dcFoxEss()) << "Plug not connected";
+    //         thing->setStateValue(foxEssPluggedInStateTypeId, false);
+    //     } else {
+    //         // connected
+    //         qCDebug(dcFoxEss()) << "Plug connected";
+    //         thing->setStateValue(foxEssPluggedInStateTypeId, true);
+    //     }
+    // });
 
     connect(connection, &FoxESSModbusTcpConnection::currentPhaseAChanged, thing, [thing](float current) {
         qCDebug(dcFoxEss()) << "Current Phase A changed to" << current << "A";
