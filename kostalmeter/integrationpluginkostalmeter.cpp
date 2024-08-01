@@ -50,12 +50,6 @@ void IntegrationPluginBGETech::init()
                     thing->setStateValue(sdm630ConnectedStateTypeId, false);
                     delete m_sdm630Connections.take(thing);
                 }
-            } else if (thing->thingClassId() == sdm72ThingClassId) {
-                if (thing->paramValue(sdm72ThingModbusMasterUuidParamTypeId) == modbusUuid) {
-                    qCWarning(dcBgeTech()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
-                    thing->setStateValue(sdm72ConnectedStateTypeId, false);
-                    delete m_sdm72Connections.take(thing);
-                }
             }
         }
     });
@@ -86,29 +80,6 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
             ParamList params;
             params << Param(sdm630ThingSlaveAddressParamTypeId, slaveAddress);
             params << Param(sdm630ThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
-            descriptor.setParams(params);
-            info->addThingDescriptor(descriptor);
-        }
-
-        info->finish(Thing::ThingErrorNoError);
-        return;
-    } else if (info->thingClassId() == sdm72ThingClassId) {
-        uint slaveAddress = info->params().paramValue(sdm72DiscoverySlaveAddressParamTypeId).toUInt();
-        if (slaveAddress > 254 || slaveAddress == 0) {
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The Modbus slave address must be a value between 1 and 254."));
-            return;
-        }
-
-        foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
-            qCDebug(dcBgeTech()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
-            if (!modbusMaster->connected())
-                continue;
-
-            QString name = supportedThings().findById(info->thingClassId()).displayName();
-            ThingDescriptor descriptor(info->thingClassId(), name, QString::number(slaveAddress) + " " + modbusMaster->serialPort());
-            ParamList params;
-            params << Param(sdm72ThingSlaveAddressParamTypeId, slaveAddress);
-            params << Param(sdm72ThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
             descriptor.setParams(params);
             info->addThingDescriptor(descriptor);
         }
@@ -241,91 +212,6 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
         m_sdm630Connections.insert(thing, sdmConnection);
         info->finish(Thing::ThingErrorNoError);
 
-    } else if (thing->thingClassId() == sdm72ThingClassId) {
-        uint address = thing->paramValue(sdm72ThingSlaveAddressParamTypeId).toUInt();
-        if (address > 254 || address == 0) {
-            qCWarning(dcBgeTech()) << "Setup failed, slave address is not valid" << address;
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 254."));
-            return;
-        }
-
-        QUuid uuid = thing->paramValue(sdm72ThingModbusMasterUuidParamTypeId).toUuid();
-        if (!hardwareManager()->modbusRtuResource()->hasModbusRtuMaster(uuid)) {
-            qCWarning(dcBgeTech()) << "Setup failed, hardware manager not available";
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus RTU interface not available."));
-            return;
-        }
-
-        if (m_sdm72Connections.contains(thing)) {
-            qCDebug(dcBgeTech()) << "Setup after rediscovery, cleaning up ...";
-            m_sdm72Connections.take(thing)->deleteLater();
-        }
-
-        Sdm72ModbusRtuConnection *sdmConnection = new Sdm72ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
-        connect(sdmConnection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
-            if (connected) {
-                qCDebug(dcBgeTech()) << "Modbus RTU resource connected" << thing << sdmConnection->modbusRtuMaster()->serialPort();
-            } else {
-                qCWarning(dcBgeTech()) << "Modbus RTU resource disconnected" << thing << sdmConnection->modbusRtuMaster()->serialPort();
-            }
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
-            thing->setStateValue(sdm72CurrentPhaseAStateTypeId, currentPhaseA);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::currentPhaseBChanged, this, [=](float currentPhaseB){
-            thing->setStateValue(sdm72CurrentPhaseBStateTypeId, currentPhaseB);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::currentPhaseCChanged, this, [=](float currentPhaseC){
-            thing->setStateValue(sdm72CurrentPhaseCStateTypeId, currentPhaseC);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
-            thing->setStateValue(sdm72VoltagePhaseAStateTypeId, voltagePhaseA);
-            thing->setStateValue(sdm72ConnectedStateTypeId, true);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::voltagePhaseBChanged, this, [=](float voltagePhaseB){
-            thing->setStateValue(sdm72VoltagePhaseBStateTypeId, voltagePhaseB);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::voltagePhaseCChanged, this, [=](float voltagePhaseC){
-            thing->setStateValue(sdm72VoltagePhaseCStateTypeId, voltagePhaseC);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::totalCurrentPowerChanged, this, [=](float currentPower){
-            thing->setStateValue(sdm72CurrentPowerStateTypeId, currentPower);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::powerPhaseAChanged, this, [=](float powerPhaseA){
-            thing->setStateValue(sdm72CurrentPowerPhaseAStateTypeId, powerPhaseA);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::powerPhaseBChanged, this, [=](float powerPhaseB){
-            thing->setStateValue(sdm72CurrentPowerPhaseBStateTypeId, powerPhaseB);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::powerPhaseCChanged, this, [=](float powerPhaseC){
-            thing->setStateValue(sdm72CurrentPowerPhaseCStateTypeId, powerPhaseC);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::frequencyChanged, this, [=](float frequency){
-            thing->setStateValue(sdm72FrequencyStateTypeId, frequency);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::totalEnergyConsumedChanged, this, [=](float totalEnergyConsumed){
-            thing->setStateValue(sdm72TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
-        });
-
-        connect(sdmConnection, &Sdm72ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float totalEnergyProduced){
-            thing->setStateValue(sdm72TotalEnergyProducedStateTypeId, totalEnergyProduced);
-        });
-
-        // FIXME: try to read before setup success
-        m_sdm72Connections.insert(thing, sdmConnection);
-        info->finish(Thing::ThingErrorNoError);
     }
 }
 
@@ -338,8 +224,6 @@ void IntegrationPluginBGETech::postSetupThing(Thing *thing)
             foreach (Thing *thing, myThings()) {
                 if (thing->thingClassId() == sdm630ThingClassId) {
                     m_sdm630Connections.value(thing)->update();
-                } else if (thing->thingClassId() == sdm72ThingClassId) {
-                    m_sdm72Connections.value(thing)->update();
                 }
             }
         });
@@ -355,9 +239,6 @@ void IntegrationPluginBGETech::thingRemoved(Thing *thing)
 
     if (m_sdm630Connections.contains(thing))
         m_sdm630Connections.take(thing)->deleteLater();
-
-    if (m_sdm72Connections.contains(thing))
-        m_sdm72Connections.take(thing)->deleteLater();
 
     if (myThings().isEmpty() && m_refreshTimer) {
         qCDebug(dcBgeTech()) << "Stopping reconnect timer";
