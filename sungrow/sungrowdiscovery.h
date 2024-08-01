@@ -28,46 +28,49 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSUNGROW_H
-#define INTEGRATIONPLUGINSUNGROW_H
+#ifndef SUNGROWDISCOVERY_H
+#define SUNGROWDISCOVERY_H
 
-#include <plugintimer.h>
-#include <integrations/integrationplugin.h>
-#include <network/networkdevicemonitor.h>
+#include <QObject>
+#include <QTimer>
 
-#include "extern-plugininfo.h"
+#include <network/networkdevicediscovery.h>
 
 #include "sungrowmodbustcpconnection.h"
 
-class IntegrationPluginSungrow: public IntegrationPlugin
+class SungrowDiscovery : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginsungrow.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginSungrow();
+    explicit SungrowDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 502, quint16 modbusAddress = 1, QObject *parent = nullptr);
+    typedef struct SungrowDiscoveryResult {
+        QString serialNumber;
+        NetworkDeviceInfo networkDeviceInfo;
+        float nominalOutputPower;
+        int deviceType;
+    } SungrowDiscoveryResult;
 
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
+    void startDiscovery();
+
+    QList<SungrowDiscoveryResult> discoveryResults() const;
+
+signals:
+    void discoveryFinished();
 
 private:
-    const int m_modbusTcpPort = 502;
-    const quint16 m_modbusSlaveAddress = 1;
-    PluginTimer *m_refreshTimer = nullptr;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+    quint16 m_port;
+    quint16 m_modbusAddress;
 
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, SungrowModbusTcpConnection *> m_tcpConnections;
+    QDateTime m_startDateTime;
 
-    void setupSungrowTcpConnection(ThingSetupInfo *info);
+    QList<SungrowModbusTcpConnection *> m_connections;
+    QList<SungrowDiscoveryResult> m_discoveryResults;
 
-    Thing *getMeterThing(Thing *parentThing);
-    Thing *getBatteryThing(Thing *parentThing);
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SungrowModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // INTEGRATIONPLUGINSUNGROW_H
-
-
+#endif // SUNGROWDISCOVERY_H
