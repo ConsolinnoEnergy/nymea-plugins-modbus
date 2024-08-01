@@ -1,11 +1,6 @@
 {
   "Kostal": {
-    "Smart Meter P, SDM72": {
-      "filename": "kostalmeter",
-      "interfaces": "null",
-      "uuid_offset": 3
-    },
-    "Smart Meter P Inverter, SDM72 Inverter": {
+    "Smart Meter P Inverter": {
       "filename": "kostalmeterinverter",
       "interfaces": "solarinverter connectable",
       "uuid_offset": 7
