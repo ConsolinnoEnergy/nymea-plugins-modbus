@@ -422,3 +422,11 @@ Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: nymea integration plugin for Solax X3 EV Charger
  This package contains the nymea integration plugin for the Solax X3 EV Charger.
+
+Package: nymea-plugin-kostalmeter
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration to use Smart Meter P, SDM72 from Kostal with the Consolinno HEMS.
+ This package is an automatically generated copy of the bgetech integration.
