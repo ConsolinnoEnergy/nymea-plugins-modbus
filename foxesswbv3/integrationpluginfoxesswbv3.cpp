@@ -410,8 +410,15 @@ void IntegrationPluginFoxEss::executeAction(ThingActionInfo *info)
             qCDebug(dcFoxEss()) << "Start / Stop charging";
             bool power = info->action().paramValue(foxEssPowerActionPowerParamTypeId).toBool();
             toggleCharging(connection, power);
-            info->finish(Thing::ThingErrorNoError);
             thing->setStateValue(foxEssPowerStateTypeId, power);
+            info->finish(Thing::ThingErrorNoError);
+        }
+
+        if (info->action().actionTypeId() == foxEssMaxChargingCurrentActionTypeId) {
+            quint16 maxCurrent = info->action().paramValue(foxEssMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
+            setMaxCurrent(connection, maxCurrent);
+            thing->setStateValue(foxEssMaxChargingCurrentStateTypeId, maxCurrent);
+            info->finish(Thing::ThingErrorNoError);
         }
     }
 }
@@ -427,6 +434,19 @@ void IntegrationPluginFoxEss::toggleCharging(FoxESSModbusTcpConnection *connecti
            qCDebug(dcFoxEss()) << "Successfully set charge control";
         } else {
             toggleCharging(connection, power);
+        }
+    });
+}
+
+void IntegrationPluginFoxEss::setMaxCurrent(FoxESSModbusTcpConnection *connection, quint16 maxCurrent)
+{
+    QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, connection, maxCurrent, reply]() {
+        if (reply->error() == QModbusDevice::NoError) {
+           qCDebug(dcFoxEss()) << "Successfully set maximum charging current";
+        } else {
+            setMaxCurrent(connection, maxCurrent);
         }
     });
 }
