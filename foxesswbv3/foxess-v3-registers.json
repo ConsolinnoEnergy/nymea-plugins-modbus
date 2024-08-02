@@ -292,8 +292,8 @@
                     "access": "RO"
                 },
                 {
-                    "id": "sessionEnergyConsumed",
-                    "description": "Session energy consumed by the EVC (0x1016)",
+                    "id": "totalEnergy",
+                    "description": "Total energy conumed by the EVC (0x101A)",
                     "address": 4118,
                     "size": 2,
                     "unit": "kWh",
@@ -304,8 +304,8 @@
                     "access": "RO"
                 },
                 {
-                    "id": "totalEnergy",
-                    "description": "Total energy conumed by the EVC (0x101A)",
+                    "id": "sessionEnergyConsumed",
+                    "description": "Session energy consumed by the EVC (0x1016)",
                     "address": 4120,
                     "size": 2,
                     "unit": "kWh",
