@@ -305,6 +305,20 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         // TODO: Map mit werten + Text erstllen und setzen
     });
 
+    connect(connection, &FoxESSModbusTcpConnection::workModeChanged, [this, thing, connection](quint16 mode) {
+        qCDebug(dcFoxEss()) << "Work mode changed to" << mode << ". Make sure it is in controlled mode.";
+        if (mode != 0)
+        {
+            QModbusReply *reply = connection->setWorkMode(0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [this, reply]() {
+                if (reply->error() == QModbusDevice::NoError) {
+                   qCDebug(dcFoxEss()) << "Successfully send command to set mode to 'controlled mode'";
+                }
+            });
+        }
+    });
+
     connect(connection, &FoxESSModbusTcpConnection::deviceStatusChanged, [this, thing](quint16 state) {
         qCDebug(dcFoxEss()) << "Device status changed to" << state;
 
