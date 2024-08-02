@@ -300,6 +300,47 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    connect(connection, &FoxESSModbusTcpConnection::deviceStatusChanged, [this, thing](quint16 state) {
+        qCDebug(dcFoxEss()) << "Device status changed to" << state;
+
+        switch (state) {
+        case FoxESSModbusTcpConnection::EVCStatusIdle:
+            thing->setStateValue(foxEssStateStateTypeId, "Available");
+            thing->setStateValue(foxEssPluggedInStateTypeId, false);
+            thing->setStateValue(foxEssChargingStateTypeId, false);
+            break;
+        case FoxESSModbusTcpConnection::EVCStatusConnected:
+            thing->setStateValue(foxEssStateStateTypeId, "Connected");
+            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+            thing->setStateValue(foxEssChargingStateTypeId, false);
+            break;
+        case FoxESSModbusTcpConnection::EVCStatusStarting:
+            thing->setStateValue(foxEssStateStateTypeId, "Starting");
+            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+            thing->setStateValue(foxEssChargingStateTypeId, false);
+            break;
+        case FoxESSModbusTcpConnection::EVCStatusCharging:
+            thing->setStateValue(foxEssStateStateTypeId, "Charging");
+            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+            thing->setStateValue(foxEssChargingStateTypeId, true);
+            break;
+        case FoxESSModbusTcpConnection::EVCStatusPausing:
+            thing->setStateValue(foxEssStateStateTypeId, "Paused");
+            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+            thing->setStateValue(foxEssChargingStateTypeId, false);
+            break;
+        case FoxESSModbusTcpConnection::EVCStatusFinishing:
+            thing->setStateValue(foxEssStateStateTypeId, "Finished");
+            thing->setStateValue(foxEssPluggedInStateTypeId, false);
+            thing->setStateValue(foxEssChargingStateTypeId, false);
+            break;
+        case FoxESSModbusTcpConnection::EVCStatusFaulted:
+            thing->setStateValue(foxEssStateStateTypeId, "Faulted");
+            thing->setStateValue(foxEssChargingStateTypeId, false);
+            break;
+        }
+    });
+
     connect(connection, &FoxESSModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
         qCDebug(dcFoxEss()) << "Update finished";
         float currentPhaseA = thing->stateValue(foxEssCurrentPhaseAStateTypeId).toFloat();
