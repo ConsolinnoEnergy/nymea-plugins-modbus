@@ -325,32 +325,26 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         switch (state) {
         case FoxESSModbusTcpConnection::EVCStatusIdle:
             thing->setStateValue(foxEssStateStateTypeId, "Available");
-            // thing->setStateValue(foxEssPluggedInStateTypeId, false);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusConnected:
             thing->setStateValue(foxEssStateStateTypeId, "Connected");
-            // thing->setStateValue(foxEssPluggedInStateTypeId, true);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusStarting:
             thing->setStateValue(foxEssStateStateTypeId, "Starting");
-            // thing->setStateValue(foxEssPluggedInStateTypeId, true);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusCharging:
             thing->setStateValue(foxEssStateStateTypeId, "Charging");
-            // thing->setStateValue(foxEssPluggedInStateTypeId, true);
             thing->setStateValue(foxEssChargingStateTypeId, true);
             break;
         case FoxESSModbusTcpConnection::EVCStatusPausing:
             thing->setStateValue(foxEssStateStateTypeId, "Paused");
-            // thing->setStateValue(foxEssPluggedInStateTypeId, true);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusFinishing:
             thing->setStateValue(foxEssStateStateTypeId, "Finished");
-            // thing->setStateValue(foxEssPluggedInStateTypeId, false);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusFaulted:
@@ -374,6 +368,22 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         if (currentPhaseC > 0)
             phaseCount++;
         thing->setStateValue(foxEssPhaseCountStateTypeId, qMax(phaseCount,1));
+
+        // TODO: Test working
+        // If state is Charging, but power is false -> stop charging - DONE
+        // if state available, connected, starting and power is true -> start charging - DONE
+        QString state = thing->stateValue(foxEssStateStateTypeId).toString();
+        bool power = thing->stateValue(foxEssPowerStateTypeId).toBool();
+        if ((state == "Charging") && (power == false)) {
+            toggleCharging(connection, false);
+        }
+
+        if ((power == true) && ((state == "Available") ||
+                                (state == "Connected") ||
+                                (state == "Starting")))
+        {
+            toggleCharging(connection, true);
+        }
     });
     
     if (monitor->reachable())
