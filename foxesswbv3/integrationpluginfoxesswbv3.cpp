@@ -236,6 +236,7 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &FoxESSModbusTcpConnection::sessionEnergyConsumedChanged, thing, [thing](float energy) {
+        // TODO: Session Energy und Total Energy evtl vertauscht
         qCDebug(dcFoxEss()) << "Session energy changed to" << energy << "kWh";
         thing->setStateValue(foxEssSessionEnergyStateTypeId, energy);
     });
@@ -271,9 +272,6 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &FoxESSModbusTcpConnection::faultInfoChanged, thing, [thing](quint32 code) {
         qCDebug(dcFoxEss()) << "Fault info changed to" << code;
-        quint16 tmp = (code & 0xFFFF) << 16;
-        code = code >> 16;
-        code = code | tmp;
         QMap<int, QString> faultInfoMap = {
             {0, "Emergency stop"}, {1, "Overvoltage"},
             {2, "Undervoltage"}, {3, "Overcurrent"},

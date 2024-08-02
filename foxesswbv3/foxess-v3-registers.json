@@ -1,7 +1,7 @@
 {
     "className": "FoxESS",
     "protocol": "TCP",
-    "endianness": "LittleEndian",
+    "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "deviceAddress",
     "enums": [
