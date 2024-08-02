@@ -374,7 +374,8 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         // if state available, connected, starting and power is true -> start charging - DONE
         QString state = thing->stateValue(foxEssStateStateTypeId).toString();
         bool power = thing->stateValue(foxEssPowerStateTypeId).toBool();
-        if ((state == "Charging") && (power == false)) {
+        if ((state == "Charging") && (power == false)) 
+        {
             toggleCharging(connection, false);
         }
 
@@ -383,6 +384,15 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
                                 (state == "Starting")))
         {
             toggleCharging(connection, true);
+        }
+
+        // Make current of wallbox follow app
+        if ((state == "Charging") && (power == true)) {
+            double meanCurrent = (currentPhaseA + currentPhaseB + currentPhaseC) / phaseCount;
+            uint currentInApp = thing->stateValue(foxEssMaxChargingCurrentStateTypeId).toUInt();
+            if ((meanCurrent > currentInApp+2) || (meanCurrent < currentInApp-2)) {
+                setMaxCurrent(connection, currentInApp);
+            }
         }
     });
     
