@@ -231,8 +231,8 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &FoxESSModbusTcpConnection::currentPowerChanged, thing, [thing](float power) {
-        qCDebug(dcFoxEss()) << "Current Power changed to" << power << "W";
-        thing->setStateValue(foxEssCurrentPowerStateTypeId, power);
+        qCDebug(dcFoxEss()) << "Current Power changed to" << power << "kW";
+        thing->setStateValue(foxEssCurrentPowerStateTypeId, power*1000);
     });
 
     connect(connection, &FoxESSModbusTcpConnection::sessionEnergyConsumedChanged, thing, [thing](float energy) {
@@ -246,15 +246,34 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
     });
 
     connect(connection, &FoxESSModbusTcpConnection::alarmInfoChanged, thing, [thing](quint16 code) {
-        qCDebug(dcFoxEss()) << "Alarm info changed to" << code << "kWh";
+        qCDebug(dcFoxEss()) << "Alarm info changed to" << code;
         QMap<int, QString> alarmInfoMap = {
             {0, "Card reader"}, {1, "Phase cutting box"},
             {2, "Phase loss"}
         };
+
+        QString warningMessage = "";
+        for (int i = 0; i <= 2; i++)
+        {
+            if (((code >> i) & 0x1) == 0x1)
+            {
+                warningMessage.append(alarmInfoMap[i]);
+            }
+        }
+        qCDebug(dcFoxEss()) << "Alaram code:" << code << "Alarm info:" << warningMessage;
+        if (warningMessage != "")
+        {
+            thing->setStateValue(foxEssAlarmInfoStateTypeId, warningMessage);
+        } else {
+            thing->setStateValue(foxEssAlarmInfoStateTypeId, "No Error");
+        }
     });
 
-    connect(connection, &FoxESSModbusTcpConnection::faultInfoChanged, thing, [thing](quint16 code) {
-        qCDebug(dcFoxEss()) << "Fault info changed to" << code << "kWh";
+    connect(connection, &FoxESSModbusTcpConnection::faultInfoChanged, thing, [thing](quint32 code) {
+        qCDebug(dcFoxEss()) << "Fault info changed to" << code;
+        quint16 tmp = (code & 0xFFFF) << 16;
+        code = code >> 16;
+        code = code | tmp;
         QMap<int, QString> faultInfoMap = {
             {0, "Emergency stop"}, {1, "Overvoltage"},
             {2, "Undervoltage"}, {3, "Overcurrent"},
@@ -265,6 +284,21 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
             {12, "Breaker"}, {13, "CC"},
             {14, "Ext. meter communiction"}, {15, "Metering chip"},
             {16, "Environment temperature"}, {17, "Access control"},
+        };
+        QString warningMessage = "";
+        for (int i = 0; i <= 17; i++)
+        {
+            if (((code >> i) & 0x1) == 0x1)
+            {
+                warningMessage.append(faultInfoMap[i]);
+            }
+        }
+        qCDebug(dcFoxEss()) << "Fault code:" << code << "Fault info:" << warningMessage;
+        if (warningMessage != "")
+        {
+            thing->setStateValue(foxEssFaultInfoStateTypeId, warningMessage);
+        } else {
+            thing->setStateValue(foxEssFaultInfoStateTypeId, "No Error");
         }
     });
 
