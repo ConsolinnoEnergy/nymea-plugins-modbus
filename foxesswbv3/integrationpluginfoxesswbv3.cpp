@@ -202,18 +202,18 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
            }
     });
 
-    // connect(connection, &FoxESSModbusTcpConnection::plugStatusChanged, thing, [thing](quint16 state) {
-    //     if (state == 0)
-    //     {
-    //         // not connected
-    //         qCDebug(dcFoxEss()) << "Plug not connected";
-    //         thing->setStateValue(foxEssPluggedInStateTypeId, false);
-    //     } else {
-    //         // connected
-    //         qCDebug(dcFoxEss()) << "Plug connected";
-    //         thing->setStateValue(foxEssPluggedInStateTypeId, true);
-    //     }
-    // });
+    connect(connection, &FoxESSModbusTcpConnection::plugStatusChanged, thing, [thing](quint16 state) {
+        if (state == 0)
+        {
+            // not connected
+            qCDebug(dcFoxEss()) << "Plug not connected";
+            thing->setStateValue(foxEssPluggedInStateTypeId, false);
+        } else {
+            // connected
+            qCDebug(dcFoxEss()) << "Plug connected";
+            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+        }
+    });
 
     connect(connection, &FoxESSModbusTcpConnection::currentPhaseAChanged, thing, [thing](float current) {
         qCDebug(dcFoxEss()) << "Current Phase A changed to" << current << "A";
@@ -300,38 +300,43 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    connect(connection, &FoxESSModbusTcpConnection::stopReasonChanged, [this, thing](quint16 value) {
+        qCDebug(dcFoxEss()) << "Stop Reason changed to" << value;
+        // TODO: Map mit werten + Text erstllen und setzen
+    });
+
     connect(connection, &FoxESSModbusTcpConnection::deviceStatusChanged, [this, thing](quint16 state) {
         qCDebug(dcFoxEss()) << "Device status changed to" << state;
 
         switch (state) {
         case FoxESSModbusTcpConnection::EVCStatusIdle:
             thing->setStateValue(foxEssStateStateTypeId, "Available");
-            thing->setStateValue(foxEssPluggedInStateTypeId, false);
+            // thing->setStateValue(foxEssPluggedInStateTypeId, false);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusConnected:
             thing->setStateValue(foxEssStateStateTypeId, "Connected");
-            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+            // thing->setStateValue(foxEssPluggedInStateTypeId, true);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusStarting:
             thing->setStateValue(foxEssStateStateTypeId, "Starting");
-            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+            // thing->setStateValue(foxEssPluggedInStateTypeId, true);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusCharging:
             thing->setStateValue(foxEssStateStateTypeId, "Charging");
-            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+            // thing->setStateValue(foxEssPluggedInStateTypeId, true);
             thing->setStateValue(foxEssChargingStateTypeId, true);
             break;
         case FoxESSModbusTcpConnection::EVCStatusPausing:
             thing->setStateValue(foxEssStateStateTypeId, "Paused");
-            thing->setStateValue(foxEssPluggedInStateTypeId, true);
+            // thing->setStateValue(foxEssPluggedInStateTypeId, true);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusFinishing:
             thing->setStateValue(foxEssStateStateTypeId, "Finished");
-            thing->setStateValue(foxEssPluggedInStateTypeId, false);
+            // thing->setStateValue(foxEssPluggedInStateTypeId, false);
             thing->setStateValue(foxEssChargingStateTypeId, false);
             break;
         case FoxESSModbusTcpConnection::EVCStatusFaulted:
@@ -382,7 +387,34 @@ void IntegrationPluginFoxEss::postSetupThing(Thing *thing)
 
 void IntegrationPluginFoxEss::executeAction(ThingActionInfo *info)
 {
-    Q_UNUSED(info)
+    Thing *thing = info->thing();
+    if (thing->thingClassId() == foxEssThingClassId)
+    {
+        FoxESSModbusTcpConnection *connection = m_tcpConnections.value(thing);
+        if (info->action().actionTypeId() == foxEssPowerActionTypeId)
+        {
+            qCDebug(dcFoxEss()) << "Start / Stop charging";
+            bool power = info->action().paramValue(foxEssPowerActionPowerParamTypeId).toBool();
+            toggleCharging(connection, power);
+            info->finish(Thing::ThingErrorNoError);
+            thing->setStateValue(foxEssPowerStateTypeId, power);
+        }
+    }
+}
+
+void IntegrationPluginFoxEss::toggleCharging(FoxESSModbusTcpConnection *connection, bool power)
+{
+    quint16 startCharging = 1;
+    quint16 stopCharging = 2;
+    QModbusReply *reply = connection->setChargingControl(power ? startCharging : stopCharging);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, connection, power, reply]() {
+        if (reply->error() == QModbusDevice::NoError) {
+           qCDebug(dcFoxEss()) << "Successfully set charge control";
+        } else {
+            toggleCharging(connection, power);
+        }
+    });
 }
 
 void IntegrationPluginFoxEss::thingRemoved(Thing *thing)

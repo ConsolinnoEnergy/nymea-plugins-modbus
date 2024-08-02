@@ -64,6 +64,7 @@ private:
     bool m_setupTcpConnectionRunning = false;
 
     void setupTcpConnection(ThingSetupInfo *info);
+    void toggleCharging(FoxESSModbusTcpConnection *connection, bool power);
 };
 
 #endif // INTEGRATIONPLUGINFOXESS_H
