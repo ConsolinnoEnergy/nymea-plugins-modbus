@@ -405,6 +405,24 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
             toggleCharging(connection, true);
         }
 
+        // TODO: check if state is charging and power true:
+        // make sure work mode is set to charge and control
+        // quint32 mode = connection->workMode();
+        // mode = mode & 0x0000FFFF;
+        // quint32 maxCurrent = mode & 0xFFFF0000;
+        // qCDebug(dcFoxEss()) << "Masked work mode:" << mode;
+        // if (mode != 0)
+        // {
+        //     qCDebug(dcFoxEss()) << "Setting workmode + maxChargeCurrent to" << maxCurrent;
+        //     QModbusReply *reply = connection->setWorkMode(maxCurrent & 0xFFFF0000);
+        //     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        //     connect(reply, &QModbusReply::finished, this, [this, reply]() {
+        //         if (reply->error() == QModbusDevice::NoError) {
+        //            qCDebug(dcFoxEss()) << "Successfully send command to set mode to 'controlled mode'";
+        //         }
+        //     });
+        // }
+
         // Make current of wallbox follow app
         if ((state == "Charging") && (power == true)) {
             double meanCurrent = (currentPhaseA + currentPhaseB + currentPhaseC) / phaseCount;
