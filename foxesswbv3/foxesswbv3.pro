@@ -7,6 +7,8 @@ include(../modbus.pri)
 
 SOURCES += \
     integrationpluginfoxesswbv3.cpp \
+    foxessmodbustcpconnection.cpp
 
 HEADERS += \
     integrationpluginfoxesswbv3.h \
+    foxessmodbustcpconnection.h
