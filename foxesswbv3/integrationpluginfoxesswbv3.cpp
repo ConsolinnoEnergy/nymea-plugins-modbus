@@ -324,7 +324,7 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         qCDebug(dcFoxEss()) << "Masked work mode:" << mode << "Masked current: " << maxCurrent;
         if (mode != 0)
         {
-            qCDebug(dcFoxEss()) << "Setting workmode + maxChargeCurrent to" << (maxChargeCurrent & 0x0000FFFF);
+            qCDebug(dcFoxEss()) << "Setting workmode + maxChargeCurrent to" << (maxCurrent & 0x0000FFFF);
             QModbusReply *reply = connection->setWorkMode(maxCurrent & 0x0000FFFF);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply]() {
@@ -472,6 +472,7 @@ void IntegrationPluginFoxEss::toggleCharging(FoxESSModbusTcpConnection *connecti
         if (reply->error() == QModbusDevice::NoError) {
            qCDebug(dcFoxEss()) << "Successfully set charge control";
         } else {
+            qCDebug(dcFoxEss()) << "Toggle charge was not sent successfully";
             toggleCharging(connection, power);
         }
     });
@@ -487,6 +488,7 @@ void IntegrationPluginFoxEss::setMaxCurrent(FoxESSModbusTcpConnection *connectio
         if (reply->error() == QModbusDevice::NoError) {
            qCDebug(dcFoxEss()) << "Successfully set maximum charging current";
         } else {
+            qCDebug(dcFoxEss()) << "Setting max current was not successfull";
             setMaxCurrent(connection, maxCurrent);
         }
     });
