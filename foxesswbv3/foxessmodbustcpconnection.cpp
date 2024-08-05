@@ -136,7 +136,11 @@ QModbusReply *FoxESSModbusTcpConnection::setMaxChargeCurrent(float maxChargeCurr
     // The following code makes sure that maxChargePower stays consistent
     quint16 maxCurrent = static_cast<quint16>(maxChargeCurrent  * 1.0 / pow(10, -1));
     quint16 maxPower = static_cast<quint16>(maxChargePower  * 1.0 / pow(10, -1));
-    quint32 combinedValue = (maxPower << 16) | maxCurrent;
+    // quint32 combinedValue = (maxPower << 16) | maxCurrent;
+    quint32 combinedValue = (maxCurrent << 16) | maxPower;
+    qCWarning(dcFoxESSModbusTcpConnection()) << "#### Setting max current to" << combinedValue;
+    qCWarning(dcFoxESSModbusTcpConnection()) << "MaxCurrent to" << maxCurrent;
+    qCWarning(dcFoxESSModbusTcpConnection()) << "MaxPower to" << maxPower;
     QVector<quint16> values = ModbusDataUtils::convertFromUInt32(combinedValue, m_endianness);
     qCDebug(dcFoxESSModbusTcpConnection()) << "--> Write \"Maximum charging current of the EVC (0x3001)\" register:" << 12289 << "size:" << 2 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12289, values.count());
