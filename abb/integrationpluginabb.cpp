@@ -384,8 +384,15 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
     // Session Energy
     connect(connection, &ABBModbusRtuConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
         qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
-        if (sessionEnergy != 0)
+        if (sessionEnergy != 0) 
+        {
             thing->setStateValue(TerraRTUSessionEnergyStateTypeId, sessionEnergy / 1000.0);
+        } else {
+            float totalEnergy = thing->stateValue(TerraRTUTotalEnergyConsumedStateTypeId).toFloat();
+            totalEnergy = totalEnergy + sessionEnergy;
+            thing->setStateValue(TerraRTUTotalEnergyConsumedStateTypeId, totalEnergy);
+            thing->setStateValue(TerraRTUSessionEnergyStateTypeId, 0);
+        }
     });
 
     // The max current which can be set; Value configured in TerraConfig App
@@ -428,13 +435,6 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
             case ABBModbusRtuConnection::ChargingStateA1:
                 thing->setStateValue(TerraRTUChargingStateTypeId, false);
                 thing->setStateValue(TerraRTUPluggedInStateTypeId, false);
-                {
-                    float sessionEnergy = thing->stateValue(TerraRTUSessionEnergyStateTypeId).toFloat();
-                    float totalEnergy = thing->stateValue(TerraRTUTotalEnergyConsumedStateTypeId).toFloat();
-                    totalEnergy += sessionEnergy;
-                    thing->setStateValue(TerraRTUTotalEnergyConsumedStateTypeId, totalEnergy);
-                    thing->setStateValue(TerraRTUSessionEnergyStateTypeId, 0);
-                }
                 break;
             case ABBModbusRtuConnection::ChargingStateB1:
             case ABBModbusRtuConnection::ChargingStateB2:
@@ -554,7 +554,14 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
     connect(connection, &ABBModbusTcpConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
         qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
         if (sessionEnergy != 0)
+        {
             thing->setStateValue(TerraTCPSessionEnergyStateTypeId, sessionEnergy / 1000.0);
+        } else {
+            float totalEnergy = thing->stateValue(TerraTCPTotalEnergyConsumedStateTypeId).toFloat();
+            totalEnergy = totalEnergy + sessionEnergy;
+            thing->setStateValue(TerraTCPTotalEnergyConsumedStateTypeId, totalEnergy);
+            thing->setStateValue(TerraTCPSessionEnergyStateTypeId, 0);
+        }
     });
 
     // Session Energy
@@ -598,13 +605,6 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
             case ABBModbusTcpConnection::ChargingStateA1:
                 thing->setStateValue(TerraTCPChargingStateTypeId, false);
                 thing->setStateValue(TerraTCPPluggedInStateTypeId, false);
-                {
-                    float sessionEnergy = thing->stateValue(TerraTCPSessionEnergyStateTypeId).toFloat();
-                    float totalEnergy = thing->stateValue(TerraTCPTotalEnergyConsumedStateTypeId).toFloat();
-                    totalEnergy += sessionEnergy;
-                    thing->setStateValue(TerraTCPTotalEnergyConsumedStateTypeId, totalEnergy);
-                    thing->setStateValue(TerraTCPSessionEnergyStateTypeId, 0);
-                }
                 break;
             case ABBModbusTcpConnection::ChargingStateB1:
             case ABBModbusTcpConnection::ChargingStateB2:
