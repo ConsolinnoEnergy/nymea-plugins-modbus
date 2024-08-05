@@ -65,7 +65,7 @@ private:
 
     void setupTcpConnection(ThingSetupInfo *info);
     void toggleCharging(FoxESSModbusTcpConnection *connection, bool power);
-    void setMaxCurrent(FoxESSModbusTcpConnection *connection, quint16 maxCurrent);
+    void setMaxCurrent(FoxESSModbusTcpConnection *connection, float maxCurrent);
 };
 
 #endif // INTEGRATIONPLUGINFOXESS_H

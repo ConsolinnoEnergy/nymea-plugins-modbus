@@ -35,7 +35,6 @@
 #include <hardwaremanager.h>
 #include "platform/platformzeroconfcontroller.h"
 #include "network/zeroconf/zeroconfservicebrowser.h"
-#include <math.h>
 
 IntegrationPluginFoxEss::IntegrationPluginFoxEss() { }
 
@@ -394,7 +393,7 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         // Make current of wallbox follow app
         if ((state == "Charging") && (power == true)) {
             double meanCurrent = (currentPhaseA + currentPhaseB + currentPhaseC) / phaseCount;
-            uint currentInApp = thing->stateValue(foxEssMaxChargingCurrentStateTypeId).toUInt();
+            float currentInApp = thing->stateValue(foxEssMaxChargingCurrentStateTypeId).toFloat();
             if ((meanCurrent > currentInApp+2) || (meanCurrent < currentInApp-2)) {
                 setMaxCurrent(connection, currentInApp);
             }
@@ -414,7 +413,7 @@ void IntegrationPluginFoxEss::postSetupThing(Thing *thing)
 
     if (!m_pluginTimer) {
         qCDebug(dcFoxEss()) << "Starting plugin timer..";
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(3);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcFoxEss()) << "Updating FoxESS EVC..";
             foreach (FoxESSModbusTcpConnection *connection, m_tcpConnections) {
@@ -440,7 +439,7 @@ void IntegrationPluginFoxEss::executeAction(ThingActionInfo *info)
         }
 
         if (info->action().actionTypeId() == foxEssMaxChargingCurrentActionTypeId) {
-            quint16 maxCurrent = info->action().paramValue(foxEssMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toUInt();
+            float maxCurrent = info->action().paramValue(foxEssMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toFloat();
             setMaxCurrent(connection, maxCurrent);
             thing->setStateValue(foxEssMaxChargingCurrentStateTypeId, maxCurrent);
             info->finish(Thing::ThingErrorNoError);
@@ -463,9 +462,11 @@ void IntegrationPluginFoxEss::toggleCharging(FoxESSModbusTcpConnection *connecti
     });
 }
 
-void IntegrationPluginFoxEss::setMaxCurrent(FoxESSModbusTcpConnection *connection, quint16 maxCurrent)
+void IntegrationPluginFoxEss::setMaxCurrent(FoxESSModbusTcpConnection *connection, float maxCurrent)
 {
-    QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent);
+    qCDebug(dcFoxEss()) << "Setting maxChargeCurrent to" << maxCurrent;
+    float maxPower = connection->maxChargePower();
+    QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent, maxPower);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, connection, maxCurrent, reply]() {
         if (reply->error() == QModbusDevice::NoError) {

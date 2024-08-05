@@ -119,7 +119,7 @@ public:
 
     /* Maximum charging current of the EVC (0x3001) [A] - Address: 12289, Size: 2 */
     float maxChargeCurrent() const;
-    QModbusReply *setMaxChargeCurrent(float maxChargeCurrent);
+    QModbusReply *setMaxChargeCurrent(float maxChargeCurrent, float maxChargePower);
 
     /* Software version of EVC (0x1001) - Address: 4097, Size: 1 */
     quint16 firmwareVersion() const;
