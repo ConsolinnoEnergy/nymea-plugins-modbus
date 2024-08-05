@@ -319,13 +319,13 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         qCDebug(dcFoxEss()) << "Work mode changed to" << mode << ". Make sure it is in controlled mode.";
         // 0x3000 can not be written with FC 0x06
         // Workaround to write work mode register with overwriting maxChargeCurrent
-        mode = mode & 0x0000FFFF;
-        quint32 maxCurrent = mode & 0xFFFF0000;
-        qCDebug(dcFoxEss()) << "Masked work mode:" << mode;
+        quint32 maxCurrent = mode & 0x0000FFFF;
+        mode = (mode & 0xFFFF0000) >> 16;
+        qCDebug(dcFoxEss()) << "Masked work mode:" << mode << "Masked current: " << maxCurrent;
         if (mode != 0)
         {
-            qCDebug(dcFoxEss()) << "Setting workmode + maxChargeCurrent to" << maxCurrent;
-            QModbusReply *reply = connection->setWorkMode(maxCurrent & 0xFFFF0000);
+            qCDebug(dcFoxEss()) << "Setting workmode + maxChargeCurrent to" << (maxChargeCurrent & 0x0000FFFF);
+            QModbusReply *reply = connection->setWorkMode(maxCurrent & 0x0000FFFF);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply]() {
                 if (reply->error() == QModbusDevice::NoError) {
