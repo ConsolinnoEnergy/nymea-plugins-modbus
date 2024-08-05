@@ -103,6 +103,34 @@ void FoxESSModbusTcpConnection::setEndianness(ModbusDataUtils::ByteOrder endiann
     emit endiannessChanged(m_endianness);
 }
 
+quint32 FoxESSModbusTcpConnection::workMode() const
+{
+    return m_workMode;
+}
+
+QModbusReply *FoxESSModbusTcpConnection::setWorkMode(quint32 workMode)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(workMode, m_endianness);
+    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Write \"Work Mode of the EVC (0x3000)\" register:" << 12288 << "size:" << 2 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12288, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
+float FoxESSModbusTcpConnection::maxChargeCurrent() const
+{
+    return m_maxChargeCurrent;
+}
+
+QModbusReply *FoxESSModbusTcpConnection::setMaxChargeCurrent(float maxChargeCurrent)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(static_cast<quint32>(maxChargeCurrent  * 1.0 / pow(10, -1)), m_endianness);
+    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Write \"Maximum charging current of the EVC (0x3001)\" register:" << 12289 << "size:" << 2 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12289, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
 quint16 FoxESSModbusTcpConnection::firmwareVersion() const
 {
     return m_firmwareVersion;
@@ -246,34 +274,6 @@ QString FoxESSModbusTcpConnection::modelCode() const
 QString FoxESSModbusTcpConnection::serialNumber() const
 {
     return m_serialNumber;
-}
-
-quint16 FoxESSModbusTcpConnection::workMode() const
-{
-    return m_workMode;
-}
-
-QModbusReply *FoxESSModbusTcpConnection::setWorkMode(quint16 workMode)
-{
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(workMode);
-    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Write \"Work Mode of the EVC (0x3000)\" register:" << 12288 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12288, values.count());
-    request.setValues(values);
-    return sendWriteRequest(request, m_slaveId);
-}
-
-float FoxESSModbusTcpConnection::maxChargeCurrent() const
-{
-    return m_maxChargeCurrent;
-}
-
-QModbusReply *FoxESSModbusTcpConnection::setMaxChargeCurrent(float maxChargeCurrent)
-{
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(static_cast<quint16>(maxChargeCurrent  * 1.0 / pow(10, -1)));
-    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Write \"Maximum charging current of the EVC (0x3001)\" register:" << 12289 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12289, values.count());
-    request.setValues(values);
-    return sendWriteRequest(request, m_slaveId);
 }
 
 float FoxESSModbusTcpConnection::maxChargePower() const
@@ -537,6 +537,72 @@ bool FoxESSModbusTcpConnection::update()
 
     QModbusReply *reply = nullptr;
 
+    // Read Work Mode of the EVC (0x3000)
+    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Read \"Work Mode of the EVC (0x3000)\" register:" << 12288 << "size:" << 2;
+    reply = readWorkMode();
+    if (!reply) {
+        qCWarning(dcFoxESSModbusTcpConnection()) << "Error occurred while reading \"Work Mode of the EVC (0x3000)\" registers from" << hostAddress().toString() << errorString();
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return false;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcFoxESSModbusTcpConnection()) << "<-- Response from \"Work Mode of the EVC (0x3000)\" register" << 12288 << "size:" << 2 << unit.values();
+        processWorkModeRegisterValues(unit.values());
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcFoxESSModbusTcpConnection()) << "Modbus reply error occurred while reading \"Work Mode of the EVC (0x3000)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+
+    // Read Maximum charging current of the EVC (0x3001)
+    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Read \"Maximum charging current of the EVC (0x3001)\" register:" << 12289 << "size:" << 2;
+    reply = readMaxChargeCurrent();
+    if (!reply) {
+        qCWarning(dcFoxESSModbusTcpConnection()) << "Error occurred while reading \"Maximum charging current of the EVC (0x3001)\" registers from" << hostAddress().toString() << errorString();
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return false;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcFoxESSModbusTcpConnection()) << "<-- Response from \"Maximum charging current of the EVC (0x3001)\" register" << 12289 << "size:" << 2 << unit.values();
+        processMaxChargeCurrentRegisterValues(unit.values());
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcFoxESSModbusTcpConnection()) << "Modbus reply error occurred while reading \"Maximum charging current of the EVC (0x3001)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+
     // Read chargingInfo
     reply = readBlockChargingInfo();
     qCDebug(dcFoxESSModbusTcpConnection()) << "--> Read block \"chargingInfo\" registers from:" << 4096 << "size:" << 28;
@@ -598,7 +664,7 @@ bool FoxESSModbusTcpConnection::update()
 
     // Read chargeSettings
     reply = readBlockChargeSettings();
-    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Read block \"chargeSettings\" registers from:" << 12288 << "size:" << 7;
+    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Read block \"chargeSettings\" registers from:" << 12290 << "size:" << 5;
     if (!reply) {
         qCWarning(dcFoxESSModbusTcpConnection()) << "Error occurred while reading block \"chargeSettings\" registers";
         return false;
@@ -621,14 +687,12 @@ bool FoxESSModbusTcpConnection::update()
 
         const QModbusDataUnit unit = reply->result();
         const QVector<quint16> blockValues = unit.values();
-        qCDebug(dcFoxESSModbusTcpConnection()) << "<-- Response from reading block \"chargeSettings\" register" << 12288 << "size:" << 7 << blockValues;
-        processWorkModeRegisterValues(blockValues.mid(0, 1));
-        processMaxChargeCurrentRegisterValues(blockValues.mid(1, 1));
-        processMaxChargePowerRegisterValues(blockValues.mid(2, 1));
-        processMaxChargeTimeRegisterValues(blockValues.mid(3, 1));
-        processMaxChargeEnergyRegisterValues(blockValues.mid(4, 1));
-        processTimeValidityRegisterValues(blockValues.mid(5, 1));
-        processDefaultCurrentRegisterValues(blockValues.mid(6, 1));
+        qCDebug(dcFoxESSModbusTcpConnection()) << "<-- Response from reading block \"chargeSettings\" register" << 12290 << "size:" << 5 << blockValues;
+        processMaxChargePowerRegisterValues(blockValues.mid(0, 1));
+        processMaxChargeTimeRegisterValues(blockValues.mid(1, 1));
+        processMaxChargeEnergyRegisterValues(blockValues.mid(2, 1));
+        processTimeValidityRegisterValues(blockValues.mid(3, 1));
+        processDefaultCurrentRegisterValues(blockValues.mid(4, 1));
         verifyUpdateFinished();
     });
 
@@ -675,6 +739,66 @@ bool FoxESSModbusTcpConnection::update()
     });
 
     return true;
+}
+
+void FoxESSModbusTcpConnection::updateWorkMode()
+{
+    // Update registers from Work Mode of the EVC (0x3000)
+    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Read \"Work Mode of the EVC (0x3000)\" register:" << 12288 << "size:" << 2;
+    QModbusReply *reply = readWorkMode();
+    if (!reply) {
+        qCWarning(dcFoxESSModbusTcpConnection()) << "Error occurred while reading \"Work Mode of the EVC (0x3000)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcFoxESSModbusTcpConnection()) << "<-- Response from \"Work Mode of the EVC (0x3000)\" register" << 12288 << "size:" << 2 << unit.values();
+            processWorkModeRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcFoxESSModbusTcpConnection()) << "Modbus reply error occurred while updating \"Work Mode of the EVC (0x3000)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void FoxESSModbusTcpConnection::updateMaxChargeCurrent()
+{
+    // Update registers from Maximum charging current of the EVC (0x3001)
+    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Read \"Maximum charging current of the EVC (0x3001)\" register:" << 12289 << "size:" << 2;
+    QModbusReply *reply = readMaxChargeCurrent();
+    if (!reply) {
+        qCWarning(dcFoxESSModbusTcpConnection()) << "Error occurred while reading \"Maximum charging current of the EVC (0x3001)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcFoxESSModbusTcpConnection()) << "<-- Response from \"Maximum charging current of the EVC (0x3001)\" register" << 12289 << "size:" << 2 << unit.values();
+            processMaxChargeCurrentRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcFoxESSModbusTcpConnection()) << "Modbus reply error occurred while updating \"Maximum charging current of the EVC (0x3001)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
 }
 
 void FoxESSModbusTcpConnection::updateChargingInfoBlock()
@@ -767,7 +891,7 @@ void FoxESSModbusTcpConnection::updateSystemInfoBlock()
 void FoxESSModbusTcpConnection::updateChargeSettingsBlock()
 {
     // Update register block "chargeSettings"
-    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Read block \"chargeSettings\" registers from:" << 12288 << "size:" << 7;
+    qCDebug(dcFoxESSModbusTcpConnection()) << "--> Read block \"chargeSettings\" registers from:" << 12290 << "size:" << 5;
     QModbusReply *reply = readBlockChargeSettings();
     if (!reply) {
         qCWarning(dcFoxESSModbusTcpConnection()) << "Error occurred while reading block \"chargeSettings\" registers";
@@ -785,14 +909,12 @@ void FoxESSModbusTcpConnection::updateChargeSettingsBlock()
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
             const QVector<quint16> blockValues = unit.values();
-            qCDebug(dcFoxESSModbusTcpConnection()) << "<-- Response from reading block \"chargeSettings\" register" << 12288 << "size:" << 7 << blockValues;
-            processWorkModeRegisterValues(blockValues.mid(0, 1));
-            processMaxChargeCurrentRegisterValues(blockValues.mid(1, 1));
-            processMaxChargePowerRegisterValues(blockValues.mid(2, 1));
-            processMaxChargeTimeRegisterValues(blockValues.mid(3, 1));
-            processMaxChargeEnergyRegisterValues(blockValues.mid(4, 1));
-            processTimeValidityRegisterValues(blockValues.mid(5, 1));
-            processDefaultCurrentRegisterValues(blockValues.mid(6, 1));
+            qCDebug(dcFoxESSModbusTcpConnection()) << "<-- Response from reading block \"chargeSettings\" register" << 12290 << "size:" << 5 << blockValues;
+            processMaxChargePowerRegisterValues(blockValues.mid(0, 1));
+            processMaxChargeTimeRegisterValues(blockValues.mid(1, 1));
+            processMaxChargeEnergyRegisterValues(blockValues.mid(2, 1));
+            processTimeValidityRegisterValues(blockValues.mid(3, 1));
+            processDefaultCurrentRegisterValues(blockValues.mid(4, 1));
         }
     });
 
@@ -833,6 +955,18 @@ void FoxESSModbusTcpConnection::updateChargeControlBlock()
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcFoxESSModbusTcpConnection()) << "Modbus reply error occurred while updating block \"chargeControl\" registers" << error << reply->errorString();
     });
+}
+
+QModbusReply *FoxESSModbusTcpConnection::readWorkMode()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12288, 2);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *FoxESSModbusTcpConnection::readMaxChargeCurrent()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12289, 2);
+    return sendReadRequest(request, m_slaveId);
 }
 
 QModbusReply *FoxESSModbusTcpConnection::readFirmwareVersion()
@@ -1009,18 +1143,6 @@ QModbusReply *FoxESSModbusTcpConnection::readSerialNumber()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *FoxESSModbusTcpConnection::readWorkMode()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12288, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *FoxESSModbusTcpConnection::readMaxChargeCurrent()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12289, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
 QModbusReply *FoxESSModbusTcpConnection::readMaxChargePower()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12290, 1);
@@ -1089,7 +1211,7 @@ QModbusReply *FoxESSModbusTcpConnection::readBlockSystemInfo()
 
 QModbusReply *FoxESSModbusTcpConnection::readBlockChargeSettings()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12288, 7);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12290, 5);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -1097,6 +1219,28 @@ QModbusReply *FoxESSModbusTcpConnection::readBlockChargeControl()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16384, 4);
     return sendReadRequest(request, m_slaveId);
+}
+
+void FoxESSModbusTcpConnection::processWorkModeRegisterValues(const QVector<quint16> values)
+{
+    quint32 receivedWorkMode = ModbusDataUtils::convertToUInt32(values, m_endianness);
+    emit workModeReadFinished(receivedWorkMode);
+
+    if (m_workMode != receivedWorkMode) {
+        m_workMode = receivedWorkMode;
+        emit workModeChanged(m_workMode);
+    }
+}
+
+void FoxESSModbusTcpConnection::processMaxChargeCurrentRegisterValues(const QVector<quint16> values)
+{
+    float receivedMaxChargeCurrent = ModbusDataUtils::convertToUInt32(values, m_endianness) * 1.0 * pow(10, -1);
+    emit maxChargeCurrentReadFinished(receivedMaxChargeCurrent);
+
+    if (m_maxChargeCurrent != receivedMaxChargeCurrent) {
+        m_maxChargeCurrent = receivedMaxChargeCurrent;
+        emit maxChargeCurrentChanged(m_maxChargeCurrent);
+    }
 }
 
 void FoxESSModbusTcpConnection::processFirmwareVersionRegisterValues(const QVector<quint16> values)
@@ -1418,28 +1562,6 @@ void FoxESSModbusTcpConnection::processSerialNumberRegisterValues(const QVector<
     }
 }
 
-void FoxESSModbusTcpConnection::processWorkModeRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedWorkMode = ModbusDataUtils::convertToUInt16(values);
-    emit workModeReadFinished(receivedWorkMode);
-
-    if (m_workMode != receivedWorkMode) {
-        m_workMode = receivedWorkMode;
-        emit workModeChanged(m_workMode);
-    }
-}
-
-void FoxESSModbusTcpConnection::processMaxChargeCurrentRegisterValues(const QVector<quint16> values)
-{
-    float receivedMaxChargeCurrent = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
-    emit maxChargeCurrentReadFinished(receivedMaxChargeCurrent);
-
-    if (m_maxChargeCurrent != receivedMaxChargeCurrent) {
-        m_maxChargeCurrent = receivedMaxChargeCurrent;
-        emit maxChargeCurrentChanged(m_maxChargeCurrent);
-    }
-}
-
 void FoxESSModbusTcpConnection::processMaxChargePowerRegisterValues(const QVector<quint16> values)
 {
     float receivedMaxChargePower = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
@@ -1652,6 +1774,8 @@ void FoxESSModbusTcpConnection::evaluateReachableState()
 QDebug operator<<(QDebug debug, FoxESSModbusTcpConnection *foxESSModbusTcpConnection)
 {
     debug.nospace().noquote() << "FoxESSModbusTcpConnection(" << foxESSModbusTcpConnection->hostAddress().toString() << ":" << foxESSModbusTcpConnection->port() << ")" << "\n";
+    debug.nospace().noquote() << "    - Work Mode of the EVC (0x3000): " << foxESSModbusTcpConnection->workMode() << "\n";
+    debug.nospace().noquote() << "    - Maximum charging current of the EVC (0x3001): " << foxESSModbusTcpConnection->maxChargeCurrent() << " [A]" << "\n";
     debug.nospace().noquote() << "    - Software version of EVC (0x1001): " << foxESSModbusTcpConnection->firmwareVersion() << "\n";
     debug.nospace().noquote() << "    - Maximum supported power of the EVC (0x1011): " << foxESSModbusTcpConnection->maxSupportedPower() << " [kW]" << "\n";
     debug.nospace().noquote() << "    - Modbus Address of the EVC (0x1000): " << foxESSModbusTcpConnection->deviceAddress() << "\n";
@@ -1681,8 +1805,6 @@ QDebug operator<<(QDebug debug, FoxESSModbusTcpConnection *foxESSModbusTcpConnec
     debug.nospace().noquote() << "    - System fault info of the EVC (0x101C): " << foxESSModbusTcpConnection->faultInfo() << "\n";
     debug.nospace().noquote() << "    - Model code of the EVC (0x101E): " << foxESSModbusTcpConnection->modelCode() << "\n";
     debug.nospace().noquote() << "    - Serial number of the EVC (0x1022): " << foxESSModbusTcpConnection->serialNumber() << "\n";
-    debug.nospace().noquote() << "    - Work Mode of the EVC (0x3000): " << foxESSModbusTcpConnection->workMode() << "\n";
-    debug.nospace().noquote() << "    - Maximum charging current of the EVC (0x3001): " << foxESSModbusTcpConnection->maxChargeCurrent() << " [A]" << "\n";
     debug.nospace().noquote() << "    - Maximum charging power of the EVC (0x3002): " << foxESSModbusTcpConnection->maxChargePower() << " [kW]" << "\n";
     debug.nospace().noquote() << "    - Maximum charge time (minutes) of the EVC (0x3003): " << foxESSModbusTcpConnection->maxChargeTime() << "\n";
     debug.nospace().noquote() << "    - Maximum charge energy of the EVC (0x3004): " << foxESSModbusTcpConnection->maxChargeEnergy() << " [kWh]" << "\n";

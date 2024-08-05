@@ -113,6 +113,14 @@ public:
     uint checkReachableRetries() const;
     void setCheckReachableRetries(uint checkReachableRetries);
 
+    /* Work Mode of the EVC (0x3000) - Address: 12288, Size: 2 */
+    quint32 workMode() const;
+    QModbusReply *setWorkMode(quint32 workMode);
+
+    /* Maximum charging current of the EVC (0x3001) [A] - Address: 12289, Size: 2 */
+    float maxChargeCurrent() const;
+    QModbusReply *setMaxChargeCurrent(float maxChargeCurrent);
+
     /* Software version of EVC (0x1001) - Address: 4097, Size: 1 */
     quint16 firmwareVersion() const;
 
@@ -200,14 +208,6 @@ public:
     /* Serial number of the EVC (0x1022) - Address: 4130, Size: 16 */
     QString serialNumber() const;
 
-    /* Work Mode of the EVC (0x3000) - Address: 12288, Size: 1 */
-    quint16 workMode() const;
-    QModbusReply *setWorkMode(quint16 workMode);
-
-    /* Maximum charging current of the EVC (0x3001) [A] - Address: 12289, Size: 1 */
-    float maxChargeCurrent() const;
-    QModbusReply *setMaxChargeCurrent(float maxChargeCurrent);
-
     /* Maximum charging power of the EVC (0x3002) [kW] - Address: 12290, Size: 1 */
     float maxChargePower() const;
     QModbusReply *setMaxChargePower(float maxChargePower);
@@ -279,9 +279,7 @@ public:
     */
     void updateSystemInfoBlock();
 
-    /* Read block from start addess 12288 with size of 7 registers containing following 7 properties:
-      - Work Mode of the EVC (0x3000) - Address: 12288, Size: 1
-      - Maximum charging current of the EVC (0x3001) [A] - Address: 12289, Size: 1
+    /* Read block from start addess 12290 with size of 5 registers containing following 5 properties:
       - Maximum charging power of the EVC (0x3002) [kW] - Address: 12290, Size: 1
       - Maximum charge time (minutes) of the EVC (0x3003) - Address: 12291, Size: 1
       - Maximum charge energy of the EVC (0x3004) [kWh] - Address: 12292, Size: 1
@@ -298,6 +296,8 @@ public:
     */
     void updateChargeControlBlock();
 
+    void updateWorkMode();
+    void updateMaxChargeCurrent();
 
     void updateDeviceAddress();
     void updateFirmwareVersionUnused();
@@ -326,8 +326,6 @@ public:
     void updateFaultInfo();
     void updateModelCode();
     void updateSerialNumber();
-    void updateWorkMode();
-    void updateMaxChargeCurrent();
     void updateMaxChargePower();
     void updateMaxChargeTime();
     void updateMaxChargeEnergy();
@@ -338,6 +336,8 @@ public:
     void updatePhaseSwitching();
     void updateRestartEVC();
 
+    QModbusReply *readWorkMode();
+    QModbusReply *readMaxChargeCurrent();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readMaxSupportedPower();
     QModbusReply *readDeviceAddress();
@@ -367,8 +367,6 @@ public:
     QModbusReply *readFaultInfo();
     QModbusReply *readModelCode();
     QModbusReply *readSerialNumber();
-    QModbusReply *readWorkMode();
-    QModbusReply *readMaxChargeCurrent();
     QModbusReply *readMaxChargePower();
     QModbusReply *readMaxChargeTime();
     QModbusReply *readMaxChargeEnergy();
@@ -414,9 +412,7 @@ public:
     */
     QModbusReply *readBlockSystemInfo();
 
-    /* Read block from start addess 12288 with size of 7 registers containing following 7 properties:
-     - Work Mode of the EVC (0x3000) - Address: 12288, Size: 1
-     - Maximum charging current of the EVC (0x3001) [A] - Address: 12289, Size: 1
+    /* Read block from start addess 12290 with size of 5 registers containing following 5 properties:
      - Maximum charging power of the EVC (0x3002) [kW] - Address: 12290, Size: 1
      - Maximum charge time (minutes) of the EVC (0x3003) - Address: 12291, Size: 1
      - Maximum charge energy of the EVC (0x3004) [kWh] - Address: 12292, Size: 1
@@ -447,6 +443,10 @@ signals:
 
     void endiannessChanged(ModbusDataUtils::ByteOrder endianness);
 
+    void workModeChanged(quint32 workMode);
+    void workModeReadFinished(quint32 workMode);
+    void maxChargeCurrentChanged(float maxChargeCurrent);
+    void maxChargeCurrentReadFinished(float maxChargeCurrent);
     void firmwareVersionChanged(quint16 firmwareVersion);
     void firmwareVersionReadFinished(quint16 firmwareVersion);
     void maxSupportedPowerChanged(float maxSupportedPower);
@@ -506,10 +506,6 @@ signals:
     void modelCodeReadFinished(const QString &modelCode);
     void serialNumberChanged(const QString &serialNumber);
     void serialNumberReadFinished(const QString &serialNumber);
-    void workModeChanged(quint16 workMode);
-    void workModeReadFinished(quint16 workMode);
-    void maxChargeCurrentChanged(float maxChargeCurrent);
-    void maxChargeCurrentReadFinished(float maxChargeCurrent);
     void maxChargePowerChanged(float maxChargePower);
     void maxChargePowerReadFinished(float maxChargePower);
     void maxChargeTimeChanged(quint16 maxChargeTime);
@@ -530,6 +526,8 @@ signals:
     void restartEVCReadFinished(quint16 restartEVC);
 
 protected:
+    quint32 m_workMode = 0;
+    float m_maxChargeCurrent = 0;
     quint16 m_firmwareVersion = 0x0000;
     float m_maxSupportedPower = 0;
     quint16 m_deviceAddress = 1;
@@ -559,8 +557,6 @@ protected:
     quint32 m_faultInfo = 0;
     QString m_modelCode = 0;
     QString m_serialNumber = 0;
-    quint16 m_workMode = 0;
-    float m_maxChargeCurrent = 0;
     float m_maxChargePower = 0;
     quint16 m_maxChargeTime = 0;
     quint16 m_maxChargeEnergy = 0;
@@ -571,6 +567,8 @@ protected:
     quint16 m_phaseSwitching;
     quint16 m_restartEVC;
 
+    void processWorkModeRegisterValues(const QVector<quint16> values);
+    void processMaxChargeCurrentRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processMaxSupportedPowerRegisterValues(const QVector<quint16> values);
 
@@ -603,8 +601,6 @@ protected:
     void processModelCodeRegisterValues(const QVector<quint16> values);
     void processSerialNumberRegisterValues(const QVector<quint16> values);
 
-    void processWorkModeRegisterValues(const QVector<quint16> values);
-    void processMaxChargeCurrentRegisterValues(const QVector<quint16> values);
     void processMaxChargePowerRegisterValues(const QVector<quint16> values);
     void processMaxChargeTimeRegisterValues(const QVector<quint16> values);
     void processMaxChargeEnergyRegisterValues(const QVector<quint16> values);

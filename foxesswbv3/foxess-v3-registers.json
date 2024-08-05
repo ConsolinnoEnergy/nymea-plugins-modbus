@@ -358,28 +358,6 @@
             "readSchedule": "update",
             "registers": [
                 {
-                    "id": "workMode",
-                    "description": "Work Mode of the EVC (0x3000)",
-                    "address": 12288,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "defaultValue": "0",
-                    "access": "RW"
-                },
-                {
-                    "id": "maxChargeCurrent",
-                    "description": "Maximum charging current of the EVC (0x3001)",
-                    "address": 12289,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "defaultValue": "0",
-                    "unit": "A",
-                    "staticScaleFactor": -1,
-                    "access": "RW"
-                },
-                {
                     "id": "maxChargePower",
                     "description": "Maximum charging power of the EVC (0x3002)",
                     "address": 12290,
@@ -481,6 +459,30 @@
         }
     ],
     "registers": [
+        {
+            "id": "workMode",
+            "description": "Work Mode of the EVC (0x3000)",
+            "address": 12288,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "defaultValue": "0",
+            "readSchedule": "update",
+            "access": "RW"
+        },
+        {
+            "id": "maxChargeCurrent",
+            "description": "Maximum charging current of the EVC (0x3001)",
+            "address": 12289,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "defaultValue": "0",
+            "unit": "A",
+            "staticScaleFactor": -1,
+            "readSchedule": "update",
+            "access": "RW"
+        },
         {
             "id": "firmwareVersion",
             "readSchedule": "init",
