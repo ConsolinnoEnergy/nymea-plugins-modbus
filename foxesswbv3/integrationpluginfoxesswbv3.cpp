@@ -35,6 +35,7 @@
 #include <hardwaremanager.h>
 #include "platform/platformzeroconfcontroller.h"
 #include "network/zeroconf/zeroconfservicebrowser.h"
+#include <math.h>
 
 IntegrationPluginFoxEss::IntegrationPluginFoxEss() { }
 
@@ -305,11 +306,15 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         // TODO: Map mit werten + Text erstllen und setzen
     });
 
-    connect(connection, &FoxESSModbusTcpConnection::workModeChanged, [this, thing, connection](quint16 mode) {
+    connect(connection, &FoxESSModbusTcpConnection::workModeChanged, [this, thing, connection](quint32 mode) {
         qCDebug(dcFoxEss()) << "Work mode changed to" << mode << ". Make sure it is in controlled mode.";
+        mode = mode & 0x0000FFFF;
+        quint32 maxCurrent = mode & 0xFFFF0000;
+        qCDebug(dcFoxEss()) << "Masked work mode:" << mode;
         if (mode != 0)
         {
-            QModbusReply *reply = connection->setWorkMode(0);
+            qCDebug(dcFoxEss()) << "Setting workmode + maxCharge current to" << maxCurrent;
+            QModbusReply *reply = connection->setWorkMode(maxCurrent & 0xFFFF0000);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply]() {
                 if (reply->error() == QModbusDevice::NoError) {
