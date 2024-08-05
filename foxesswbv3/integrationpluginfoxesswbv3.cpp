@@ -161,6 +161,8 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    // Initialize if device is reachable again, otherwise set connected state to false
+    // and power to 0
     connect(connection, &FoxESSModbusTcpConnection::reachableChanged, thing,
             [this, connection, thing](bool reachable) {
                 qCDebug(dcFoxEss()) << "Reachable state changed to" << reachable;
@@ -173,11 +175,13 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
                 }
     });
 
+    // Initialization has finished
     connect(connection, &FoxESSModbusTcpConnection::initializationFinished, thing,
        [this, connection, thing](bool success) {
            thing->setStateValue(foxEssConnectedStateTypeId, success);
 
            if (success) {
+                // Set basic info about device
                qCDebug(dcFoxEss()) << "FoxESS wallbox initialized.";
                quint16 firmware = connection->firmwareVersion();
                QString majorVersion = QString::number((firmware & 0xFF00) >> 8);
@@ -202,6 +206,7 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
            }
     });
 
+    // Car has been plugged in or unplugged
     connect(connection, &FoxESSModbusTcpConnection::plugStatusChanged, thing, [thing](quint16 state) {
         if (state == 0)
         {
@@ -215,37 +220,45 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    // Set state for phase current A
     connect(connection, &FoxESSModbusTcpConnection::currentPhaseAChanged, thing, [thing](float current) {
         qCDebug(dcFoxEss()) << "Current Phase A changed to" << current << "A";
         thing->setStateValue(foxEssCurrentPhaseAStateTypeId, current);
     });
 
+    // Set state for phase current B
     connect(connection, &FoxESSModbusTcpConnection::currentPhaseBChanged, thing, [thing](float current) {
         qCDebug(dcFoxEss()) << "Current Phase B changed to" << current << "A";
         thing->setStateValue(foxEssCurrentPhaseBStateTypeId, current);
     });
 
+    // Set state for phase current C
     connect(connection, &FoxESSModbusTcpConnection::currentPhaseCChanged, thing, [thing](float current) {
         qCDebug(dcFoxEss()) << "Current Phase C changed to" << current << "A";
         thing->setStateValue(foxEssCurrentPhaseCStateTypeId, current);
     });
 
+    // Set state for current power
     connect(connection, &FoxESSModbusTcpConnection::currentPowerChanged, thing, [thing](float power) {
         qCDebug(dcFoxEss()) << "Current Power changed to" << power << "kW";
         thing->setStateValue(foxEssCurrentPowerStateTypeId, power*1000);
     });
 
+    // IMPORTANT: as of August 2024, the registers for sessionEnergy and totalConsumedEnergy
+    // are mixed up in the data sheet
+    // Set state for session energy
     connect(connection, &FoxESSModbusTcpConnection::sessionEnergyConsumedChanged, thing, [thing](float energy) {
-        // TODO: Session Energy und Total Energy evtl vertauscht
         qCDebug(dcFoxEss()) << "Session energy changed to" << energy << "kWh";
         thing->setStateValue(foxEssSessionEnergyStateTypeId, energy);
     });
 
+    // Set state for total consumed energy
     connect(connection, &FoxESSModbusTcpConnection::totalEnergyChanged, thing, [thing](float energy) {
         qCDebug(dcFoxEss()) << "Total energy changed to" << energy << "kWh";
         thing->setStateValue(foxEssTotalEnergyConsumedStateTypeId, energy);
     });
 
+    // Check if alarm info has changed
     connect(connection, &FoxESSModbusTcpConnection::alarmInfoChanged, thing, [thing](quint16 code) {
         qCDebug(dcFoxEss()) << "Alarm info changed to" << code;
         QMap<int, QString> alarmInfoMap = {
@@ -270,6 +283,7 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    // Check if fault info has changed
     connect(connection, &FoxESSModbusTcpConnection::faultInfoChanged, thing, [thing](quint32 code) {
         qCDebug(dcFoxEss()) << "Fault info changed to" << code;
         QMap<int, QString> faultInfoMap = {
@@ -300,19 +314,17 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
-    connect(connection, &FoxESSModbusTcpConnection::stopReasonChanged, [this, thing](quint16 value) {
-        qCDebug(dcFoxEss()) << "Stop Reason changed to" << value;
-        // TODO: Map mit werten + Text erstllen und setzen
-    });
-
+    // Check if work mode has changed
     connect(connection, &FoxESSModbusTcpConnection::workModeChanged, [this, thing, connection](quint32 mode) {
         qCDebug(dcFoxEss()) << "Work mode changed to" << mode << ". Make sure it is in controlled mode.";
+        // 0x3000 can not be written with FC 0x06
+        // Workaround to write work mode register with overwriting maxChargeCurrent
         mode = mode & 0x0000FFFF;
         quint32 maxCurrent = mode & 0xFFFF0000;
         qCDebug(dcFoxEss()) << "Masked work mode:" << mode;
         if (mode != 0)
         {
-            qCDebug(dcFoxEss()) << "Setting workmode + maxCharge current to" << maxCurrent;
+            qCDebug(dcFoxEss()) << "Setting workmode + maxChargeCurrent to" << maxCurrent;
             QModbusReply *reply = connection->setWorkMode(maxCurrent & 0xFFFF0000);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply]() {
@@ -323,6 +335,7 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    // Check if deviceStatus has changed
     connect(connection, &FoxESSModbusTcpConnection::deviceStatusChanged, [this, thing](quint16 state) {
         qCDebug(dcFoxEss()) << "Device status changed to" << state;
 
@@ -358,12 +371,14 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    // Check if update has finished
     connect(connection, &FoxESSModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
         qCDebug(dcFoxEss()) << "Update finished";
         float currentPhaseA = thing->stateValue(foxEssCurrentPhaseAStateTypeId).toFloat();
         float currentPhaseB = thing->stateValue(foxEssCurrentPhaseBStateTypeId).toFloat();
         float currentPhaseC = thing->stateValue(foxEssCurrentPhaseCStateTypeId).toFloat();
 
+        // Set state count
         int phaseCount = 0;
         if (currentPhaseA > 0)
             phaseCount++;
