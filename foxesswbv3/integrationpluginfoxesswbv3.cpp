@@ -473,15 +473,16 @@ void IntegrationPluginFoxEss::toggleCharging(FoxESSModbusTcpConnection *connecti
            qCDebug(dcFoxEss()) << "Successfully set charge control";
         } else {
             qCDebug(dcFoxEss()) << "Toggle charge was not sent successfully";
-            toggleCharging(connection, power);
+            // toggleCharging(connection, power);
         }
     });
 }
 
 void IntegrationPluginFoxEss::setMaxCurrent(FoxESSModbusTcpConnection *connection, float maxCurrent)
 {
-    qCDebug(dcFoxEss()) << "Setting maxChargeCurrent to" << maxCurrent;
     float maxPower = connection->maxChargePower();
+    qCDebug(dcFoxEss()) << "Setting maxChargeCurrent to" << maxCurrent;
+    qCDebug(dcFoxEss()) << "Setting maxChargePower to" << maxPower;
     QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent, maxPower);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, connection, maxCurrent, reply]() {
@@ -489,7 +490,7 @@ void IntegrationPluginFoxEss::setMaxCurrent(FoxESSModbusTcpConnection *connectio
            qCDebug(dcFoxEss()) << "Successfully set maximum charging current";
         } else {
             qCDebug(dcFoxEss()) << "Setting max current was not successfull";
-            setMaxCurrent(connection, maxCurrent);
+            // setMaxCurrent(connection, maxCurrent);
         }
     });
 }
