@@ -60,6 +60,14 @@ void IntegrationPluginFoxEss::discoverThings(ThingDiscoveryInfo *info)
                     ThingDescriptor descriptor(foxEssThingClassId, "FoxESS Wallbox", service.hostAddress().toString());
                     NetworkDeviceInfo foxESSWallbox = discoveryReply->networkDeviceInfos().get(service.hostAddress());
                     qCDebug(dcFoxEss()) << "MacAddress of WB:" << foxESSWallbox.macAddress();
+
+                    if (foxESSWallbox.macAddress().isNull()) {
+                        info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The wallbox was found, but the MAC address is invalid. Try searching again."));
+                    }
+                    Things existingThings = myThings().filterByThingClassId(foxEssThingClassId).filterByParam(foxEssThingMacAddressParamTypeId, foxESSWallbox.macAddress());
+                    if (!existingThings.isEmpty())
+                        descriptor.setThingId(existingThings.first()->id());
+
                     ParamList params;
                     // TODO: Get Mac Address
                     params << Param(foxEssThingIpAddressParamTypeId, service.hostAddress().toString());
