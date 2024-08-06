@@ -69,7 +69,6 @@ void IntegrationPluginFoxEss::discoverThings(ThingDiscoveryInfo *info)
                         descriptor.setThingId(existingThings.first()->id());
 
                     ParamList params;
-                    // TODO: Get Mac Address
                     params << Param(foxEssThingIpAddressParamTypeId, service.hostAddress().toString());
                     params << Param(foxEssThingMdnsNameParamTypeId, service.name());
                     params << Param(foxEssThingPortParamTypeId, service.port());
