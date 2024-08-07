@@ -58,6 +58,8 @@ public:
 
 private:
     PluginTimer *m_pluginTimer = nullptr;
+    QTimer *m_chargeLimitTimer = nullptr;
+
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     ZeroConfServiceBrowser *m_serviceBrowser = nullptr;
     QHash<Thing *, FoxESSModbusTcpConnection *> m_tcpConnections;

@@ -378,6 +378,12 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    connect(m_chargeLimitTimer, &QTimer::timeout, this, [this, connection]() {
+        qCDebug(dcFoxEss()) << "m_chargeLimitTimer timeout.";
+        float currentInApp = thing->stateValue(foxEssMaxChargingCurrentStateTypeId).toFloat();
+        setMaxCurrent(connection, currentInApp);
+    });
+
     // Check if update has finished
     connect(connection, &FoxESSModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
         qCDebug(dcFoxEss()) << "Update finished";
@@ -411,6 +417,18 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         {
             toggleCharging(connection, true);
         }
+        
+        if (state == "Charging") {
+            if (!m_chargeLimitTimer->isActive()) {
+                qCDebug(dcFoxEss()) << "State is charging; Starting m_chargeLimitTimer.";
+                m_chargeLimitTimer->start();
+            }
+        } else {
+            if (m_chargeLimitTimer->isActive()) {
+                qCDebug(dcFoxEss()) << "State is not charging; Stopping m_chargeLimitTimer.";
+                m_chargeLimitTimer->stop();
+            }
+        }
 
         // Make current of wallbox follow app
         if ((state == "Charging") && (power == true)) {
@@ -430,8 +448,11 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
 
 void IntegrationPluginFoxEss::postSetupThing(Thing *thing)
 {
-    Q_UNUSED(thing)
     qCDebug(dcFoxEss()) << "Post setup thing..";
+
+    if (!m_chargeLimitTimer)
+        m_chargeLimitTimer = new QTimer(this);
+    m_chargeLimitTimer->setInterval(45*1000);
 
     if (!m_pluginTimer) {
         qCDebug(dcFoxEss()) << "Starting plugin timer..";
@@ -514,6 +535,12 @@ void IntegrationPluginFoxEss::thingRemoved(Thing *thing)
         FoxESSModbusTcpConnection *connection = m_tcpConnections.take(thing);
         connection->disconnectDevice();
         connection->deleteLater();
+    }
+
+    if (myThings().isEmpty() && m_chargeLimitTimer) {
+        m_chargeLimitTimer->stop();
+        delete m_chargeLimitTimer;
+        m_chargeLimitTimer = nullptr;
     }
 
     if (myThings().isEmpty() && m_pluginTimer) {
