@@ -1,0 +1,9 @@
+{
+  "Kostal": {
+    "Smart Meter P Inverter": {
+      "filename": "kostalmeterinverter",
+      "interfaces": "solarinverter connectable",
+      "uuid_offset": 7
+    }
+  }
+}

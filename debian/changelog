@@ -1,6 +1,7 @@
 nymea-plugins-modbus (1.7.009) jammy; urgency=medium
 
   * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
+  * Added kostalmeter plugin (copy of bgetech, does not include sdm72)
   * Add generator to duplicate existing integrations with different names
   * Fix for Solax X3 Inverter: Wrong warning message
   * Added integration for FoxESS WB 3rd Gen
