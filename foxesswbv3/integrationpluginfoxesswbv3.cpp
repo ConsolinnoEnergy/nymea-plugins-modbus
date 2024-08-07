@@ -378,10 +378,11 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
-    connect(m_chargeLimitTimer, &QTimer::timeout, this, [this, connection]() {
+    connect(m_chargeLimitTimer, &QTimer::timeout, this, [this, thing, connection]() {
         qCDebug(dcFoxEss()) << "m_chargeLimitTimer timeout.";
         float currentInApp = thing->stateValue(foxEssMaxChargingCurrentStateTypeId).toFloat();
-        setMaxCurrent(connection, currentInApp);
+        int phaseCount = thing->stateValue(foxEssPhaseCountStateTypeId).toUInt();
+        setMaxCurrent(connection, currentInApp, phaseCount);
     });
 
     // Check if update has finished
@@ -413,7 +414,8 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
 
         if ((power == true) && ((state == "Available") ||
                                 (state == "Connected") ||
-                                (state == "Starting")))
+                                (state == "Starting")  ||
+                                (state == "Finished")))
         {
             toggleCharging(connection, true);
         }
@@ -432,10 +434,11 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
 
         // Make current of wallbox follow app
         if ((state == "Charging") && (power == true)) {
+            qCDebug(dcFoxEss()) << "Charging, but current is not corret. Correcting";
             double meanCurrent = (currentPhaseA + currentPhaseB + currentPhaseC) / phaseCount;
             float currentInApp = thing->stateValue(foxEssMaxChargingCurrentStateTypeId).toFloat();
             if ((meanCurrent > currentInApp+2) || (meanCurrent < currentInApp-2)) {
-                setMaxCurrent(connection, currentInApp);
+                setMaxCurrent(connection, currentInApp, phaseCount);
             }
         }
     });
@@ -448,6 +451,7 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
 
 void IntegrationPluginFoxEss::postSetupThing(Thing *thing)
 {
+    Q_UNUSED(thing)
     qCDebug(dcFoxEss()) << "Post setup thing..";
 
     if (!m_chargeLimitTimer)
@@ -483,8 +487,9 @@ void IntegrationPluginFoxEss::executeAction(ThingActionInfo *info)
 
         if (info->action().actionTypeId() == foxEssMaxChargingCurrentActionTypeId) {
             float maxCurrent = info->action().paramValue(foxEssMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toFloat();
-            setMaxCurrent(connection, maxCurrent);
+            int phaseCount = thing->stateValue(foxEssPhaseCountStateTypeId).toUInt();
             thing->setStateValue(foxEssMaxChargingCurrentStateTypeId, maxCurrent);
+            setMaxCurrent(connection, maxCurrent, phaseCount);
             info->finish(Thing::ThingErrorNoError);
         }
     }
@@ -506,11 +511,14 @@ void IntegrationPluginFoxEss::toggleCharging(FoxESSModbusTcpConnection *connecti
     });
 }
 
-void IntegrationPluginFoxEss::setMaxCurrent(FoxESSModbusTcpConnection *connection, float maxCurrent)
+void IntegrationPluginFoxEss::setMaxCurrent(FoxESSModbusTcpConnection *connection, float maxCurrent, int phaseCount)
 {
     float maxPower = connection->maxChargePower();
     qCDebug(dcFoxEss()) << "Setting maxChargeCurrent to" << maxCurrent;
     qCDebug(dcFoxEss()) << "Setting maxChargePower to" << maxPower;
+    maxPower = (230 * phaseCount * maxCurrent) / 1000;
+    qCDebug(dcFoxEss()) << "Calculated power is" << maxPower;
+    maxCurrent = maxPower;
     QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent, maxPower);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, connection, maxCurrent, reply]() {
