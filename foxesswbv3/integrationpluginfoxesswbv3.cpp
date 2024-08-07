@@ -516,6 +516,8 @@ void IntegrationPluginFoxEss::setMaxCurrent(FoxESSModbusTcpConnection *connectio
     float maxPower = connection->maxChargePower();
     qCDebug(dcFoxEss()) << "Setting maxChargeCurrent to" << maxCurrent;
     qCDebug(dcFoxEss()) << "Setting maxChargePower to" << maxPower;
+    if (maxCurrent < 6)
+        maxCurrent = 7;
     maxPower = (230 * phaseCount * maxCurrent) / 1000;
     qCDebug(dcFoxEss()) << "Calculated power is" << maxPower;
     maxCurrent = maxPower;
