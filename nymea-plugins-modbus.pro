@@ -6,45 +6,45 @@ SUBDIRS += nymea-modbus-cli libnymea-modbus libnymea-sunspec
 #SUBDIRS += nymea-modbus-cli libnymea-modbus
 
 PLUGIN_DIRS = \
-    # abb                     \
-    # aeberle                 \
-    # alfen                   \
-    # alphainnotec            \
-    # alphatec                \
-    # azzurro                 \
-    # amperfied               \
-    # bgetech                 \
-    # drexelundweiss          \
+    abb                     \
+    aeberle                 \
+    alfen                   \
+    alphainnotec            \
+    alphatec                \
+    azzurro                 \
+    amperfied               \
+    bgetech                 \
+    drexelundweiss          \
     foxesswbv3              \
-    # goodwe                  \
-    # growatt                 \
-    # huawei                  \
-    # idm                     \
-    # inepro                  \
-    # kacosunspec             \
-    # kostal                  \
-    # mennekes                \
-    # modbuscommander         \
-    # mtec                    \
-    # mypv                    \
-    # phoenixconnect          \
-    # sax                     \
-    # schneider               \
-    # schneiderIEM            \
-    # schrack                 \
-    # senseair                \
-    # sma                     \
-    # solaxevc                \
-    # solax                   \
-    # stiebeleltron           \
-    # sungrow                 \
-    # sunspec                 \
-    # technivolt              \
-    # unipi                   \
-    # vestel                  \
-    # webasto                 \
-    # e3dc                    \
-    # dvmodbusir
+    goodwe                  \
+    growatt                 \
+    huawei                  \
+    idm                     \
+    inepro                  \
+    kacosunspec             \
+    kostal                  \
+    mennekes                \
+    modbuscommander         \
+    mtec                    \
+    mypv                    \
+    phoenixconnect          \
+    sax                     \
+    schneider               \
+    schneiderIEM            \
+    schrack                 \
+    senseair                \
+    sma                     \
+    solaxevc                \
+    solax                   \
+    stiebeleltron           \
+    sungrow                 \
+    sunspec                 \
+    technivolt              \
+    unipi                   \
+    vestel                  \
+    webasto                 \
+    e3dc                    \
+    dvmodbusir
 
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
