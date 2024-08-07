@@ -73,7 +73,7 @@ void SunSpecDiscovery::startDiscovery()
         qCDebug(dcSunSpec()) << "Discovery: Network discovery finished. Give some time for pending discovery checks to finish...";
 
         // Give the last connections added right before the network discovery finished a chance to check the device...
-        QTimer::singleShot(3000, this, [this](){
+        QTimer::singleShot(10000, this, [this](){       // increased timeout from 3000 to 10000 for Kaco NH3.
             qCDebug(dcSunSpec()) << "Discovery: Grace period timer triggered";
             finishDiscovery();
         });
