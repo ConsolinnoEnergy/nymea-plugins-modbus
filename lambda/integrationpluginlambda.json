@@ -1,0 +1,214 @@
+{
+    "name": "Lambda",
+    "displayName": "LAMBDA",
+    "id": "6d1945f3-d9f4-4f85-bc48-5e1757565c3d",
+    "vendors": [
+        {
+            "name": "lambda",
+            "displayName": "LAMBDA",
+            "id": "87c46021-58a9-4b30-bb08-460af550278f",
+            "thingClasses": [
+                {
+                    "name": "lambdaTCP",
+                    "displayName": "Lambda heat pump (Modbus TCP)",
+                    "id": "19306c25-9d5a-473f-9d6d-a34e81182387",
+                    "createMethods": [
+                        "discovery",
+                        "user"
+                    ],
+                    "interfaces": [
+                        "heatpump",
+                        "connectable"
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "d0886f97-b044-4d96-a106-ca64f0a0d858",
+                            "name": "ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "inputType": "IPv4Address",
+                            "defaultValue": "127.0.0.1"
+                        },
+                        {
+                            "id": "996e98b3-1aa3-4f2c-aee6-ef728fc9667f",
+                            "name": "macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "inputType": "MacAddress",
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "74e11243-ec5f-4853-a6d1-c7c7e95938be",
+                            "name": "port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502
+                        },
+                        {
+                            "id": "397894d0-03ff-4458-9bec-a187c1bd0b16",
+                            "name": "slaveId",
+                            "displayName": "Modbus slave ID",
+                            "type": "int",
+                            "defaultValue": 1
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "944c54e7-888e-4fee-ae07-dc69c61eb266",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "612a5af3-69a1-4bb3-89a2-7f1e211822eb",
+                            "name": "heatingOn",
+                            "displayName": "Heating on",
+                            "displayNameEvent": "Heating turned on/off",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "46d1f056-9d3b-45b5-b78b-2ff4533e2ea4",
+                            "name": "coolingOn",
+                            "displayName": "Cooling on",
+                            "displayNameEvent": "Cooling turned on/off",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "07dc0d71-7bcd-42cf-a787-2cf9dce685a0",
+                            "name": "flowTemperature",
+                            "displayName": "Flow temperature",
+                            "displayNameEvent": "Flow temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0.00,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "956c5b72-6656-4042-bc07-67241ad62d96",
+                            "name": "returnTemperature",
+                            "displayName": "Return temperature",
+                            "displayNameEvent": "Return temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0.00,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "bc716d34-3b9a-4bd7-b52e-893f287697d9",
+                            "name": "hotWaterTemperature",
+                            "displayName": "Hot water temperature",
+                            "displayNameEvent": "Hot water temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0.00,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "e4e088fb-27d8-4343-a8e3-3d3367e53c23",
+                            "name": "heatSourceInletTemperature",
+                            "displayName": "Heat source inlet temperature",
+                            "displayNameEvent": "Heat source inlet temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0.00,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "70f9b400-d611-43d2-bc4e-0f048f3edb26",
+                            "name": "heatSourceOutletTemperature",
+                            "displayName": "Heat source outlet temperature",
+                            "displayNameEvent": "Heat source outlet temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0.00,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "f69f8257-38d3-4453-978e-c422488e2629",
+                            "name": "roomTemperature",
+                            "displayName": "Room remote adjuster temperature",
+                            "displayNameEvent": "Room remote adjuster temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0.00,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "e317d6c9-2128-43cd-8826-1176f39d90e0",
+                            "name": "systemStatus",
+                            "displayName": "System status",
+                            "displayNameEvent": "System status changed",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Init",
+                                "Reference",
+                                "RestartBlock",
+                                "Ready",
+                                "StartPumps",
+                                "StartCompressor",
+                                "PreRegulation",
+                                "Regulation",
+                                "NotUsed",
+                                "Cooling",
+                                "Defrosting"
+                            ],
+                            "defaultValue": "Init",
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "d00bb378-c900-4acb-bac0-aeb362a9d44e",
+                            "name": "outdoorTemperature",
+                            "displayName": "Outdoor temperature",
+                            "displayNameEvent": "Outdoor temperature changed",
+                            "displayNameAction": "Set outdoor temperature",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0.00,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "8b049230-ffe8-49a6-a6c7-2dd472fd389f",
+                            "name": "powerDemand",
+                            "displayName": "Power demand",
+                            "displayNameEvent": "Power demand changed",
+                            "displayNameAction": "Set power demand",
+                            "unit": "Watt",
+                            "type": "double",
+                            "writable": true,
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "ac8ce66b-9e5f-400d-b6ac-3e3e99a950dd",
+                            "name": "powerActual",
+                            "displayName": "Actual power consumption",
+                            "displayNameEvent": "Actual power consumption changed",
+                            "unit": "Watt",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "031d6c7d-5f87-4e9b-a861-85477c57bb06",
+                            "name": "powerSetpoint",
+                            "displayName": "Realized power setpoint",
+                            "displayNameEvent": "Realized power setpoint changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        }
+                    ],
+                    "actionTypes": []
+                }
+            ]
+        }
+    ]
+}

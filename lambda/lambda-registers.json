@@ -1,0 +1,225 @@
+{
+    "className": "Lambda",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 30,
+    "checkReachableRegister": "powerDemand",
+    "enums": [
+        {
+            "name": "SystemStatus",
+            "values": [
+                {
+                    "key": "Init",
+                    "value": 0
+                },
+                {
+                    "key": "Reference",
+                    "value": 1
+                },
+                {
+                    "key": "RestartBlock",
+                    "value": 2
+                },
+                {
+                    "key": "Ready",
+                    "value": 3
+                },
+                {
+                    "key": "StartPumps",
+                    "value": 4
+                },
+                {
+                    "key": "StartCompressor",
+                    "value": 5
+                },
+                {
+                    "key": "PreRegulation",
+                    "value": 6
+                },
+                {
+                    "key": "Regulation",
+                    "value": 7
+                },
+                {
+                    "key": "NotUsed",
+                    "value": 8
+                },
+                {
+                    "key": "Cooling",
+                    "value": 9
+                },
+                {
+                    "key": "Defrosting",
+                    "value": 10
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "power",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "powerActual",
+                    "address": 104,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "actual power consumption of all configured heat pumps",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerSetpoint",
+                    "address": 105,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realized power consumption setpoint of all configured heat pumps",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "lineTemp",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "flowTemperature",
+                    "address": 1005,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Flow",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "example error for manual patched modbus communication code"
+                },
+                {
+                    "id": "returnTemperature",
+                    "address": 1006,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Return",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "heatSource",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "heatSourceInletTemperature",
+                    "address": 1008,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Heat source inlet temperature",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "heatSourceOutletTemperature",
+                    "address": 1009,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Heat source outlet temperature",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "heatingCircuit",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "roomTemperature",
+                    "address": 5005,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "actual temperatur room device sensor",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "hotWaterTemperature",
+                    "address": 5006,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Hot water temperature",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "outdoorTemperature",
+            "address": 3,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Outdoor temperature",
+            "staticScaleFactor": -1,
+            "defaultValue": "0",
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "powerDemand",
+            "address": 103,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "power demand written by EMS",
+            "defaultValue": "0",
+            "unit": "W",
+            "access": "RW"
+        },
+        {
+            "id": "systemStatus",
+            "address": 1003,
+            "size": 1,
+            "type": "uint16",
+            "enum": "SystemStatus",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "System status",
+            "defaultValue": "SystemStatusRegulation",
+            "access": "RO"
+        }       
+    ]
+}
