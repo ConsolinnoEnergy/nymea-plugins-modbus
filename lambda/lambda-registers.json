@@ -54,7 +54,7 @@
                 }
             ]
         }
-    ],
+    ] // comma missing to enable manual written modbus files
     "blocks": [
         {
             "id": "power",
@@ -62,7 +62,7 @@
             "registers": [
                 {
                     "id": "powerActual",
-                    "address": 104,
+                    "address": 103,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -74,7 +74,7 @@
                 },
                 {
                     "id": "powerSetpoint",
-                    "address": 105,
+                    "address": 104,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -92,7 +92,7 @@
             "registers": [
                 {
                     "id": "flowTemperature",
-                    "address": 1005,
+                    "address": 1004,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -101,11 +101,11 @@
                     "staticScaleFactor": -2,
                     "defaultValue": "0",
                     "unit": "°C",
-                    "access": "example error for manual patched modbus communication code"
+                    "access": "RO"
                 },
                 {
                     "id": "returnTemperature",
-                    "address": 1006,
+                    "address": 1005,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -124,7 +124,7 @@
             "registers": [
                 {
                     "id": "heatSourceInletTemperature",
-                    "address": 1008,
+                    "address": 1007,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -137,7 +137,7 @@
                 },
                 {
                     "id": "heatSourceOutletTemperature",
-                    "address": 1009,
+                    "address": 1008,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -156,7 +156,7 @@
             "registers": [
                 {
                     "id": "roomTemperature",
-                    "address": 5005,
+                    "address": 5004,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -169,7 +169,7 @@
                 },
                 {
                     "id": "hotWaterTemperature",
-                    "address": 5006,
+                    "address": 5005,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -186,7 +186,7 @@
     "registers": [
         {
             "id": "outdoorTemperature",
-            "address": 3,
+            "address": 2,
             "size": 1,
             "type": "int16",
             "registerType": "holdingRegister",
@@ -199,7 +199,7 @@
         },
         {
             "id": "powerDemand",
-            "address": 103,
+            "address": 102,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -211,7 +211,7 @@
         },
         {
             "id": "systemStatus",
-            "address": 1003,
+            "address": 1002,
             "size": 1,
             "type": "uint16",
             "enum": "SystemStatus",

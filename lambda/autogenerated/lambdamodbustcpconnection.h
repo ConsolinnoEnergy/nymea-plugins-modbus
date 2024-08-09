@@ -50,17 +50,17 @@ class LambdaModbusTcpConnection : public ModbusTCPMaster
     Q_OBJECT
 public:
     enum Registers {
-        RegisterOutdoorTemperature = 3,
-        RegisterPowerDemand = 103,
-        RegisterPowerActual = 104,
-        RegisterPowerSetpoint = 105,
-        RegisterSystemStatus = 1003,
-        RegisterFlowTemperature = 1005,
-        RegisterReturnTemperature = 1006,
-        RegisterHeatSourceInletTemperature = 1008,
-        RegisterHeatSourceOutletTemperature = 1009,
-        RegisterRoomTemperature = 5005,
-        RegisterHotWaterTemperature = 5006
+        RegisterOutdoorTemperature = 2,
+        RegisterPowerDemand = 102,
+        RegisterPowerActual = 103,
+        RegisterPowerSetpoint = 104,
+        RegisterSystemStatus = 1002,
+        RegisterFlowTemperature = 1004,
+        RegisterReturnTemperature = 1005,
+        RegisterHeatSourceInletTemperature = 1007,
+        RegisterHeatSourceOutletTemperature = 1008,
+        RegisterRoomTemperature = 5004,
+        RegisterHotWaterTemperature = 5005
     };
     Q_ENUM(Registers)
 
@@ -90,61 +90,61 @@ public:
     uint checkReachableRetries() const;
     void setCheckReachableRetries(uint checkReachableRetries);
 
-    /* Outdoor temperature [°C] - Address: 3, Size: 1 */
+    /* Outdoor temperature [°C] - Address: 2, Size: 1 */
     float outdoorTemperature() const;
 
-    /* power demand written by EMS [W] - Address: 103, Size: 1 */
+    /* power demand written by EMS [W] - Address: 102, Size: 1 */
     quint16 powerDemand() const;
     QModbusReply *setPowerDemand(quint16 powerDemand);
 
-    /* System status - Address: 1003, Size: 1 */
+    /* System status - Address: 1002, Size: 1 */
     SystemStatus systemStatus() const;
 
-    /* actual power consumption of all configured heat pumps [W] - Address: 104, Size: 1 */
+    /* actual power consumption of all configured heat pumps [W] - Address: 103, Size: 1 */
     qint16 powerActual() const;
 
-    /* realized power consumption setpoint of all configured heat pumps [W] - Address: 105, Size: 1 */
+    /* realized power consumption setpoint of all configured heat pumps [W] - Address: 104, Size: 1 */
     qint16 powerSetpoint() const;
 
-    /* Flow [°C] - Address: 1005, Size: 1 */
+    /* Flow [°C] - Address: 1004, Size: 1 */
     float flowTemperature() const;
 
-    /* Return [°C] - Address: 1006, Size: 1 */
+    /* Return [°C] - Address: 1005, Size: 1 */
     float returnTemperature() const;
 
-    /* Heat source inlet temperature [°C] - Address: 1008, Size: 1 */
+    /* Heat source inlet temperature [°C] - Address: 1007, Size: 1 */
     float heatSourceInletTemperature() const;
 
-    /* Heat source outlet temperature [°C] - Address: 1009, Size: 1 */
+    /* Heat source outlet temperature [°C] - Address: 1008, Size: 1 */
     float heatSourceOutletTemperature() const;
 
-    /* actual temperatur room device sensor [°C] - Address: 5005, Size: 1 */
+    /* actual temperatur room device sensor [°C] - Address: 5004, Size: 1 */
     float roomTemperature() const;
 
-    /* Hot water temperature [°C] - Address: 5006, Size: 1 */
+    /* Hot water temperature [°C] - Address: 5005, Size: 1 */
     float hotWaterTemperature() const;
 
-    /* Read block from start addess 104 with size of 2 registers containing following 2 properties:
-      - actual power consumption of all configured heat pumps [W] - Address: 104, Size: 1
-      - realized power consumption setpoint of all configured heat pumps [W] - Address: 105, Size: 1
+    /* Read block from start addess 103 with size of 2 registers containing following 2 properties:
+      - actual power consumption of all configured heat pumps [W] - Address: 103, Size: 1
+      - realized power consumption setpoint of all configured heat pumps [W] - Address: 104, Size: 1
     */
     void updatePowerBlock();
 
-    /* Read block from start addess 1005 with size of 2 registers containing following 2 properties:
-      - Flow [°C] - Address: 1005, Size: 1
-      - Return [°C] - Address: 1006, Size: 1
+    /* Read block from start addess 1004 with size of 2 registers containing following 2 properties:
+      - Flow [°C] - Address: 1004, Size: 1
+      - Return [°C] - Address: 1005, Size: 1
     */
     void updateLineTempBlock();
 
-    /* Read block from start addess 1008 with size of 2 registers containing following 2 properties:
-      - Heat source inlet temperature [°C] - Address: 1008, Size: 1
-      - Heat source outlet temperature [°C] - Address: 1009, Size: 1
+    /* Read block from start addess 1007 with size of 2 registers containing following 2 properties:
+      - Heat source inlet temperature [°C] - Address: 1007, Size: 1
+      - Heat source outlet temperature [°C] - Address: 1008, Size: 1
     */
     void updateHeatSourceBlock();
 
-    /* Read block from start addess 5005 with size of 2 registers containing following 2 properties:
-      - actual temperatur room device sensor [°C] - Address: 5005, Size: 1
-      - Hot water temperature [°C] - Address: 5006, Size: 1
+    /* Read block from start addess 5004 with size of 2 registers containing following 2 properties:
+      - actual temperatur room device sensor [°C] - Address: 5004, Size: 1
+      - Hot water temperature [°C] - Address: 5005, Size: 1
     */
     void updateHeatingCircuitBlock();
 
@@ -173,27 +173,27 @@ public:
     QModbusReply *readRoomTemperature();
     QModbusReply *readHotWaterTemperature();
 
-    /* Read block from start addess 104 with size of 2 registers containing following 2 properties:
-     - actual power consumption of all configured heat pumps [W] - Address: 104, Size: 1
-     - realized power consumption setpoint of all configured heat pumps [W] - Address: 105, Size: 1
+    /* Read block from start addess 103 with size of 2 registers containing following 2 properties:
+     - actual power consumption of all configured heat pumps [W] - Address: 103, Size: 1
+     - realized power consumption setpoint of all configured heat pumps [W] - Address: 104, Size: 1
     */
     QModbusReply *readBlockPower();
 
-    /* Read block from start addess 1005 with size of 2 registers containing following 2 properties:
-     - Flow [°C] - Address: 1005, Size: 1
-     - Return [°C] - Address: 1006, Size: 1
+    /* Read block from start addess 1004 with size of 2 registers containing following 2 properties:
+     - Flow [°C] - Address: 1004, Size: 1
+     - Return [°C] - Address: 1005, Size: 1
     */
     QModbusReply *readBlockLineTemp();
 
-    /* Read block from start addess 1008 with size of 2 registers containing following 2 properties:
-     - Heat source inlet temperature [°C] - Address: 1008, Size: 1
-     - Heat source outlet temperature [°C] - Address: 1009, Size: 1
+    /* Read block from start addess 1007 with size of 2 registers containing following 2 properties:
+     - Heat source inlet temperature [°C] - Address: 1007, Size: 1
+     - Heat source outlet temperature [°C] - Address: 1008, Size: 1
     */
     QModbusReply *readBlockHeatSource();
 
-    /* Read block from start addess 5005 with size of 2 registers containing following 2 properties:
-     - actual temperatur room device sensor [°C] - Address: 5005, Size: 1
-     - Hot water temperature [°C] - Address: 5006, Size: 1
+    /* Read block from start addess 5004 with size of 2 registers containing following 2 properties:
+     - actual temperatur room device sensor [°C] - Address: 5004, Size: 1
+     - Hot water temperature [°C] - Address: 5005, Size: 1
     */
     QModbusReply *readBlockHeatingCircuit();
 
@@ -206,7 +206,6 @@ public:
     virtual void update5();
     virtual void update6();
     virtual void update7();
-
 
 signals:
     void reachableChanged(bool reachable);
