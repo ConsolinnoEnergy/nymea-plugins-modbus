@@ -61,6 +61,8 @@ private:
     QHash<Thing *, LwzModbusTcpConnection *> m_lwzConnections;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
 
+    float dataType2conversion(int value);
+
     void setupConnection(ThingSetupInfo *info);
     void setupWpmConnection(ThingSetupInfo *info);
     void setupLwzConnection(ThingSetupInfo *info);

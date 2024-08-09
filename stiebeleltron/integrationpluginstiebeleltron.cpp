@@ -578,9 +578,10 @@ void IntegrationPluginStiebelEltron::setupWpmConnection(ThingSetupInfo *info) {
         thing->setStateValue(stiebelEltronOutdoorTemperatureStateTypeId, outdoorTemperature);
     });
 
-    connect(connection, &WpmModbusTcpConnection::flowTemperatureChanged, thing, [thing](float flowTemperature){
-        qCDebug(dcStiebelEltron()) << thing << "flow temperature changed" << flowTemperature << "°C";
-        thing->setStateValue(stiebelEltronFlowTemperatureStateTypeId, flowTemperature);
+    connect(connection, &WpmModbusTcpConnection::flowTemperatureChanged, thing, [this, thing](int flowTemperature){
+        float convertedValue = dataType2conversion(flowTemperature);
+        qCDebug(dcStiebelEltron()) << thing << "flow temperature changed" << convertedValue << "°C";
+        thing->setStateValue(stiebelEltronFlowTemperatureStateTypeId, convertedValue);
     });
 
     connect(connection, &WpmModbusTcpConnection::hotWaterTemperatureChanged, thing, [thing](float hotWaterTemperature){
@@ -1028,4 +1029,14 @@ void IntegrationPluginStiebelEltron::setupLwzConnection(ThingSetupInfo *info) {
     });
 
     connection->connectDevice();
+}
+
+// The Modbus registers of the heat pump have data types, as explained in the manual. Data type two is an int with a scale factor of -1.
+// The value 0x8000 (=-32768 when the data type is int) has the special meaning of ’object not available’ and needs to be substituted.
+float IntegrationPluginStiebelEltron::dataType2conversion(int value) {
+    if (value == -32768) {
+        return 0;
+    }
+    float returnValue = value / 10.0;
+    return returnValue;
 }

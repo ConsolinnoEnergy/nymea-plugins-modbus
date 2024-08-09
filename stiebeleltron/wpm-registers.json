@@ -82,7 +82,6 @@
             "registerType": "inputRegister",
             "readSchedule": "update",
             "description": "Flow temperature",
-            "staticScaleFactor": -1,
             "defaultValue": 0,
             "unit": "°C",
             "access": "RO"
