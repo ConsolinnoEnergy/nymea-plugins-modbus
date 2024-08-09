@@ -133,7 +133,7 @@ void IntegrationPluginSunSpec::discoverThings(ThingDiscoveryInfo *info)
         return;
     }
 
-    QList<quint16> slaveIds = {3, 1, 2};    // Added Modbus ID 3 for Kaco NH3. Needs to be placed in front, so it is scanned first.
+    QList<quint16> slaveIds = {1, 2};
     SunSpecDataPoint::ByteOrder byteOrder = SunSpecDataPoint::ByteOrderLittleEndian;
     if (info->thingClassId() == solarEdgeConnectionThingClassId) {
         byteOrder = SunSpecDataPoint::ByteOrderBigEndian;

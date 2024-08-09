@@ -198,8 +198,8 @@ bool SunSpecConnection::startDiscovery()
 
     // Create base register queue
     m_baseRegisterQueue.clear();
-    m_baseRegisterQueue.enqueue(50000); // Register 50000 placed in front because of Kaco NH3.
     m_baseRegisterQueue.enqueue(40000);
+    m_baseRegisterQueue.enqueue(50000);
     m_baseRegisterQueue.enqueue(0);
 
     qCDebug(dcSunSpec()) << "Starting SunSpec discovery on" << this;
