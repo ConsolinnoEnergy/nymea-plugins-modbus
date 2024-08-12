@@ -1,9 +1,13 @@
 nymea-plugins-modbus (1.7.009) jammy; urgency=medium
 
+  * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
+  * Added kostalmeter plugin (copy of bgetech, does not include sdm72)
+  * Add generator to duplicate existing integrations with different names
+  * Fix for Solax X3 Inverter: Wrong warning message
   * Webasto Next: fixed reconfigure functionality.
   * Webasto Unite: fixed reconfigure functionality.
 
- -- Sebastian Ringer <s.ringer@consolinno.de> Thu, 13 Jun 2024 15:12:53 +0200
+ -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
 
 nymea-plugins-modbus (1.7.008) jammy; urgency=medium
 

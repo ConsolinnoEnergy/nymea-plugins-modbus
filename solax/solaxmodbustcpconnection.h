@@ -69,10 +69,10 @@ public:
         RegisterBmsConnectState = 23,
         RegisterTemperatureBat = 24,
         RegisterBatteryCapacity = 28,
-        RegisterBmsWarningLsb = 31,
         RegisterActivePowerLimit = 37,
-        RegisterBmsWarningMsb = 38,
         RegisterInverterFaultBits = 64,
+        RegisterBmsWarningLsb = 68,
+        RegisterBmsWarningMsb = 69,
         RegisterFeedinPower = 70,
         RegisterFeedinEnergyTotal = 72,
         RegisterConsumEnergyTotal = 74,
@@ -124,10 +124,10 @@ public:
     /* Battery state of charge (0x1C) [%] - Address: 28, Size: 1 */
     quint16 batteryCapacity() const;
 
-    /* BMS warning bits lsb (0x1F) - Address: 31, Size: 1 */
+    /* BMS warning bits lsb (0x44) - Address: 68, Size: 1 */
     quint16 bmsWarningLsb() const;
 
-    /* BMS warning bits msb (0x26) - Address: 38, Size: 1 */
+    /* BMS warning bits msb (0x45) - Address: 69, Size: 1 */
     quint16 bmsWarningMsb() const;
 
     /* Inverter fault bits (0x40) - Address: 64, Size: 2 */
