@@ -1,0 +1,13 @@
+{
+    "title": "ABB",
+    "tagline": "Connect ABB wallbox to nymea.",
+    "icon": "abb.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

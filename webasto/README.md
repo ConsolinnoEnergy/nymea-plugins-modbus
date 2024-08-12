@@ -1,17 +1,19 @@
 # Webasto
 
-## Supported Things
+Connects nymea to Webasto wallboxes. Currently supported models:
 
-* AC Wallbox Live
+* Webasto NEXT
+* Webasto Unite
 
 ## Requirements
 
-* The packages 'nymea-plugin-webasto' must be installed.
-* The modbus server must be enabled
-* The setting 'Modbus Slave Register Address Set' must be set to 'TQ-DM100'
-* The setting 'Modbus TCP Server Port Number' must be set to 502
+nymea uses the Modbus TCP connection to connect to the wallbox.
+
+The modbus server must be enabled on the Wallbox.
+
+For Webasto NEXT and Webasto Unite, this can be done by enabling the `Home energy management` using the Webasto App.
+
 
 ## More
 
-https://dealers.webasto.com/Sections/Public/Documents.aspx?SectionId=6&CategoryId=9&ProductTypeId=66&ProductId=630&ShowResult=true
-
+https://charging.webasto.com/
