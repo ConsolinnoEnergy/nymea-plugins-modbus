@@ -68,6 +68,14 @@ Depends: ${shlibs:Depends},
 Description: nymea modbus command line tool for testing modbus TCP communication
  This package contains the nymea modbus command line tool for testing modbus TCP communication.
 
+Package: nymea-plugin-abb
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for abb wallboxes
+ This package contains the nymea integration plugin for a abb wallbox.
+
 
 Package: nymea-plugin-aeberle
 Architecture: any
@@ -252,6 +260,16 @@ Description: nymea integration plugin for M-TEC heat pumps
  This package contains the nymea integration plugin for M-TEC heat pumps.
 
 
+Package: nymea-plugin-sax
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Sax energy storage
+ This package contains the nymea integration plugin for energy storages made
+ by Sax.
+
+
 Package: nymea-plugin-schneider
 Architecture: any
 Section: libs
@@ -285,6 +303,12 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for SMA solar inverters and meters
  This package contains the nymea integration plugin for SMA solar inverters and meters.
 
+Package: nymea-plugin-solax
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for Solax solar inverters and meters
+ This package contains the nymea integration plugin for Solax solar inverters and meters.
 
 Package: nymea-plugin-stiebeleltron
 Architecture: any
@@ -345,6 +369,17 @@ Description: nymea integration plugin for PhoenixConnect wallboxes
  This package contains the nymea integration plugin for wallboxes made
  by PhonenixConnect and rebranded as Wallbe, Compleo and Scapo.
 
+
+Package: nymea-plugin-vestel
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Vestel wallboxes
+ This package contains the nymea integration plugin for wallboxes made
+ by Vestel.
+
+
 Package: nymea-plugin-webasto
 Architecture: any
 Section: libs
@@ -353,3 +388,45 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Webasto Live wallboxes
  This package contains the nymea integration plugin for wallboxes made
  by Webasto.
+
+Package: nymea-plugin-dvmodbusir
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Device dvModbusIR read-out adapters
+ This package contains the nymea integration plugin for read-out adapters made
+ by Device GmbH.
+
+Package: nymea-plugin-alfen
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Alfen Eve Single Pro-Line wallbox.
+ This package contains the nymea integration plugin for wallboxes made
+ by Alfen N.V.
+
+Package: nymea-plugin-growatt
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Growatt inverter including meter and battery. 
+  This Package contains the nymea integration for inverter, meter and battery made by
+  Growatt New Energy GmbH.
+
+Package: nymea-plugin-solaxevc
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for Solax X3 EV Charger
+ This package contains the nymea integration plugin for the Solax X3 EV Charger.
+
+Package: nymea-plugin-kostalmeter
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration to use Smart Meter P, SDM72 from Kostal with the Consolinno HEMS.
+ This package is an automatically generated copy of the bgetech integration.

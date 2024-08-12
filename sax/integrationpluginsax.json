@@ -1,0 +1,371 @@
+{
+    "name": "sax",
+    "displayName": "Sax",
+    "id": "ce524925-0521-4bdb-8e9b-6d023f8da763",
+    "vendors": [
+        {
+            "name": "sax",
+            "displayName": "Sax Power",
+            "id": "bb7aa6e5-9628-4992-be0b-791970320209",
+            "thingClasses": [
+                {
+                    "name": "saxStorage",
+                    "displayName": "Sax Power Home",
+                    "id": "f0a04c98-17e2-4017-8e5d-9ce500946783",
+                    "createMethods": ["discovery", "user"],
+                    "interfaces": ["connectable", "battery", "energystorage"],
+                    "providedInterfaces": ["energymeter", "battery", "energystorage"],
+                    "paramTypes": [
+                        {
+                          "id": "c2f63a4f-5d90-4456-9fef-6ecd8de4d35f",
+                          "name":"macAddress",
+                          "displayName": "MAC address",
+                          "type": "QString",
+                          "defaultValue":"",
+                          "readOnly": true
+                        },
+                        {
+                          "id": "47adffba-d95e-40b5-9a80-fa12aee57585",
+                          "name":"modbusId",
+                          "displayName": "Modbus Id",
+                          "type": "uint",
+                          "defaultValue": 40,
+                          "readOnly": true
+                        },
+                        {
+                          "id": "6ac9619d-5aed-4bfc-b924-d478663890c9",
+                          "name":"port",
+                          "displayName": "Port",
+                          "type": "uint",
+                          "defaultValue": 502,
+                          "readOnly": true
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "47638e96-6e92-403b-8dd9-ed6450eae9c8",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "c6ac423c-3027-4478-a3c3-43b754d0ddc0",
+                            "name": "batteryCritical",
+                            "displayName": "Critical",
+                            "displayNameEvent": "Critical changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "900b1df0-b843-4bc4-a2a9-e6a3c48372cd",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Current power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "731ed6a5-f663-4205-aff1-c7f92cc21ed1",
+                            "name": "chargingState",
+                            "displayName": "Charging state",
+                            "displayNameEvent": "Charging state changed",
+                            "type": "QString",
+                            "possibleValues": ["idle", "charging", "discharging"],
+                            "defaultValue": "idle"
+                        },
+                        {
+                            "id": "e9dbef17-76ef-4902-8764-50679f8cb433",
+                            "name": "current",
+                            "displayName": "Current (sum of active phases)",
+                            "displayNameEvent": "Current (sum of active phases) changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "c237355b-b122-401a-bf87-3c6562e5f315",
+                            "name": "currentPhaseABattery",
+                            "displayName": "Current (Phase A)",
+                            "displayNameEvent": "Current (Phase A) changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "39f62805-e29c-4110-b01b-dd175393c510",
+                            "name": "currentPhaseBBattery",
+                            "displayName": "Current (Phase B)",
+                            "displayNameEvent": "Current (Phase B) changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "026cb5c9-095a-4c50-ad71-d3eab7db51c5",
+                            "name": "currentPhaseCBattery",
+                            "displayName": "Current (Phase C)",
+                            "displayNameEvent": "Current (Phase C) changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "2be13d66-7a64-48ed-b079-ab6c55782942",
+                            "name": "voltagePhaseABattery",
+                            "displayName": "Voltage (Phase A)",
+                            "displayNameEvent": "Voltage (Phase A) changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "31c03510-0841-467e-8cc3-dfafcf0768a0",
+                            "name": "voltagePhaseBBattery",
+                            "displayName": "Voltage (Phase B)",
+                            "displayNameEvent": "Voltage (Phase B) changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "0af6ca2a-6849-4d1c-8606-e6038131068c",
+                            "name": "voltagePhaseCBattery",
+                            "displayName": "Voltage (Phase C)",
+                            "displayNameEvent": "Voltage (Phase C) changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+
+                        {
+                            "id": "7700f732-e4c0-4947-8392-dcb8be51f608",
+                            "name": "stateOfHealth",
+                            "displayName": "State of Health",
+                            "displayNameEvent": "State of Health changed",
+                            "type": "uint",
+                            "unit": "Percentage",
+                            "minValue": 0,
+                            "maxValue": 100,
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+
+                        {
+                            "id": "77097ec9-498f-4c62-8143-0d11368ef73c",
+                            "name": "stateBattery",
+                            "displayName": "State",
+                            "displayNameEvent": "State changed",
+                            "type": "QString",
+                            "possibleValues": ["On", "Off", "Standby"],
+                            "defaultValue": "Off"
+                        },
+                        {
+                            "id": "3c6841f5-843b-4e42-b4d7-225db41f6f4b",
+                            "name": "batteryLevel",
+                            "displayName": "State of Charge",
+                            "displayNameEvent": "State of Charge changed",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 0,
+                            "maxValue": 100,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "c44f42a0-9b91-4b44-af7c-2264a09d627e",
+                            "name": "capacity",
+                            "displayName": "Capacity",
+                            "displayNameEvent": "Capacity changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "d269ec2a-6977-4128-b6d0-b4adb87afaf1",
+                            "name": "cyclesBattery",
+                            "displayName": "Cycles",
+                            "displayNameEvent": "Cycles changed",
+                            "type": "uint",
+                            "unit": "None",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "2bc76bc8-2f1d-4620-8d7b-bf1ff93e69ad",
+                            "name": "tempBattery",
+                            "displayName": "Temperature",
+                            "displayNameEvent": "Temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0,
+                            "cached": false
+                        }
+                    ],
+                    "actionTypes": [ ]
+                },
+                {
+                    "name": "saxMeter",
+                    "displayName": "Sax Power Meter",
+                    "id": "468d5101-fffc-4a39-bc80-ae158d7ca1ef",
+                    "createMethods": ["auto"],
+                    "interfaces": [ "energymeter", "connectable"],
+                    "paramTypes": [
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "73ae5694-dd38-4d25-97be-eddb800d4c95",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "e3e9a311-c946-43b6-b75d-260d93cbc0cd",
+                            "name": "currentPower",
+                            "displayName": "current power",
+                            "displayNameEvent": "current power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "52aa70cf-4fd2-4405-82fd-83b0bc0a4f27",
+                            "name": "frequency",
+                            "displayName": "Frequency",
+                            "displayNameEvent": "Frequency changed",
+                            "type": "double",
+                            "unit": "Hertz",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },                        
+                        {
+                            "id": "312dd470-10dc-48b9-9af8-829df5eb4482",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Produced Energy (total)",
+                            "displayNameEvent": "Produced Energy (total) changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "81404c8b-5fa0-4d0f-b508-927222afb749",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Consumed Energy (total)",
+                            "displayNameEvent": "Consumed Energy (total) changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": false
+                        },                        
+                        {
+                            "id": "07fadd03-ad87-4857-a0bb-c020f9551051",
+                            "name": "currentPhaseA",
+                            "displayName": "Current (Phase A)",
+                            "displayNameEvent": "Current (Phase A) changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "de1a1f7a-0041-46c1-a74d-bd8dca825c9b",
+                            "name": "currentPhaseB",
+                            "displayName": "Current (Phase B)",
+                            "displayNameEvent": "Current (Phase B) changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "7c1d2837-e508-4709-b07f-3e4033c0f604",
+                            "name": "currentPhaseC",
+                            "displayName": "Current (Phase C)",
+                            "displayNameEvent": "Current (Phase C) changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "787ac047-da83-404f-ac50-2a7fe7147a22",
+                            "name": "currentPowerPhaseA",
+                            "displayName": "Power (Phase A)",
+                            "displayNameEvent": "Power (Phase A) changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "a8ea06e7-652b-4129-b113-fb594db9fad1",
+                            "name": "currentPowerPhaseB",
+                            "displayName": "Power (Phase B)",
+                            "displayNameEvent": "Power (Phase B) changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "20af4810-6f98-4627-b19d-14e557607234",
+                            "name": "currentPowerPhaseC",
+                            "displayName": "Power (Phase C)",
+                            "displayNameEvent": "Power (Phase C) changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00
+                        },                        
+                        {
+                            "id": "7ea5c1ef-17b3-4451-b99c-f24356ab2537",
+                            "name": "voltagePhaseA",
+                            "displayName": "Voltage (Phase A)",
+                            "displayNameEvent": "Voltage (Phase A) changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "e2550088-8a00-49cc-bc84-c7c2093992bb",
+                            "name": "voltagePhaseB",
+                            "displayName": "Voltage (Phase B)",
+                            "displayNameEvent": "Voltage (Phase B) changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "bf366879-ada5-4c2e-bd89-e9e9b66952de",
+                            "name": "voltagePhaseC",
+                            "displayName": "Voltage (Phase C)",
+                            "displayNameEvent": "Voltage (Phase C) changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        }
+                    ],
+                    "actionTypes": [ ]
+                }
+            ]
+        }
+    ]
+}
+
+
+

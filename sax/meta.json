@@ -1,0 +1,13 @@
+{
+    "title": "Sax",
+    "tagline": "Connect Sax Power battery.",
+    "icon": "sax.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "modbus"
+    ],
+    "categories": [
+        "battery"
+    ]
+}

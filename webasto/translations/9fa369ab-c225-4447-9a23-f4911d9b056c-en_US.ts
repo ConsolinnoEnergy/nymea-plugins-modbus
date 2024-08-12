@@ -1,277 +1,294 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1">
+<TS version="2.1" language="en_US">
+<context>
+    <name>IntegrationPluginWebasto</name>
+    <message>
+        <location filename="../integrationpluginwebasto.cpp" line="62"/>
+        <source>The discovery is not available.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../integrationpluginwebasto.cpp" line="164"/>
+        <location filename="../integrationpluginwebasto.cpp" line="224"/>
+        <source>The MAC address is not known. Please reconfigure the thing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../integrationpluginwebasto.cpp" line="176"/>
+        <source>The host address is not known yet. Trying later again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../integrationpluginwebasto.cpp" line="346"/>
+        <source>The charging station is not reachable.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../integrationpluginwebasto.cpp" line="805"/>
+        <source>Error communicating with the wallbox.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
 <context>
     <name>Webasto</name>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="79"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="82"/>
-        <source>Cable state</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: cableState, ID: {a1a452f9-de93-4c31-b71b-c74264f85a3e})
-----------
-The name of the StateType ({a1a452f9-de93-4c31-b71b-c74264f85a3e}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="73"/>
+        <source>Active power</source>
+        <extracomment>The name of the StateType ({0d70ae14-15d7-4b1a-a621-2d0bc0bc28f1}) of ThingClass webastoUnite</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="85"/>
-        <source>Cable state changed</source>
-        <extracomment>The name of the EventType ({a1a452f9-de93-4c31-b71b-c74264f85a3e}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="76"/>
+        <source>Car plugged in</source>
+        <extracomment>The name of the StateType ({e30dc786-6c01-4a86-9f72-8d32df00f528}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="88"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="91"/>
-        <source>Charge point state</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: chargePointState, ID: {b076353b-e911-444f-80ad-3f78c4075d1a})
-----------
-The name of the StateType ({b076353b-e911-444f-80ad-3f78c4075d1a}) of ThingClass liveWallbox</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="94"/>
-        <source>Charge point state changed</source>
-        <extracomment>The name of the EventType ({b076353b-e911-444f-80ad-3f78c4075d1a}) of ThingClass liveWallbox</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="97"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="100"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="103"/>
+        <location filename="../plugininfo.h" line="79"/>
+        <location filename="../plugininfo.h" line="82"/>
         <source>Charging</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, ActionType: power, ID: {3c054603-d933-4e30-a2cc-2177beaaffdb})
+        <extracomment>The name of the StateType ({c31ef8a1-4254-4507-bef5-1e959936bd3f}) of ThingClass webastoUnite
 ----------
-The name of the ParamType (ThingClass: liveWallbox, EventType: power, ID: {3c054603-d933-4e30-a2cc-2177beaaffdb})
-----------
-The name of the StateType ({3c054603-d933-4e30-a2cc-2177beaaffdb}) of ThingClass liveWallbox</extracomment>
+The name of the StateType ({c886d4a6-20fb-4aad-ad95-8b16aa6c8363}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="106"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="109"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="112"/>
+        <location filename="../plugininfo.h" line="85"/>
+        <location filename="../plugininfo.h" line="88"/>
         <source>Charging current</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, ActionType: chargeCurrent, ID: {96ed77ce-c5cf-4981-8a72-b619f5702724})
+        <extracomment>The name of the ParamType (ThingClass: webastoNext, ActionType: maxChargingCurrent, ID: {62bfa06d-599c-4a3b-8f51-89e307a25ca6})
 ----------
-The name of the ParamType (ThingClass: liveWallbox, EventType: chargeCurrent, ID: {96ed77ce-c5cf-4981-8a72-b619f5702724})
+The name of the StateType ({62bfa06d-599c-4a3b-8f51-89e307a25ca6}) of ThingClass webastoNext</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="91"/>
+        <location filename="../plugininfo.h" line="94"/>
+        <location filename="../plugininfo.h" line="97"/>
+        <location filename="../plugininfo.h" line="100"/>
+        <source>Charging enabled</source>
+        <extracomment>The name of the ParamType (ThingClass: webastoUnite, ActionType: power, ID: {ebc0e32e-648e-468f-9566-585768a0d970})
 ----------
-The name of the StateType ({96ed77ce-c5cf-4981-8a72-b619f5702724}) of ThingClass liveWallbox</extracomment>
+The name of the StateType ({ebc0e32e-648e-468f-9566-585768a0d970}) of ThingClass webastoUnite
+----------
+The name of the ParamType (ThingClass: webastoNext, ActionType: power, ID: {de752511-b47d-4abc-980a-51c261a93a69})
+----------
+The name of the StateType ({de752511-b47d-4abc-980a-51c261a93a69}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="115"/>
-        <source>Charging current changed</source>
-        <extracomment>The name of the EventType ({96ed77ce-c5cf-4981-8a72-b619f5702724}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="103"/>
+        <source>Charging power</source>
+        <extracomment>The name of the StateType ({584e1ae7-2844-44a9-a6f7-183ee0d595f1}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="118"/>
-        <source>Charging status changed</source>
-        <extracomment>The name of the EventType ({3c054603-d933-4e30-a2cc-2177beaaffdb}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="106"/>
+        <source>Communication timeout</source>
+        <extracomment>The name of the StateType ({f0d81fc5-bf27-4a9a-9f35-8f994cee1d4b}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="121"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="124"/>
+        <location filename="../plugininfo.h" line="109"/>
+        <location filename="../plugininfo.h" line="112"/>
         <source>Connected</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: connected, ID: {7e6ed2b4-aa8a-4bf6-b20b-84ecc6cc1508})
+        <extracomment>The name of the StateType ({b670620e-c582-4e6e-8313-32a0f7d2c11c}) of ThingClass webastoUnite
 ----------
-The name of the StateType ({7e6ed2b4-aa8a-4bf6-b20b-84ecc6cc1508}) of ThingClass liveWallbox</extracomment>
+The name of the StateType ({291a55e5-2f63-42bc-b0aa-cf2079a19632}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="127"/>
-        <source>Connected changed</source>
-        <extracomment>The name of the EventType ({7e6ed2b4-aa8a-4bf6-b20b-84ecc6cc1508}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="115"/>
+        <source>Connected phases</source>
+        <extracomment>The name of the StateType ({962762ac-3a94-44ac-b591-1060a68a1376}) of ThingClass webastoUnite</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="130"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="133"/>
-        <source>Current phase 1</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: currentPhase1, ID: {2027fbb6-c9d2-4a75-bdd0-a3ad3785cdc6})
-----------
-The name of the StateType ({2027fbb6-c9d2-4a75-bdd0-a3ad3785cdc6}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="118"/>
+        <source>Current phase A</source>
+        <extracomment>The name of the StateType ({8fab231b-0270-4528-81b0-84c89b8ced1c}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="136"/>
-        <source>Current phase 1 changed</source>
-        <extracomment>The name of the EventType ({2027fbb6-c9d2-4a75-bdd0-a3ad3785cdc6}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="121"/>
+        <source>Current phase B</source>
+        <extracomment>The name of the StateType ({c4f4b78b-e220-4c49-9019-4d1dc0563f89}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="139"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="142"/>
-        <source>Current phase 2</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: currentPhase2, ID: {1793f645-d7db-4e99-af92-3587aa3069f3})
-----------
-The name of the StateType ({1793f645-d7db-4e99-af92-3587aa3069f3}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="124"/>
+        <source>Current phase C</source>
+        <extracomment>The name of the StateType ({a8ef8fae-5ff4-4381-9341-cc8910d415f4}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="145"/>
-        <source>Current phase 2 changed</source>
-        <extracomment>The name of the EventType ({1793f645-d7db-4e99-af92-3587aa3069f3}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="127"/>
+        <source>Current power phase A</source>
+        <extracomment>The name of the StateType ({cb903571-9b0b-4a86-9840-112ec76088c5}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="148"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="151"/>
-        <source>Current phase 3</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: currentPhase3, ID: {feb8c5da-91a7-45f9-acc3-c1b61478c3d2})
-----------
-The name of the StateType ({feb8c5da-91a7-45f9-acc3-c1b61478c3d2}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="130"/>
+        <source>Current power phase B</source>
+        <extracomment>The name of the StateType ({d32c6b2c-0eae-4bbc-8d04-2a00a30de864}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="154"/>
-        <source>Current phase 3 changed</source>
-        <extracomment>The name of the EventType ({feb8c5da-91a7-45f9-acc3-c1b61478c3d2}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="133"/>
+        <source>Current power phase C</source>
+        <extracomment>The name of the StateType ({fc98ffe8-4824-4db5-96bb-62dfef6e0b34}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="157"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="160"/>
-        <source>Error </source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: error, ID: {56d31fd1-5cfb-42dd-8181-e6b0d0ca9c8a})
-----------
-The name of the StateType ({56d31fd1-5cfb-42dd-8181-e6b0d0ca9c8a}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="136"/>
+        <source>Enable charging</source>
+        <extracomment>The name of the ActionType ({de752511-b47d-4abc-980a-51c261a93a69}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="163"/>
-        <source>Error changed</source>
-        <extracomment>The name of the EventType ({56d31fd1-5cfb-42dd-8181-e6b0d0ca9c8a}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="139"/>
+        <source>Error</source>
+        <extracomment>The name of the StateType ({54feab4b-3134-4968-bfec-d2d656cc4ad6}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="166"/>
-        <source>IP address</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, Type: thing, ID: {51fa3ea8-e819-46ca-b975-1bee6285441c})</extracomment>
+        <location filename="../plugininfo.h" line="142"/>
+        <source>Firmware version</source>
+        <extracomment>The name of the StateType ({ac1917a8-3445-4774-b0ec-042ebc7258aa}) of ThingClass webastoUnite</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="169"/>
-        <source>Live Wallbox</source>
-        <extracomment>The name of the ThingClass ({48472124-3199-4827-990a-b72069bd5658})</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="172"/>
+        <location filename="../plugininfo.h" line="145"/>
+        <location filename="../plugininfo.h" line="148"/>
         <source>MAC address</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, Type: thing, ID: {4aa97965-fc1c-488a-92a6-848c214564bc})</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="175"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="178"/>
-        <source>Maximum possible charging current</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: maxPossibleChargingCurrent, ID: {0e60b15d-2b0c-4672-960e-7c6ea67bf7ea})
+        <extracomment>The name of the ParamType (ThingClass: webastoUnite, Type: thing, ID: {99aedef2-1b23-4ab8-bee4-7e8b57b8fa18})
 ----------
-The name of the StateType ({0e60b15d-2b0c-4672-960e-7c6ea67bf7ea}) of ThingClass liveWallbox</extracomment>
+The name of the ParamType (ThingClass: webastoNext, Type: thing, ID: {882b662f-ec7c-4134-be31-5d36567b9fc2})</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="181"/>
-        <source>Maximum possible charging current changed</source>
-        <extracomment>The name of the EventType ({0e60b15d-2b0c-4672-960e-7c6ea67bf7ea}) of ThingClass liveWallbox</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="184"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="187"/>
-        <source>Power consumption</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: powerConsumption, ID: {b20a46ee-0f22-4096-a348-34e68e99e0be})
+        <location filename="../plugininfo.h" line="151"/>
+        <location filename="../plugininfo.h" line="154"/>
+        <source>Maximum charging current</source>
+        <extracomment>The name of the ParamType (ThingClass: webastoUnite, ActionType: maxChargingCurrent, ID: {04aaf21a-9fd3-46f1-8fca-8cbed2117737})
 ----------
-The name of the StateType ({b20a46ee-0f22-4096-a348-34e68e99e0be}) of ThingClass liveWallbox</extracomment>
+The name of the StateType ({04aaf21a-9fd3-46f1-8fca-8cbed2117737}) of ThingClass webastoUnite</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="190"/>
-        <source>Power consumtion changed</source>
-        <extracomment>The name of the EventType ({b20a46ee-0f22-4096-a348-34e68e99e0be}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="157"/>
+        <source>Maximum current cable</source>
+        <extracomment>The name of the StateType ({d8c2c93f-2219-4b69-b7c0-c983c9d69232}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="193"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="196"/>
+        <location filename="../plugininfo.h" line="160"/>
+        <source>Maximum current charger</source>
+        <extracomment>The name of the StateType ({e9b2a3c1-3a4b-4cb7-b253-ae9b4b8862f9}) of ThingClass webastoNext</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="163"/>
+        <source>Maximum current electric vehicle</source>
+        <extracomment>The name of the StateType ({3a2239fd-09c1-46ac-9dcb-5e08733f862c}) of ThingClass webastoNext</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="166"/>
+        <source>Maximum current on communication failure</source>
+        <extracomment>The name of the StateType ({10ef29ff-1af9-4f55-a5ed-4d6029030b53}) of ThingClass webastoNext</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="169"/>
+        <source>Maximum current overall</source>
+        <extracomment>The name of the StateType ({52a7a45c-bdec-49ed-9a1b-4eebff5b1482}) of ThingClass webastoNext</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="172"/>
+        <source>Minimum current overall</source>
+        <extracomment>The name of the StateType ({f7d0f75f-5313-4d73-9420-eb776f9da3d5}) of ThingClass webastoNext</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="175"/>
+        <source>Number of connected phases</source>
+        <extracomment>The name of the StateType ({ba17d0d4-bfed-4920-b85e-54b34200bfff}) of ThingClass webastoNext</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="178"/>
+        <source>Phases used for charging</source>
+        <extracomment>The name of the StateType ({d211886e-e755-4e7c-b95d-69e88e5be229}) of ThingClass webastoNext</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="181"/>
+        <source>Plugged in</source>
+        <extracomment>The name of the StateType ({dfa057e0-4e25-48da-967f-2821356ad44f}) of ThingClass webastoUnite</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="184"/>
+        <location filename="../plugininfo.h" line="187"/>
         <source>Session energy</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: sessionEnergy, ID: {b9b46920-55c1-4bfa-9200-acdc9c0a2471})
+        <extracomment>The name of the StateType ({106b2bd3-4bd5-4774-8571-d64a2d5bf78b}) of ThingClass webastoUnite
 ----------
-The name of the StateType ({b9b46920-55c1-4bfa-9200-acdc9c0a2471}) of ThingClass liveWallbox</extracomment>
+The name of the StateType ({78e8262a-5d41-4749-ab8a-a50d5c661cbb}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="199"/>
-        <source>Session energy changed</source>
-        <extracomment>The name of the EventType ({b9b46920-55c1-4bfa-9200-acdc9c0a2471}) of ThingClass liveWallbox</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="202"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="205"/>
-        <source>Session time</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: sessionTime, ID: {87c70567-794e-4af2-916c-b34cf864afcf})
-----------
-The name of the StateType ({87c70567-794e-4af2-916c-b34cf864afcf}) of ThingClass liveWallbox</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="208"/>
-        <source>Session time changed</source>
-        <extracomment>The name of the EventType ({87c70567-794e-4af2-916c-b34cf864afcf}) of ThingClass liveWallbox</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="211"/>
+        <location filename="../plugininfo.h" line="190"/>
         <source>Set charging current</source>
-        <extracomment>The name of the ActionType ({96ed77ce-c5cf-4981-8a72-b619f5702724}) of ThingClass liveWallbox</extracomment>
+        <extracomment>The name of the ActionType ({62bfa06d-599c-4a3b-8f51-89e307a25ca6}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="214"/>
-        <source>Start charging</source>
-        <extracomment>The name of the ActionType ({3c054603-d933-4e30-a2cc-2177beaaffdb}) of ThingClass liveWallbox</extracomment>
+        <location filename="../plugininfo.h" line="193"/>
+        <source>Set charging enabled</source>
+        <extracomment>The name of the ActionType ({ebc0e32e-648e-468f-9566-585768a0d970}) of ThingClass webastoUnite</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="217"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="220"/>
+        <location filename="../plugininfo.h" line="196"/>
+        <source>Set maximum charging current</source>
+        <extracomment>The name of the ActionType ({04aaf21a-9fd3-46f1-8fca-8cbed2117737}) of ThingClass webastoUnite</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="199"/>
+        <source>Total consumed energy</source>
+        <extracomment>The name of the StateType ({4d5fc8e4-e5f0-46b9-ba01-20e176312e05}) of ThingClass webastoUnite</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="202"/>
         <source>Total energy consumed</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: totalEnergyConsumed, ID: {80568c51-054c-4351-b9d2-e875fee4cc1f})
-----------
-The name of the StateType ({80568c51-054c-4351-b9d2-e875fee4cc1f}) of ThingClass liveWallbox</extracomment>
+        <extracomment>The name of the StateType ({9a858704-9525-4480-88ff-59ba0014daa1}) of ThingClass webastoNext</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="223"/>
-        <source>Total energy consumption changed</source>
-        <extracomment>The name of the EventType ({80568c51-054c-4351-b9d2-e875fee4cc1f}) of ThingClass liveWallbox</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="226"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="229"/>
-        <source>User ID</source>
-        <extracomment>The name of the ParamType (ThingClass: liveWallbox, EventType: userId, ID: {48b62082-f286-433e-9cf8-2dcf6c0ea248})
-----------
-The name of the StateType ({48b62082-f286-433e-9cf8-2dcf6c0ea248}) of ThingClass liveWallbox</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="232"/>
-        <source>User ID changed</source>
-        <extracomment>The name of the EventType ({48b62082-f286-433e-9cf8-2dcf6c0ea248}) of ThingClass liveWallbox</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="235"/>
+        <location filename="../plugininfo.h" line="205"/>
         <source>Webasto</source>
         <extracomment>The name of the vendor ({274f4453-6acf-4204-be21-379abbe3b5a7})</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/webasto/plugininfo.h" line="238"/>
+        <location filename="../plugininfo.h" line="208"/>
+        <source>Webasto NEXT</source>
+        <extracomment>The name of the ThingClass ({1dddfbf4-a49d-4e28-8cbc-108547a369a2})</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="211"/>
+        <source>Webasto Unite</source>
+        <extracomment>The name of the ThingClass ({f7598439-a794-44d4-ae51-47ab40189d61})</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="214"/>
         <source>webasto</source>
         <extracomment>The name of the plugin Webasto ({9fa369ab-c225-4447-9a23-f4911d9b056c})</extracomment>
         <translation type="unfinished"></translation>

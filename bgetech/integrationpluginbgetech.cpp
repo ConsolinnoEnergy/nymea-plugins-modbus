@@ -87,7 +87,8 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                 }
 
                 QString serialNumberString{QString::number(result.serialNumber)};
-                ThingDescriptor descriptor(info->thingClassId(), "SDM630 Smartmeter", QString::number(modbusId) + " " + result.serialPort);
+                QString name = supportedThings().findById(info->thingClassId()).displayName();
+                ThingDescriptor descriptor(info->thingClassId(), name, QString::number(modbusId) + " " + result.serialPort);
 
                 ParamList params{
                     {sdm630ThingModbusIdParamTypeId, modbusId},
@@ -141,7 +142,8 @@ void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
                 }
 
                 QString serialNumberString{QString::number(result.serialNumber)};
-                ThingDescriptor descriptor(info->thingClassId(), "SDM72 Smartmeter", QString::number(modbusId) + " " + result.serialPort);
+                QString name = supportedThings().findById(info->thingClassId()).displayName();
+                ThingDescriptor descriptor(info->thingClassId(), name, QString::number(modbusId) + " " + result.serialPort);
 
                 ParamList params{
                     {sdm72ThingModbusIdParamTypeId, modbusId},

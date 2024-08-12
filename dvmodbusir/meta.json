@@ -1,0 +1,12 @@
+{
+    "title": "Device dvModbusIR",
+    "tagline": "Connect energy meter via a readout-adapter to HEMS.",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}
