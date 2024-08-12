@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2022, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,52 +28,39 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HUAWEIFUSIONSOLARDISCOVERY_H
-#define HUAWEIFUSIONSOLARDISCOVERY_H
+#ifndef DISCOVERYRTU_H
+#define DISCOVERYRTU_H
 
 #include <QObject>
+#include <QTimer>
 
-#include <network/networkdevicediscovery.h>
+#include <hardware/modbus/modbusrtuhardwareresource.h>
 
-#include "huaweifusionsolar.h"
-
-class HuaweiFusionSolarDiscovery : public QObject
+class DiscoveryRtu : public QObject
 {
     Q_OBJECT
 public:
-    explicit HuaweiFusionSolarDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port, const QList<quint16> &modbusIds, QObject *parent = nullptr);
-
-    typedef struct Result {
-        QString modelName;
-        QString serialNumber;
+    explicit DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, QObject *parent = nullptr);
+    struct Result {
         quint16 modbusId;
-        NetworkDeviceInfo networkDeviceInfo;
-    } Result;
+        QString serialPort;
+        QUuid modbusRtuMasterId;
+    };
 
     void startDiscovery();
 
-    QList<Result> results() const;
+    QList<Result> discoveryResults() const;
 
 signals:
-    void discoveryFinished();
+    void discoveryFinished(bool modbusRtuMasterAvailable);
+
+private slots:
+    void tryConnect(ModbusRtuMaster *master, quint16 slaveId);
 
 private:
-    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
-    quint16 m_port = 502;
-    QList<quint16> m_modbusIds;
-    QDateTime m_startDateTime;
+    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
 
-    QHash<QHostAddress, QQueue<HuaweiFusionSolar *>> m_pendingConnectionAttempts;
-    QList<HuaweiFusionSolar *> m_connections;
-    QList<Result> m_results;
-
-    void testNextConnection(const QHostAddress &address);
-
-    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
-    void cleanupConnection(HuaweiFusionSolar *connection);
-
-    void finishDiscovery();
-
+    QList<Result> m_discoveryResults;
 };
 
-#endif // HUAWEIFUSIONSOLARDISCOVERY_H
+#endif // DISCOVERYRTU_H
