@@ -5,29 +5,29 @@
     <name>IntegrationPluginBGETech</name>
     <message>
         <location filename="../integrationpluginbgetech.cpp" line="73"/>
-        <location filename="../integrationpluginbgetech.cpp" line="126"/>
+        <location filename="../integrationpluginbgetech.cpp" line="128"/>
         <source>No modbus RTU master found. Please set up a modbus RTU master first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../integrationpluginbgetech.cpp" line="182"/>
-        <location filename="../integrationpluginbgetech.cpp" line="364"/>
+        <location filename="../integrationpluginbgetech.cpp" line="186"/>
+        <location filename="../integrationpluginbgetech.cpp" line="413"/>
         <source>The Modbus address not valid. It must be a value between 1 and 247.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../integrationpluginbgetech.cpp" line="189"/>
-        <location filename="../integrationpluginbgetech.cpp" line="371"/>
+        <location filename="../integrationpluginbgetech.cpp" line="193"/>
+        <location filename="../integrationpluginbgetech.cpp" line="420"/>
         <source>The Modbus RTU interface not available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../integrationpluginbgetech.cpp" line="266"/>
+        <location filename="../integrationpluginbgetech.cpp" line="280"/>
         <source>The SDM630 smartmeter is not responding.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../integrationpluginbgetech.cpp" line="448"/>
+        <location filename="../integrationpluginbgetech.cpp" line="507"/>
         <source>The SDM72 smartmeter is not responding.</source>
         <translation type="unfinished"></translation>
     </message>
