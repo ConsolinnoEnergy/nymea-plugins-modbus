@@ -6,6 +6,8 @@ nymea-plugins-modbus (1.7.009) jammy; urgency=medium
   * Fix for Solax X3 Inverter: Wrong warning message
   * Fix for Huawei integration
   * Updated sunspec integration to match nymea
+  * Webasto Next: fixed reconfigure functionality.
+  * Webasto Unite: fixed reconfigure functionality.
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
 
