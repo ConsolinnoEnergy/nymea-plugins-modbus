@@ -14,6 +14,7 @@ PLUGIN_DIRS = \
     azzurro                 \
     amperfied               \
     bgetech                 \
+    kostalmeter             \
     drexelundweiss          \
     goodwe                  \
     growatt                 \
@@ -33,6 +34,7 @@ PLUGIN_DIRS = \
     schrack                 \
     senseair                \
     sma                     \
+    solaxevc                \
     solax                   \
     stiebeleltron           \
     sungrow                 \

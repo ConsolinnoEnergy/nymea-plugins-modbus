@@ -4,25 +4,25 @@
 <context>
     <name>IntegrationPluginBGETech</name>
     <message>
-        <location filename="../integrationpluginbgetech.cpp" line="65"/>
+        <location filename="../integrationpluginbgetech.cpp" line="68"/>
         <source>No Modbus RTU interface available. Please set up the Modbus RTU interface first.</source>
         <translation>Keine Modbus RTU Schnittstelle verfügbar. Bitte richte zuerst die Modbus RTU Schnittstelle ein.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginbgetech.cpp" line="72"/>
-        <location filename="../integrationpluginbgetech.cpp" line="94"/>
+        <location filename="../integrationpluginbgetech.cpp" line="75"/>
+        <location filename="../integrationpluginbgetech.cpp" line="98"/>
         <source>The Modbus slave address must be a value between 1 and 254.</source>
         <translation>Die Modbus Adresse muss ein Wert zwischen 1 und 254 sein.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginbgetech.cpp" line="125"/>
-        <location filename="../integrationpluginbgetech.cpp" line="235"/>
+        <location filename="../integrationpluginbgetech.cpp" line="130"/>
+        <location filename="../integrationpluginbgetech.cpp" line="248"/>
         <source>The Modbus address not valid. It must be a value between 1 and 254.</source>
         <translation>Die Modbus Adresse is ungültig. Sie muss ein Wert zwischen 1 und 254 sein.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginbgetech.cpp" line="132"/>
-        <location filename="../integrationpluginbgetech.cpp" line="242"/>
+        <location filename="../integrationpluginbgetech.cpp" line="137"/>
+        <location filename="../integrationpluginbgetech.cpp" line="255"/>
         <source>The Modbus RTU interface not available.</source>
         <translation>Die Modbus RTU Schnittstelle ist nicht verfügbar.</translation>
     </message>
