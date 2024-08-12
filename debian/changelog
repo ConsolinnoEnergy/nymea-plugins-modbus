@@ -5,6 +5,7 @@ nymea-plugins-modbus (1.7.009) jammy; urgency=medium
   * Add generator to duplicate existing integrations with different names
   * Fix for Solax X3 Inverter: Wrong warning message
   * Stiebel Eltron: Expanded plugin to also work with LWZ type heat pumps.
+  * Updated sunspec integration to match nymea
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
 
