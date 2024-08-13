@@ -47,6 +47,12 @@ nymea-plugins-modbus (1.7.005-1) buster focal jammy; urgency=medium
 
 nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
 
+* SDM630 & SDM72: improved discovery, improved outlier detection, fixed SDM630 generator scripts & other code improvements.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Fri, 3 May 2024 18:12:53 +0200
+
+nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
+
   * GoodWe: fixed some meter values sign and scaling.
 
  -- Sebastian Ringer <s.ringer@consolinno.de> Wed, 20 Dec 2023 17:21:53 +0200
