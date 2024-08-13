@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2022, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,52 +28,55 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HUAWEIFUSIONSOLARDISCOVERY_H
-#define HUAWEIFUSIONSOLARDISCOVERY_H
+#ifndef SUNSPECDISCOVERY_H
+#define SUNSPECDISCOVERY_H
 
+#include <QQueue>
 #include <QObject>
+#include <QDateTime>
 
+#include <sunspecconnection.h>
 #include <network/networkdevicediscovery.h>
 
-#include "huaweifusionsolar.h"
-
-class HuaweiFusionSolarDiscovery : public QObject
+class SunSpecDiscovery : public QObject
 {
     Q_OBJECT
 public:
-    explicit HuaweiFusionSolarDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port, const QList<quint16> &modbusIds, QObject *parent = nullptr);
-
+    explicit SunSpecDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, const QList<quint16> &slaveIds, SunSpecDataPoint::ByteOrder byteOrder = SunSpecDataPoint::ByteOrderLittleEndian, QObject *parent = nullptr);
     typedef struct Result {
-        QString modelName;
-        QString serialNumber;
-        quint16 modbusId;
         NetworkDeviceInfo networkDeviceInfo;
+        quint16 port;
+        quint16 slaveId;
+        QStringList modelManufacturers;
     } Result;
 
-    void startDiscovery();
-
     QList<Result> results() const;
+
+    void addCustomDiscoveryPort(quint16 port);
+    void startDiscovery();
 
 signals:
     void discoveryFinished();
 
 private:
     NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
-    quint16 m_port = 502;
-    QList<quint16> m_modbusIds;
-    QDateTime m_startDateTime;
+    QList<quint16> m_scanPorts;
+    QList<quint16> m_slaveIds;
+    SunSpecDataPoint::ByteOrder m_byteOrder;
 
-    QHash<QHostAddress, QQueue<HuaweiFusionSolar *>> m_pendingConnectionAttempts;
-    QList<HuaweiFusionSolar *> m_connections;
+    QDateTime m_startDateTime;
+    QHash<QHostAddress, QQueue<SunSpecConnection *>> m_pendingConnectionAttempts;
+    QHash<SunSpecConnection *, QTimer *> m_connectionTimers;
+
+    QList<SunSpecConnection *> m_connections;
     QList<Result> m_results;
 
     void testNextConnection(const QHostAddress &address);
 
     void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
-    void cleanupConnection(HuaweiFusionSolar *connection);
+    void cleanupConnection(SunSpecConnection *connection);
 
     void finishDiscovery();
-
 };
 
-#endif // HUAWEIFUSIONSOLARDISCOVERY_H
+#endif // SUNSPECDISCOVERY_H

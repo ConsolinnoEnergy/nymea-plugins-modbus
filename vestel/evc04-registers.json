@@ -2,7 +2,7 @@
     "className": "EVC04",
     "protocol": "TCP",
     "endianness": "BigEndian",
-    "errorLimitUntilNotReachable": 20,
+    "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "chargepointState",
     "enums": [
         {

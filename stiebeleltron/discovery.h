@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2022, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,52 +28,44 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HUAWEIFUSIONSOLARDISCOVERY_H
-#define HUAWEIFUSIONSOLARDISCOVERY_H
+#ifndef DISCOVERY_H
+#define DISCOVERY_H
 
 #include <QObject>
 
 #include <network/networkdevicediscovery.h>
 
-#include "huaweifusionsolar.h"
+#include "testmodbustcpconnection.h"
 
-class HuaweiFusionSolarDiscovery : public QObject
+class Discovery : public QObject
 {
     Q_OBJECT
 public:
-    explicit HuaweiFusionSolarDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port, const QList<quint16> &modbusIds, QObject *parent = nullptr);
-
-    typedef struct Result {
-        QString modelName;
-        QString serialNumber;
-        quint16 modbusId;
+    explicit Discovery(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    struct Result {
+        quint16 controllerType;
         NetworkDeviceInfo networkDeviceInfo;
-    } Result;
+    };
 
     void startDiscovery();
 
-    QList<Result> results() const;
+    QList<Result> discoveryResults() const;
 
 signals:
     void discoveryFinished();
+    void repliesFinished();
 
 private:
     NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
-    quint16 m_port = 502;
-    QList<quint16> m_modbusIds;
-    QDateTime m_startDateTime;
 
-    QHash<QHostAddress, QQueue<HuaweiFusionSolar *>> m_pendingConnectionAttempts;
-    QList<HuaweiFusionSolar *> m_connections;
-    QList<Result> m_results;
+    QList<TestModbusTcpConnection *> m_connections;
 
-    void testNextConnection(const QHostAddress &address);
+    qint16 m_openReplies;
+
+    QList<Result> m_discoveryResults;
 
     void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
-    void cleanupConnection(HuaweiFusionSolar *connection);
-
-    void finishDiscovery();
-
+    void cleanupConnection(TestModbusTcpConnection *connection);
 };
 
-#endif // HUAWEIFUSIONSOLARDISCOVERY_H
+#endif // DISCOVERY_H
