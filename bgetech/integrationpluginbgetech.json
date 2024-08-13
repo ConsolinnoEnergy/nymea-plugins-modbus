@@ -18,19 +18,24 @@
                     "discoveryParamTypes": [
                         {
                             "id": "6ab43559-53ec-47ba-b8a0-8d3b7f8d90c2",
-                            "name": "slaveAddress",
-                            "displayName": "Slave address",
-                            "type": "int",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 247,
                             "defaultValue": 1
                         }
                     ],
                     "paramTypes": [
                         {
                             "id": "ac77ea98-b006-486e-a3e8-b30a483f26c1",
-                            "name": "slaveAddress",
-                            "displayName": "Modbus slave address",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
                             "type": "uint",
-                            "defaultValue": 1
+                            "minValue": 1,
+                            "maxValue": 247,
+                            "defaultValue": 1,
+                            "readOnly": true
                         },
                         {
                             "id": "d90e9292-d03c-4f2a-957e-5d965018c9c9",
@@ -38,6 +43,22 @@
                             "displayName": "Modbus RTU master",
                             "type": "QUuid",
                             "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "ef0761c8-987c-4cdd-9a5d-1f9ee65c78e7",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "ea4a06ac-5f08-4b57-9a3b-0951d028a8fc",
+                            "name": "meterCode",
+                            "displayName": "Meter code",
+                            "type": "uint",
+                            "defaultValue": 0,
                             "readOnly": true
                         }
                     ],
@@ -252,19 +273,24 @@
                     "discoveryParamTypes": [
                         {
                             "id": "27219539-443b-43dc-ad8b-11e7cfb862b5",
-                            "name": "slaveAddress",
-                            "displayName": "Slave address",
-                            "type": "int",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 247,
                             "defaultValue": 1
                         }
                     ],
                     "paramTypes": [
                         {
                             "id": "6ec32145-f77c-4268-ae1d-159f9702fd85",
-                            "name": "slaveAddress",
-                            "displayName": "Modbus slave address",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
                             "type": "uint",
-                            "defaultValue": 1
+                            "minValue": 1,
+                            "maxValue": 247,
+                            "defaultValue": 1,
+                            "readOnly": true
                         },
                         {
                             "id": "6edc9c2b-e939-4c24-ac81-fc3ca17aab3f",
@@ -272,6 +298,22 @@
                             "displayName": "Modbus RTU master",
                             "type": "QUuid",
                             "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "ed7e41bc-02aa-435c-b508-67ab2e5cc8a3",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "17cf1de9-1be3-4267-a152-8c2fd9f80b62",
+                            "name": "meterCode",
+                            "displayName": "Meter code",
+                            "type": "uint",
+                            "defaultValue": 0,
                             "readOnly": true
                         }
                     ],
