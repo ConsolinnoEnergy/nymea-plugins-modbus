@@ -423,6 +423,13 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Solax X3 EV Charger
  This package contains the nymea integration plugin for the Solax X3 EV Charger.
 
+Package: nymea-plugin-foxesswbv3
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for FoxESS wallbox 3rd gen.
+ This package contains the nymea integration plugin for the FoxESS wallbox 3rd gen..
+
 Package: nymea-plugin-kostalmeter
 Architecture: any
 Section: libs
