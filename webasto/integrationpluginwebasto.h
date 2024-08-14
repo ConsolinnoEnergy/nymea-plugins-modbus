@@ -60,6 +60,11 @@ public:
 
 private:
     PluginTimer *m_pluginTimer = nullptr;
+    bool m_uniteDiscoveryRunning{false};
+    bool m_nextDiscoveryRunning{false};
+
+    bool m_uniteSetupRunning{false};
+    bool m_nextSetupRunning{false};
 
     QHash<Thing *, WebastoNextModbusTcpConnection *> m_webastoNextConnections;
     QHash<Thing *, EVC04ModbusTcpConnection *> m_evc04Connections;

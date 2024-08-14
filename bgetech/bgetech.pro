@@ -6,8 +6,10 @@ MODBUS_CONNECTIONS += sdm630-registers.json sdm72-registers.json
 include(../modbus.pri)
 
 HEADERS += \
+    discoveryrtu.h \
     integrationpluginbgetech.h
 
 SOURCES += \
+    discoveryrtu.cpp \
     integrationpluginbgetech.cpp
 

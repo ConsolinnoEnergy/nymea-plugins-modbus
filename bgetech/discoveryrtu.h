@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH, Consolinno Energy GmbH, L. Heizinger  
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,48 +28,45 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSTIEBELELTRON_H
-#define INTEGRATIONPLUGINSTIEBELELTRON_H
+#ifndef DISCOVERYRTU_H
+#define DISCOVERYRTU_H
 
-#include <plugintimer.h>
-#include <integrations/integrationplugin.h>
-#include <network/networkdevicemonitor.h>
+#include <QObject>
+#include <QTimer>
 
-#include "wpmmodbustcpconnection.h"
-#include "lwzmodbustcpconnection.h"
+#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <modbusdatautils.h>
 
-class IntegrationPluginStiebelEltron: public IntegrationPlugin
+class DiscoveryRtu : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginstiebeleltron.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginStiebelEltron();
+    explicit DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, uint modbusId, QObject *parent = nullptr);
+    struct Result {
+        QUuid modbusRtuMasterId;
+        quint32 serialNumber;
+        quint16 meterCode;
+        QString serialPort;
+    };
 
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
+    void startDiscovery();
+
+    QList<Result> discoveryResults() const;
+
+signals:
+    void discoveryFinished(bool modbusRtuMasterAvailable);
+    void repliesFinished();
+
+private slots:
+    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
 
 private:
-    bool m_setupConnectionRunning{false};
-    PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, WpmModbusTcpConnection *> m_wpmConnections;
-    QHash<Thing *, LwzModbusTcpConnection *> m_lwzConnections;
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
+    uint m_modbusId;
+    qint16 m_openReplies;
+    ModbusDataUtils::ByteOrder m_endianness;
 
-    float dataType2conversion(int value);
-
-    void setupConnection(ThingSetupInfo *info);
-    void setupWpmConnection(ThingSetupInfo *info);
-    void setupLwzConnection(ThingSetupInfo *info);
-    void executeActionWpm(ThingActionInfo *info);
-    void executeActionLwz(ThingActionInfo *info);
+    QList<Result> m_discoveryResults;
 };
 
-#endif // INTEGRATIONPLUGINSTIEBELELTRON_H
-
-
+#endif // DISCOVERYRTU_H

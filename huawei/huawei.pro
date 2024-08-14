@@ -8,9 +8,11 @@ include(../modbus.pri)
 HEADERS += \
     huaweifusionsolar.h \
     huaweifusionsolardiscovery.h \
+    discoveryrtu.h \
     integrationpluginhuawei.h
 
 SOURCES += \
     huaweifusionsolar.cpp \
     huaweifusionsolardiscovery.cpp \
+    discoveryrtu.cpp \
     integrationpluginhuawei.cpp

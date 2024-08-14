@@ -59,7 +59,13 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
+    bool isOutlier(const QList<float>& list);
+
     PluginTimer *m_refreshTimer = nullptr;
+    int m_windowLength{7};
+
+    QHash<Thing *, QList<float>> m_energyConsumedValues;
+    QHash<Thing *, QList<float>> m_energyProducedValues;
 
     QHash<Thing *, Sdm630ModbusRtuConnection *> m_sdm630Connections;
     QHash<Thing *, Sdm72ModbusRtuConnection *> m_sdm72Connections;
