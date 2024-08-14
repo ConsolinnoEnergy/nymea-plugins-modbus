@@ -206,6 +206,7 @@ public:
     virtual void update5();
     virtual void update6();
     virtual void update7();
+    virtual void updateWrite();
 
 signals:
     void reachableChanged(bool reachable);
@@ -296,6 +297,8 @@ private:
 
     void onReachabilityCheckFailed();
     void evaluateReachableState();
+
+    QString exceptionToString(QModbusPdu::ExceptionCode exception);
 
 };
 

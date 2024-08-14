@@ -473,12 +473,58 @@ void LambdaModbusTcpConnection::update7()
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"heatingCircuit\" register" << 5004 << "size:" << 2 << blockValues;
         processRoomTemperatureRegisterValues(blockValues.mid(0, 1));
         processHotWaterTemperatureRegisterValues(blockValues.mid(1, 1));
+         
+         // JoOb: manual write to address 102
+        //updateWrite();
+        
         verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating block \"heatingCircuit\" registers" << error << reply->errorString();
     });
+}
+
+void LambdaModbusTcpConnection::updateWrite()
+{
+    QModbusReply *reply = nullptr;
+    quint16 pwrDmnd = 0;
+
+    // JoOb: Write powerDemand not working (FC6 not supported )
+    reply = setPowerDemand(pwrDmnd);
+    
+    
+    // JoOb: sendRawRequest is working successfull
+    // QModbusRequest request(QModbusRequest::WriteMultipleRegisters, QByteArray::fromHex("00660001020000")); // joOb
+    // reply = m_modbusTcpClient->sendRawRequest(request, m_slaveId);
+
+    if (!reply) {
+        qCWarning(dcLambdaModbusTcpConnection()) 
+            << "Write powerDemand failed because the reply could not be created.";
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        if (reply->error() != QModbusDevice::NoError) {
+            qCWarning(dcLambdaModbusTcpConnection())
+                    << "Write powerDemand finished with error" << reply->errorString();
+            return;
+        }
+
+        qCDebug(dcLambdaModbusTcpConnection()) << "Write powerDemand finished successfully";
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+            if (reply->error() == QModbusDevice::ProtocolError) {
+                QModbusResponse response = reply->rawResult();
+                if (response.isException()) {
+                    qCDebug(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while writing powerDemand" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                }
+            } else {
+                qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while writing powerDemand" << hostAddress().toString() << error << reply->errorString();
+            }
+        });   
 }
 
 void LambdaModbusTcpConnection::updateOutdoorTemperature()
@@ -1277,3 +1323,44 @@ QDebug operator<<(QDebug debug, LambdaModbusTcpConnection *lambdaModbusTcpConnec
     return debug.quote().space();
 }
 
+QString LambdaModbusTcpConnection::exceptionToString(QModbusPdu::ExceptionCode exception)
+{
+    QString exceptionString;
+    switch (exception) {
+    case QModbusPdu::IllegalFunction:
+        exceptionString = "Illegal function";
+        break;
+    case QModbusPdu::IllegalDataAddress:
+        exceptionString = "Illegal data address";
+        break;
+    case QModbusPdu::IllegalDataValue:
+        exceptionString = "Illegal data value";
+        break;
+    case QModbusPdu::ServerDeviceFailure:
+        exceptionString = "Server device failure";
+        break;
+    case QModbusPdu::Acknowledge:
+        exceptionString = "Acknowledge";
+        break;
+    case QModbusPdu::ServerDeviceBusy:
+        exceptionString = "Server device busy";
+        break;
+    case QModbusPdu::NegativeAcknowledge:
+        exceptionString = "Negative acknowledge";
+        break;
+    case QModbusPdu::MemoryParityError:
+        exceptionString = "Memory parity error";
+        break;
+    case QModbusPdu::GatewayPathUnavailable:
+        exceptionString = "Gateway path unavailable";
+        break;
+    case QModbusPdu::GatewayTargetDeviceFailedToRespond:
+        exceptionString = "Gateway target device failed to respond";
+        break;
+    case QModbusPdu::ExtendedException:
+        exceptionString = "Extended exception";
+        break;
+    }
+
+    return exceptionString;
+}

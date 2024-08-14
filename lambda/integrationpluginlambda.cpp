@@ -163,6 +163,7 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Restart block");
                 break;
             case LambdaModbusTcpConnection::SystemStatusReady:
+                qCDebug(dcLambda()) << thing << "system status is now: 3 Ready Mode"; //JoOb
                 thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Ready");
                 break;
             case LambdaModbusTcpConnection::SystemStatusStartPumps:
