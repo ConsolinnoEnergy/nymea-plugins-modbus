@@ -384,15 +384,16 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
     // Session Energy
     connect(connection, &ABBModbusRtuConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
         qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
-        if (sessionEnergy != 0) 
+        sessionEnergy = sessionEnergy / 1000.0;
+        float oldSessionEnergy = thing->stateValue(TerraRTUSessionEnergyStateTypeId).toFloat()
+        float diffSessionEnergy = sessionEnergy - oldSessionEnergy;
+        if (diffSessionEnergy > 0)
         {
-            thing->setStateValue(TerraRTUSessionEnergyStateTypeId, sessionEnergy / 1000.0);
-        } else {
             float totalEnergy = thing->stateValue(TerraRTUTotalEnergyConsumedStateTypeId).toFloat();
-            totalEnergy = totalEnergy + sessionEnergy;
+            totalEnergy = totalEnergy + diffSessionEnergy;
             thing->setStateValue(TerraRTUTotalEnergyConsumedStateTypeId, totalEnergy);
-            thing->setStateValue(TerraRTUSessionEnergyStateTypeId, 0);
         }
+        thing->setStateValue(TerraRTUSessionEnergyStateTypeId, sessionEnergy);
     });
 
     // The max current which can be set; Value configured in TerraConfig App
@@ -553,15 +554,16 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusTcpConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
         qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
-        if (sessionEnergy != 0)
+        sessionEnergy = sessionEnergy / 1000.0;
+        float oldSessionEnergy = thing->stateValue(TerraTCPSessionEnergyStateTypeId).toFloat()
+        float diffSessionEnergy = sessionEnergy - oldSessionEnergy;
+        if (diffSessionEnergy > 0)
         {
-            thing->setStateValue(TerraTCPSessionEnergyStateTypeId, sessionEnergy / 1000.0);
-        } else {
             float totalEnergy = thing->stateValue(TerraTCPTotalEnergyConsumedStateTypeId).toFloat();
-            totalEnergy = totalEnergy + sessionEnergy;
+            totalEnergy = totalEnergy + diffSessionEnergy;
             thing->setStateValue(TerraTCPTotalEnergyConsumedStateTypeId, totalEnergy);
-            thing->setStateValue(TerraTCPSessionEnergyStateTypeId, 0);
         }
+        thing->setStateValue(TerraTCPSessionEnergyStateTypeId, sessionEnergy);
     });
 
     // Session Energy
