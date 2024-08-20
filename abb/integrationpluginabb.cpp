@@ -385,7 +385,7 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
     connect(connection, &ABBModbusRtuConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
         qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
         sessionEnergy = sessionEnergy / 1000.0;
-        float oldSessionEnergy = thing->stateValue(TerraRTUSessionEnergyStateTypeId).toFloat()
+        float oldSessionEnergy = thing->stateValue(TerraRTUSessionEnergyStateTypeId).toFloat();
         float diffSessionEnergy = sessionEnergy - oldSessionEnergy;
         if (diffSessionEnergy > 0)
         {
@@ -555,7 +555,7 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
     connect(connection, &ABBModbusTcpConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
         qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
         sessionEnergy = sessionEnergy / 1000.0;
-        float oldSessionEnergy = thing->stateValue(TerraTCPSessionEnergyStateTypeId).toFloat()
+        float oldSessionEnergy = thing->stateValue(TerraTCPSessionEnergyStateTypeId).toFloat();
         float diffSessionEnergy = sessionEnergy - oldSessionEnergy;
         if (diffSessionEnergy > 0)
         {
