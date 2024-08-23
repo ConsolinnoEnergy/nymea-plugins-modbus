@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.009) jammy; urgency=medium
+nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
 
   * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
   * Added kostalmeter plugin (copy of bgetech, does not include sdm72)
