@@ -1,0 +1,171 @@
+{
+    "className": "Broetje",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 10,
+    "checkReachableRegister": "controllerType",
+    "enums": [
+        {
+            "name": "SmartGridState",
+            "values": [
+                {
+                    "key": "ModeOne",
+                    "value": 1,
+                    "comment": "0x00000001"
+                },
+                {
+                    "key": "ModeTwo",
+                    "value": 0,
+                    "comment": "0x00000000"
+                },
+                {
+                    "key": "ModeThree",
+                    "value": 65536,
+                    "comment": "0x00010000"
+                },
+                {
+                    "key": "ModeFour",
+                    "value": 65537,
+                    "comment": "0x00010001"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "error",
+            "address": 277,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Error",
+            "defaultValue": 65535,
+            "access": "RO"
+        },
+        {
+            "id": "outdoorTemperature",
+            "address": 384,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Outdoor temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "flowTemperature",
+            "address": 400,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Flow temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "returnTemperature",
+            "address": 401,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Return temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "systemStatus",
+            "address": 411,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "System status",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "heatingPower",
+            "address": 460,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Heating energy",
+            "staticScaleFactor": -2,
+            "defaultValue": "0",
+            "unit": "kW",
+            "access": "RO"
+        },
+        {
+            "id": "sgReadyState",
+            "address": 473,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "enum": "SmartGridState",
+            "readSchedule": "update",
+            "description": "SG Ready mode",
+            "defaultValue": "SmartGridStateModeTwo",
+            "access": "RW"
+        },
+        {
+            "id": "function1",
+            "address": 475,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Function 1",
+            "defaultValue": 0,
+            "access": "RW"
+        },
+        {
+            "id": "function2",
+            "address": 476,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Function 2",
+            "defaultValue": 0,
+            "access": "RW"
+        },
+        {
+            "id": "bufferTankTemperature",
+            "address": 7601,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Buffer tank temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": "0",
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "hotWaterTemperature",
+            "address": 1120,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Hot water temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": "0",
+            "unit": "°C",
+            "access": "RO"
+        }
+    ],
+    "blocks": [ ]
+}

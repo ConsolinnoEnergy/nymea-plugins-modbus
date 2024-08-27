@@ -1,0 +1,14 @@
+{
+    "title": "Brötje",
+    "tagline": "Integrate Brötje heat pumps into nymea.",
+    "icon": "broetje.png",
+    "stability": "community",
+    "offline": true,
+    "technologies": [
+        "network",
+        "modbus"
+    ],
+    "categories": [
+        "heating"
+    ]
+}
