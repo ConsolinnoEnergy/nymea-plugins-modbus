@@ -415,6 +415,7 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         if ((power == true) && ((state == "Available") ||
                                 (state == "Connected") ||
                                 (state == "Starting")  ||
+                                (state == "Paused")    ||
                                 (state == "Finished")))
         {
             toggleCharging(connection, true);
