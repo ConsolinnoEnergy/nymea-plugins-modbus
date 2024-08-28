@@ -43,20 +43,37 @@ public:
     explicit HuaweiFusionSolar(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent = nullptr);
     ~HuaweiFusionSolar() = default;
 
-    virtual bool initialize() override;
     virtual bool update() override;
 
+    quint16 slaveId() const;
+
+signals:
+    void meterValuesUpdated();
+    void inverterValuesUpdated();
+    void battery1ValuesUpdated();
+    void battery2ValuesUpdated();
+
 private:
+    quint16 m_slaveId;
     QQueue<HuaweiFusionModbusTcpConnection::Registers> m_registersQueue;
     QModbusReply *m_initReply = nullptr;
 
-    int m_currentRegisterRequest = -1;
-    void finishRequest();
+    int m_currentRegisterRequest{-1};
+    void finishRequestRetryIs(bool retryRequest);
 
-    bool m_battery1Available = true;
-    bool m_battery2Available = true;
+    uint m_requestRetryCounter{0};
+    const uint MAX_REQUEST_RETRY_COUNT{5};
 
-    double m_actualInverterPower = 0;
+    const uint MAX_BATTERY_TIMER{10};
+    bool m_battery1Available{false};
+    bool m_battery2Available{false};
+
+    // The battery is checked when the timer (=counter) reaches MAX_BATTERY_TIMER. Start with that value, so it is checked at startup.
+    uint m_battery1timer{MAX_BATTERY_TIMER};
+    // Start the timer for the second battery at a different value than timer one, so that the battery checks are spaced out.
+    uint m_battery2timer{MAX_BATTERY_TIMER / 2}; // Set
+
+    double m_actualInverterPower{0};
 
     QString exceptionToString(QModbusPdu::ExceptionCode exception);
 
