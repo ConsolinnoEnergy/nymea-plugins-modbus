@@ -68,7 +68,7 @@ private:
 
     void setupTcpConnection(ThingSetupInfo *info);
     void toggleCharging(QCellsModbusTcpConnection *connection, bool power);
-    void setMaxCurrent(QCellsModbusTcpConnection *connection, float maxCurrent, int phaseCount);
+    void setMaxCurrent(QCellsModbusTcpConnection *connection, float maxCurrent);
 };
 
 #endif // INTEGRATIONPLUGINQCELLSWB_H
