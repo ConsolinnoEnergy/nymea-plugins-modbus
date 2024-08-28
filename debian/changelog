@@ -1,3 +1,11 @@
+nymea-plugins-modbus (1.7.010) jammy; urgency=medium
+
+  * Fixes for FoxESS WB Gen3: 
+    - Skip discovery for IPv6
+    - Start charging when state is paused
+
+ -- Luis Reber <l.reber@consolinno.de> Wed, 28 Aug 2024 10:10:00 +0200
+
 nymea-plugins-modbus (1.7.009) jammy; urgency=medium
 
   * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
