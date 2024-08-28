@@ -326,17 +326,13 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
     });
 
     // Check if work mode has changed
-    connect(connection, &QCellsModbusTcpConnection::workModeChanged, [this, thing, connection](quint32 mode) {
+    connect(connection, &QCellsModbusTcpConnection::workModeChanged, [this, thing, connection](quint16 mode) {
         qCDebug(dcQcells()) << "Work mode changed to" << mode << ". Make sure it is in controlled mode.";
-        // 0x3000 can not be written with FC 0x06
-        // Workaround to write work mode register with overwriting maxChargeCurrent
-        quint32 maxCurrent = mode & 0x0000FFFF;
-        mode = (mode & 0xFFFF0000) >> 16;
         qCDebug(dcQcells()) << "Masked work mode:" << mode << "Masked current: " << maxCurrent;
         if (mode != 0)
         {
-            qCDebug(dcQcells()) << "Setting workmode + maxChargeCurrent to" << (maxCurrent & 0x0000FFFF);
-            QModbusReply *reply = connection->setWorkMode(maxCurrent & 0x0000FFFF);
+            qCDebug(dcQcells()) << "Setting workmode" << mode;
+            QModbusReply *reply = connection->setWorkMode(mode);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply]() {
                 if (reply->error() == QModbusDevice::NoError) {
