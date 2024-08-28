@@ -40,26 +40,26 @@ IntegrationPluginQCells::IntegrationPluginQCells() { }
 
 void IntegrationPluginQCells::discoverThings(ThingDiscoveryInfo *info)
 {
-    qCDebug(dcQCells()) << "QCells - Discovery started";
+    qCDebug(dcQcells()) << "QCells - Discovery started";
     if (info->thingClassId() == qCellsThingClassId) {
         if (!hardwareManager()->zeroConfController()->available())
         {
-            qCWarning(dcQCells()) << "Error discovering QCells wallbox. Available:"  << hardwareManager()->zeroConfController()->available();
+            qCWarning(dcQcells()) << "Error discovering QCells wallbox. Available:"  << hardwareManager()->zeroConfController()->available();
             info->finish(Thing::ThingErrorHardwareNotAvailable, "Thing discovery not possible");
             return;
         }
         NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
         connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=]() {
-        qCDebug(dcQCells()) << "Discovery: Network discovery finished. Found"
+        qCDebug(dcQcells()) << "Discovery: Network discovery finished. Found"
                               << discoveryReply->networkDeviceInfos().count() << "network devices";
             m_serviceBrowser = hardwareManager()->zeroConfController()->createServiceBrowser();
             foreach (const ZeroConfServiceEntry &service, m_serviceBrowser->serviceEntries()) {
-                // qCDebug(dcQCells()) << "mDNS service entry:" << service;
+                // qCDebug(dcQcells()) << "mDNS service entry:" << service;
                 if (service.hostName().contains("EVC-"))
                 {
                     ThingDescriptor descriptor(qCellsThingClassId, "QCells Wallbox", service.hostAddress().toString());
                     NetworkDeviceInfo qcellsWallbox = discoveryReply->networkDeviceInfos().get(service.hostAddress());
-                    qCDebug(dcQCells()) << "MacAddress of WB:" << qcellsWallbox.macAddress();
+                    qCDebug(dcQcells()) << "MacAddress of WB:" << qcellsWallbox.macAddress();
 
                     if (service.protocol() != QAbstractSocket::NetworkLayerProtocol::IPv4Protocol) {
                         continue;
@@ -91,7 +91,7 @@ void IntegrationPluginQCells::discoverThings(ThingDiscoveryInfo *info)
 void IntegrationPluginQCells::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
-    qCDebug(dcQCells()) << "Setup" << thing << thing->params();
+    qCDebug(dcQcells()) << "Setup" << thing << thing->params();
 
     if (thing->thingClassId() == qCellsThingClassId) {
         // Make sure we have a valid mac address, otherwise no monitor and no auto searching is
@@ -100,7 +100,7 @@ void IntegrationPluginQCells::setupThing(ThingSetupInfo *info)
         MacAddress macAddress =
                 MacAddress(thing->paramValue(qCellsThingMacAddressParamTypeId).toString());
         if (macAddress.isNull()) {
-            qCWarning(dcQCells())
+            qCWarning(dcQcells())
                     << "Failed to set up QCells wallbox because the MAC address is not valid:"
                     << thing->paramValue(qCellsThingMacAddressParamTypeId).toString()
                     << macAddress.toString();
@@ -120,7 +120,7 @@ void IntegrationPluginQCells::setupThing(ThingSetupInfo *info)
         // address and is set to not reachable
         m_monitors.insert(thing, monitor);
     
-        qCDebug(dcQCells()) << "Monitor reachable" << monitor->reachable()
+        qCDebug(dcQcells()) << "Monitor reachable" << monitor->reachable()
                               << thing->paramValue(qCellsThingMacAddressParamTypeId).toString();
         m_setupTcpConnectionRunning = false;
         if (monitor->reachable()) {
@@ -139,7 +139,7 @@ void IntegrationPluginQCells::setupThing(ThingSetupInfo *info)
 
 void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
 {
-    qCDebug(dcQCells()) << "Setup TCP connection.";
+    qCDebug(dcQcells()) << "Setup TCP connection.";
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
     uint port = thing->paramValue(qCellsThingPortParamTypeId).toUInt();
@@ -153,14 +153,14 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
 
         // Clean up in case the setup gets aborted.
         if (m_monitors.contains(thing)) {
-            qCDebug(dcQCells()) << "Unregister monitor because the setup has been aborted.";
+            qCDebug(dcQcells()) << "Unregister monitor because the setup has been aborted.";
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         }
     });
 
     // Reconnect on monitor reachable changed
     connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
-        qCDebug(dcQCells()) << "Network device monitor reachable changed for" << thing->name()
+        qCDebug(dcQcells()) << "Network device monitor reachable changed for" << thing->name()
                               << reachable;
         if (reachable && !thing->stateValue(qCellsConnectedStateTypeId).toBool()) {
             connection->setHostAddress(monitor->networkDeviceInfo().address());
@@ -176,7 +176,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
     // and power to 0
     connect(connection, &QCellsModbusTcpConnection::reachableChanged, thing,
             [this, connection, thing](bool reachable) {
-                qCDebug(dcQCells()) << "Reachable state changed to" << reachable;
+                qCDebug(dcQcells()) << "Reachable state changed to" << reachable;
                 if (reachable) {
                     // Connected true will be set after successfull init.
                     connection->initialize();
@@ -193,7 +193,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
 
            if (success) {
                 // Set basic info about device
-               qCDebug(dcQCells()) << "QCells wallbox initialized.";
+               qCDebug(dcQcells()) << "QCells wallbox initialized.";
                quint16 firmware = connection->firmwareVersion();
                QString majorVersion = QString::number((firmware & 0xFF00) >> 8);
                QString minorVersion = QString::number(firmware & 0xFF);
@@ -202,16 +202,16 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
                thing->setStateValue(qCellsSerialNumberStateTypeId,
                                     connection->serialNumber());
 
-               qCDebug(dcQCells()) << "Max Supported Power is" << connection->maxSupportedPower() << "kW";
+               qCDebug(dcQcells()) << "Max Supported Power is" << connection->maxSupportedPower() << "kW";
                if (connection->maxSupportedPower() == 11) {
-                   qCDebug(dcQCells()) << "Changed max current to 16"; 
+                   qCDebug(dcQcells()) << "Changed max current to 16"; 
                    thing->setStateMaxValue(qCellsMaxChargingCurrentStateTypeId, 16);
                } else {
-                   qCDebug(dcQCells()) << "Changed max current to 32"; 
+                   qCDebug(dcQcells()) << "Changed max current to 32"; 
                    thing->setStateMaxValue(qCellsMaxChargingCurrentStateTypeId, 32);
                }
            } else {
-               qCDebug(dcQCells()) << "QCells wallbox initialization failed.";
+               qCDebug(dcQcells()) << "QCells wallbox initialization failed.";
                // Try to reconnect to device
                connection->reconnectDevice();
            }
@@ -222,36 +222,36 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
         if (state == 0)
         {
             // not connected
-            qCDebug(dcQCells()) << "Plug not connected";
+            qCDebug(dcQcells()) << "Plug not connected";
             thing->setStateValue(qCellsPluggedInStateTypeId, false);
         } else {
             // connected
-            qCDebug(dcQCells()) << "Plug connected";
+            qCDebug(dcQcells()) << "Plug connected";
             thing->setStateValue(qCellsPluggedInStateTypeId, true);
         }
     });
 
     // Set state for phase current A
     connect(connection, &QCellsModbusTcpConnection::currentPhaseAChanged, thing, [thing](float current) {
-        qCDebug(dcQCells()) << "Current Phase A changed to" << current << "A";
+        qCDebug(dcQcells()) << "Current Phase A changed to" << current << "A";
         thing->setStateValue(qCellsCurrentPhaseAStateTypeId, current);
     });
 
     // Set state for phase current B
     connect(connection, &QCellsModbusTcpConnection::currentPhaseBChanged, thing, [thing](float current) {
-        qCDebug(dcQCells()) << "Current Phase B changed to" << current << "A";
+        qCDebug(dcQcells()) << "Current Phase B changed to" << current << "A";
         thing->setStateValue(qCellsCurrentPhaseBStateTypeId, current);
     });
 
     // Set state for phase current C
     connect(connection, &QCellsModbusTcpConnection::currentPhaseCChanged, thing, [thing](float current) {
-        qCDebug(dcQCells()) << "Current Phase C changed to" << current << "A";
+        qCDebug(dcQcells()) << "Current Phase C changed to" << current << "A";
         thing->setStateValue(qCellsCurrentPhaseCStateTypeId, current);
     });
 
     // Set state for current power
     connect(connection, &QCellsModbusTcpConnection::currentPowerChanged, thing, [thing](float power) {
-        qCDebug(dcQCells()) << "Current Power changed to" << power << "kW";
+        qCDebug(dcQcells()) << "Current Power changed to" << power << "kW";
         thing->setStateValue(qCellsCurrentPowerStateTypeId, power*1000);
     });
 
@@ -259,19 +259,19 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
     // are mixed up in the data sheet
     // Set state for session energy
     connect(connection, &QCellsModbusTcpConnection::sessionEnergyConsumedChanged, thing, [thing](float energy) {
-        qCDebug(dcQCells()) << "Session energy changed to" << energy << "kWh";
+        qCDebug(dcQcells()) << "Session energy changed to" << energy << "kWh";
         thing->setStateValue(qCellsSessionEnergyStateTypeId, energy);
     });
 
     // Set state for total consumed energy
     connect(connection, &QCellsModbusTcpConnection::totalEnergyChanged, thing, [thing](float energy) {
-        qCDebug(dcQCells()) << "Total energy changed to" << energy << "kWh";
+        qCDebug(dcQcells()) << "Total energy changed to" << energy << "kWh";
         thing->setStateValue(qCellsTotalEnergyConsumedStateTypeId, energy);
     });
 
     // Check if alarm info has changed
     connect(connection, &QCellsModbusTcpConnection::alarmInfoChanged, thing, [thing](quint16 code) {
-        qCDebug(dcQCells()) << "Alarm info changed to" << code;
+        qCDebug(dcQcells()) << "Alarm info changed to" << code;
         QMap<int, QString> alarmInfoMap = {
             {0, "Card reader"}, {1, "Phase cutting box"},
             {2, "Phase loss"}
@@ -285,7 +285,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
                 warningMessage.append(alarmInfoMap[i]);
             }
         }
-        qCDebug(dcQCells()) << "Alaram code:" << code << "Alarm info:" << warningMessage;
+        qCDebug(dcQcells()) << "Alaram code:" << code << "Alarm info:" << warningMessage;
         if (warningMessage != "")
         {
             thing->setStateValue(qCellsAlarmInfoStateTypeId, warningMessage);
@@ -296,7 +296,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
 
     // Check if fault info has changed
     connect(connection, &QCellsModbusTcpConnection::faultInfoChanged, thing, [thing](quint32 code) {
-        qCDebug(dcQCells()) << "Fault info changed to" << code;
+        qCDebug(dcQcells()) << "Fault info changed to" << code;
         QMap<int, QString> faultInfoMap = {
             {0, "Emergency stop"}, {1, "Overvoltage"},
             {2, "Undervoltage"}, {3, "Overcurrent"},
@@ -316,7 +316,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
                 warningMessage.append(faultInfoMap[i]);
             }
         }
-        qCDebug(dcQCells()) << "Fault code:" << code << "Fault info:" << warningMessage;
+        qCDebug(dcQcells()) << "Fault code:" << code << "Fault info:" << warningMessage;
         if (warningMessage != "")
         {
             thing->setStateValue(qCellsFaultInfoStateTypeId, warningMessage);
@@ -327,20 +327,20 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
 
     // Check if work mode has changed
     connect(connection, &QCellsModbusTcpConnection::workModeChanged, [this, thing, connection](quint32 mode) {
-        qCDebug(dcQCells()) << "Work mode changed to" << mode << ". Make sure it is in controlled mode.";
+        qCDebug(dcQcells()) << "Work mode changed to" << mode << ". Make sure it is in controlled mode.";
         // 0x3000 can not be written with FC 0x06
         // Workaround to write work mode register with overwriting maxChargeCurrent
         quint32 maxCurrent = mode & 0x0000FFFF;
         mode = (mode & 0xFFFF0000) >> 16;
-        qCDebug(dcQCells()) << "Masked work mode:" << mode << "Masked current: " << maxCurrent;
+        qCDebug(dcQcells()) << "Masked work mode:" << mode << "Masked current: " << maxCurrent;
         if (mode != 0)
         {
-            qCDebug(dcQCells()) << "Setting workmode + maxChargeCurrent to" << (maxCurrent & 0x0000FFFF);
+            qCDebug(dcQcells()) << "Setting workmode + maxChargeCurrent to" << (maxCurrent & 0x0000FFFF);
             QModbusReply *reply = connection->setWorkMode(maxCurrent & 0x0000FFFF);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply]() {
                 if (reply->error() == QModbusDevice::NoError) {
-                   qCDebug(dcQCells()) << "Successfully send command to set mode to 'controlled mode'";
+                   qCDebug(dcQcells()) << "Successfully send command to set mode to 'controlled mode'";
                 }
             });
         }
@@ -348,7 +348,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
 
     // Check if deviceStatus has changed
     connect(connection, &QCellsModbusTcpConnection::deviceStatusChanged, [this, thing](quint16 state) {
-        qCDebug(dcQCells()) << "Device status changed to" << state;
+        qCDebug(dcQcells()) << "Device status changed to" << state;
 
         switch (state) {
         case QCellsModbusTcpConnection::EVCStatusIdle:
@@ -383,7 +383,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
     });
 
     connect(m_chargeLimitTimer, &QTimer::timeout, this, [this, thing, connection]() {
-        qCDebug(dcQCells()) << "m_chargeLimitTimer timeout.";
+        qCDebug(dcQcells()) << "m_chargeLimitTimer timeout.";
         float currentInApp = thing->stateValue(qCellsMaxChargingCurrentStateTypeId).toFloat();
         int phaseCount = thing->stateValue(qCellsPhaseCountStateTypeId).toUInt();
         setMaxCurrent(connection, currentInApp, phaseCount);
@@ -391,7 +391,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
 
     // Check if update has finished
     connect(connection, &QCellsModbusTcpConnection::updateFinished, thing, [this, thing, connection]() {
-        qCDebug(dcQCells()) << "Update finished";
+        qCDebug(dcQcells()) << "Update finished";
         float currentPhaseA = thing->stateValue(qCellsCurrentPhaseAStateTypeId).toFloat();
         float currentPhaseB = thing->stateValue(qCellsCurrentPhaseBStateTypeId).toFloat();
         float currentPhaseC = thing->stateValue(qCellsCurrentPhaseCStateTypeId).toFloat();
@@ -427,19 +427,19 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
         
         if (state == "Charging") {
             if (!m_chargeLimitTimer->isActive()) {
-                qCDebug(dcQCells()) << "State is charging; Starting m_chargeLimitTimer.";
+                qCDebug(dcQcells()) << "State is charging; Starting m_chargeLimitTimer.";
                 m_chargeLimitTimer->start();
             }
         } else {
             if (m_chargeLimitTimer->isActive()) {
-                qCDebug(dcQCells()) << "State is not charging; Stopping m_chargeLimitTimer.";
+                qCDebug(dcQcells()) << "State is not charging; Stopping m_chargeLimitTimer.";
                 m_chargeLimitTimer->stop();
             }
         }
 
         // Make current of wallbox follow app
         if ((state == "Charging") && (power == true)) {
-            qCDebug(dcQCells()) << "Charging, but current is not corret. Correcting";
+            qCDebug(dcQcells()) << "Charging, but current is not corret. Correcting";
             double meanCurrent = (currentPhaseA + currentPhaseB + currentPhaseC) / phaseCount;
             float currentInApp = thing->stateValue(qCellsMaxChargingCurrentStateTypeId).toFloat();
             if ((meanCurrent > currentInApp+2) || (meanCurrent < currentInApp-2)) {
@@ -457,18 +457,18 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
 void IntegrationPluginQCells::postSetupThing(Thing *thing)
 {
     Q_UNUSED(thing)
-    qCDebug(dcQCells()) << "Post setup thing..";
+    qCDebug(dcQcells()) << "Post setup thing..";
 
     if (!m_chargeLimitTimer)
         m_chargeLimitTimer = new QTimer(this);
     m_chargeLimitTimer->setInterval(45*1000);
 
     if (!m_pluginTimer) {
-        qCDebug(dcQCells()) << "Starting plugin timer..";
+        qCDebug(dcQcells()) << "Starting plugin timer..";
         m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(3);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
-            qCDebug(dcQCells()) << "Updating QCells EVC..";
-            foreach (QCells *connection, m_tcpConnections) {
+            qCDebug(dcQcells()) << "Updating QCells EVC..";
+            foreach (QCellsModbusTcpConnection *connection, m_tcpConnections) {
                 connection->update();
             }
         });
@@ -480,10 +480,10 @@ void IntegrationPluginQCells::executeAction(ThingActionInfo *info)
     Thing *thing = info->thing();
     if (thing->thingClassId() == qCellsThingClassId)
     {
-        QCells *connection = m_tcpConnections.value(thing);
+        QCellsModbusTcpConnection *connection = m_tcpConnections.value(thing);
         if (info->action().actionTypeId() == qCellsPowerActionTypeId)
         {
-            qCDebug(dcQCells()) << "Start / Stop charging";
+            qCDebug(dcQcells()) << "Start / Stop charging";
             bool power = info->action().paramValue(qCellsPowerActionPowerParamTypeId).toBool();
             toggleCharging(connection, power);
             thing->setStateValue(qCellsPowerStateTypeId, power);
@@ -500,7 +500,7 @@ void IntegrationPluginQCells::executeAction(ThingActionInfo *info)
     }
 }
 
-void IntegrationPluginQCells::toggleCharging(QCells *connection, bool power)
+void IntegrationPluginQCells::toggleCharging(QCellsModbusTcpConnection *connection, bool power)
 {
     quint16 startCharging = 1;
     quint16 stopCharging = 2;
@@ -508,31 +508,31 @@ void IntegrationPluginQCells::toggleCharging(QCells *connection, bool power)
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, connection, power, reply]() {
         if (reply->error() == QModbusDevice::NoError) {
-           qCDebug(dcQCells()) << "Successfully set charge control";
+           qCDebug(dcQcells()) << "Successfully set charge control";
         } else {
-            qCDebug(dcQCells()) << "Toggle charge was not sent successfully";
+            qCDebug(dcQcells()) << "Toggle charge was not sent successfully";
             // toggleCharging(connection, power);
         }
     });
 }
 
-void IntegrationPluginQCells::setMaxCurrent(QCells *connection, float maxCurrent, int phaseCount)
+void IntegrationPluginQCells::setMaxCurrent(QCellsModbusTcpConnection *connection, float maxCurrent, int phaseCount)
 {
     float maxPower = connection->maxChargePower();
     if (maxCurrent < 7)
         maxCurrent = 7;
-    qCDebug(dcQCells()) << "Setting maxChargeCurrent to" << maxCurrent;
-    qCDebug(dcQCells()) << "Setting maxChargePower to" << maxPower;
+    qCDebug(dcQcells()) << "Setting maxChargeCurrent to" << maxCurrent;
+    qCDebug(dcQcells()) << "Setting maxChargePower to" << maxPower;
     maxPower = (230 * phaseCount * maxCurrent) / 1000;
-    qCDebug(dcQCells()) << "Calculated power is" << maxPower;
+    qCDebug(dcQcells()) << "Calculated power is" << maxPower;
     maxCurrent = maxPower;
-    QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent, maxPower);
+    QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, connection, maxCurrent, reply]() {
         if (reply->error() == QModbusDevice::NoError) {
-           qCDebug(dcQCells()) << "Successfully set maximum charging current";
+           qCDebug(dcQcells()) << "Successfully set maximum charging current";
         } else {
-            qCDebug(dcQCells()) << "Setting max current was not successfull";
+            qCDebug(dcQcells()) << "Setting max current was not successfull";
             // setMaxCurrent(connection, maxCurrent);
         }
     });
@@ -540,14 +540,14 @@ void IntegrationPluginQCells::setMaxCurrent(QCells *connection, float maxCurrent
 
 void IntegrationPluginQCells::thingRemoved(Thing *thing)
 {
-    qCDebug(dcQCells()) << "Thing removed" << thing->name();
+    qCDebug(dcQcells()) << "Thing removed" << thing->name();
 
     if (m_monitors.contains(thing)) {
         hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
     }
 
     if (m_tcpConnections.contains(thing)) {
-        QCells *connection = m_tcpConnections.take(thing);
+        QCellsModbusTcpConnection *connection = m_tcpConnections.take(thing);
         connection->disconnectDevice();
         connection->deleteLater();
     }
