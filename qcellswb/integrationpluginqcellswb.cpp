@@ -328,7 +328,6 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
     // Check if work mode has changed
     connect(connection, &QCellsModbusTcpConnection::workModeChanged, [this, thing, connection](quint16 mode) {
         qCDebug(dcQcells()) << "Work mode changed to" << mode << ". Make sure it is in controlled mode.";
-        qCDebug(dcQcells()) << "Masked work mode:" << mode << "Masked current: " << maxCurrent;
         if (mode != 0)
         {
             qCDebug(dcQcells()) << "Setting workmode" << mode;
@@ -381,8 +380,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
     connect(m_chargeLimitTimer, &QTimer::timeout, this, [this, thing, connection]() {
         qCDebug(dcQcells()) << "m_chargeLimitTimer timeout.";
         float currentInApp = thing->stateValue(qCellsMaxChargingCurrentStateTypeId).toFloat();
-        int phaseCount = thing->stateValue(qCellsPhaseCountStateTypeId).toUInt();
-        setMaxCurrent(connection, currentInApp, phaseCount);
+        setMaxCurrent(connection, currentInApp);
     });
 
     // Check if update has finished
@@ -439,7 +437,7 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
             double meanCurrent = (currentPhaseA + currentPhaseB + currentPhaseC) / phaseCount;
             float currentInApp = thing->stateValue(qCellsMaxChargingCurrentStateTypeId).toFloat();
             if ((meanCurrent > currentInApp+2) || (meanCurrent < currentInApp-2)) {
-                setMaxCurrent(connection, currentInApp, phaseCount);
+                setMaxCurrent(connection, currentInApp);
             }
         }
     });
@@ -488,9 +486,8 @@ void IntegrationPluginQCells::executeAction(ThingActionInfo *info)
 
         if (info->action().actionTypeId() == qCellsMaxChargingCurrentActionTypeId) {
             float maxCurrent = info->action().paramValue(qCellsMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toFloat();
-            int phaseCount = thing->stateValue(qCellsPhaseCountStateTypeId).toUInt();
             thing->setStateValue(qCellsMaxChargingCurrentStateTypeId, maxCurrent);
-            setMaxCurrent(connection, maxCurrent, phaseCount);
+            setMaxCurrent(connection, maxCurrent);
             info->finish(Thing::ThingErrorNoError);
         }
     }
@@ -512,9 +509,8 @@ void IntegrationPluginQCells::toggleCharging(QCellsModbusTcpConnection *connecti
     });
 }
 
-void IntegrationPluginQCells::setMaxCurrent(QCellsModbusTcpConnection *connection, float maxCurrent, int phaseCount)
+void IntegrationPluginQCells::setMaxCurrent(QCellsModbusTcpConnection *connection, float maxCurrent)
 {
-    float maxPower = connection->maxChargePower();
     if (maxCurrent < 7)
         maxCurrent = 7;
     qCDebug(dcQcells()) << "Setting maxChargeCurrent to" << maxCurrent;
