@@ -96,6 +96,16 @@
                             "suggestLogging": true
                         },
                         {
+                            "id": "6174feff-b215-4c62-a9a2-7209f0f5879d",
+                            "name": "heatingPower",
+                            "displayName": "Heating power",
+                            "displayNameEvent": "Heating power changed",
+                            "unit": "kiloWatt",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
                             "id": "650f9418-52db-490a-b834-6ea9e2fb66b0",
                             "name": "sgReadyMode",
                             "displayName": "SG Ready mode",
@@ -121,6 +131,33 @@
                             "defaultValue": false,
                             "suggestLogging": true
                         },
+                        {
+                            "id": "19c6fd81-e9be-4665-ae83-579aced5d9e0",
+                            "name": "systemStatus",
+                            "displayName": "System status",
+                            "displayNameEvent": "System status changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "b746f3e6-af41-47bc-acff-079f6a5be3c3",
+                            "name": "subsystemStatus",
+                            "displayName": "Subsystem status",
+                            "displayNameEvent": "Subsystem status changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "66819f9a-e1fe-40c8-ac67-422488edf1cf",
+                            "name": "error",
+                            "displayName": "Error",
+                            "displayNameEvent": "Error changed",
+                            "type": "QString",
+                            "defaultValue": "No error",
+                            "suggestLogging": true
+                        }
                     ],
                     "actionTypes": [ ]
                 }

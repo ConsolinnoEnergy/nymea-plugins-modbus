@@ -3,7 +3,7 @@
     "protocol": "RTU",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 10,
-    "checkReachableRegister": "controllerType",
+    "checkReachableRegister": "flowTemperature",
     "enums": [
         {
             "name": "SmartGridState",
@@ -94,13 +94,24 @@
             "access": "RO"
         },
         {
+            "id": "subsystemStatus",
+            "address": 412,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Subsystem status",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
             "id": "heatingPower",
             "address": 460,
             "size": 2,
             "type": "uint32",
             "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "Heating energy",
+            "description": "Heating power",
             "staticScaleFactor": -2,
             "defaultValue": "0",
             "unit": "kW",
@@ -124,7 +135,7 @@
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "description": "Function 1",
             "defaultValue": 0,
             "access": "RW"
@@ -135,19 +146,19 @@
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "description": "Function 2",
             "defaultValue": 0,
             "access": "RW"
         },
         {
-            "id": "bufferTankTemperature",
+            "id": "storageTankTemperature",
             "address": 7601,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "Buffer tank temperature",
+            "description": "Storage tank temperature",
             "staticScaleFactor": -2,
             "defaultValue": "0",
             "unit": "°C",
