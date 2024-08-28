@@ -518,10 +518,6 @@ void IntegrationPluginQCells::setMaxCurrent(QCellsModbusTcpConnection *connectio
     if (maxCurrent < 7)
         maxCurrent = 7;
     qCDebug(dcQcells()) << "Setting maxChargeCurrent to" << maxCurrent;
-    qCDebug(dcQcells()) << "Setting maxChargePower to" << maxPower;
-    maxPower = (230 * phaseCount * maxCurrent) / 1000;
-    qCDebug(dcQcells()) << "Calculated power is" << maxPower;
-    maxCurrent = maxPower;
     QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, connection, maxCurrent, reply]() {
