@@ -158,7 +158,7 @@ void IntegrationPluginBroetje::executeAction(ThingActionInfo *info) {
         }
 
         ModbusRtuReply *reply = connection->setSgReadyState(sgReadyState);
-        // Note: modbus RTU replies delete them self on finished
+        // Note: modbus RTU replies delete them self on finished.
         connect(reply, &ModbusRtuReply::finished, info, [info, reply, sgReadyModeString] {
             if (reply->error() != ModbusRtuReply::NoError) {
                 qCWarning(dcBroetje()) << "Set SG ready mode finished with error" << reply->errorString();
@@ -211,7 +211,34 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
             thing->setStateValue(broetjeConnectedStateTypeId, true);
             qCDebug(dcBroetje()) << "Initialization successful. The heat pump is now reachable. Connected changed to true.";
 
-            // Read registers function1 and function2. If they are not 10, set them to 10.
+            // Read registers function1 and function2. Both need to be set to 10 to send SG-Ready commands. If they are not 10, set them to 10.
+            quint16 function1 = connection->function1();
+            quint16 function2 = connection->function2();
+            qCDebug(dcBroetje()) << "Checking settings: function1 is" << function1 << "and function2 is" << function2;
+            if (function1 != 10) {
+                qCDebug(dcBroetje()) << "function1 needs to be 10 for SG-Ready to work. Setting function1 to 10.";
+                ModbusRtuReply *reply = connection->setFunction1(10);
+                // Note: modbus RTU replies delete them self on finished.
+                connect(reply, &ModbusRtuReply::finished, [reply] {
+                    if (reply->error() != ModbusRtuReply::NoError) {
+                        qCWarning(dcBroetje()) << "Set function1 finished with error" << reply->errorString();
+                        return;
+                    }
+                    qCDebug(dcBroetje()) << "Set function1 finished successfully";
+                });
+            }
+            if (function2 != 10) {
+                qCDebug(dcBroetje()) << "function2 needs to be 10 for SG-Ready to work. Setting function2 to 10.";
+                ModbusRtuReply *reply = connection->setFunction2(10);
+                // Note: modbus RTU replies delete them self on finished.
+                connect(reply, &ModbusRtuReply::finished, [reply] {
+                    if (reply->error() != ModbusRtuReply::NoError) {
+                        qCWarning(dcBroetje()) << "Set function2 finished with error" << reply->errorString();
+                        return;
+                    }
+                    qCDebug(dcBroetje()) << "Set function2 finished successfully";
+                });
+            }
         } else {
             qCDebug(dcBroetje()) << "Initialization failed";
         }
