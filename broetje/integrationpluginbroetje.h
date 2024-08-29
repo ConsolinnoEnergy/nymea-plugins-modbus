@@ -56,6 +56,8 @@ public:
     void executeAction(ThingActionInfo *info) override;
 
 private:
+    void setupConnection(ThingSetupInfo *info);
+
     bool m_setupConnectionRunning{false};
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, BroetjeModbusRtuConnection *> m_connections;

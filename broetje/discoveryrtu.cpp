@@ -57,7 +57,7 @@ void DiscoveryRtu::startDiscovery() {
     }
 
     // This triggers if no master is connected.
-    if (m_openReplies = 0) {
+    if (m_openReplies == 0) {
         emit discoveryFinished(true);
     }
 }
@@ -72,7 +72,7 @@ void DiscoveryRtu::checkIfDone() {
         m_openReplies = 0;
     }
 
-    if (m_openReplies = 0) {
+    if (m_openReplies == 0) {
         emit discoveryFinished(true);
     }
 }
@@ -91,7 +91,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId) {
         } else {
             // Test received value.
             quint16 errorValue = reply->result().first();
-            if (errorValue = 0) {
+            if (errorValue == 0) {
                 qCDebug(dcBroetje()) << "Recieved error value is" << errorValue << ". Value needs to be not 0, this is not a Brötje heat pump.";
             } else {
                 qCDebug(dcBroetje()) << "Recieved error value is" << errorValue << ". Value needs to be not 0, seems ok.";

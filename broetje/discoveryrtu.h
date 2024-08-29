@@ -55,10 +55,10 @@ public:
 signals:
     void discoveryFinished(bool modbusRtuMasterAvailable);
 
-private slots:
-    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
-
 private:
+    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
+    void checkIfDone();
+
     ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
     uint m_modbusId;
     qint16 m_openReplies;

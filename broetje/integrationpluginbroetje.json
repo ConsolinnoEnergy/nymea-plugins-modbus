@@ -100,7 +100,7 @@
                             "name": "heatingPower",
                             "displayName": "Heating power",
                             "displayNameEvent": "Heating power changed",
-                            "unit": "kiloWatt",
+                            "unit": "KiloWatt",
                             "type": "double",
                             "defaultValue": 0,
                             "suggestLogging": true
@@ -158,8 +158,7 @@
                             "defaultValue": "No error",
                             "suggestLogging": true
                         }
-                    ],
-                    "actionTypes": [ ]
+                    ]
                 }
             ]
         }

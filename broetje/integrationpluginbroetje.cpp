@@ -38,11 +38,11 @@ IntegrationPluginBroetje::IntegrationPluginBroetje() {}
 
 void IntegrationPluginBroetje::init() {
     connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=] (const QUuid &modbusUuid){
-        qCDebug(dcBgeTech()) << "Modbus RTU master has been removed" << modbusUuid.toString();
+        qCDebug(dcBroetje()) << "Modbus RTU master has been removed" << modbusUuid.toString();
 
         foreach (Thing *thing, myThings()) {
             if (thing->paramValue(broetjeThingModbusMasterUuidParamTypeId) == modbusUuid) {
-                qCWarning(dcBgeTech()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
+                qCWarning(dcBroetje()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
                 thing->setStateValue(broetjeConnectedStateTypeId, false);
                 delete m_connections.take(thing);
             }
@@ -65,7 +65,7 @@ void IntegrationPluginBroetje::discoverThings(ThingDiscoveryInfo *info) {
 
             ParamList params{
                 {broetjeThingModbusIdParamTypeId, result.modbusId},
-                {broetjeThingRtuMasterParamTypeId, result.modbusRtuMasterId}
+                {broetjeThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId}
             };
             descriptor.setParams(params);
 
@@ -134,49 +134,12 @@ void IntegrationPluginBroetje::thingRemoved(Thing *thing) {
 
 void IntegrationPluginBroetje::executeAction(ThingActionInfo *info) {
     Thing *thing = info->thing();
-    BroetjeModbusRtuConnection *connection = m_wpmConnections.value(thing);
-
-    if (!connection->connected()) {
-        qCWarning(dcBroetje()) << "Could not execute action. The modbus connection is currently not available.";
-        info->finish(Thing::ThingErrorHardwareNotAvailable);
-        return;
-    }
-
-    // Got this from Broetje plugin, not sure if necessary
     if (thing->thingClassId() != broetjeThingClassId) {
         info->finish(Thing::ThingErrorNoError);
     }
+    BroetjeModbusRtuConnection *connection = m_connections.value(thing);
 
-    if (info->action().actionTypeId() == broetjeSgReadyActiveActionTypeId) {
-        bool sgReadyActiveBool = info->action().paramValue(broetjeSgReadyActiveActionSgReadyActiveParamTypeId).toBool();
-        qCDebug(dcBroetje()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
-        qCDebug(dcBroetje()) << "Value: " << sgReadyActiveBool;
-
-        QModbusReply *reply = connection->setSgReadyActive(sgReadyActiveBool);
-        if (!reply) {
-            qCWarning(dcBroetje()) << "Execute action failed because the reply could not be created.";
-            info->finish(Thing::ThingErrorHardwareFailure);
-            return;
-        }
-
-        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        connect(reply, &QModbusReply::finished, info, [info, reply, sgReadyActiveBool] {
-            if (reply->error() != QModbusDevice::NoError) {
-                qCWarning(dcBroetje()) << "Set SG ready activation finished with error" << reply->errorString();
-                info->finish(Thing::ThingErrorHardwareFailure);
-                return;
-            }
-
-            qCDebug(dcBroetje()) << "Execute action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
-            info->thing()->setStateValue(broetjeSgReadyActiveStateTypeId, sgReadyActiveBool);
-            info->finish(Thing::ThingErrorNoError);
-        });
-
-        connect(reply, &QModbusReply::errorOccurred, this, [reply](QModbusDevice::Error error) {
-            qCWarning(dcBroetje()) << "Modbus reply error occurred while execute action" << error << reply->errorString();
-            emit reply->finished();  // To make sure it will be deleted
-        });
-    } else if (info->action().actionTypeId() == broetjeSgReadyModeActionTypeId) {
+    if (info->action().actionTypeId() == broetjeSgReadyModeActionTypeId) {
         QString sgReadyModeString = info->action().paramValue(broetjeSgReadyModeActionSgReadyModeParamTypeId).toString();
         qCDebug(dcBroetje()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
         BroetjeModbusRtuConnection::SmartGridState sgReadyState;
@@ -194,16 +157,10 @@ void IntegrationPluginBroetje::executeAction(ThingActionInfo *info) {
             return;
         }
 
-        QModbusReply *reply = connection->setSgReadyState(sgReadyState);
-        if (!reply) {
-            qCWarning(dcBroetje()) << "Execute action failed because the reply could not be created.";
-            info->finish(Thing::ThingErrorHardwareFailure);
-            return;
-        }
-
-        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        connect(reply, &QModbusReply::finished, info, [info, reply, sgReadyModeString] {
-            if (reply->error() != QModbusDevice::NoError) {
+        ModbusRtuReply *reply = connection->setSgReadyState(sgReadyState);
+        // Note: modbus RTU replies delete them self on finished
+        connect(reply, &ModbusRtuReply::finished, info, [info, reply, sgReadyModeString] {
+            if (reply->error() != ModbusRtuReply::NoError) {
                 qCWarning(dcBroetje()) << "Set SG ready mode finished with error" << reply->errorString();
                 info->finish(Thing::ThingErrorHardwareFailure);
                 return;
@@ -213,11 +170,6 @@ void IntegrationPluginBroetje::executeAction(ThingActionInfo *info) {
             info->thing()->setStateValue(broetjeSgReadyModeStateTypeId, sgReadyModeString);
             info->finish(Thing::ThingErrorNoError);
         });
-
-        connect(reply, &QModbusReply::errorOccurred, this, [reply](QModbusDevice::Error error) {
-            qCWarning(dcBroetje()) << "Modbus reply error occurred while execute action" << error << reply->errorString();
-            emit reply->finished();  // To make sure it will be deleted
-        });
     }
     info->finish(Thing::ThingErrorNoError);
 }
@@ -226,13 +178,13 @@ void IntegrationPluginBroetje::executeAction(ThingActionInfo *info) {
 void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
 
     Thing *thing = info->thing();
-    ModbusRtuMaster *master = hardwareManager()->modbusRtuResource()->getModbusRtuMaster(thing->paramValue(energyControlThingRtuMasterParamTypeId).toUuid());
+    ModbusRtuMaster *master = hardwareManager()->modbusRtuResource()->getModbusRtuMaster(thing->paramValue(broetjeThingModbusMasterUuidParamTypeId).toUuid());
     if (!master) {
-        qCWarning(dcAmperfied()) << "The Modbus Master is not available any more.";
+        qCWarning(dcBroetje()) << "The Modbus Master is not available any more.";
         info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("The modbus RTU connection is not available."));
         return;
     }
-    quint16 modbusId = thing->paramValue(energyControlThingModbusIdParamTypeId).toUInt();
+    quint16 modbusId = thing->paramValue(broetjeThingModbusIdParamTypeId).toUInt();
 
     // The parent object given to the connection object should be thing. The point of a parent relation is to delete all children when the parent gets deleted.
     // The connection object should be deleted when the thing gets deleted, to avoid segfault problems.
@@ -243,7 +195,7 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
     });
 
     connect(connection, &BroetjeModbusRtuConnection::reachableChanged, thing, [thing, connection](bool reachable){
-        qCDebug(dcBroetje()) << "Reachable changed to" << reachable << "for" << thing << ". Monitor is" << monitor->reachable();
+        qCDebug(dcBroetje()) << "Reachable changed to" << reachable << "for" << thing;
 
         if (reachable) {
             connection->initialize();
@@ -352,7 +304,7 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
             systemStatusString = "Verriegelungsmodus";
             break;
         default:
-            systemStatusString = QString("%1").arg(subsystemStatus)
+            systemStatusString = QString("%1").arg(systemStatus);
         }
 
         qCDebug(dcBroetje()) << thing << "System status changed " << systemStatusString;
@@ -383,7 +335,7 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
             sgReadyActive = true;
             break;
         default:
-            subsystemStatusString = QString("%1").arg(subsystemStatus)
+            subsystemStatusString = QString("%1").arg(subsystemStatus);
         }
 
         qCDebug(dcBroetje()) << thing << "Subsystem status changed " << subsystemStatusString;
@@ -414,5 +366,5 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
         }
     });
 
-    connection->connectDevice();
+    connection->update();
 }
