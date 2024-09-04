@@ -63,6 +63,7 @@ public:
         RegisterPowerDc1 = 10,
         RegisterPowerDc2 = 11,
         RegisterModuleName = 14,
+        RegisterSetActivePowerLimit = 17,
         RegisterBatVoltageCharge1 = 20,
         RegisterBatCurrentCharge1 = 21,
         RegisterBatPowerCharge1 = 22,
@@ -138,6 +139,10 @@ public:
 
     /* Active power limit (0x25) [%] - Address: 37, Size: 1 */
     quint16 activePowerLimit() const;
+
+    /* Active power limit (0x11) [%] - Address: 17, Size: 1 */
+    quint16 setActivePowerLimit() const;
+    QModbusReply *setSetActivePowerLimit(quint16 setActivePowerLimit);
 
     /* Firmware version (0x7D) - Address: 125, Size: 1 */
     quint16 firmwareVersion() const;
@@ -323,6 +328,7 @@ public:
     void updateInverterFaultBits();
     void updateMeter1CommunicationState();
     void updateActivePowerLimit();
+    void updateSetActivePowerLimit();
 
     void updateSerialNumber();
     void updateFactoryName();
@@ -368,6 +374,7 @@ public:
     QModbusReply *readInverterFaultBits();
     QModbusReply *readMeter1CommunicationState();
     QModbusReply *readActivePowerLimit();
+    QModbusReply *readSetActivePowerLimit();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readInverterType();
     QModbusReply *readSerialNumber();
@@ -507,6 +514,8 @@ signals:
     void meter1CommunicationStateReadFinished(quint16 meter1CommunicationState);
     void activePowerLimitChanged(quint16 activePowerLimit);
     void activePowerLimitReadFinished(quint16 activePowerLimit);
+    void setActivePowerLimitChanged(quint16 setActivePowerLimit);
+    void setActivePowerLimitReadFinished(quint16 setActivePowerLimit);
     void firmwareVersionChanged(quint16 firmwareVersion);
     void firmwareVersionReadFinished(quint16 firmwareVersion);
     void inverterTypeChanged(quint16 inverterType);
@@ -594,6 +603,7 @@ protected:
     quint32 m_inverterFaultBits = 0;
     quint16 m_meter1CommunicationState = 0;
     quint16 m_activePowerLimit = 0;
+    quint16 m_setActivePowerLimit = 0;
     quint16 m_firmwareVersion = 0;
     quint16 m_inverterType = 0;
     QString m_serialNumber;
@@ -640,6 +650,7 @@ protected:
     void processInverterFaultBitsRegisterValues(const QVector<quint16> values);
     void processMeter1CommunicationStateRegisterValues(const QVector<quint16> values);
     void processActivePowerLimitRegisterValues(const QVector<quint16> values);
+    void processSetActivePowerLimitRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processInverterTypeRegisterValues(const QVector<quint16> values);
 
