@@ -597,6 +597,18 @@
             "access": "RO"
         },
         {
+            "id": "setActivePowerLimit",
+            "address": 17,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Active power limit (0x11)",
+            "unit": "%",
+            "defaultValue": "0",
+            "access": "RW"
+        },
+        {
             "id": "firmwareVersion",
             "address": 125,
             "size": 1,
