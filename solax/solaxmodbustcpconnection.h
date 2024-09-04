@@ -491,6 +491,7 @@ public:
     virtual void update9();
     virtual void update10();
     virtual void update11();
+    virtual void update12();
 
 signals:
     void reachableChanged(bool reachable);
