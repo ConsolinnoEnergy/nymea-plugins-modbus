@@ -1062,7 +1062,6 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
 }
 
 // Code for setting power limit. Disabled for now.
-/*
 void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
 {
     Thing *thing = info->thing();
@@ -1082,10 +1081,10 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             return;
         }
 
-        if (action.actionTypeId() == solaxX3InverterTCPActivePowerLimitActionTypeId) {
-            quint16 powerLimit = action.paramValue(solaxX3InverterTCPActivePowerLimitActionActivePowerLimitParamTypeId).toUInt();
+        if (action.actionTypeId() == solaxX3InverterTCPSetExportLimitActionTypeId) {
+            quint16 powerLimit = action.paramValue(solaxX3InverterTCPSetExportLimitActionExportLimitParamTypeId).toUInt();
             qCDebug(dcSolax()) << "Trying to set active power limit to" << powerLimit;
-            QModbusReply *reply = connection->setActivePowerLimit(powerLimit);
+            QModbusReply *reply = connection->setSetActivePowerLimit(powerLimit);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, info, [info, thing, reply, powerLimit](){
                 if (reply->error() != QModbusDevice::NoError) {
@@ -1100,41 +1099,8 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
-    } else if (thing->thingClassId() == solaxX3InverterRTUThingClassId) {
-        SolaxModbusRtuConnection *connection = m_rtuConnections.value(thing);
-        if (!connection) {
-            qCWarning(dcSolax()) << "Modbus connection not available";
-            info->finish(Thing::ThingErrorHardwareFailure);
-            return;
-        }
-
-        if (!connection->modbusRtuMaster()->connected()) {
-            qCWarning(dcSolax()) << "Could not execute action. The modbus connection is currently not available.";
-            info->finish(Thing::ThingErrorHardwareNotAvailable);
-            return;
-        }
-
-        if (action.actionTypeId() == solaxX3InverterRTUActivePowerLimitActionTypeId) {
-            quint16 powerLimit = action.paramValue(solaxX3InverterRTUActivePowerLimitActionActivePowerLimitParamTypeId).toUInt();
-            qCDebug(dcSolax()) << "Trying to set active power limit to" << powerLimit;
-            ModbusRtuReply *reply = connection->setActivePowerLimit(powerLimit);
-            connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
-            connect(reply, &ModbusRtuReply::finished, info, [info, thing, reply, powerLimit](){
-                if (reply->error() != ModbusRtuReply::NoError) {
-                    qCWarning(dcSolax()) << "Error setting active power limit" << reply->error() << reply->errorString();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                } else {
-                    qCDebug(dcSolax()) << "Active power limit set to" << powerLimit;
-                    thing->setStateValue(solaxX3InverterRTUActivePowerLimitStateTypeId, powerLimit);
-                    info->finish(Thing::ThingErrorNoError);
-                }
-            });
-        } else {
-            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
-        }
     }
 }
-*/
 
 void IntegrationPluginSolax::thingRemoved(Thing *thing)
 {
