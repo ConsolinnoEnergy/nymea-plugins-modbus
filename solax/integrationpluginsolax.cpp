@@ -1098,7 +1098,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
                 } else {
                     qCWarning(dcSolax()) << "Active power limit set to" << target;
                     thing->setStateValue(solaxX3InverterTCPActivePowerLimitStateTypeId, powerLimit);
-                    thing->setStateValue(solaxX3InverterTCPGridExportLimitStateTypeId, target);
+                    thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, target);
                     info->finish(Thing::ThingErrorNoError);
                 }
             });

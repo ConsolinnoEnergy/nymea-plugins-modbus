@@ -475,6 +475,15 @@
                             "unit": "Percentage",
                             "defaultValue": 0,
                             "cached": false
+                        },
+                        {
+                            "id": "69560779-c196-4a09-bda4-56ea66f33fb1",
+                            "name": "exportLimit",
+                            "displayName": "Export power limit",
+                            "displayNameEvent": "Export power limit changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0
                         }
 
                     ],
