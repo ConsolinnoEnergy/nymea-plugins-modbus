@@ -272,6 +272,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 qCDebug(dcSolax()) << "Solax inverter initialized.";
                 thing->setStateValue(solaxX3InverterRTUFirmwareVersionStateTypeId, connection->firmwareVersion());
                 thing->setStateValue(solaxX3InverterRTUNominalPowerStateTypeId, connection->inverterType());
+                thing->setStateValue(solaxX3InverterRTUExportLimitStateTypeId, connection->inverterType());
             } else {
                 qCDebug(dcSolax()) << "Solax inverter initialization failed.";
             }
@@ -698,6 +699,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 qCDebug(dcSolax()) << "Solax inverter initialized.";
                 thing->setStateValue(solaxX3InverterTCPFirmwareVersionStateTypeId, connection->firmwareVersion());
                 thing->setStateValue(solaxX3InverterTCPNominalPowerStateTypeId, connection->inverterType());
+                thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, connection->inverterType());
             } else {
                 qCDebug(dcSolax()) << "Solax inverter initialization failed.";
                 // Try once to reconnect the device

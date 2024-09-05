@@ -237,7 +237,7 @@
                         },
                         {
                             "id": "ff0f093a-5be6-4086-8c82-9b12ec902213",
-                            "name": "gridExportLimit",
+                            "name": "exportLimit",
                             "displayName": "Export power limit",
                             "displayNameEvent": "Export power limit changed",
                             "type": "double",
