@@ -1083,15 +1083,18 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
 
         if (action.actionTypeId() == solaxX3InverterTCPSetExportLimitActionTypeId) {
             quint16 powerLimit = action.paramValue(solaxX3InverterTCPSetExportLimitActionExportLimitParamTypeId).toUInt();
-            qCDebug(dcSolax()) << "Trying to set active power limit to" << powerLimit;
-            QModbusReply *reply = connection->setSetActivePowerLimit(powerLimit);
+            double ratedPower = thing->stateValue(solaxX3InverterTCPRatedPowerStateTypeId).toDouble();
+            qCWarning(dcSolax()) << "Rated power is" << ratedPower;
+            qCWarning(dcSolax()) << "Trying to set active power limit to" << powerLimit;
+            quint16 target = powerLimit * (ratedPower/100); 
+            QModbusReply *reply = connection->setSetActivePowerLimit(target);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, info, [info, thing, reply, powerLimit](){
+            connect(reply, &QModbusReply::finished, info, [info, thing, reply, powerLimit, target](){
                 if (reply->error() != QModbusDevice::NoError) {
                     qCWarning(dcSolax()) << "Error setting active power limit" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 } else {
-                    qCDebug(dcSolax()) << "Active power limit set to" << powerLimit;
+                    qCWarning(dcSolax()) << "Active power limit set to" << target;
                     thing->setStateValue(solaxX3InverterTCPActivePowerLimitStateTypeId, powerLimit);
                     info->finish(Thing::ThingErrorNoError);
                 }

@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2023, nymea GmbH
+* Copyright 2013 - 2024, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This fileDescriptor is part of nymea.
@@ -63,7 +63,6 @@ public:
         RegisterPowerDc1 = 10,
         RegisterPowerDc2 = 11,
         RegisterModuleName = 14,
-        RegisterSetActivePowerLimit = 17,
         RegisterBatVoltageCharge1 = 20,
         RegisterBatCurrentCharge1 = 21,
         RegisterBatPowerCharge1 = 22,
@@ -72,6 +71,7 @@ public:
         RegisterBatteryCapacity = 28,
         RegisterActivePowerLimit = 37,
         RegisterInverterFaultBits = 64,
+        RegisterSetActivePowerLimit = 66,
         RegisterBmsWarningLsb = 68,
         RegisterBmsWarningMsb = 69,
         RegisterFeedinPower = 70,
@@ -140,7 +140,7 @@ public:
     /* Active power limit (0x25) [%] - Address: 37, Size: 1 */
     quint16 activePowerLimit() const;
 
-    /* Active power limit (0x11) [%] - Address: 17, Size: 1 */
+    /* Active power limit (0x11) [W] - Address: 66, Size: 1 */
     quint16 setActivePowerLimit() const;
     QModbusReply *setSetActivePowerLimit(quint16 setActivePowerLimit);
 

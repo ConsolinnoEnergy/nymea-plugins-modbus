@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2023, nymea GmbH
+* Copyright 2013 - 2024, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This fileDescriptor is part of nymea.
@@ -156,8 +156,8 @@ quint16 SolaxModbusTcpConnection::setActivePowerLimit() const
 QModbusReply *SolaxModbusTcpConnection::setSetActivePowerLimit(quint16 setActivePowerLimit)
 {
     QVector<quint16> values = ModbusDataUtils::convertFromUInt16(setActivePowerLimit);
-    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Active power limit (0x11)\" register:" << 17 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 17, values.count());
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Active power limit (0x11)\" register:" << 66 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 66, values.count());
     request.setValues(values);
     return sendWriteRequest(request, m_slaveId);
 }
@@ -960,7 +960,7 @@ void SolaxModbusTcpConnection::update12()
     QModbusReply *reply = nullptr;
 
     // Read Active power limit (0x11)
-    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Active power limit (0x11)\" register:" << 17 << "size:" << 1;
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Active power limit (0x11)\" register:" << 65 << "size:" << 1;
     reply = readSetActivePowerLimit();
     if (!reply) {
         qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Active power limit (0x11)\" registers from" << hostAddress().toString() << errorString();
@@ -983,7 +983,7 @@ void SolaxModbusTcpConnection::update12()
         }
 
         const QModbusDataUnit unit = reply->result();
-        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Active power limit (0x11)\" register" << 17 << "size:" << 1 << unit.values();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Active power limit (0x11)\" register" << 65 << "size:" << 1 << unit.values();
         processSetActivePowerLimitRegisterValues(unit.values());
         verifyUpdateFinished();
     });
@@ -1176,7 +1176,7 @@ void SolaxModbusTcpConnection::updateActivePowerLimit()
 void SolaxModbusTcpConnection::updateSetActivePowerLimit()
 {
     // Update registers from Active power limit (0x11)
-    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Active power limit (0x11)\" register:" << 17 << "size:" << 1;
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Active power limit (0x11)\" register:" << 66 << "size:" << 1;
     QModbusReply *reply = readSetActivePowerLimit();
     if (!reply) {
         qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Active power limit (0x11)\" registers from" << hostAddress().toString() << errorString();
@@ -1193,7 +1193,7 @@ void SolaxModbusTcpConnection::updateSetActivePowerLimit()
         handleModbusError(reply->error());
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
-            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Active power limit (0x11)\" register" << 17 << "size:" << 1 << unit.values();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Active power limit (0x11)\" register" << 66 << "size:" << 1 << unit.values();
             processSetActivePowerLimitRegisterValues(unit.values());
         }
     });
@@ -1938,7 +1938,7 @@ QModbusReply *SolaxModbusTcpConnection::readActivePowerLimit()
 
 QModbusReply *SolaxModbusTcpConnection::readSetActivePowerLimit()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 17, 1);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 66, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -2837,7 +2837,7 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - Inverter fault bits (0x40): " << solaxModbusTcpConnection->inverterFaultBits() << "\n";
     debug.nospace().noquote() << "    - Meter 1 communication status (0xB8): " << solaxModbusTcpConnection->meter1CommunicationState() << "\n";
     debug.nospace().noquote() << "    - Active power limit (0x25): " << solaxModbusTcpConnection->activePowerLimit() << " [%]" << "\n";
-    debug.nospace().noquote() << "    - Active power limit (0x11): " << solaxModbusTcpConnection->setActivePowerLimit() << " [%]" << "\n";
+    debug.nospace().noquote() << "    - Active power limit (0x11): " << solaxModbusTcpConnection->setActivePowerLimit() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Firmware version (0x7D): " << solaxModbusTcpConnection->firmwareVersion() << "\n";
     debug.nospace().noquote() << "    - Inverter rated power (0xBA): " << solaxModbusTcpConnection->inverterType() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Serial number (0x00): " << solaxModbusTcpConnection->serialNumber() << "\n";
