@@ -71,6 +71,8 @@ private:
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, SolaxModbusTcpConnection *> m_tcpConnections;
     QHash<Thing *, SolaxModbusRtuConnection *> m_rtuConnections;
+    
+    QTimer *m_batteryPowerTimer = nullptr;
 
     void setRunMode(Thing *thing, quint16 runModeAsInt);
     void setErrorMessage(Thing *thing, quint32 errorBits);

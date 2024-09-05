@@ -606,6 +606,18 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(solaxBatteryCapacityStateTypeId, parentThing->paramValue(solaxX3InverterRTUThingBatteryCapacityParamTypeId).toUInt());
             }
         }
+        m_batteryPowerTimer = new QTimer(this);
+        connect(m_batteryPowerTimer, &QTimer::timeout, thing, [this, thing]() {
+            bool forceBattery = thing->stateValue(solaxBatteryEnableForcePowerStateTypeId).toBool();
+            qCWarning(dcSolax()) << "Battery countdown timer timeout. Manuel mode is" << forceBattery;
+            if (forceBattery) {
+                double batteryPower = thing->stateValue(solaxBatteryForcePowerStateTypeId).toDouble();
+                qCWarning(dcSolax()) << "Batter power should be" << batteryPower;
+                // make sure battery continues charging / discharging with chosen power
+            } else {
+                // set manualMode to 0
+            }
+        });
         return;
     }
 }
@@ -778,11 +790,27 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             setErrorMessage(thing, inverterFaultBits);
         });
 
-        connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [thing, connection](){
+        connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection](){
             qCDebug(dcSolax()) << "Solax X3 - Update finished.";
-            quint16 powerDc1 = connection->powerDc1();
-            quint16 powerDc2 = connection->powerDc2();
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2));
+            qint16 inverterPower = connection->inverterPower();
+            if (inverterPower < 0)
+            {
+                inverterPower *= -1;
+            }
+            qint16 batteryPower = 0;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                batteryPower = connection->batPowerCharge1();
+            }
+
+            QString state = batteryThings.first()->stateValue(solaxBatteryChargingStateStateTypeId).toString();
+            if (state == "discharging")
+            {
+                // Battery is discharging
+                batteryPower = 0;
+            }
+            qCDebug(dcSolax()) << "Subtract from InverterPower";
+            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
         });
 
         // Meter
@@ -1105,6 +1133,42 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
+    } else if (thing->thingClassId() == solaxBatteryThingClassId) {
+        if (action.actionTypeId() == solaxBatteryEnableForcePowerActionTypeId) {
+            bool state = action.paramValue(solaxBatteryEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
+            int batteryTimeout = thing->stateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId).toInt();
+            qCWarning(dcSolax()) << "Battery manual mode is enabled?" << state;
+            if (state) {
+                if (!m_batteryPowerTimer->isActive()) {
+                    m_batteryPowerTimer->setInterval(batteryTimeout*1000);
+                    m_batteryPowerTimer->start();
+                }
+            }
+            // if false, set manual mode (0x0020) to 0
+            // if true, set batter voltage and power and start timer
+            thing->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, state);
+        } else if (action.actionTypeId() == solaxBatteryForcePowerActionTypeId) {
+            double batteryPower = action.paramValue(solaxBatteryForcePowerActionForcePowerParamTypeId).toDouble();
+            qCWarning(dcSolax()) << "Battery power should be set to" << batteryPower;
+            thing->setStateValue(solaxBatteryForcePowerStateTypeId, batteryPower);
+        } else if (action.actionTypeId() == solaxBatteryForcePowerTimeoutActionTypeId) {
+            int timeout = action.paramValue(solaxBatteryForcePowerTimeoutActionForcePowerTimeoutParamTypeId).toInt();
+            bool forceBattery = thing->stateValue(solaxBatteryEnableForcePowerStateStateTypeId).toBool();
+            qCWarning(dcSolax()) << "Battery timer should be set to" << timeout;
+            if (forceBattery && timeout > 0) {
+                qCWarning(dcSolax()) << "Battery timer will be set to" << timeout << "as manual mode is enabled";
+                if (m_batteryPowerTimer->isActive()) {
+                    m_batteryPowerTimer->stop();
+                }
+                m_batteryPowerTimer->setInterval(timeout*1000);
+                m_batteryPowerTimer->start();
+            }
+            if (timeout > 0) {
+                thing->setStateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId, timeout);
+            }
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+        }
     }
 }
 
@@ -1130,6 +1194,14 @@ void IntegrationPluginSolax::thingRemoved(Thing *thing)
 
     if (m_batterystates.contains(thing)) {
         m_batterystates.remove(thing);
+    }
+
+    if (m_batteryPowerTimer) {
+        if (m_batteryPowerTimer->isActive()) {
+            m_batteryPowerTimer->stop();
+        }
+        delete m_batteryPowerTimer;
+        m_batteryPowerTimer = nullptr;
     }
 
     if (myThings().isEmpty() && m_pluginTimer) {
