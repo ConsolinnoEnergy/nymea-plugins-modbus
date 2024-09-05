@@ -138,7 +138,7 @@
                         },
                         {
                             "id": "e2c14c76-7d93-4dee-bb4e-5b6f18b20633",
-                            "name": "ratedPower",
+                            "name": "nominalPower",
                             "displayName": "Rated power",
                             "displayNameEvent": "Rated power changed",
                             "type": "double",
@@ -234,6 +234,15 @@
                             "unit": "Percentage",
                             "defaultValue": 0,
                             "cached": false
+                        },
+                        {
+                            "id": "ff0f093a-5be6-4086-8c82-9b12ec902213",
+                            "name": "gridExportLimit",
+                            "displayName": "Export power limit",
+                            "displayNameEvent": "Export power limit changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0
                         }
 
                     ],
@@ -370,7 +379,7 @@
                         },
                         {
                             "id": "03cb0b85-f466-4d2d-aafd-92acc8f716f3",
-                            "name": "ratedPower",
+                            "name": "nominalPower",
                             "displayName": "Rated power",
                             "displayNameEvent": "Rated power changed",
                             "type": "double",
@@ -691,6 +700,20 @@
                             "cached": true
                         },
                         {
+                            "id": "28235635-d544-42b4-8376-c2bda6a00123",
+                            "name": "minBatteryLevel",
+                            "displayName": "min. Battery level",
+                            "displayNameEvent": "min Battery level changed",
+                            "displayNameAction": "min Battery level set",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 5,
+                            "maxValue": 100,
+                            "defaultValue": 5,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
                             "id": "09f60c18-4fc9-4117-b58c-b0b470eeface",
                             "name": "batteryCritical",
                             "displayName": "Battery low charge",
@@ -758,6 +781,67 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": false
+                        },
+                        {
+                            "id": "d10df429-b0ce-4078-b7e6-843a8e798d9f",
+                            "name": "nominalPowerBattery",
+                            "displayName": "Nominal Power for control",
+                            "displayNameEvent": "Nominal power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0
+                        },
+                        {
+                            "id": "8806455a-280a-4063-aa6c-5b1acb59b897",
+                            "name": "enableForcePower",
+                            "displayName": "Battery manual mode",
+                            "displayNameEvent": "Battery manual mode",
+                            "displayNameAction": "Battery manual mode enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
+                        },
+                        {
+                            "id": "4cd7a11a-3cf1-4254-9a36-fd836b19fba7",
+                            "name": "enableForcePowerState",
+                            "displayName": "Battery manual mode enabled",
+                            "displayNameEvent": "Battery manual mode state changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "868ba45f-1f1d-4444-bd19-a258db509a23",
+                            "name": "forcePower",
+                            "displayName": "Battery force power (+:charge, -:discharge)",
+                            "displayNameEvent": "Battery force power changed",
+                            "displayNameAction": "Battery force power enabled",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "9523ae17-1919-4e18-9c50-534dd0ea9ff2",
+                            "name": "forcePowerTimeout",
+                            "displayName": "Battery force power timeout",
+                            "displayNameEvent": "Battery force power timeout changed",
+                            "displayNameAction": "Battery force power timeout enabled",
+                            "type": "int",
+                            "unit": "Seconds",
+                            "defaultValue": 500,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "5cdace8a-a034-4b83-af85-2060d165d056",
+                            "name": "forcePowerTimeoutCountdown",
+                            "displayName": "Timeout countdown",
+                            "displayNameEvent": "timeout countdown changed",
+                            "type": "int",
+                            "unit": "Seconds",
+                            "defaultValue": 500,
+                            "cached": true
                         }
                     ],
                     "actionTypes": [ ]

@@ -271,7 +271,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             if (success) {
                 qCDebug(dcSolax()) << "Solax inverter initialized.";
                 thing->setStateValue(solaxX3InverterRTUFirmwareVersionStateTypeId, connection->firmwareVersion());
-                thing->setStateValue(solaxX3InverterRTURatedPowerStateTypeId, connection->inverterType());
+                thing->setStateValue(solaxX3InverterRTUNominalPowerStateTypeId, connection->inverterType());
             } else {
                 qCDebug(dcSolax()) << "Solax inverter initialization failed.";
             }
@@ -697,7 +697,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             if (success) {
                 qCDebug(dcSolax()) << "Solax inverter initialized.";
                 thing->setStateValue(solaxX3InverterTCPFirmwareVersionStateTypeId, connection->firmwareVersion());
-                thing->setStateValue(solaxX3InverterTCPRatedPowerStateTypeId, connection->inverterType());
+                thing->setStateValue(solaxX3InverterTCPNominalPowerStateTypeId, connection->inverterType());
             } else {
                 qCDebug(dcSolax()) << "Solax inverter initialization failed.";
                 // Try once to reconnect the device
@@ -1083,7 +1083,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
 
         if (action.actionTypeId() == solaxX3InverterTCPSetExportLimitActionTypeId) {
             quint16 powerLimit = action.paramValue(solaxX3InverterTCPSetExportLimitActionExportLimitParamTypeId).toUInt();
-            double ratedPower = thing->stateValue(solaxX3InverterTCPRatedPowerStateTypeId).toDouble();
+            double ratedPower = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
             qCWarning(dcSolax()) << "Rated power is" << ratedPower;
             qCWarning(dcSolax()) << "Trying to set active power limit to" << powerLimit;
             quint16 target = powerLimit * (ratedPower/100); 
@@ -1096,6 +1096,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
                 } else {
                     qCWarning(dcSolax()) << "Active power limit set to" << target;
                     thing->setStateValue(solaxX3InverterTCPActivePowerLimitStateTypeId, powerLimit);
+                    thing->setStateValue(solaxX3InverterTCPGridExportLimitStateTypeId, target);
                     info->finish(Thing::ThingErrorNoError);
                 }
             });
