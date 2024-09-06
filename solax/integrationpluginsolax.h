@@ -79,6 +79,9 @@ private:
     void setBmsWarningMessage(Thing *thing);
 
     void setupTcpConnection(ThingSetupInfo *info);
+    
+    void disableRemoteControl(Thing *thing);
+    void setBatteryPower(Thing *thing, double powerToSet, int batteryTimeout);
 };
 
 #endif // INTEGRATIONPLUGINSOLAX_H

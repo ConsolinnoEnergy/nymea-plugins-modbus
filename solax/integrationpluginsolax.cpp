@@ -607,15 +607,17 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
         }
         m_batteryPowerTimer = new QTimer(this);
-        connect(m_batteryPowerTimer, &QTimer::timeout, thing, [this, thing]() {
+        connect(m_batteryPowerTimer, &QTimer::timeout, thing, [this, thing, parentThing]() {
+            int batteryTimeout = thing->stateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId).toInt();
+            double powerToSet = thing->stateValue(solaxBatteryForcePowerStateTypeId).toDouble();
             bool forceBattery = thing->stateValue(solaxBatteryEnableForcePowerStateTypeId).toBool();
             qCWarning(dcSolax()) << "Battery countdown timer timeout. Manuel mode is" << forceBattery;
             if (forceBattery) {
                 double batteryPower = thing->stateValue(solaxBatteryForcePowerStateTypeId).toDouble();
                 qCWarning(dcSolax()) << "Batter power should be" << batteryPower;
-                // make sure battery continues charging / discharging with chosen power
+                setBatteryPower(parentThing, powerToSet, batteryTimeout);
             } else {
-                // set manualMode to 0
+                disableRemoteControl(parentThing);
             }
         });
         return;
@@ -1136,6 +1138,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
     } else if (thing->thingClassId() == solaxBatteryThingClassId) {
         Thing *inverterThing = myThings().findById(thing->parentId());
         SolaxModbusTcpConnection *connection = m_tcpConnections.value(inverterThing);
+
         if (!connection) {
             qCWarning(dcSolax()) << "Modbus connection not available";
             info->finish(Thing::ThingErrorHardwareFailure);
@@ -1149,40 +1152,19 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
         }
 
         if (action.actionTypeId() == solaxBatteryEnableForcePowerActionTypeId) {
-            bool state = action.paramValue(solaxBatteryEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
-            int batteryTimeout = thing->stateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId).toInt();
-            qCWarning(dcSolax()) << "Battery manual mode is enabled?" << state;
-            if (state) {
-                if (!m_batteryPowerTimer->isActive()) {
-                    m_batteryPowerTimer->setInterval(batteryTimeout*1000);
-                    m_batteryPowerTimer->start();
-                }
-                double powerToSet = thing->stateValue(solaxBatteryForcePowerStateTypeId).toDouble();
-                QModbusReply *reply = connection->setControlBatteryVoltage(350);
-                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-                connect(reply, &QModbusReply::finished, info, [info, thing, reply, connection, powerToSet](){
-                    if (reply->error() != QModbusDevice::NoError) {
-                        qCWarning(dcSolax()) << "Error setting battery voltage" << reply->error() << reply->errorString();
-                        info->finish(Thing::ThingErrorHardwareFailure);
-                    } else {
-                        qCWarning(dcSolax()) << "Battery voltage set to 350";
-                        QModbusReply *replyCurrent = connection->setControlBatteryCurrent(powerToSet/350);
-                        connect(replyCurrent, &QModbusReply::finished, replyCurrent, &QModbusReply::deleteLater);
-                        connect(replyCurrent, &QModbusReply::finished, info, [info, thing, replyCurrent, powerToSet](){
-                            if (replyCurrent->error() != QModbusDevice::NoError) {
-                                qCWarning(dcSolax()) << "Error setting battery current" << replyCurrent->error() << replyCurrent->errorString();
-                                info->finish(Thing::ThingErrorHardwareFailure);
-                            } else {
-                                qCWarning(dcSolax()) << "Battery current set to " << (powerToSet/350);
-                                info->finish(Thing::ThingErrorNoError);
-                            }
-                        });
-                        info->finish(Thing::ThingErrorNoError);
-                    }
-                });
-            }
             // if false, set manual mode (0x0020) to 0
             // if true, set batter voltage and power and start timer
+            bool state = action.paramValue(solaxBatteryEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
+            int batteryTimeout = thing->stateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId).toInt();
+            double powerToSet = thing->stateValue(solaxBatteryForcePowerStateTypeId).toDouble();
+
+            qCWarning(dcSolax()) << "Battery manual mode is enabled?" << state;
+            if (state) {
+                setBatteryPower(thing, powerToSet, batteryTimeout);
+            } else {
+                disableRemoteControl(thing);
+            }
+
             thing->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, state);
         } else if (action.actionTypeId() == solaxBatteryForcePowerActionTypeId) {
             double batteryPower = action.paramValue(solaxBatteryForcePowerActionForcePowerParamTypeId).toDouble();
@@ -1470,4 +1452,65 @@ void IntegrationPluginSolax::setBmsWarningMessage(Thing *thing)
         qCDebug(dcSolax()) << warningMessage;
         batteryThings.first()->setStateValue(solaxBatteryWarningMessageStateTypeId, warningMessage);
     }
+}
+
+void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
+{
+    SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
+    if (!connection) {
+        qCWarning(dcSolax()) << "Modbus connection not available";
+        // info->finish(Thing::ThingErrorHardwareFailure);
+        return;
+    }
+
+    if (!m_batteryPowerTimer->isActive()) {
+        m_batteryPowerTimer->stop();
+    }
+    // QModbusDevice *reply = connection->setManualMode(0);
+    // connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    // connect(reply, &QModbusReply::finished, thing, [thing, reply](){
+    //     if (reply->error() != QModbusDevice::NoError) {
+    //         qCWarning(dcSolax()) << "Error setting manual mode" << reply->error() << reply->errorString();
+    //         //info->finish(Thing::ThingErrorHardwareFailure);
+    //     } else {
+    //         qCWarning(dcSolax()) << "Manual mode set to 0";
+    //         //info->finish(Thing::ThingErrorNoError);
+    //     }
+    // });
+}
+
+void IntegrationPluginSolax::setBatteryPower(Thing *thing, double powerToSet, int batteryTimeout)
+{
+    SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
+    if (!connection) {
+        qCWarning(dcSolax()) << "Modbus connection not available";
+        // info->finish(Thing::ThingErrorHardwareFailure);
+        return;
+    }
+
+    if (!m_batteryPowerTimer->isActive()) {
+        m_batteryPowerTimer->setInterval(batteryTimeout*1000);
+        m_batteryPowerTimer->start();
+    }
+    QModbusReply *reply = connection->setControlBatteryVoltage(350);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, thing, [thing, reply, connection, powerToSet](){
+        if (reply->error() != QModbusDevice::NoError) {
+            qCWarning(dcSolax()) << "Error setting battery voltage" << reply->error() << reply->errorString();
+            //info->finish(Thing::ThingErrorHardwareFailure);
+        } else {
+            qCWarning(dcSolax()) << "Battery voltage set to 350";
+            QModbusReply *replyCurrent = connection->setControlBatteryCurrent(powerToSet/350);
+            connect(replyCurrent, &QModbusReply::finished, replyCurrent, &QModbusReply::deleteLater);
+            connect(replyCurrent, &QModbusReply::finished, thing, [thing, replyCurrent, powerToSet](){
+                if (replyCurrent->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSolax()) << "Error setting battery current" << replyCurrent->error() << replyCurrent->errorString();
+                    //info->finish(Thing::ThingErrorHardwareFailure);
+                } else {
+                    qCWarning(dcSolax()) << "Battery current set to " << (powerToSet/350);
+                }
+            });
+            //info->finish(Thing::ThingErrorNoError);
+        }
+    });
 }
