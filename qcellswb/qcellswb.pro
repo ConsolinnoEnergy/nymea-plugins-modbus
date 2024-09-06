@@ -6,7 +6,9 @@ MODBUS_CONNECTIONS += qcells-registers.json
 include(../modbus.pri)
 
 SOURCES += \
-    integrationpluginqcellswb.cpp
+    integrationpluginqcellswb.cpp \
+    qcellsmodbustcpconnection.cpp
 
 HEADERS += \
-    integrationpluginqcellswb.h
+    integrationpluginqcellswb.h \
+    qcellsmodbustcpconnection.h
