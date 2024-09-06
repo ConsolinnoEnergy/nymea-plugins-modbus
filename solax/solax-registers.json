@@ -660,6 +660,28 @@
             "unit": "W",
             "defaultValue": "0",
             "access": "RO"
+        },
+        {
+            "id": "readManualMode",
+            "address": 140,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Read manual mode (0x8C)",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "writeManualMode",
+            "address": 32,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Write manual mode (0x20)",
+            "defaultValue": "0",
+            "access": "RW"
         }
     ]
 }

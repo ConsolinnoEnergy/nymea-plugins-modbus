@@ -172,6 +172,25 @@ quint16 SolaxModbusTcpConnection::inverterType() const
     return m_inverterType;
 }
 
+quint16 SolaxModbusTcpConnection::readManualMode() const
+{
+    return m_readManualMode;
+}
+
+quint16 SolaxModbusTcpConnection::writeManualMode() const
+{
+    return m_writeManualMode;
+}
+
+QModbusReply *SolaxModbusTcpConnection::setWriteManualMode(quint16 writeManualMode)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(writeManualMode);
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Write manual mode (0x20)\" register:" << 32 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 32, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
 QString SolaxModbusTcpConnection::serialNumber() const
 {
     return m_serialNumber;
@@ -1053,11 +1072,87 @@ void SolaxModbusTcpConnection::update13()
         qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"batterControl\" register" << 3 << "size:" << 2 << blockValues;
         processControlBatteryVoltageRegisterValues(blockValues.mid(0, 1));
         processControlBatteryCurrentRegisterValues(blockValues.mid(1, 1));
-        verifyUpdateFinished();
+        update14();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"batterControl\" registers" << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::update14()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read Read manual mode (0x8C)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Read manual mode (0x8C)\" register:" << 140 << "size:" << 1;
+    reply = readReadManualMode();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Read manual mode (0x8C)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Read manual mode (0x8C)\" register" << 140 << "size:" << 1 << unit.values();
+        processReadManualModeRegisterValues(unit.values());
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"Read manual mode (0x8C)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::update15()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read Write manual mode (0x20)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Write manual mode (0x20)\" register:" << 32 << "size:" << 1;
+    reply = readWriteManualMode();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Write manual mode (0x20)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Write manual mode (0x20)\" register" << 32 << "size:" << 1 << unit.values();
+        processWriteManualModeRegisterValues(unit.values());
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"Write manual mode (0x20)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1268,6 +1363,66 @@ void SolaxModbusTcpConnection::updateSetActivePowerLimit()
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"Active power limit (0x11)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::updateReadManualMode()
+{
+    // Update registers from Read manual mode (0x8C)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Read manual mode (0x8C)\" register:" << 140 << "size:" << 1;
+    QModbusReply *reply = readReadManualMode();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Read manual mode (0x8C)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Read manual mode (0x8C)\" register" << 140 << "size:" << 1 << unit.values();
+            processReadManualModeRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"Read manual mode (0x8C)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::updateWriteManualMode()
+{
+    // Update registers from Write manual mode (0x20)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Write manual mode (0x20)\" register:" << 32 << "size:" << 1;
+    QModbusReply *reply = readWriteManualMode();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Write manual mode (0x20)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Write manual mode (0x20)\" register" << 32 << "size:" << 1 << unit.values();
+            processWriteManualModeRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"Write manual mode (0x20)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -2054,6 +2209,18 @@ QModbusReply *SolaxModbusTcpConnection::readInverterType()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *SolaxModbusTcpConnection::readReadManualMode()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 140, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readWriteManualMode()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 32, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *SolaxModbusTcpConnection::readSerialNumber()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0, 7);
@@ -2426,6 +2593,28 @@ void SolaxModbusTcpConnection::processInverterTypeRegisterValues(const QVector<q
     if (m_inverterType != receivedInverterType) {
         m_inverterType = receivedInverterType;
         emit inverterTypeChanged(m_inverterType);
+    }
+}
+
+void SolaxModbusTcpConnection::processReadManualModeRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedReadManualMode = ModbusDataUtils::convertToUInt16(values);
+    emit readManualModeReadFinished(receivedReadManualMode);
+
+    if (m_readManualMode != receivedReadManualMode) {
+        m_readManualMode = receivedReadManualMode;
+        emit readManualModeChanged(m_readManualMode);
+    }
+}
+
+void SolaxModbusTcpConnection::processWriteManualModeRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedWriteManualMode = ModbusDataUtils::convertToUInt16(values);
+    emit writeManualModeReadFinished(receivedWriteManualMode);
+
+    if (m_writeManualMode != receivedWriteManualMode) {
+        m_writeManualMode = receivedWriteManualMode;
+        emit writeManualModeChanged(m_writeManualMode);
     }
 }
 
@@ -2980,6 +3169,8 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - Active power limit (0x11): " << solaxModbusTcpConnection->setActivePowerLimit() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Firmware version (0x7D): " << solaxModbusTcpConnection->firmwareVersion() << "\n";
     debug.nospace().noquote() << "    - Inverter rated power (0xBA): " << solaxModbusTcpConnection->inverterType() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - Read manual mode (0x8C): " << solaxModbusTcpConnection->readManualMode() << "\n";
+    debug.nospace().noquote() << "    - Write manual mode (0x20): " << solaxModbusTcpConnection->writeManualMode() << "\n";
     debug.nospace().noquote() << "    - Serial number (0x00): " << solaxModbusTcpConnection->serialNumber() << "\n";
     debug.nospace().noquote() << "    - Factory name (0x07): " << solaxModbusTcpConnection->factoryName() << "\n";
     debug.nospace().noquote() << "    - Module name (0x0E): " << solaxModbusTcpConnection->moduleName() << "\n";

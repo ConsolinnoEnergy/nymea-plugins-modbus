@@ -69,6 +69,7 @@ public:
         RegisterBmsConnectState = 23,
         RegisterTemperatureBat = 24,
         RegisterBatteryCapacity = 28,
+        RegisterWriteManualMode = 32,
         RegisterActivePowerLimit = 37,
         RegisterInverterFaultBits = 64,
         RegisterSetActivePowerLimit = 66,
@@ -90,6 +91,7 @@ public:
         RegisterGridPowerT = 116,
         RegisterGridFrequencyT = 117,
         RegisterFirmwareVersion = 125,
+        RegisterReadManualMode = 140,
         RegisterSolarEnergyTotal = 148,
         RegisterSolarEnergyToday = 150,
         RegisterMeter1CommunicationState = 184,
@@ -149,6 +151,13 @@ public:
 
     /* Inverter rated power (0xBA) [W] - Address: 186, Size: 1 */
     quint16 inverterType() const;
+
+    /* Read manual mode (0x8C) - Address: 140, Size: 1 */
+    quint16 readManualMode() const;
+
+    /* Write manual mode (0x20) - Address: 32, Size: 1 */
+    quint16 writeManualMode() const;
+    QModbusReply *setWriteManualMode(quint16 writeManualMode);
 
     /* Serial number (0x00) - Address: 0, Size: 7 */
     QString serialNumber() const;
@@ -343,6 +352,8 @@ public:
     void updateMeter1CommunicationState();
     void updateActivePowerLimit();
     void updateSetActivePowerLimit();
+    void updateReadManualMode();
+    void updateWriteManualMode();
 
     void updateSerialNumber();
     void updateFactoryName();
@@ -393,6 +404,8 @@ public:
     QModbusReply *readSetActivePowerLimit();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readInverterType();
+    QModbusReply *readReadManualMode();
+    QModbusReply *readWriteManualMode();
     QModbusReply *readSerialNumber();
     QModbusReply *readFactoryName();
     QModbusReply *readModuleName();
@@ -517,6 +530,8 @@ public:
     virtual void update11();
     virtual void update12();
     virtual void update13();
+    virtual void update14();
+    virtual void update15();
 
 signals:
     void reachableChanged(bool reachable);
@@ -546,6 +561,10 @@ signals:
     void firmwareVersionReadFinished(quint16 firmwareVersion);
     void inverterTypeChanged(quint16 inverterType);
     void inverterTypeReadFinished(quint16 inverterType);
+    void readManualModeChanged(quint16 readManualMode);
+    void readManualModeReadFinished(quint16 readManualMode);
+    void writeManualModeChanged(quint16 writeManualMode);
+    void writeManualModeReadFinished(quint16 writeManualMode);
 
     void serialNumberChanged(const QString &serialNumber);
     void serialNumberReadFinished(const QString &serialNumber);
@@ -636,6 +655,8 @@ protected:
     quint16 m_setActivePowerLimit = 0;
     quint16 m_firmwareVersion = 0;
     quint16 m_inverterType = 0;
+    quint16 m_readManualMode = 0;
+    quint16 m_writeManualMode = 0;
     QString m_serialNumber;
     QString m_factoryName;
     QString m_moduleName;
@@ -685,6 +706,8 @@ protected:
     void processSetActivePowerLimitRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processInverterTypeRegisterValues(const QVector<quint16> values);
+    void processReadManualModeRegisterValues(const QVector<quint16> values);
+    void processWriteManualModeRegisterValues(const QVector<quint16> values);
 
     void processSerialNumberRegisterValues(const QVector<quint16> values);
     void processFactoryNameRegisterValues(const QVector<quint16> values);
