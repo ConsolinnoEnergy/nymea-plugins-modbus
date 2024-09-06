@@ -111,7 +111,6 @@ public:
     void setCheckReachableRetries(uint checkReachableRetries);
 
     /* Control charing of the EVC (0x4001) - Address: 16385, Size: 1 */
-    quint16 chargingControl() const;
     QModbusReply *setChargingControl(quint16 chargingControl);
 
     /* Work Mode of the EVC (0x3000) - Address: 12288, Size: 2 */
@@ -274,7 +273,6 @@ public:
     */
     void updateChargeSettingsBlock();
 
-    void updateChargingControl();
     void updateWorkMode();
 
     void updateDeviceAddress();
@@ -311,7 +309,6 @@ public:
     void updateTimeValidity();
     void updateDefaultCurrent();
 
-    QModbusReply *readChargingControl();
     QModbusReply *readWorkMode();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readMaxSupportedPower();
@@ -408,8 +405,6 @@ signals:
 
     void endiannessChanged(ModbusDataUtils::ByteOrder endianness);
 
-    void chargingControlChanged(quint16 chargingControl);
-    void chargingControlReadFinished(quint16 chargingControl);
     void workModeChanged(quint32 workMode);
     void workModeReadFinished(quint32 workMode);
     void firmwareVersionChanged(quint16 firmwareVersion);
@@ -523,7 +518,6 @@ protected:
     quint16 m_timeValidity = 30;
     float m_defaultCurrent = 6;
 
-    void processChargingControlRegisterValues(const QVector<quint16> values);
     void processWorkModeRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processMaxSupportedPowerRegisterValues(const QVector<quint16> values);
