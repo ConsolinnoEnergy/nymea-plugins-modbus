@@ -357,6 +357,34 @@ float SolaxModbusTcpConnection::solarEnergyToday() const
     return m_solarEnergyToday;
 }
 
+float SolaxModbusTcpConnection::controlBatteryVoltage() const
+{
+    return m_controlBatteryVoltage;
+}
+
+QModbusReply *SolaxModbusTcpConnection::setControlBatteryVoltage(float controlBatteryVoltage)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(static_cast<quint16>(controlBatteryVoltage  * 1.0 / pow(10, -1)));
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Control Battery voltage (0x3)\" register:" << 3 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 3, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
+float SolaxModbusTcpConnection::controlBatteryCurrent() const
+{
+    return m_controlBatteryCurrent;
+}
+
+QModbusReply *SolaxModbusTcpConnection::setControlBatteryCurrent(float controlBatteryCurrent)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromInt16(static_cast<qint16>(controlBatteryCurrent  * 1.0 / pow(10, -1)));
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Control Battery current (0x4)\" register:" << 4 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
 bool SolaxModbusTcpConnection::initialize()
 {
     if (!m_reachable) {
@@ -985,11 +1013,51 @@ void SolaxModbusTcpConnection::update12()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Active power limit (0x11)\" register" << 65 << "size:" << 1 << unit.values();
         processSetActivePowerLimitRegisterValues(unit.values());
-        verifyUpdateFinished();
+        update13();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"Active power limit (0x11)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::update13()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read batterControl
+    reply = readBlockBatterControl();
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read block \"batterControl\" registers from:" << 3 << "size:" << 2;
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading block \"batterControl\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        const QVector<quint16> blockValues = unit.values();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"batterControl\" register" << 3 << "size:" << 2 << blockValues;
+        processControlBatteryVoltageRegisterValues(blockValues.mid(0, 1));
+        processControlBatteryCurrentRegisterValues(blockValues.mid(1, 1));
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"batterControl\" registers" << error << reply->errorString();
     });
 }
 
@@ -1900,6 +1968,38 @@ void SolaxModbusTcpConnection::updateSolarEnergyBlock()
     });
 }
 
+void SolaxModbusTcpConnection::updateBatterControlBlock()
+{
+    // Update register block "batterControl"
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read block \"batterControl\" registers from:" << 3 << "size:" << 2;
+    QModbusReply *reply = readBlockBatterControl();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading block \"batterControl\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            const QVector<quint16> blockValues = unit.values();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"batterControl\" register" << 3 << "size:" << 2 << blockValues;
+            processControlBatteryVoltageRegisterValues(blockValues.mid(0, 1));
+            processControlBatteryCurrentRegisterValues(blockValues.mid(1, 1));
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"batterControl\" registers" << error << reply->errorString();
+    });
+}
+
 QModbusReply *SolaxModbusTcpConnection::readBatteryCapacity()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 28, 1);
@@ -2176,6 +2276,18 @@ QModbusReply *SolaxModbusTcpConnection::readSolarEnergyToday()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *SolaxModbusTcpConnection::readControlBatteryVoltage()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 3, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readControlBatteryCurrent()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *SolaxModbusTcpConnection::readBlockIdentification()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0, 21);
@@ -2209,6 +2321,12 @@ QModbusReply *SolaxModbusTcpConnection::readBlockPhasesData()
 QModbusReply *SolaxModbusTcpConnection::readBlockSolarEnergy()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 148, 3);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readBlockBatterControl()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 3, 2);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -2718,6 +2836,28 @@ void SolaxModbusTcpConnection::processSolarEnergyTodayRegisterValues(const QVect
     }
 }
 
+void SolaxModbusTcpConnection::processControlBatteryVoltageRegisterValues(const QVector<quint16> values)
+{
+    float receivedControlBatteryVoltage = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
+    emit controlBatteryVoltageReadFinished(receivedControlBatteryVoltage);
+
+    if (m_controlBatteryVoltage != receivedControlBatteryVoltage) {
+        m_controlBatteryVoltage = receivedControlBatteryVoltage;
+        emit controlBatteryVoltageChanged(m_controlBatteryVoltage);
+    }
+}
+
+void SolaxModbusTcpConnection::processControlBatteryCurrentRegisterValues(const QVector<quint16> values)
+{
+    float receivedControlBatteryCurrent = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -1);
+    emit controlBatteryCurrentReadFinished(receivedControlBatteryCurrent);
+
+    if (m_controlBatteryCurrent != receivedControlBatteryCurrent) {
+        m_controlBatteryCurrent = receivedControlBatteryCurrent;
+        emit controlBatteryCurrentChanged(m_controlBatteryCurrent);
+    }
+}
+
 void SolaxModbusTcpConnection::handleModbusError(QModbusDevice::Error error)
 {
     if (error == QModbusDevice::NoError) {
@@ -2877,6 +3017,8 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - Phase T frequency (0x75): " << solaxModbusTcpConnection->gridFrequencyT() << " [Hz]" << "\n";
     debug.nospace().noquote() << "    - Solar energy produced total (0x94): " << solaxModbusTcpConnection->solarEnergyTotal() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Solar energy produced today (0x96): " << solaxModbusTcpConnection->solarEnergyToday() << " [kWh]" << "\n";
+    debug.nospace().noquote() << "    - Control Battery voltage (0x3): " << solaxModbusTcpConnection->controlBatteryVoltage() << " [V]" << "\n";
+    debug.nospace().noquote() << "    - Control Battery current (0x4): " << solaxModbusTcpConnection->controlBatteryCurrent() << " [A]" << "\n";
     return debug.quote().space();
 }
 

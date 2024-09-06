@@ -525,6 +525,36 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "batterControl",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "controlBatteryVoltage",
+                    "address": 3,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Control Battery voltage (0x3)",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RW"
+                },
+                {
+                    "id": "controlBatteryCurrent",
+                    "address": 4,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Control Battery current (0x4)",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RW"
+                }
+            ]
         }
     ],
     "registers": [

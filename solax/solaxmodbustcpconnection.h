@@ -53,8 +53,8 @@ public:
         RegisterInverterVoltage = 0,
         RegisterInverterCurrent = 1,
         RegisterInverterPower = 2,
-        RegisterPvVoltage1 = 3,
-        RegisterPvVoltage2 = 4,
+        RegisterControlBatteryVoltage = 3,
+        RegisterControlBatteryCurrent = 4,
         RegisterPvCurrent1 = 5,
         RegisterPvCurrent2 = 6,
         RegisterInverterFrequency = 7,
@@ -261,6 +261,14 @@ public:
     /* Solar energy produced today (0x96) [kWh] - Address: 150, Size: 1 */
     float solarEnergyToday() const;
 
+    /* Control Battery voltage (0x3) [V] - Address: 3, Size: 1 */
+    float controlBatteryVoltage() const;
+    QModbusReply *setControlBatteryVoltage(float controlBatteryVoltage);
+
+    /* Control Battery current (0x4) [A] - Address: 4, Size: 1 */
+    float controlBatteryCurrent() const;
+    QModbusReply *setControlBatteryCurrent(float controlBatteryCurrent);
+
     /* Read block from start addess 0 with size of 21 registers containing following 3 properties:
       - Serial number (0x00) - Address: 0, Size: 7
       - Factory name (0x07) - Address: 7, Size: 7
@@ -322,6 +330,12 @@ public:
     */
     void updateSolarEnergyBlock();
 
+    /* Read block from start addess 3 with size of 2 registers containing following 2 properties:
+      - Control Battery voltage (0x3) [V] - Address: 3, Size: 1
+      - Control Battery current (0x4) [A] - Address: 4, Size: 1
+    */
+    void updateBatterControlBlock();
+
     void updateBatteryCapacity();
     void updateBmsWarningLsb();
     void updateBmsWarningMsb();
@@ -367,6 +381,8 @@ public:
     void updateGridFrequencyT();
     void updateSolarEnergyTotal();
     void updateSolarEnergyToday();
+    void updateControlBatteryVoltage();
+    void updateControlBatteryCurrent();
 
     QModbusReply *readBatteryCapacity();
     QModbusReply *readBmsWarningLsb();
@@ -414,6 +430,8 @@ public:
     QModbusReply *readGridFrequencyT();
     QModbusReply *readSolarEnergyTotal();
     QModbusReply *readSolarEnergyToday();
+    QModbusReply *readControlBatteryVoltage();
+    QModbusReply *readControlBatteryCurrent();
 
     /* Read block from start addess 0 with size of 21 registers containing following 3 properties:
      - Serial number (0x00) - Address: 0, Size: 7
@@ -476,6 +494,12 @@ public:
     */
     QModbusReply *readBlockSolarEnergy();
 
+    /* Read block from start addess 3 with size of 2 registers containing following 2 properties:
+     - Control Battery voltage (0x3) [V] - Address: 3, Size: 1
+     - Control Battery current (0x4) [A] - Address: 4, Size: 1
+    */
+    QModbusReply *readBlockBatterControl();
+
 
     virtual bool initialize();
     virtual void initialize2();
@@ -492,6 +516,7 @@ public:
     virtual void update10();
     virtual void update11();
     virtual void update12();
+    virtual void update13();
 
 signals:
     void reachableChanged(bool reachable);
@@ -596,6 +621,10 @@ signals:
     void solarEnergyTotalReadFinished(float solarEnergyTotal);
     void solarEnergyTodayChanged(float solarEnergyToday);
     void solarEnergyTodayReadFinished(float solarEnergyToday);
+    void controlBatteryVoltageChanged(float controlBatteryVoltage);
+    void controlBatteryVoltageReadFinished(float controlBatteryVoltage);
+    void controlBatteryCurrentChanged(float controlBatteryCurrent);
+    void controlBatteryCurrentReadFinished(float controlBatteryCurrent);
 
 protected:
     quint16 m_batteryCapacity = 0;
@@ -644,6 +673,8 @@ protected:
     float m_gridFrequencyT = 0;
     float m_solarEnergyTotal = 0;
     float m_solarEnergyToday = 0;
+    float m_controlBatteryVoltage = 0;
+    float m_controlBatteryCurrent = 0;
 
     void processBatteryCapacityRegisterValues(const QVector<quint16> values);
     void processBmsWarningLsbRegisterValues(const QVector<quint16> values);
@@ -697,6 +728,9 @@ protected:
 
     void processSolarEnergyTotalRegisterValues(const QVector<quint16> values);
     void processSolarEnergyTodayRegisterValues(const QVector<quint16> values);
+
+    void processControlBatteryVoltageRegisterValues(const QVector<quint16> values);
+    void processControlBatteryCurrentRegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();
