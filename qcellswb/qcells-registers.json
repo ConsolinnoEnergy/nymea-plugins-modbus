@@ -427,51 +427,19 @@
                     "access": "RW"
                 }
             ] 
-        },
-        {
-            "id": "chargeControl",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "lockControl",
-                    "description": "State of the Lock of the EVC (0x4000)",
-                    "address": 16384,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "access": "RW"
-                },
-                {
-                    "id": "chargingControl",
-                    "description": "Control charing of the EVC (0x4001)",
-                    "address": 16385,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "access": "RW"
-                },
-                {
-                    "id": "phaseSwitching",
-                    "description": "Phase switching instructions of the EVC (0x4002)",
-                    "address": 16386,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "access": "RW"
-                },
-                {
-                    "id": "restartEVC",
-                    "description": "Restart the evc (0x4003)",
-                    "address": 16387,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "access": "RW"
-                }
-            ]
         }
     ],
     "registers": [
+        {
+            "id": "chargingControl",
+            "description": "Control charing of the EVC (0x4001)",
+            "address": 16385,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "access": "RW"
+        },
         {
             "id": "workMode",
             "description": "Work Mode of the EVC (0x3000)",

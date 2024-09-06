@@ -84,10 +84,7 @@ public:
         RegisterMaxChargeEnergy = 12292,
         RegisterTimeValidity = 12293,
         RegisterDefaultCurrent = 12294,
-        RegisterLockControl = 16384,
-        RegisterChargingControl = 16385,
-        RegisterPhaseSwitching = 16386,
-        RegisterRestartEVC = 16387
+        RegisterChargingControl = 16385
     };
     Q_ENUM(Registers)
 
@@ -112,6 +109,10 @@ public:
 
     uint checkReachableRetries() const;
     void setCheckReachableRetries(uint checkReachableRetries);
+
+    /* Control charing of the EVC (0x4001) - Address: 16385, Size: 1 */
+    quint16 chargingControl() const;
+    QModbusReply *setChargingControl(quint16 chargingControl);
 
     /* Work Mode of the EVC (0x3000) - Address: 12288, Size: 2 */
     quint32 workMode() const;
@@ -228,22 +229,6 @@ public:
     float defaultCurrent() const;
     QModbusReply *setDefaultCurrent(float defaultCurrent);
 
-    /* State of the Lock of the EVC (0x4000) - Address: 16384, Size: 1 */
-    quint16 lockControl() const;
-    QModbusReply *setLockControl(quint16 lockControl);
-
-    /* Control charing of the EVC (0x4001) - Address: 16385, Size: 1 */
-    quint16 chargingControl() const;
-    QModbusReply *setChargingControl(quint16 chargingControl);
-
-    /* Phase switching instructions of the EVC (0x4002) - Address: 16386, Size: 1 */
-    quint16 phaseSwitching() const;
-    QModbusReply *setPhaseSwitching(quint16 phaseSwitching);
-
-    /* Restart the evc (0x4003) - Address: 16387, Size: 1 */
-    quint16 restartEVC() const;
-    QModbusReply *setRestartEVC(quint16 restartEVC);
-
     /* Read block from start addess 4096 with size of 28 registers containing following 25 properties:
       - Modbus Address of the EVC (0x1000) - Address: 4096, Size: 1
       - Unused Software version of EVC (0x1001) - Address: 4097, Size: 1
@@ -289,14 +274,7 @@ public:
     */
     void updateChargeSettingsBlock();
 
-    /* Read block from start addess 16384 with size of 4 registers containing following 4 properties:
-      - State of the Lock of the EVC (0x4000) - Address: 16384, Size: 1
-      - Control charing of the EVC (0x4001) - Address: 16385, Size: 1
-      - Phase switching instructions of the EVC (0x4002) - Address: 16386, Size: 1
-      - Restart the evc (0x4003) - Address: 16387, Size: 1
-    */
-    void updateChargeControlBlock();
-
+    void updateChargingControl();
     void updateWorkMode();
 
     void updateDeviceAddress();
@@ -332,11 +310,8 @@ public:
     void updateMaxChargeEnergy();
     void updateTimeValidity();
     void updateDefaultCurrent();
-    void updateLockControl();
-    void updateChargingControl();
-    void updatePhaseSwitching();
-    void updateRestartEVC();
 
+    QModbusReply *readChargingControl();
     QModbusReply *readWorkMode();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readMaxSupportedPower();
@@ -373,10 +348,6 @@ public:
     QModbusReply *readMaxChargeEnergy();
     QModbusReply *readTimeValidity();
     QModbusReply *readDefaultCurrent();
-    QModbusReply *readLockControl();
-    QModbusReply *readChargingControl();
-    QModbusReply *readPhaseSwitching();
-    QModbusReply *readRestartEVC();
 
     /* Read block from start addess 4096 with size of 28 registers containing following 25 properties:
      - Modbus Address of the EVC (0x1000) - Address: 4096, Size: 1
@@ -423,14 +394,6 @@ public:
     */
     QModbusReply *readBlockChargeSettings();
 
-    /* Read block from start addess 16384 with size of 4 registers containing following 4 properties:
-     - State of the Lock of the EVC (0x4000) - Address: 16384, Size: 1
-     - Control charing of the EVC (0x4001) - Address: 16385, Size: 1
-     - Phase switching instructions of the EVC (0x4002) - Address: 16386, Size: 1
-     - Restart the evc (0x4003) - Address: 16387, Size: 1
-    */
-    QModbusReply *readBlockChargeControl();
-
 
     virtual bool initialize();
     virtual bool update();
@@ -445,6 +408,8 @@ signals:
 
     void endiannessChanged(ModbusDataUtils::ByteOrder endianness);
 
+    void chargingControlChanged(quint16 chargingControl);
+    void chargingControlReadFinished(quint16 chargingControl);
     void workModeChanged(quint32 workMode);
     void workModeReadFinished(quint32 workMode);
     void firmwareVersionChanged(quint16 firmwareVersion);
@@ -518,16 +483,9 @@ signals:
     void timeValidityReadFinished(quint16 timeValidity);
     void defaultCurrentChanged(float defaultCurrent);
     void defaultCurrentReadFinished(float defaultCurrent);
-    void lockControlChanged(quint16 lockControl);
-    void lockControlReadFinished(quint16 lockControl);
-    void chargingControlChanged(quint16 chargingControl);
-    void chargingControlReadFinished(quint16 chargingControl);
-    void phaseSwitchingChanged(quint16 phaseSwitching);
-    void phaseSwitchingReadFinished(quint16 phaseSwitching);
-    void restartEVCChanged(quint16 restartEVC);
-    void restartEVCReadFinished(quint16 restartEVC);
 
 protected:
+    quint16 m_chargingControl;
     quint32 m_workMode = 0;
     quint16 m_firmwareVersion = 0x0000;
     float m_maxSupportedPower = 0;
@@ -564,11 +522,8 @@ protected:
     quint16 m_maxChargeEnergy = 0;
     quint16 m_timeValidity = 30;
     float m_defaultCurrent = 6;
-    quint16 m_lockControl;
-    quint16 m_chargingControl;
-    quint16 m_phaseSwitching;
-    quint16 m_restartEVC;
 
+    void processChargingControlRegisterValues(const QVector<quint16> values);
     void processWorkModeRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processMaxSupportedPowerRegisterValues(const QVector<quint16> values);
@@ -608,11 +563,6 @@ protected:
     void processMaxChargeEnergyRegisterValues(const QVector<quint16> values);
     void processTimeValidityRegisterValues(const QVector<quint16> values);
     void processDefaultCurrentRegisterValues(const QVector<quint16> values);
-
-    void processLockControlRegisterValues(const QVector<quint16> values);
-    void processChargingControlRegisterValues(const QVector<quint16> values);
-    void processPhaseSwitchingRegisterValues(const QVector<quint16> values);
-    void processRestartEVCRegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();

@@ -103,6 +103,20 @@ void QCellsModbusTcpConnection::setEndianness(ModbusDataUtils::ByteOrder endiann
     emit endiannessChanged(m_endianness);
 }
 
+quint16 QCellsModbusTcpConnection::chargingControl() const
+{
+    return m_chargingControl;
+}
+
+QModbusReply *QCellsModbusTcpConnection::setChargingControl(quint16 chargingControl)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(chargingControl);
+    qCDebug(dcQCellsModbusTcpConnection()) << "--> Write \"Control charing of the EVC (0x4001)\" register:" << 16385 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16385, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
 quint32 QCellsModbusTcpConnection::workMode() const
 {
     return m_workMode;
@@ -346,62 +360,6 @@ QModbusReply *QCellsModbusTcpConnection::setDefaultCurrent(float defaultCurrent)
     return sendWriteRequest(request, m_slaveId);
 }
 
-quint16 QCellsModbusTcpConnection::lockControl() const
-{
-    return m_lockControl;
-}
-
-QModbusReply *QCellsModbusTcpConnection::setLockControl(quint16 lockControl)
-{
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(lockControl);
-    qCDebug(dcQCellsModbusTcpConnection()) << "--> Write \"State of the Lock of the EVC (0x4000)\" register:" << 16384 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16384, values.count());
-    request.setValues(values);
-    return sendWriteRequest(request, m_slaveId);
-}
-
-quint16 QCellsModbusTcpConnection::chargingControl() const
-{
-    return m_chargingControl;
-}
-
-QModbusReply *QCellsModbusTcpConnection::setChargingControl(quint16 chargingControl)
-{
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(chargingControl);
-    qCDebug(dcQCellsModbusTcpConnection()) << "--> Write \"Control charing of the EVC (0x4001)\" register:" << 16385 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16385, values.count());
-    request.setValues(values);
-    return sendWriteRequest(request, m_slaveId);
-}
-
-quint16 QCellsModbusTcpConnection::phaseSwitching() const
-{
-    return m_phaseSwitching;
-}
-
-QModbusReply *QCellsModbusTcpConnection::setPhaseSwitching(quint16 phaseSwitching)
-{
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(phaseSwitching);
-    qCDebug(dcQCellsModbusTcpConnection()) << "--> Write \"Phase switching instructions of the EVC (0x4002)\" register:" << 16386 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16386, values.count());
-    request.setValues(values);
-    return sendWriteRequest(request, m_slaveId);
-}
-
-quint16 QCellsModbusTcpConnection::restartEVC() const
-{
-    return m_restartEVC;
-}
-
-QModbusReply *QCellsModbusTcpConnection::setRestartEVC(quint16 restartEVC)
-{
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(restartEVC);
-    qCDebug(dcQCellsModbusTcpConnection()) << "--> Write \"Restart the evc (0x4003)\" register:" << 16387 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16387, values.count());
-    request.setValues(values);
-    return sendWriteRequest(request, m_slaveId);
-}
-
 bool QCellsModbusTcpConnection::initialize()
 {
     if (!m_reachable) {
@@ -537,6 +495,39 @@ bool QCellsModbusTcpConnection::update()
 
     QModbusReply *reply = nullptr;
 
+    // Read Control charing of the EVC (0x4001)
+    qCDebug(dcQCellsModbusTcpConnection()) << "--> Read \"Control charing of the EVC (0x4001)\" register:" << 16385 << "size:" << 1;
+    reply = readChargingControl();
+    if (!reply) {
+        qCWarning(dcQCellsModbusTcpConnection()) << "Error occurred while reading \"Control charing of the EVC (0x4001)\" registers from" << hostAddress().toString() << errorString();
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return false;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcQCellsModbusTcpConnection()) << "<-- Response from \"Control charing of the EVC (0x4001)\" register" << 16385 << "size:" << 1 << unit.values();
+        processChargingControlRegisterValues(unit.values());
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while reading \"Control charing of the EVC (0x4001)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+
     // Read Work Mode of the EVC (0x3000)
     qCDebug(dcQCellsModbusTcpConnection()) << "--> Read \"Work Mode of the EVC (0x3000)\" register:" << 12288 << "size:" << 2;
     reply = readWorkMode();
@@ -668,45 +659,37 @@ bool QCellsModbusTcpConnection::update()
         qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while updating block \"chargeSettings\" registers" << error << reply->errorString();
     });
 
+    return true;
+}
 
-    // Read chargeControl
-    reply = readBlockChargeControl();
-    qCDebug(dcQCellsModbusTcpConnection()) << "--> Read block \"chargeControl\" registers from:" << 16384 << "size:" << 4;
+void QCellsModbusTcpConnection::updateChargingControl()
+{
+    // Update registers from Control charing of the EVC (0x4001)
+    qCDebug(dcQCellsModbusTcpConnection()) << "--> Read \"Control charing of the EVC (0x4001)\" register:" << 16385 << "size:" << 1;
+    QModbusReply *reply = readChargingControl();
     if (!reply) {
-        qCWarning(dcQCellsModbusTcpConnection()) << "Error occurred while reading block \"chargeControl\" registers";
-        return false;
+        qCWarning(dcQCellsModbusTcpConnection()) << "Error occurred while reading \"Control charing of the EVC (0x4001)\" registers from" << hostAddress().toString() << errorString();
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
-    m_pendingUpdateReplies.append(reply);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, reply](){
-        m_pendingUpdateReplies.removeAll(reply);
         handleModbusError(reply->error());
-        if (reply->error() != QModbusDevice::NoError) {
-            verifyUpdateFinished();
-            return;
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcQCellsModbusTcpConnection()) << "<-- Response from \"Control charing of the EVC (0x4001)\" register" << 16385 << "size:" << 1 << unit.values();
+            processChargingControlRegisterValues(unit.values());
         }
-
-        const QModbusDataUnit unit = reply->result();
-        const QVector<quint16> blockValues = unit.values();
-        qCDebug(dcQCellsModbusTcpConnection()) << "<-- Response from reading block \"chargeControl\" register" << 16384 << "size:" << 4 << blockValues;
-        processLockControlRegisterValues(blockValues.mid(0, 1));
-        processChargingControlRegisterValues(blockValues.mid(1, 1));
-        processPhaseSwitchingRegisterValues(blockValues.mid(2, 1));
-        processRestartEVCRegisterValues(blockValues.mid(3, 1));
-        verifyUpdateFinished();
     });
 
-    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
-        qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while updating block \"chargeControl\" registers" << error << reply->errorString();
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while updating \"Control charing of the EVC (0x4001)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
-
-    return true;
 }
 
 void QCellsModbusTcpConnection::updateWorkMode()
@@ -892,38 +875,10 @@ void QCellsModbusTcpConnection::updateChargeSettingsBlock()
     });
 }
 
-void QCellsModbusTcpConnection::updateChargeControlBlock()
+QModbusReply *QCellsModbusTcpConnection::readChargingControl()
 {
-    // Update register block "chargeControl"
-    qCDebug(dcQCellsModbusTcpConnection()) << "--> Read block \"chargeControl\" registers from:" << 16384 << "size:" << 4;
-    QModbusReply *reply = readBlockChargeControl();
-    if (!reply) {
-        qCWarning(dcQCellsModbusTcpConnection()) << "Error occurred while reading block \"chargeControl\" registers";
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            const QVector<quint16> blockValues = unit.values();
-            qCDebug(dcQCellsModbusTcpConnection()) << "<-- Response from reading block \"chargeControl\" register" << 16384 << "size:" << 4 << blockValues;
-            processLockControlRegisterValues(blockValues.mid(0, 1));
-            processChargingControlRegisterValues(blockValues.mid(1, 1));
-            processPhaseSwitchingRegisterValues(blockValues.mid(2, 1));
-            processRestartEVCRegisterValues(blockValues.mid(3, 1));
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
-        qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while updating block \"chargeControl\" registers" << error << reply->errorString();
-    });
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16385, 1);
+    return sendReadRequest(request, m_slaveId);
 }
 
 QModbusReply *QCellsModbusTcpConnection::readWorkMode()
@@ -1142,30 +1097,6 @@ QModbusReply *QCellsModbusTcpConnection::readDefaultCurrent()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *QCellsModbusTcpConnection::readLockControl()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16384, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *QCellsModbusTcpConnection::readChargingControl()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16385, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *QCellsModbusTcpConnection::readPhaseSwitching()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16386, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *QCellsModbusTcpConnection::readRestartEVC()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16387, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
 QModbusReply *QCellsModbusTcpConnection::readBlockChargingInfo()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 4096, 28);
@@ -1184,10 +1115,15 @@ QModbusReply *QCellsModbusTcpConnection::readBlockChargeSettings()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *QCellsModbusTcpConnection::readBlockChargeControl()
+void QCellsModbusTcpConnection::processChargingControlRegisterValues(const QVector<quint16> values)
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 16384, 4);
-    return sendReadRequest(request, m_slaveId);
+    quint16 receivedChargingControl = ModbusDataUtils::convertToUInt16(values);
+    emit chargingControlReadFinished(receivedChargingControl);
+
+    if (m_chargingControl != receivedChargingControl) {
+        m_chargingControl = receivedChargingControl;
+        emit chargingControlChanged(m_chargingControl);
+    }
 }
 
 void QCellsModbusTcpConnection::processWorkModeRegisterValues(const QVector<quint16> values)
@@ -1586,50 +1522,6 @@ void QCellsModbusTcpConnection::processDefaultCurrentRegisterValues(const QVecto
     }
 }
 
-void QCellsModbusTcpConnection::processLockControlRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedLockControl = ModbusDataUtils::convertToUInt16(values);
-    emit lockControlReadFinished(receivedLockControl);
-
-    if (m_lockControl != receivedLockControl) {
-        m_lockControl = receivedLockControl;
-        emit lockControlChanged(m_lockControl);
-    }
-}
-
-void QCellsModbusTcpConnection::processChargingControlRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedChargingControl = ModbusDataUtils::convertToUInt16(values);
-    emit chargingControlReadFinished(receivedChargingControl);
-
-    if (m_chargingControl != receivedChargingControl) {
-        m_chargingControl = receivedChargingControl;
-        emit chargingControlChanged(m_chargingControl);
-    }
-}
-
-void QCellsModbusTcpConnection::processPhaseSwitchingRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedPhaseSwitching = ModbusDataUtils::convertToUInt16(values);
-    emit phaseSwitchingReadFinished(receivedPhaseSwitching);
-
-    if (m_phaseSwitching != receivedPhaseSwitching) {
-        m_phaseSwitching = receivedPhaseSwitching;
-        emit phaseSwitchingChanged(m_phaseSwitching);
-    }
-}
-
-void QCellsModbusTcpConnection::processRestartEVCRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedRestartEVC = ModbusDataUtils::convertToUInt16(values);
-    emit restartEVCReadFinished(receivedRestartEVC);
-
-    if (m_restartEVC != receivedRestartEVC) {
-        m_restartEVC = receivedRestartEVC;
-        emit restartEVCChanged(m_restartEVC);
-    }
-}
-
 void QCellsModbusTcpConnection::handleModbusError(QModbusDevice::Error error)
 {
     if (error == QModbusDevice::NoError) {
@@ -1743,6 +1635,7 @@ void QCellsModbusTcpConnection::evaluateReachableState()
 QDebug operator<<(QDebug debug, QCellsModbusTcpConnection *qCellsModbusTcpConnection)
 {
     debug.nospace().noquote() << "QCellsModbusTcpConnection(" << qCellsModbusTcpConnection->hostAddress().toString() << ":" << qCellsModbusTcpConnection->port() << ")" << "\n";
+    debug.nospace().noquote() << "    - Control charing of the EVC (0x4001): " << qCellsModbusTcpConnection->chargingControl() << "\n";
     debug.nospace().noquote() << "    - Work Mode of the EVC (0x3000): " << qCellsModbusTcpConnection->workMode() << "\n";
     debug.nospace().noquote() << "    - Software version of EVC (0x1001): " << qCellsModbusTcpConnection->firmwareVersion() << "\n";
     debug.nospace().noquote() << "    - Maximum supported power of the EVC (0x1011): " << qCellsModbusTcpConnection->maxSupportedPower() << " [kW]" << "\n";
@@ -1779,10 +1672,6 @@ QDebug operator<<(QDebug debug, QCellsModbusTcpConnection *qCellsModbusTcpConnec
     debug.nospace().noquote() << "    - Maximum charge energy of the EVC (0x3004): " << qCellsModbusTcpConnection->maxChargeEnergy() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Maximum charge time (minutes) of the EVC (0x3005): " << qCellsModbusTcpConnection->timeValidity() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Default charging current of the EVC (0x3006): " << qCellsModbusTcpConnection->defaultCurrent() << " [A]" << "\n";
-    debug.nospace().noquote() << "    - State of the Lock of the EVC (0x4000): " << qCellsModbusTcpConnection->lockControl() << "\n";
-    debug.nospace().noquote() << "    - Control charing of the EVC (0x4001): " << qCellsModbusTcpConnection->chargingControl() << "\n";
-    debug.nospace().noquote() << "    - Phase switching instructions of the EVC (0x4002): " << qCellsModbusTcpConnection->phaseSwitching() << "\n";
-    debug.nospace().noquote() << "    - Restart the evc (0x4003): " << qCellsModbusTcpConnection->restartEVC() << "\n";
     return debug.quote().space();
 }
 
