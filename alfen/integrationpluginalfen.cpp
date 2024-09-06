@@ -115,9 +115,7 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
         uint port = thing->paramValue(alfenEveSingleProThingPortParamTypeId).toUInt();
         quint16 slaveId = thing->paramValue(alfenEveSingleProThingSlaveIdParamTypeId).toUInt();
         AlfenWallboxModbusTcpConnection *alfenWallboxTcpConnection = new AlfenWallboxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
-        //alfenWallboxTcpConnection = new AlfenWallboxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
-        //SchneiderWallbox *schneiderWallbox = new SchneiderWallbox(alfenWallboxTcpConnection, this);
-        //connect(info, &ThingSetupInfo::aborted, schneiderWallbox, &SchneiderWallbox::deleteLater);
+        alfenWallboxTcpConnection->setTimeout(2500);
         connect(info, &ThingSetupInfo::aborted, monitor, [monitor, this](){ hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);});
 
         quint16 minCurrentLimit = thing->paramValue(alfenEveSingleProThingMinChargeCurrentParamTypeId).toUInt();
@@ -137,13 +135,11 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
         connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::initializationFinished, info, [this, thing, monitor, alfenWallboxTcpConnection, info](bool success){
             if (success) {
                 qCDebug(dcAlfen()) << "Alfen wallbox initialized.";
-                //m_schneiderDevices.insert(thing, schneiderWallbox);
                 m_modbusTcpConnections.insert(thing, alfenWallboxTcpConnection);
                 m_monitors.insert(thing, monitor);
                 info->finish(Thing::ThingErrorNoError);
             } else {
                 hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
-                //schneiderWallbox->deleteLater();
                 info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Could not initialize the communication with the wallbox."));
             }
         });
@@ -238,14 +234,12 @@ void IntegrationPluginAlfen::postSetupThing(Thing *thing)
 
     if (!m_pluginTimer) {
         qCDebug(dcAlfen()) << "Starting plugin timer...";
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(3);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             foreach(Thing *thing, myThings()) {
                 if (m_monitors.value(thing)->reachable()) {
                     qCDebug(dcAlfen()) << "Updating" << thing->name();
                     m_modbusTcpConnections.value(thing)->update();
-                    //m_schneiderDevices.value(thing)->modbusTcpConnection()->update();
-                    //m_schneiderDevices.value(thing)->update();
                 } else {
                     qCDebug(dcAlfen()) << thing->name() << "isn't reachable. Not updating.";
                 }
@@ -298,7 +292,6 @@ void IntegrationPluginAlfen::executeAction(ThingActionInfo *info)
         }
 
 
-        //SchneiderWallbox *device = m_schneiderDevices.value(thing);
         bool success = false;
         if (action.actionTypeId() == alfenEveSingleProPowerActionTypeId) {
             bool state = action.paramValue(alfenEveSingleProPowerActionPowerParamTypeId).toBool();
