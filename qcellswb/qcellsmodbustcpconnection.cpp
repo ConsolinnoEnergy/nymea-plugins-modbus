@@ -398,12 +398,19 @@ bool QCellsModbusTcpConnection::initialize()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcQCellsModbusTcpConnection()) << "<-- Response from init \"Software version of EVC (0x1001)\" register" << 4097 << "size:" << 1 << unit.values();
         processFirmwareVersionRegisterValues(unit.values());
-        verifyInitFinished();
+        initialize1();
     });
 
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while reading \"Software version of EVC (0x1001)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
+
+    return true;
+}
+
+void QCellsModbusTcpConnection::initialize1()
+{
+    QModbusReply *reply = nullptr;
 
     // Read Maximum supported power of the EVC (0x1011)
     qCDebug(dcQCellsModbusTcpConnection()) << "--> Read init \"Maximum supported power of the EVC (0x1011)\" register:" << 4113 << "size:" << 1;
@@ -411,12 +418,12 @@ bool QCellsModbusTcpConnection::initialize()
     if (!reply) {
         qCWarning(dcQCellsModbusTcpConnection()) << "Error occurred while reading \"Maximum supported power of the EVC (0x1011)\" registers from" << hostAddress().toString() << errorString();
         finishInitialization(false);
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingInitReplies.append(reply);
@@ -432,12 +439,17 @@ bool QCellsModbusTcpConnection::initialize()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcQCellsModbusTcpConnection()) << "<-- Response from init \"Maximum supported power of the EVC (0x1011)\" register" << 4113 << "size:" << 1 << unit.values();
         processMaxSupportedPowerRegisterValues(unit.values());
-        verifyInitFinished();
+        initialize2();
     });
 
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while reading \"Maximum supported power of the EVC (0x1011)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
+}
+
+void QCellsModbusTcpConnection::initialize2()
+{
+    QModbusReply *reply = nullptr;
 
     // Read systemInfo
     qCDebug(dcQCellsModbusTcpConnection()) << "--> Read init block \"systemInfo\" registers from:" << 4126 << "size:" << 20;
@@ -445,12 +457,12 @@ bool QCellsModbusTcpConnection::initialize()
     if (!reply) {
         qCWarning(dcQCellsModbusTcpConnection()) << "Error occurred while reading block \"systemInfo\" registers";
         finishInitialization(false);
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingInitReplies.append(reply);
@@ -474,8 +486,6 @@ bool QCellsModbusTcpConnection::initialize()
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [reply] (QModbusDevice::Error error){
         qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while updating block \"systemInfo\" registers" << error << reply->errorString();
     });
-
-    return true;
 }
 
 bool QCellsModbusTcpConnection::update()
@@ -516,24 +526,31 @@ bool QCellsModbusTcpConnection::update()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcQCellsModbusTcpConnection()) << "<-- Response from \"Work Mode of the EVC (0x3000)\" register" << 12288 << "size:" << 2 << unit.values();
         processWorkModeRegisterValues(unit.values());
-        verifyUpdateFinished();
+        update1();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while reading \"Work Mode of the EVC (0x3000)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 
+    return true;
+}
+
+void QCellsModbusTcpConnection::update1()
+{
+    QModbusReply *reply = nullptr;
+
     // Read chargingInfo
     reply = readBlockChargingInfo();
     qCDebug(dcQCellsModbusTcpConnection()) << "--> Read block \"chargingInfo\" registers from:" << 4096 << "size:" << 28;
     if (!reply) {
         qCWarning(dcQCellsModbusTcpConnection()) << "Error occurred while reading block \"chargingInfo\" registers";
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -574,25 +591,29 @@ bool QCellsModbusTcpConnection::update()
         processTotalEnergyRegisterValues(blockValues.mid(22, 2));
         processSessionEnergyConsumedRegisterValues(blockValues.mid(24, 2));
         processFaultInfoRegisterValues(blockValues.mid(26, 2));
-        verifyUpdateFinished();
+        update2();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while updating block \"chargingInfo\" registers" << error << reply->errorString();
     });
+}
 
+void QCellsModbusTcpConnection::update2()
+{
+    QModbusReply *reply = nullptr;
 
     // Read chargeSettings
     reply = readBlockChargeSettings();
     qCDebug(dcQCellsModbusTcpConnection()) << "--> Read block \"chargeSettings\" registers from:" << 12289 << "size:" << 6;
     if (!reply) {
         qCWarning(dcQCellsModbusTcpConnection()) << "Error occurred while reading block \"chargeSettings\" registers";
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -620,8 +641,6 @@ bool QCellsModbusTcpConnection::update()
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcQCellsModbusTcpConnection()) << "Modbus reply error occurred while updating block \"chargeSettings\" registers" << error << reply->errorString();
     });
-
-    return true;
 }
 
 void QCellsModbusTcpConnection::updateWorkMode()

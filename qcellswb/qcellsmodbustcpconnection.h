@@ -393,7 +393,11 @@ public:
 
 
     virtual bool initialize();
+    virtual void initialize1();
+    virtual void initialize2();
     virtual bool update();
+    virtual void update1();
+    virtual void update2();
 
 signals:
     void reachableChanged(bool reachable);
