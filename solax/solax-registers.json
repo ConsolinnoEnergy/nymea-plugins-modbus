@@ -57,15 +57,6 @@
             "readSchedule": "init",
             "registers": [
                 {
-                    "id": "serialNumber",
-                    "address": 0,
-                    "size": 7,
-                    "type": "string",
-                    "registerType": "holdingRegister",
-                    "description": "Serial number (0x00)",
-                    "access": "RO"
-                },
-                {
                     "id": "factoryName",
                     "address": 7,
                     "size": 7,
@@ -525,39 +516,19 @@
                     "access": "RO"
                 }
             ]
-        },
-        {
-            "id": "batterControl",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "controlBatteryVoltage",
-                    "address": 3,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "description": "Control Battery voltage (0x3)",
-                    "unit": "V",
-                    "defaultValue": "0",
-                    "staticScaleFactor": -1,
-                    "access": "RW"
-                },
-                {
-                    "id": "controlBatteryCurrent",
-                    "address": 4,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "description": "Control Battery current (0x4)",
-                    "unit": "A",
-                    "defaultValue": "0",
-                    "staticScaleFactor": -1,
-                    "access": "RW"
-                }
-            ]
         }
     ],
     "registers": [
+        {
+            "id": "unlockPassword",
+            "address": 0,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "Unlock password (0x00)",
+            "access": "RW"
+        },
         {
             "id": "batteryCapacity",
             "address": 28,
@@ -615,8 +586,8 @@
             "access": "RO"
         },
         {
-            "id": "activePowerLimit",
-            "address": 37,
+            "id": "readExportLimit",
+            "address": 182,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
@@ -627,7 +598,7 @@
             "access": "RO"
         },
         {
-            "id": "setActivePowerLimit",
+            "id": "writeExportLimit",
             "address": 66,
             "size": 1,
             "type": "uint16",
@@ -636,6 +607,7 @@
             "description": "Active power limit (0x11)",
             "unit": "W",
             "defaultValue": "0",
+            "staticScaleFactor": 1,
             "access": "RW"
         },
         {
@@ -660,28 +632,6 @@
             "unit": "W",
             "defaultValue": "0",
             "access": "RO"
-        },
-        {
-            "id": "readManualMode",
-            "address": 140,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "inputRegister",
-            "readSchedule": "update",
-            "description": "Read manual mode (0x8C)",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "writeManualMode",
-            "address": 32,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Write manual mode (0x20)",
-            "defaultValue": "0",
-            "access": "RW"
         }
     ]
 }

@@ -339,11 +339,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             thing->setStateValue(solaxX3InverterRTUEnergyProducedTodayStateTypeId, solarEnergyToday);
         });
 
-        connect(connection, &SolaxModbusRtuConnection::activePowerLimitChanged, thing, [thing](quint16 activePowerLimit){
-            qCDebug(dcSolax()) << "Inverter active power limit changed" << activePowerLimit << "%";
-            thing->setStateValue(solaxX3InverterRTUActivePowerLimitStateTypeId, activePowerLimit);
-        });
-
         connect(connection, &SolaxModbusRtuConnection::inverterFaultBitsChanged, thing, [this, thing](quint32 inverterFaultBits){
             qCDebug(dcSolax()) << "Inverter fault bits recieved" << inverterFaultBits;
             setErrorMessage(thing, inverterFaultBits);
@@ -607,6 +602,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
         }
         m_batteryPowerTimer = new QTimer(this);
+        /*
         connect(m_batteryPowerTimer, &QTimer::timeout, thing, [this, thing, parentThing]() {
             int batteryTimeout = thing->stateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId).toInt();
             double powerToSet = thing->stateValue(solaxBatteryForcePowerStateTypeId).toDouble();
@@ -620,6 +616,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 disableRemoteControl(parentThing);
             }
         });
+        */
         return;
     }
 }
@@ -1071,6 +1068,8 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
             return;
         }
 
+        setPassword(thing);
+
         if (!m_pluginTimer) {
             qCDebug(dcSolax()) << "Starting plugin timer...";
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
@@ -1098,6 +1097,29 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
             qCDebug(dcSolax()) << "Set up solax meter for" << thing;
             emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(solaxMeterThingClassId, "Solax Power Meter", QString(), thing->id()));
         }
+    }
+
+}
+
+void IntegrationPluginSolax::setPassword(Thing *thing)
+{
+    if (thing->thingClassId() == solaxX3InverterTCPThingClassId)
+    {
+        qCDebug(dcSolax()) << "Set unlock password";
+        // SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
+        // QModbusReply *reply = connection->setUnlockPassword(target);
+        // connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        // connect(reply, &QModbusReply::finished, info, [thing, reply](){
+        //     if (reply->error() != QModbusDevice::NoError) {
+        //         qCWarning(dcSolax()) << "Error setting unlockpassword" << reply->error() << reply->errorString();
+        //         setPassword(thing);
+        //     } else {
+        //         qCWarning(dcSolax()) << "Successfully set unlock password" << target;
+        //     }
+        // });
+
+    } else if (thing->thingClassId() == solaxX3InverterRTUThingClassId) {
+        qCDebug(dcSolax()) << "Set unlock password";
     }
 }
 
@@ -1158,7 +1180,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
         }
-
+        /*
         if (action.actionTypeId() == solaxBatteryEnableForcePowerActionTypeId) {
             // if false, set manual mode (0x0020) to 0
             // if true, set batter voltage and power and start timer
@@ -1196,6 +1218,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
+        */
     }
 }
 
@@ -1462,6 +1485,7 @@ void IntegrationPluginSolax::setBmsWarningMessage(Thing *thing)
     }
 }
 
+/*
 void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
 {
     SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
@@ -1486,7 +1510,8 @@ void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
         }
     });
 }
-
+*/
+/*
 void IntegrationPluginSolax::setBatteryPower(Thing *thing, double powerToSet, int batteryTimeout)
 {
     SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
@@ -1522,3 +1547,4 @@ void IntegrationPluginSolax::setBatteryPower(Thing *thing, double powerToSet, in
         }
     });
 }
+*/
