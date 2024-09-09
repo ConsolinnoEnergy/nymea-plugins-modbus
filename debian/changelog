@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.010) jammy; urgency=medium
+
+  * Improve timing in Alfen plugin
+
+ -- Leonhard Heizinger <l.heizinger@consolinno.de> Mon, 9 Sep 2024 10:14:00 +0200
+
 nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
 
   * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
