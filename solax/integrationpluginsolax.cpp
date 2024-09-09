@@ -1475,7 +1475,7 @@ void IntegrationPluginSolax::setBmsWarningMessage(Thing *thing)
     }
 }
 
-/*
+
 void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
 {
     SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
@@ -1488,7 +1488,23 @@ void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
     if (!m_batteryPowerTimer->isActive()) {
         m_batteryPowerTimer->stop();
     }
-    QModbusReply *reply = connection->setWriteManualMode(0);
+    // TODO: if this is not working, 0x7C needs to be set to 0 instead
+
+    quint32 modeTypeValue = (8 << 16) | 1;
+    QModbusReply *reply = connection->setModeType(modeTypeValue);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, thing, [thing, reply](){
+        if (reply->error() != QModbusDevice::NoError) {
+            qCWarning(dcSolax()) << "Error setting mode and type" << reply->error() << reply->errorString();
+            //info->finish(Thing::ThingErrorHardwareFailure);
+        } else {
+            qCWarning(dcSolax()) << "Mode set to 8, Type set to 1";
+            //info->finish(Thing::ThingErrorNoError);
+        }
+    });
+
+    quint32 timeoutValue = (5 << 16) | 5;
+    QModbusReply *reply = connection->setBatteryTimeout(timeoutValue);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, thing, [thing, reply](){
         if (reply->error() != QModbusDevice::NoError) {
@@ -1500,7 +1516,7 @@ void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
         }
     });
 }
-*/
+
 /*
 void IntegrationPluginSolax::setBatteryPower(Thing *thing, double powerToSet, int batteryTimeout)
 {
