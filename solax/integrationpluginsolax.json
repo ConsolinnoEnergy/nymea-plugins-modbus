@@ -226,16 +226,6 @@
                             "cached": false
                         },
                         {
-                            "id": "253cbe80-73d5-492a-98fb-22439697bd67",
-                            "name": "activePowerLimit",
-                            "displayName": "Active power limit",
-                            "displayNameEvent": "Active power limit changed",
-                            "type": "uint",
-                            "unit": "Percentage",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
                             "id": "ff0f093a-5be6-4086-8c82-9b12ec902213",
                             "name": "exportLimit",
                             "displayName": "Export power limit",

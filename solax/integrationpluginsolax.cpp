@@ -710,7 +710,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 qCDebug(dcSolax()) << "Solax inverter initialized.";
                 thing->setStateValue(solaxX3InverterTCPFirmwareVersionStateTypeId, connection->firmwareVersion());
                 thing->setStateValue(solaxX3InverterTCPNominalPowerStateTypeId, connection->inverterType());
-                thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, connection->inverterType());
+                // thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, connection->inverterType());
             } else {
                 qCDebug(dcSolax()) << "Solax inverter initialization failed.";
                 // Try once to reconnect the device
@@ -779,9 +779,9 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(solaxX3InverterTCPEnergyProducedTodayStateTypeId, solarEnergyToday);
         });
 
-        connect(connection, &SolaxModbusTcpConnection::activePowerLimitChanged, thing, [thing](quint16 activePowerLimit){
-            qCDebug(dcSolax()) << "Inverter active power limit changed" << activePowerLimit << "%";
-            thing->setStateValue(solaxX3InverterTCPActivePowerLimitStateTypeId, activePowerLimit);
+        connect(connection, &SolaxModbusTcpConnection::readExportLimitChanged, thing, [thing](float limit){
+            qCWarning(dcSolax()) << "Export limit changed to " << limit << "W";
+            thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, limit);
         });
 
         connect(connection, &SolaxModbusTcpConnection::inverterFaultBitsChanged, thing, [this, thing](quint32 inverterFaultBits){
@@ -1041,14 +1041,6 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &SolaxModbusTcpConnection::readManualModeChanged, thing, [this, thing](quint16 mode) {
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                qCDebug(dcSolax()) << "Battery manual mode changed" << mode;
-                batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, mode);
-            }
-        });
-
 
         if (monitor->reachable())
             connection->connectDevice();
@@ -1106,17 +1098,17 @@ void IntegrationPluginSolax::setPassword(Thing *thing)
     if (thing->thingClassId() == solaxX3InverterTCPThingClassId)
     {
         qCDebug(dcSolax()) << "Set unlock password";
-        // SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
-        // QModbusReply *reply = connection->setUnlockPassword(target);
-        // connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        // connect(reply, &QModbusReply::finished, info, [thing, reply](){
-        //     if (reply->error() != QModbusDevice::NoError) {
-        //         qCWarning(dcSolax()) << "Error setting unlockpassword" << reply->error() << reply->errorString();
-        //         setPassword(thing);
-        //     } else {
-        //         qCWarning(dcSolax()) << "Successfully set unlock password" << target;
-        //     }
-        // });
+        SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
+        QModbusReply *reply = connection->setUnlockPassword(2014);
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, thing, [this, thing, reply](){
+            if (reply->error() != QModbusDevice::NoError) {
+                qCWarning(dcSolax()) << "Error setting unlockpassword" << reply->error() << reply->errorString();
+                setPassword(thing);
+            } else {
+                qCWarning(dcSolax()) << "Successfully set unlock password";
+            }
+        });
 
     } else if (thing->thingClassId() == solaxX3InverterRTUThingClassId) {
         qCDebug(dcSolax()) << "Set unlock password";
@@ -1149,7 +1141,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             qCWarning(dcSolax()) << "Rated power is" << ratedPower;
             qCWarning(dcSolax()) << "Trying to set active power limit to" << powerLimit;
             quint16 target = powerLimit * (ratedPower/100); 
-            QModbusReply *reply = connection->setSetActivePowerLimit(target);
+            QModbusReply *reply = connection->setWriteExportLimit(target);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, info, [info, thing, reply, powerLimit, target](){
                 if (reply->error() != QModbusDevice::NoError) {
@@ -1157,8 +1149,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
                     info->finish(Thing::ThingErrorHardwareFailure);
                 } else {
                     qCWarning(dcSolax()) << "Active power limit set to" << target;
-                    thing->setStateValue(solaxX3InverterTCPActivePowerLimitStateTypeId, powerLimit);
-                    thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, target);
+                    //thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, target);
                     info->finish(Thing::ThingErrorNoError);
                 }
             });
