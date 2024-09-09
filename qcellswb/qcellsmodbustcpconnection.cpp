@@ -117,9 +117,14 @@ quint32 QCellsModbusTcpConnection::workMode() const
     return m_workMode;
 }
 
-QModbusReply *QCellsModbusTcpConnection::setWorkMode(quint32 workMode)
+QModbusReply *QCellsModbusTcpConnection::setWorkMode(quint32 workMode, float maxCurrent)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(workMode, m_endianness);
+    Q_UNUSED(workMode)
+    quint16 maxChargeCurrent = static_cast<quint16>(maxCurrent  * 1.0 / pow(10, -1));
+    // quint32 combinedValue = (maxCurrent) << 16 & 0xFFFF0000;
+    quint32 combinedValue = maxChargeCurrent & 0x0000FFFF;
+    qCWarning(dcQCellsModbusTcpConnection()) << "Setting work mode and current to" << combinedValue;
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(combinedValue, m_endianness);
     qCDebug(dcQCellsModbusTcpConnection()) << "--> Write \"Work Mode of the EVC (0x3000)\" register:" << 12288 << "size:" << 2 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12288, values.count());
     request.setValues(values);

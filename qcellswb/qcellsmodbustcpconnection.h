@@ -115,7 +115,7 @@ public:
 
     /* Work Mode of the EVC (0x3000) - Address: 12288, Size: 2 */
     quint32 workMode() const;
-    QModbusReply *setWorkMode(quint32 workMode);
+    QModbusReply *setWorkMode(quint32 workMode, float maxCurrent);
 
     /* Software version of EVC (0x1001) - Address: 4097, Size: 1 */
     quint16 firmwareVersion() const;

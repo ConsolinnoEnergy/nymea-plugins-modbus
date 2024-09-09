@@ -331,7 +331,8 @@ void IntegrationPluginQCells::setupTcpConnection(ThingSetupInfo *info)
         if (mode != 0)
         {
             qCDebug(dcQcells()) << "Setting workmode" << mode;
-            QModbusReply *reply = connection->setWorkMode(mode);
+            float maxCurrent = thing->stateValue(qCellsMaxChargingCurrentStateTypeId).toFloat();
+            QModbusReply *reply = connection->setWorkMode(0, maxCurrent);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply]() {
                 if (reply->error() == QModbusDevice::NoError) {
@@ -459,7 +460,7 @@ void IntegrationPluginQCells::postSetupThing(Thing *thing)
 
     if (!m_pluginTimer) {
         qCDebug(dcQcells()) << "Starting plugin timer..";
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(3);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcQcells()) << "Updating QCells EVC..";
             foreach (QCellsModbusTcpConnection *connection, m_tcpConnections) {
@@ -514,7 +515,7 @@ void IntegrationPluginQCells::setMaxCurrent(QCellsModbusTcpConnection *connectio
     if (maxCurrent < 7)
         maxCurrent = 7;
     qCDebug(dcQcells()) << "Setting maxChargeCurrent to" << maxCurrent;
-    QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent);
+    QModbusReply *reply = connection->setWorkMode(0, maxCurrent);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, connection, maxCurrent, reply]() {
         if (reply->error() == QModbusDevice::NoError) {
