@@ -533,7 +533,7 @@
                     "access": "RW"
                 },
                 {
-                    "id": "modeType",
+                    "id": "pvPowerLimit",
                     "address": 162,
                     "size": 2,
                     "type": "uint32",
@@ -545,7 +545,7 @@
                     "access": "RW"
                 },
                 {
-                    "id": "modeType",
+                    "id": "forceBatteryPower",
                     "address": 164,
                     "size": 2,
                     "type": "uint32",
@@ -557,7 +557,7 @@
                     "access": "RW"
                 },
                 {
-                    "id": "modeType",
+                    "id": "batteryTimeout",
                     "address": 166,
                     "size": 2,
                     "type": "uint32",

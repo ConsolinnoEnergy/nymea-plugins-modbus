@@ -341,6 +341,42 @@ float SolaxModbusTcpConnection::solarEnergyToday() const
     return m_solarEnergyToday;
 }
 
+QModbusReply *SolaxModbusTcpConnection::setModeType(quint32 modeType)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(modeType, m_endianness);
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Control mode and target type (0xA0)\" register:" << 160 << "size:" << 2 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 160, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::setPvPowerLimit(quint32 pvPowerLimit)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(pvPowerLimit, m_endianness);
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"PV power limit (0xA2)\" register:" << 162 << "size:" << 2 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 162, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::setForceBatteryPower(quint32 forceBatteryPower)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(forceBatteryPower, m_endianness);
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Battery power (0xA4)\" register:" << 164 << "size:" << 2 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 164, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::setBatteryTimeout(quint32 batteryTimeout)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(batteryTimeout, m_endianness);
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Timeout for battery (0xA6)\" register:" << 166 << "size:" << 2 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 166, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
 bool SolaxModbusTcpConnection::initialize()
 {
     if (!m_reachable) {
