@@ -683,6 +683,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::initializationFinished, thing, [=](bool success){
             thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, success);
+            setPassword(thing);
 
             // Set connected state for meter
             m_meterstates.find(thing)->modbusReachable = success;
@@ -1059,8 +1060,6 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
             qCDebug(dcSolax()) << "Aborting post setup, because setup did not complete.";
             return;
         }
-
-        setPassword(thing);
 
         if (!m_pluginTimer) {
             qCDebug(dcSolax()) << "Starting plugin timer...";

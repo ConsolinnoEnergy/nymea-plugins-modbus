@@ -928,6 +928,7 @@ void SolaxModbusTcpConnection::update11()
         qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"solarEnergy\" register" << 148 << "size:" << 3 << blockValues;
         processSolarEnergyTotalRegisterValues(blockValues.mid(0, 2));
         processSolarEnergyTodayRegisterValues(blockValues.mid(2, 1));
+        verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
