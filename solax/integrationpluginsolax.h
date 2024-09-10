@@ -82,7 +82,7 @@ private:
     
     void setPassword(Thing *thing);
     void disableRemoteControl(Thing *thing);
-    void setBatteryPower(Thing *thing, qint32 powerToSet, quint16 batteryTimeout);
+    void setBatteryPower(Thing *thing, qint32 powerToSet, quint16 batteryTimeout, bool update);
 };
 
 #endif // INTEGRATIONPLUGINSOLAX_H
