@@ -1098,7 +1098,9 @@ void IntegrationPluginSolax::setPassword(Thing *thing)
     {
         qCDebug(dcSolax()) << "Set unlock password";
         SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
-        QModbusReply *reply = connection->setUnlockPassword(2014);
+        uint password = thing->paramValue(solaxX3InverterTCPThingUnlockPasswordParamTypeId).toUInt();
+        QModbusReply *reply = connection->setUnlockPassword(password);
+        // QModbusReply *reply = connection->setUnlockPassword(2014);
         connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
         connect(reply, &QModbusReply::finished, thing, [this, thing, reply](){
             if (reply->error() != QModbusDevice::NoError) {
