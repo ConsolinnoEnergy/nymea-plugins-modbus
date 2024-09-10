@@ -1101,6 +1101,7 @@ void IntegrationPluginSolax::setPassword(Thing *thing)
         uint password = thing->paramValue(solaxX3InverterTCPThingUnlockPasswordParamTypeId).toUInt();
         QModbusReply *reply = connection->setUnlockPassword(password);
         // QModbusReply *reply = connection->setUnlockPassword(2014);
+        qCWarning(dcSolax()) << "The password is" << password;
         connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
         connect(reply, &QModbusReply::finished, thing, [this, thing, reply](){
             if (reply->error() != QModbusDevice::NoError) {
@@ -1159,10 +1160,11 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
         }
     } else if (thing->thingClassId() == solaxBatteryThingClassId) {
         Thing *inverterThing = myThings().findById(thing->parentId());
+        qCWarning(dcSolax()) << "executeAction: should be inverter thing" << inverterThing;
         SolaxModbusTcpConnection *connection = m_tcpConnections.value(inverterThing);
 
         if (!connection) {
-            qCWarning(dcSolax()) << "Modbus connection not available";
+            qCWarning(dcSolax()) << "Execute action battery - Modbus connection not available";
             info->finish(Thing::ThingErrorHardwareFailure);
             return;
         }
@@ -1180,9 +1182,9 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
 
             qCWarning(dcSolax()) << "Battery manual mode is enabled?" << state;
             if (state) {
-                setBatteryPower(thing, powerToSet, batteryTimeout, false);
+                setBatteryPower(inverterThing, powerToSet, batteryTimeout, false);
             } else {
-                disableRemoteControl(thing);
+                disableRemoteControl(inverterThing);
             }
 
             thing->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, state);
@@ -1492,7 +1494,7 @@ void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
 {
     SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
     if (!connection) {
-        qCWarning(dcSolax()) << "Modbus connection not available";
+        qCWarning(dcSolax()) << "disableRemoteControl - Modbus connection not available";
         // info->finish(Thing::ThingErrorHardwareFailure);
         return;
     }
@@ -1547,24 +1549,24 @@ void IntegrationPluginSolax::setBatteryPower(Thing *thing, qint32 powerToSet, qu
     quint32 pvPower = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toUInt();
     QModbusReply *replyPvPower = connection->setPvPowerLimit(pvPower);
     connect(replyPvPower, &QModbusReply::finished, replyPvPower, &QModbusReply::deleteLater);
-    connect(replyPvPower, &QModbusReply::finished, thing, [thing, replyPvPower](){
+    connect(replyPvPower, &QModbusReply::finished, thing, [thing, replyPvPower, pvPower](){
         if (replyPvPower->error() != QModbusDevice::NoError) {
             qCWarning(dcSolax()) << "setBatteryPower - Error setting pv power limit" << replyPvPower->error() << replyPvPower->errorString();
             //info->finish(Thing::ThingErrorHardwareFailure);
         } else {
-            qCWarning(dcSolax()) << "setBatteryPower - Set pv power limit to maximum";
+            qCWarning(dcSolax()) << "setBatteryPower - Set pv power limit to maximum" << pvPower;
             //info->finish(Thing::ThingErrorNoError);
         }
     });
 
     QModbusReply *replyBatterPower = connection->setForceBatteryPower(powerToSet);
     connect(replyBatterPower, &QModbusReply::finished, replyBatterPower, &QModbusReply::deleteLater);
-    connect(replyBatterPower, &QModbusReply::finished, thing, [thing, replyBatterPower](){
+    connect(replyBatterPower, &QModbusReply::finished, thing, [thing, replyBatterPower, powerToSet](){
         if (replyBatterPower->error() != QModbusDevice::NoError) {
             qCWarning(dcSolax()) << "setBatteryPower - Error setting pv power limit" << replyBatterPower->error() << replyBatterPower->errorString();
             //info->finish(Thing::ThingErrorHardwareFailure);
         } else {
-            qCWarning(dcSolax()) << "setBatteryPower - Set pv power limit to maximum";
+            qCWarning(dcSolax()) << "setBatteryPower - Set battery power to" << powerToSet;
             //info->finish(Thing::ThingErrorNoError);
         }
     });
@@ -1575,10 +1577,10 @@ void IntegrationPluginSolax::setBatteryPower(Thing *thing, qint32 powerToSet, qu
     connect(replyTimeout, &QModbusReply::finished, replyTimeout, &QModbusReply::deleteLater);
     connect(replyTimeout, &QModbusReply::finished, thing, [thing, replyTimeout](){
         if (replyTimeout->error() != QModbusDevice::NoError) {
-            qCWarning(dcSolax()) << "setBatteryPower - Error setting manual mode" << replyTimeout->error() << replyTimeout->errorString();
+            qCWarning(dcSolax()) << "setBatteryPower - Error setting battery timeout" << replyTimeout->error() << replyTimeout->errorString();
             //info->finish(Thing::ThingErrorHardwareFailure);
         } else {
-            qCWarning(dcSolax()) << "setBatteryPower - Manual mode set to 0";
+            qCWarning(dcSolax()) << "setBatteryPower - Successfully set battery timeout";
             //info->finish(Thing::ThingErrorNoError);
         }
     });
