@@ -520,6 +520,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 qCDebug(dcSolax()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
                 batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
                 batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
+                int minBatteryLevel = batteryThings.first()->stateValue(solaxBatteryMinBatteryLevelStateTypeId).toInt();
+                if (socBat1 <= minBatteryLevel) {
+                    disableRemoteControl(thing);
+                }
             }
         });
 
@@ -1007,6 +1011,10 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 qCDebug(dcSolax()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
                 batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
                 batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
+                int minBatteryLevel = batteryThings.first()->stateValue(solaxBatteryMinBatteryLevelStateTypeId).toInt();
+                if (socBat1 <= minBatteryLevel) {
+                    disableRemoteControl(thing);
+                }
             }
         });
 
@@ -1223,6 +1231,10 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             {
                 setBatteryPower(thing, batteryPower, timeout);
             }
+        } else if (action.actionTypeId() == solaxBatteryMinBatteryLevelActionTypeId) {
+            int minBatteryLevel = action.paramValue(solaxBatteryMinBatteryLevelActionMinBatteryLevelParamTypeId).toInt();
+            qCWarning(dcSolax()) << "Min battery level set to" << minBatteryLevel;
+            thing->setStateValue(solaxBatteryMinBatteryLevelStateTypeId, minBatteryLevel);
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
