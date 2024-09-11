@@ -88,13 +88,11 @@ public:
         RegisterGridCurrentT = 115,
         RegisterGridPowerT = 116,
         RegisterGridFrequencyT = 117,
+        RegisterModeType = 124,
         RegisterFirmwareVersion = 125,
+        RegisterForceBatteryPower = 137,
         RegisterSolarEnergyTotal = 148,
         RegisterSolarEnergyToday = 150,
-        RegisterModeType = 160,
-        RegisterPvPowerLimit = 162,
-        RegisterForceBatteryPower = 164,
-        RegisterBatteryTimeout = 166,
         RegisterReadExportLimit = 182,
         RegisterMeter1CommunicationState = 184,
         RegisterInverterType = 186
@@ -155,6 +153,12 @@ public:
 
     /* Inverter rated power (0xBA) [W] - Address: 186, Size: 1 */
     quint16 inverterType() const;
+
+    /* Control mode and target type (0x7C) - Address: 124, Size: 2 */
+    QModbusReply *setModeType(quint32 modeType);
+
+    /* Battery power (0x89) [W] - Address: 137, Size: 2 */
+    QModbusReply *setForceBatteryPower(qint32 forceBatteryPower);
 
     /* Factory name (0x07) - Address: 7, Size: 7 */
     QString factoryName() const;
@@ -263,18 +267,6 @@ public:
 
     /* Solar energy produced today (0x96) [kWh] - Address: 150, Size: 1 */
     float solarEnergyToday() const;
-
-    /* Control mode and target type (0xA0) - Address: 160, Size: 2 */
-    QModbusReply *setModeType(quint32 modeType);
-
-    /* PV power limit (0xA2) [W] - Address: 162, Size: 2 */
-    QModbusReply *setPvPowerLimit(quint32 pvPowerLimit);
-
-    /* Battery power (0xA4) [W] - Address: 164, Size: 2 */
-    QModbusReply *setForceBatteryPower(quint32 forceBatteryPower);
-
-    /* Timeout for battery (0xA6) - Address: 166, Size: 2 */
-    QModbusReply *setBatteryTimeout(quint32 batteryTimeout);
 
     /* Read block from start addess 7 with size of 14 registers containing following 2 properties:
       - Factory name (0x07) - Address: 7, Size: 7
@@ -612,6 +604,8 @@ protected:
     float m_writeExportLimit = 0;
     quint16 m_firmwareVersion = 0;
     quint16 m_inverterType = 0;
+    quint32 m_modeType = 0;
+    qint32 m_forceBatteryPower = 0;
     QString m_factoryName;
     QString m_moduleName;
     float m_inverterVoltage = 0;
@@ -648,10 +642,6 @@ protected:
     float m_gridFrequencyT = 0;
     float m_solarEnergyTotal = 0;
     float m_solarEnergyToday = 0;
-    quint32 m_modeType = 0;
-    quint32 m_pvPowerLimit = 0;
-    quint32 m_forceBatteryPower = 0;
-    quint32 m_batteryTimeout = 0;
 
     void processBatteryCapacityRegisterValues(const QVector<quint16> values);
     void processBmsWarningLsbRegisterValues(const QVector<quint16> values);
