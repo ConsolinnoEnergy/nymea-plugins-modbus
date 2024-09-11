@@ -516,58 +516,6 @@
                     "access": "RO"
                 }
             ]
-        },
-        {
-            "id": "batterControl",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "modeType",
-                    "address": 160,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Control mode and target type (0xA0)",
-                    "defaultValue": "0",
-                    "access": "RW"
-                },
-                {
-                    "id": "pvPowerLimit",
-                    "address": 162,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "PV power limit (0xA2)",
-                    "unit": "W",
-                    "defaultValue": "0",
-                    "access": "RW"
-                },
-                {
-                    "id": "forceBatteryPower",
-                    "address": 164,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Battery power (0xA4)",
-                    "unit": "W",
-                    "defaultValue": "0",
-                    "access": "RW"
-                },
-                {
-                    "id": "batteryTimeout",
-                    "address": 166,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Timeout for battery (0xA6)",
-                    "defaultValue": "0",
-                    "access": "RW"
-                }
-            ]
         }
     ],
     "registers": [
@@ -685,6 +633,29 @@
             "unit": "W",
             "defaultValue": "0",
             "access": "RO"
+        },
+        {
+            "id": "modeType",
+            "address": 124,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Control mode and target type (0x7C)",
+            "defaultValue": "0",
+            "access": "RW"
+        },
+        {
+            "id": "forceBatteryPower",
+            "address": 137,
+            "size": 2,
+            "type": "int32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Battery power (0x89)",
+            "unit": "W",
+            "defaultValue": "0",
+            "access": "RW"
         }
     ]
 }
