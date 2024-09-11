@@ -1190,6 +1190,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             }
 
             thing->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, state);
+            thing->setStateValue(solaxBatteryEnableForcePowerStateTypeId, state);
         } else if (action.actionTypeId() == solaxBatteryForcePowerActionTypeId) {
             int batteryPower = action.paramValue(solaxBatteryForcePowerActionForcePowerParamTypeId).toInt();
             qCWarning(dcSolax()) << "Battery power should be set to" << batteryPower;
