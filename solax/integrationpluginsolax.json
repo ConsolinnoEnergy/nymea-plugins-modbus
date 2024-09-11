@@ -55,13 +55,6 @@
                             "displayName": "Battery capacity (if present) [kWh]",
                             "type": "uint",
                             "defaultValue": 0
-                        },
-                        {
-                            "id": "a653317c-677e-4f61-8938-524c1c4d4972",
-                            "name": "unlockPassword",
-                            "displayName": "Inverter password",
-                            "type": "uint",
-                            "defaultValue": 2014
                         }
                     ],
                     "stateTypes": [
