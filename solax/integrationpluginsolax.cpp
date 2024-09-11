@@ -804,14 +804,14 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 batteryPower = connection->batPowerCharge1();
+                QString state = batteryThings.first()->stateValue(solaxBatteryChargingStateStateTypeId).toString();
+                if (state == "discharging")
+                {
+                    // Battery is discharging
+                    batteryPower = 0;
+                }
             }
 
-            QString state = batteryThings.first()->stateValue(solaxBatteryChargingStateStateTypeId).toString();
-            if (state == "discharging")
-            {
-                // Battery is discharging
-                batteryPower = 0;
-            }
             qCDebug(dcSolax()) << "Subtract from InverterPower";
             thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
         });
