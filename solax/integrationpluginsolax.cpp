@@ -80,7 +80,8 @@ void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &DiscoveryTcp::discoveryFinished, info, [=](){
             foreach (const DiscoveryTcp::Result &result, discovery->discoveryResults()) {
 
-                ThingDescriptor descriptor(solaxX3InverterTCPThingClassId, result.manufacturerName + " Inverter " + result.productName, QString("rated power: %1").arg(result.powerRating) + "W - " + result.networkDeviceInfo.address().toString());
+                QString name = supportedThings().findById(solaxX3InverterTCPThingClassId).displayName();
+                ThingDescriptor descriptor(solaxX3InverterTCPThingClassId, name, QString("rated power: %1").arg(result.powerRating) + "W - " + result.networkDeviceInfo.address().toString());
                 qCInfo(dcSolax()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 // Check if we already have set up this device
@@ -122,7 +123,8 @@ void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
             qCInfo(dcSolax()) << "Discovery results:" << discovery->discoveryResults().count();
 
             foreach (const DiscoveryRtu::Result &result, discovery->discoveryResults()) {
-                ThingDescriptor descriptor(info->thingClassId(), "Solax Inverter ", QString("rated power: %1").arg(result.powerRating) + "W - " + QString("Modbus ID: %1").arg(result.modbusId));
+                QString name = supportedThings().findById(solaxX3InverterRTUThingClassId).displayName();
+                ThingDescriptor descriptor(info->thingClassId(), name, QString("rated power: %1").arg(result.powerRating) + "W - " + QString("Modbus ID: %1").arg(result.modbusId));
 
                 ParamList params{
                     {solaxX3InverterRTUThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
@@ -489,7 +491,8 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             } else if (bmsCommStatusBool){
                 // Battery detected. No battery exists yet. Create it.
                 qCDebug(dcSolax()) << "Set up Solax battery for" << thing;
-                ThingDescriptor descriptor(solaxBatteryThingClassId, "Solax battery", QString(), thing->id());
+                QString name = supportedThings().findById(solaxBatteryThingClassId).displayName();
+                ThingDescriptor descriptor(solaxBatteryThingClassId, name, QString(), thing->id());
                 emit autoThingsAppeared(ThingDescriptors() << descriptor);
             }
         });
@@ -975,7 +978,8 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             } else if (bmsCommStatusBool){
                 // Battery detected. No battery exists yet. Create it.
                 qCDebug(dcSolax()) << "Set up Solax battery for" << thing;
-                ThingDescriptor descriptor(solaxBatteryThingClassId, "Solax battery", QString(), thing->id());
+                QString name = supportedThings().findById(solaxBatteryThingClassId).displayName();
+                ThingDescriptor descriptor(solaxBatteryThingClassId, name, QString(), thing->id());
                 emit autoThingsAppeared(ThingDescriptors() << descriptor);
             }
         });
@@ -1086,7 +1090,8 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
         // Check if w have to set up a child meter for this inverter connection
         if (myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId).isEmpty()) {
             qCDebug(dcSolax()) << "Set up solax meter for" << thing;
-            emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(solaxMeterThingClassId, "Solax Power Meter", QString(), thing->id()));
+            QString name = supportedThings().findById(solaxMeterThingClassId).displayName();
+            emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(solaxMeterThingClassId, name, QString(), thing->id()));
         }
     }
 
