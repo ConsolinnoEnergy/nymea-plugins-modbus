@@ -1325,9 +1325,9 @@ void IntegrationPluginSolax::setErrorMessage(Thing *thing, quint32 errorBits)
 {
     QString errorMessage{""};
     if (errorBits == 0) {
-        errorMessage = "No error, everything ok.";
+        errorMessage = QT_TR_NOOP("No error, everything ok.");
     } else {
-        errorMessage.append("The following error bits are active: ");
+        errorMessage.append(QT_TR_NOOP("The following error bits are active: "));
         quint32 testBit{0b01};
         for (int var = 0; var < 32; ++var) {
             if (errorBits & (testBit << var)) {
@@ -1426,9 +1426,9 @@ void IntegrationPluginSolax::setBmsWarningMessage(Thing *thing)
         warningBits = (warningBits << 16) + warningBitsLsb;
 
         if (warningBits == 0) {
-            warningMessage = "No warning, everything ok.";
+            warningMessage = QT_TR_NOOP("No warning, everything ok.");
         } else {
-            warningMessage.append("The following warning bits are active: ");
+            warningMessage.append(QT_TR_NOOP("The following warning bits are active: "));
             quint32 testBit{0b01};
             for (int var = 0; var < 32; ++var) {
                 if (warningBits & (testBit << var)) {
