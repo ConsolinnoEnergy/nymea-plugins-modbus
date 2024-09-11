@@ -80,9 +80,9 @@ private:
 
     void setupTcpConnection(ThingSetupInfo *info);
     
-    void setPassword(Thing *thing);
+    void writePasswordToInverter(Thing *thing);
     void disableRemoteControl(Thing *thing);
-    void setBatteryPower(Thing *thing, qint32 powerToSet, quint16 batteryTimeout, bool update);
+    void setBatteryPower(Thing *thing, qint32 powerToSet, quint16 batteryTimeout);
 };
 
 #endif // INTEGRATIONPLUGINSOLAX_H
