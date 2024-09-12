@@ -1546,29 +1546,27 @@ void IntegrationPluginSolax::setBatteryPower(Thing *thing, qint32 powerToSet, qu
         m_batteryPowerTimer->start();
     }
 
-    // quint32 modeTypeValue = 0x0000FFFF & 4;
-    quint32 modeTypeValue = (4 << 16) & 0x0000 ;
+    quint32 modeTypeValue = 4;
     QModbusReply *replyMode = connection->setModeType(modeTypeValue);
     connect(replyMode, &QModbusReply::finished, replyMode, &QModbusReply::deleteLater);
-    connect(replyMode, &QModbusReply::finished, thing, [thing, replyMode](){
+    connect(replyMode, &QModbusReply::finished, thing, [thing, replyMode, connection, powerToSet](){
         if (replyMode->error() != QModbusDevice::NoError) {
             qCWarning(dcSolax()) << "setBatteryPower - Error setting mode and type" << replyMode->error() << replyMode->errorString();
             //info->finish(Thing::ThingErrorHardwareFailure);
         } else {
             qCWarning(dcSolax()) << "setBatteryPower - Mode set to 8, Type set to 1";
             //info->finish(Thing::ThingErrorNoError);
-        }
-    });
-
-    QModbusReply *replyBatterPower = connection->setForceBatteryPower(-1*powerToSet);
-    connect(replyBatterPower, &QModbusReply::finished, replyBatterPower, &QModbusReply::deleteLater);
-    connect(replyBatterPower, &QModbusReply::finished, thing, [thing, replyBatterPower, powerToSet](){
-        if (replyBatterPower->error() != QModbusDevice::NoError) {
-            qCWarning(dcSolax()) << "setBatteryPower - Error setting battery power" << replyBatterPower->error() << replyBatterPower->errorString();
-            //info->finish(Thing::ThingErrorHardwareFailure);
-        } else {
-            qCWarning(dcSolax()) << "setBatteryPower - Set battery power to" << powerToSet;
-            //info->finish(Thing::ThingErrorNoError);
+            QModbusReply *replyBatterPower = connection->setForceBatteryPower(-1*powerToSet);
+            connect(replyBatterPower, &QModbusReply::finished, replyBatterPower, &QModbusReply::deleteLater);
+            connect(replyBatterPower, &QModbusReply::finished, thing, [thing, replyBatterPower, powerToSet](){
+                if (replyBatterPower->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSolax()) << "setBatteryPower - Error setting battery power" << replyBatterPower->error() << replyBatterPower->errorString();
+                    //info->finish(Thing::ThingErrorHardwareFailure);
+                } else {
+                    qCWarning(dcSolax()) << "setBatteryPower - Set battery power to" << powerToSet;
+                    //info->finish(Thing::ThingErrorNoError);
+                }
+            });
         }
     });
 }
