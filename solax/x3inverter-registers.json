@@ -516,6 +516,60 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "batMaxInfo",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "batMaxChargeVolt",
+                    "address": 142,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery max charge voltage (0x8E)",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxDischargeVolt",
+                    "address": 143,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery max discharge voltage (0x8F)",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxChargeCurrent",
+                    "address": 144,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery max charge current (0x90)",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxDischargeCurrent",
+                    "address": 145,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery max discharge current (0x91)",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         }
     ],
     "registers": [
