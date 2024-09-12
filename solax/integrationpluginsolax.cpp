@@ -1208,7 +1208,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             bool state = thing->stateValue(solaxBatteryEnableForcePowerStateStateTypeId).toBool();
             if (state)
             {
-                setBatteryPower(thing, batteryPower, timeout);
+                setBatteryPower(inverterThing, batteryPower, timeout);
             }
         } else if (action.actionTypeId() == solaxBatteryForcePowerTimeoutActionTypeId) {
             uint timeout = action.paramValue(solaxBatteryForcePowerTimeoutActionForcePowerTimeoutParamTypeId).toUInt();
@@ -1229,7 +1229,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             int batteryPower = thing->stateValue(solaxBatteryForcePowerStateTypeId).toInt(); 
             if (forceBattery)
             {
-                setBatteryPower(thing, batteryPower, timeout);
+                setBatteryPower(inverterThing, batteryPower, timeout);
             }
         } else if (action.actionTypeId() == solaxBatteryMinBatteryLevelActionTypeId) {
             int minBatteryLevel = action.paramValue(solaxBatteryMinBatteryLevelActionMinBatteryLevelParamTypeId).toInt();
