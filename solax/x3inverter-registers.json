@@ -710,6 +710,17 @@
             "unit": "W",
             "defaultValue": "0",
             "access": "RW"
+        },
+        {
+            "id": "modbusPowerControl",
+            "address": 256,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Modbus power control read-only (0x89)",
+            "defaultValue": "0",
+            "access": "R0"
         }
     ]
 }
