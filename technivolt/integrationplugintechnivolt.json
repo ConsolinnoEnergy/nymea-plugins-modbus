@@ -159,7 +159,7 @@
                             "displayName": "Phase count",
                             "displayNameEvent": "Phase count changed",
                             "type": "uint",
-                            "minValue": 0,
+                            "minValue": 1,
                             "maxValue": 3,
                             "defaultValue": 1,
                             "suggestLogging": true,

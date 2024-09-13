@@ -181,6 +181,27 @@ void IntegrationPluginAEberle::setupThing(ThingSetupInfo *info)
             }
         });
 
+        connect(pqidaConnection, &PqidaModbusRtuConnection::reachableChanged, thing, [pqidaConnection, thing](bool reachable){
+            thing->setStateValue(pqidaConnectedStateTypeId, reachable);
+            if (reachable) {
+                qCDebug(dcAEberle()) << "Modbus RTU device " << thing << "connected on" << pqidaConnection->modbusRtuMaster()->serialPort() << "is sending data.";
+                pqidaConnection->initialize();
+            } else {
+                qCDebug(dcAEberle()) << "Modbus RTU device " << thing << "connected on" << pqidaConnection->modbusRtuMaster()->serialPort() << "is not responding.";
+                thing->setStateValue(pqidaCurrentPowerStateTypeId, 0);
+                thing->setStateValue(pqidaCurrentPhaseAStateTypeId, 0);
+                thing->setStateValue(pqidaCurrentPhaseBStateTypeId, 0);
+                thing->setStateValue(pqidaCurrentPhaseCStateTypeId, 0);
+                thing->setStateValue(pqidaVoltagePhaseAStateTypeId, 0);
+                thing->setStateValue(pqidaVoltagePhaseBStateTypeId, 0);
+                thing->setStateValue(pqidaVoltagePhaseCStateTypeId, 0);
+                thing->setStateValue(pqidaCurrentPowerPhaseAStateTypeId, 0);
+                thing->setStateValue(pqidaCurrentPowerPhaseBStateTypeId, 0);
+                thing->setStateValue(pqidaCurrentPowerPhaseCStateTypeId, 0);
+                thing->setStateValue(pqidaFrequencyStateTypeId, 0);
+            }
+        });
+
         connect(pqidaConnection, &PqidaModbusRtuConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
             thing->setStateValue(pqidaCurrentPhaseAStateTypeId, currentPhaseA);
         });
@@ -291,6 +312,27 @@ void IntegrationPluginAEberle::setupThing(ThingSetupInfo *info)
             }
         });
 
+        connect(pqida_inverterConnection, &PqidaModbusRtuConnection::reachableChanged, thing, [pqida_inverterConnection, thing](bool reachable){
+            thing->setStateValue(pqida_inverterConnectedStateTypeId, reachable);
+            if (reachable) {
+                qCDebug(dcAEberle()) << "Modbus RTU device " << thing << "connected on" << pqida_inverterConnection->modbusRtuMaster()->serialPort() << "is sending data.";
+                pqida_inverterConnection->initialize();
+            } else {
+                qCDebug(dcAEberle()) << "Modbus RTU device " << thing << "connected on" << pqida_inverterConnection->modbusRtuMaster()->serialPort() << "is not responding.";
+                thing->setStateValue(pqida_inverterCurrentPowerStateTypeId, 0);
+                thing->setStateValue(pqida_inverterCurrentPhaseAStateTypeId, 0);
+                thing->setStateValue(pqida_inverterCurrentPhaseBStateTypeId, 0);
+                thing->setStateValue(pqida_inverterCurrentPhaseCStateTypeId, 0);
+                thing->setStateValue(pqida_inverterVoltagePhaseAStateTypeId, 0);
+                thing->setStateValue(pqida_inverterVoltagePhaseBStateTypeId, 0);
+                thing->setStateValue(pqida_inverterVoltagePhaseCStateTypeId, 0);
+                thing->setStateValue(pqida_inverterCurrentPowerPhaseAStateTypeId, 0);
+                thing->setStateValue(pqida_inverterCurrentPowerPhaseBStateTypeId, 0);
+                thing->setStateValue(pqida_inverterCurrentPowerPhaseCStateTypeId, 0);
+                thing->setStateValue(pqida_inverterFrequencyStateTypeId, 0);
+            }
+        });
+
         connect(pqida_inverterConnection, &PqidaModbusRtuConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
             thing->setStateValue(pqida_inverterCurrentPhaseAStateTypeId, currentPhaseA);
         });
@@ -374,6 +416,27 @@ void IntegrationPluginAEberle::setupThing(ThingSetupInfo *info)
                 qCDebug(dcAEberle()) << "Modbus RTU resource connected" << thing << pqida_consumerConnection->modbusRtuMaster()->serialPort();
             } else {
                 qCWarning(dcAEberle()) << "Modbus RTU resource disconnected" << thing << pqida_consumerConnection->modbusRtuMaster()->serialPort();
+            }
+        });
+
+        connect(pqida_consumerConnection, &PqidaModbusRtuConnection::reachableChanged, thing, [pqida_consumerConnection, thing](bool reachable){
+            thing->setStateValue(pqida_consumerConnectedStateTypeId, reachable);
+            if (reachable) {
+                qCDebug(dcAEberle()) << "Modbus RTU device " << thing << "connected on" << pqida_consumerConnection->modbusRtuMaster()->serialPort() << "is sending data.";
+                pqida_consumerConnection->initialize();
+            } else {
+                qCDebug(dcAEberle()) << "Modbus RTU device " << thing << "connected on" << pqida_consumerConnection->modbusRtuMaster()->serialPort() << "is not responding.";
+                thing->setStateValue(pqida_consumerCurrentPowerStateTypeId, 0);
+                thing->setStateValue(pqida_consumerCurrentPhaseAStateTypeId, 0);
+                thing->setStateValue(pqida_consumerCurrentPhaseBStateTypeId, 0);
+                thing->setStateValue(pqida_consumerCurrentPhaseCStateTypeId, 0);
+                thing->setStateValue(pqida_consumerVoltagePhaseAStateTypeId, 0);
+                thing->setStateValue(pqida_consumerVoltagePhaseBStateTypeId, 0);
+                thing->setStateValue(pqida_consumerVoltagePhaseCStateTypeId, 0);
+                thing->setStateValue(pqida_consumerCurrentPowerPhaseAStateTypeId, 0);
+                thing->setStateValue(pqida_consumerCurrentPowerPhaseBStateTypeId, 0);
+                thing->setStateValue(pqida_consumerCurrentPowerPhaseCStateTypeId, 0);
+                thing->setStateValue(pqida_consumerFrequencyStateTypeId, 0);
             }
         });
 

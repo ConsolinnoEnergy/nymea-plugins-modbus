@@ -372,6 +372,7 @@ void IntegrationPluginMennekes::setupAmtronECUConnection(ThingSetupInfo *info)
             amtronECUConnection->initialize();
         } else {
             thing->setStateValue(amtronECUConnectedStateTypeId, false);
+            thing->setStateValue(amtronECUCurrentPowerStateTypeId, 0);
         }
     });
 

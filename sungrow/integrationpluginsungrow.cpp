@@ -184,6 +184,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 connection->initialize();
             } else {
                 thing->setStateValue(sungrowInverterTCPConnectedStateTypeId, false);
+                thing->setStateValue(sungrowInverterTCPCurrentPowerStateTypeId, 0);
             }
         });
 
@@ -255,6 +256,16 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 qCDebug(dcSungrow()) << "Modbus RTU resource connected" << thing << connection->modbusRtuMaster()->serialPort();
             } else {
                 qCWarning(dcSungrow()) << "Modbus RTU resource disconnected" << thing << connection->modbusRtuMaster()->serialPort();
+            }
+        });
+
+        connect(connection, &SungrowModbusRtuConnection::reachableChanged, thing, [connection, thing](bool reachable){
+            qCDebug(dcSungrow()) << "Reachable state changed" << reachable;
+            if (reachable) {
+                connection->initialize();
+            } else {
+                thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, false);
+                thing->setStateValue(sungrowInverterRTUCurrentPowerStateTypeId, 0);
             }
         });
 

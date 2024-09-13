@@ -130,6 +130,10 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
                 alfenWallboxTcpConnection->initialize();
             } else {
                 thing->setStateValue(alfenEveSingleProConnectedStateTypeId, false);
+                thing->setStateValue(alfenEveSingleProCurrentPowerStateTypeId, 0);
+                thing->setStateValue(alfenEveSingleProCurrentPhaseAStateTypeId, 0);
+                thing->setStateValue(alfenEveSingleProCurrentPhaseBStateTypeId, 0);
+                thing->setStateValue(alfenEveSingleProCurrentPhaseCStateTypeId, 0);
             }
         });
 
