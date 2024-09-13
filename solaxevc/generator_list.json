@@ -1,0 +1,9 @@
+{
+  "QCells": {
+    "Gen3 Wallbox": {
+      "filename": "qcellsg3wb",
+      "interfaces": "null",
+      "uuid_offset": 7
+    }
+  }
+}
