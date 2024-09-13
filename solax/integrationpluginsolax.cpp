@@ -521,8 +521,12 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
                 batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
                 int minBatteryLevel = batteryThings.first()->stateValue(solaxBatteryMinBatteryLevelStateTypeId).toInt();
-                if (socBat1 <= minBatteryLevel) {
+                bool batManualMode = batteryThings.first()->stateValue(solaxBatteryEnableForcePowerStateStateTypeId).toBool();
+                if (socBat1 <= minBatteryLevel && batManualMode == true) {
+                    qCWarning(dcSolax()) << "Batter level below set minimum value";
                     disableRemoteControl(thing);
+                    batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, false);
+                    batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateTypeId, false);
                 }
             }
         });
