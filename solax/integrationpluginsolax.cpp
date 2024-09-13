@@ -828,6 +828,9 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                     // Battery is discharging
                     batteryPower = 0;
                 }
+                if (m_batteryPowerTimer->isActive()) {
+                    batteryThings.first()->setStateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId, (int) m_batteryPowerTimer->remainingTime()/1000);
+                }
             }
 
             qCDebug(dcSolax()) << "Subtract from InverterPower";
@@ -1528,7 +1531,7 @@ void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
         return;
     }
 
-    if (!m_batteryPowerTimer->isActive()) {
+    if (m_batteryPowerTimer->isActive()) {
         m_batteryPowerTimer->stop();
     }
 
