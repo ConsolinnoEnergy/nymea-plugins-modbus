@@ -624,21 +624,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 }
             });
         }
-        m_batteryPowerTimer = new QTimer(this);
-
-        connect(m_batteryPowerTimer, &QTimer::timeout, thing, [this, thing, parentThing]() {
-            uint batteryTimeout = thing->stateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId).toUInt();
-            int powerToSet = thing->stateValue(solaxBatteryForcePowerStateTypeId).toInt();
-            bool forceBattery = thing->stateValue(solaxBatteryEnableForcePowerStateTypeId).toBool();
-            qCWarning(dcSolax()) << "Battery countdown timer timeout. Manuel mode is" << forceBattery;
-            if (forceBattery) {
-                qCWarning(dcSolax()) << "Battery power should be" << powerToSet;
-                qCWarning(dcSolax()) << "Battery timeout should be" << batteryTimeout;
-                setBatteryPower(parentThing, powerToSet, batteryTimeout);
-            } else {
-                disableRemoteControl(parentThing);
-            }
-        });
 
         return;
     }
@@ -815,21 +800,8 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection](){
             qCDebug(dcSolax()) << "Solax X3 - Update finished.";
-            qint16 inverterPower = connection->inverterPower();
-            if (inverterPower < 0)
-            {
-                inverterPower *= -1;
-            }
-            qint16 batteryPower = 0;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
-                batteryPower = connection->batPowerCharge1();
-                QString state = batteryThings.first()->stateValue(solaxBatteryChargingStateStateTypeId).toString();
-                if (state == "discharging")
-                {
-                    // Battery is discharging
-                    batteryPower = 0;
-                }
                 if (m_batteryPowerTimer->isActive()) {
                     batteryThings.first()->setStateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId, (int) m_batteryPowerTimer->remainingTime()/1000);
                 }
@@ -840,8 +812,10 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 batteryThings.first()->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, batMaxPower);
             }
 
-            qCDebug(dcSolax()) << "Subtract from InverterPower";
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
+            qCDebug(dcSolax()) << "Set inverter power";
+            quint16 powerDc1 = connection->powerDc1();
+            quint16 powerDc2 = connection->powerDc2();
+            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2));
         });
 
         // Meter
@@ -1553,6 +1527,11 @@ void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
             //info->finish(Thing::ThingErrorNoError);
         }
     });
+    Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+    if (!batteryThings.isEmpty()) {
+        uint setTimeout = batteryThings.first()->stateValue(solaxBatteryForcePowerTimeoutStateTypeId).toUInt();
+        batteryThings.first()->setStateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId, setTimeout);
+    }
 }
 
 void IntegrationPluginSolax::setBatteryPower(Thing *thing, qint32 powerToSet, quint16 batteryTimeout)
