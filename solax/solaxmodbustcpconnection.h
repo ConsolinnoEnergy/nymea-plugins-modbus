@@ -91,6 +91,10 @@ public:
         RegisterModeType = 124,
         RegisterFirmwareVersion = 125,
         RegisterForceBatteryPower = 137,
+        RegisterBatMaxChargeVolt = 142,
+        RegisterBatMaxDischargeVolt = 143,
+        RegisterBatMaxChargeCurrent = 144,
+        RegisterBatMaxDischargeCurrent = 145,
         RegisterSolarEnergyTotal = 148,
         RegisterSolarEnergyToday = 150,
         RegisterReadExportLimit = 182,
@@ -268,6 +272,18 @@ public:
     /* Solar energy produced today (0x96) [kWh] - Address: 150, Size: 1 */
     float solarEnergyToday() const;
 
+    /* Battery max charge voltage (0x8E) [V] - Address: 142, Size: 1 */
+    float batMaxChargeVolt() const;
+
+    /* Battery max discharge voltage (0x8F) [V] - Address: 143, Size: 1 */
+    float batMaxDischargeVolt() const;
+
+    /* Battery max charge current (0x90) [A] - Address: 144, Size: 1 */
+    float batMaxChargeCurrent() const;
+
+    /* Battery max discharge current (0x91) [A] - Address: 145, Size: 1 */
+    float batMaxDischargeCurrent() const;
+
     /* Read block from start addess 7 with size of 14 registers containing following 2 properties:
       - Factory name (0x07) - Address: 7, Size: 7
       - Module name (0x0E) - Address: 14, Size: 7
@@ -328,6 +344,14 @@ public:
     */
     void updateSolarEnergyBlock();
 
+    /* Read block from start addess 142 with size of 4 registers containing following 4 properties:
+      - Battery max charge voltage (0x8E) [V] - Address: 142, Size: 1
+      - Battery max discharge voltage (0x8F) [V] - Address: 143, Size: 1
+      - Battery max charge current (0x90) [A] - Address: 144, Size: 1
+      - Battery max discharge current (0x91) [A] - Address: 145, Size: 1
+    */
+    void updateBatMaxInfoBlock();
+
     void updateBatteryCapacity();
     void updateBmsWarningLsb();
     void updateBmsWarningMsb();
@@ -371,6 +395,10 @@ public:
     void updateGridFrequencyT();
     void updateSolarEnergyTotal();
     void updateSolarEnergyToday();
+    void updateBatMaxChargeVolt();
+    void updateBatMaxDischargeVolt();
+    void updateBatMaxChargeCurrent();
+    void updateBatMaxDischargeCurrent();
 
     QModbusReply *readBatteryCapacity();
     QModbusReply *readBmsWarningLsb();
@@ -416,6 +444,10 @@ public:
     QModbusReply *readGridFrequencyT();
     QModbusReply *readSolarEnergyTotal();
     QModbusReply *readSolarEnergyToday();
+    QModbusReply *readBatMaxChargeVolt();
+    QModbusReply *readBatMaxDischargeVolt();
+    QModbusReply *readBatMaxChargeCurrent();
+    QModbusReply *readBatMaxDischargeCurrent();
 
     /* Read block from start addess 7 with size of 14 registers containing following 2 properties:
      - Factory name (0x07) - Address: 7, Size: 7
@@ -477,10 +509,19 @@ public:
     */
     QModbusReply *readBlockSolarEnergy();
 
+    /* Read block from start addess 142 with size of 4 registers containing following 4 properties:
+     - Battery max charge voltage (0x8E) [V] - Address: 142, Size: 1
+     - Battery max discharge voltage (0x8F) [V] - Address: 143, Size: 1
+     - Battery max charge current (0x90) [A] - Address: 144, Size: 1
+     - Battery max discharge current (0x91) [A] - Address: 145, Size: 1
+    */
+    QModbusReply *readBlockBatMaxInfo();
+
 
     virtual bool initialize();
     virtual void initialize2();
     virtual void initialize3();
+    virtual void initialize4();
     virtual bool update();
     virtual void update2();
     virtual void update3();
@@ -519,6 +560,10 @@ signals:
     void firmwareVersionReadFinished(quint16 firmwareVersion);
     void inverterTypeChanged(quint16 inverterType);
     void inverterTypeReadFinished(quint16 inverterType);
+    void modeTypeChanged(quint32 modeType);
+    void modeTypeReadFinished(quint32 modeType);
+    void forceBatteryPowerChanged(qint32 forceBatteryPower);
+    void forceBatteryPowerReadFinished(qint32 forceBatteryPower);
 
     void factoryNameChanged(const QString &factoryName);
     void factoryNameReadFinished(const QString &factoryName);
@@ -592,6 +637,14 @@ signals:
     void solarEnergyTotalReadFinished(float solarEnergyTotal);
     void solarEnergyTodayChanged(float solarEnergyToday);
     void solarEnergyTodayReadFinished(float solarEnergyToday);
+    void batMaxChargeVoltChanged(float batMaxChargeVolt);
+    void batMaxChargeVoltReadFinished(float batMaxChargeVolt);
+    void batMaxDischargeVoltChanged(float batMaxDischargeVolt);
+    void batMaxDischargeVoltReadFinished(float batMaxDischargeVolt);
+    void batMaxChargeCurrentChanged(float batMaxChargeCurrent);
+    void batMaxChargeCurrentReadFinished(float batMaxChargeCurrent);
+    void batMaxDischargeCurrentChanged(float batMaxDischargeCurrent);
+    void batMaxDischargeCurrentReadFinished(float batMaxDischargeCurrent);
 
 protected:
     quint16 m_unlockPassword;
@@ -642,6 +695,10 @@ protected:
     float m_gridFrequencyT = 0;
     float m_solarEnergyTotal = 0;
     float m_solarEnergyToday = 0;
+    float m_batMaxChargeVolt = 0;
+    float m_batMaxDischargeVolt = 0;
+    float m_batMaxChargeCurrent = 0;
+    float m_batMaxDischargeCurrent = 0;
 
     void processBatteryCapacityRegisterValues(const QVector<quint16> values);
     void processBmsWarningLsbRegisterValues(const QVector<quint16> values);
@@ -693,6 +750,11 @@ protected:
 
     void processSolarEnergyTotalRegisterValues(const QVector<quint16> values);
     void processSolarEnergyTodayRegisterValues(const QVector<quint16> values);
+
+    void processBatMaxChargeVoltRegisterValues(const QVector<quint16> values);
+    void processBatMaxDischargeVoltRegisterValues(const QVector<quint16> values);
+    void processBatMaxChargeCurrentRegisterValues(const QVector<quint16> values);
+    void processBatMaxDischargeCurrentRegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();

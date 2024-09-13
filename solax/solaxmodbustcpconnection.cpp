@@ -359,6 +359,26 @@ float SolaxModbusTcpConnection::solarEnergyToday() const
     return m_solarEnergyToday;
 }
 
+float SolaxModbusTcpConnection::batMaxChargeVolt() const
+{
+    return m_batMaxChargeVolt;
+}
+
+float SolaxModbusTcpConnection::batMaxDischargeVolt() const
+{
+    return m_batMaxDischargeVolt;
+}
+
+float SolaxModbusTcpConnection::batMaxChargeCurrent() const
+{
+    return m_batMaxChargeCurrent;
+}
+
+float SolaxModbusTcpConnection::batMaxDischargeCurrent() const
+{
+    return m_batMaxDischargeCurrent;
+}
+
 bool SolaxModbusTcpConnection::initialize()
 {
     if (!m_reachable) {
@@ -484,11 +504,54 @@ void SolaxModbusTcpConnection::initialize3()
         qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading init block \"identification\" register" << 7 << "size:" << 14 << blockValues;
         processFactoryNameRegisterValues(blockValues.mid(0, 7));
         processModuleNameRegisterValues(blockValues.mid(7, 7));
-        verifyInitFinished();
+        initialize4();
     });
 
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [reply] (QModbusDevice::Error error){
         qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"identification\" registers" << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::initialize4()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read batMaxInfo
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read init block \"batMaxInfo\" registers from:" << 142 << "size:" << 4;
+    reply = readBlockBatMaxInfo();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading block \"batMaxInfo\" registers";
+        finishInitialization(false);
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingInitReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, m_initObject, [this, reply](){
+        m_pendingInitReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            finishInitialization(false);
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        const QVector<quint16> blockValues = unit.values();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading init block \"batMaxInfo\" register" << 142 << "size:" << 4 << blockValues;
+        processBatMaxChargeVoltRegisterValues(blockValues.mid(0, 1));
+        processBatMaxDischargeVoltRegisterValues(blockValues.mid(1, 1));
+        processBatMaxChargeCurrentRegisterValues(blockValues.mid(2, 1));
+        processBatMaxDischargeCurrentRegisterValues(blockValues.mid(3, 1));
+        verifyInitFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, m_initObject, [reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"batMaxInfo\" registers" << error << reply->errorString();
     });
 }
 
@@ -1830,6 +1893,40 @@ void SolaxModbusTcpConnection::updateSolarEnergyBlock()
     });
 }
 
+void SolaxModbusTcpConnection::updateBatMaxInfoBlock()
+{
+    // Update register block "batMaxInfo"
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read block \"batMaxInfo\" registers from:" << 142 << "size:" << 4;
+    QModbusReply *reply = readBlockBatMaxInfo();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading block \"batMaxInfo\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            const QVector<quint16> blockValues = unit.values();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"batMaxInfo\" register" << 142 << "size:" << 4 << blockValues;
+            processBatMaxChargeVoltRegisterValues(blockValues.mid(0, 1));
+            processBatMaxDischargeVoltRegisterValues(blockValues.mid(1, 1));
+            processBatMaxChargeCurrentRegisterValues(blockValues.mid(2, 1));
+            processBatMaxDischargeCurrentRegisterValues(blockValues.mid(3, 1));
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"batMaxInfo\" registers" << error << reply->errorString();
+    });
+}
+
 QModbusReply *SolaxModbusTcpConnection::readBatteryCapacity()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 28, 1);
@@ -2094,6 +2191,30 @@ QModbusReply *SolaxModbusTcpConnection::readSolarEnergyToday()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *SolaxModbusTcpConnection::readBatMaxChargeVolt()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 142, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readBatMaxDischargeVolt()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 143, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readBatMaxChargeCurrent()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 144, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readBatMaxDischargeCurrent()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 145, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *SolaxModbusTcpConnection::readBlockIdentification()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 7, 14);
@@ -2127,6 +2248,12 @@ QModbusReply *SolaxModbusTcpConnection::readBlockPhasesData()
 QModbusReply *SolaxModbusTcpConnection::readBlockSolarEnergy()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 148, 3);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readBlockBatMaxInfo()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 142, 4);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -2614,6 +2741,50 @@ void SolaxModbusTcpConnection::processSolarEnergyTodayRegisterValues(const QVect
     }
 }
 
+void SolaxModbusTcpConnection::processBatMaxChargeVoltRegisterValues(const QVector<quint16> values)
+{
+    float receivedBatMaxChargeVolt = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
+    emit batMaxChargeVoltReadFinished(receivedBatMaxChargeVolt);
+
+    if (m_batMaxChargeVolt != receivedBatMaxChargeVolt) {
+        m_batMaxChargeVolt = receivedBatMaxChargeVolt;
+        emit batMaxChargeVoltChanged(m_batMaxChargeVolt);
+    }
+}
+
+void SolaxModbusTcpConnection::processBatMaxDischargeVoltRegisterValues(const QVector<quint16> values)
+{
+    float receivedBatMaxDischargeVolt = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
+    emit batMaxDischargeVoltReadFinished(receivedBatMaxDischargeVolt);
+
+    if (m_batMaxDischargeVolt != receivedBatMaxDischargeVolt) {
+        m_batMaxDischargeVolt = receivedBatMaxDischargeVolt;
+        emit batMaxDischargeVoltChanged(m_batMaxDischargeVolt);
+    }
+}
+
+void SolaxModbusTcpConnection::processBatMaxChargeCurrentRegisterValues(const QVector<quint16> values)
+{
+    float receivedBatMaxChargeCurrent = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
+    emit batMaxChargeCurrentReadFinished(receivedBatMaxChargeCurrent);
+
+    if (m_batMaxChargeCurrent != receivedBatMaxChargeCurrent) {
+        m_batMaxChargeCurrent = receivedBatMaxChargeCurrent;
+        emit batMaxChargeCurrentChanged(m_batMaxChargeCurrent);
+    }
+}
+
+void SolaxModbusTcpConnection::processBatMaxDischargeCurrentRegisterValues(const QVector<quint16> values)
+{
+    float receivedBatMaxDischargeCurrent = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
+    emit batMaxDischargeCurrentReadFinished(receivedBatMaxDischargeCurrent);
+
+    if (m_batMaxDischargeCurrent != receivedBatMaxDischargeCurrent) {
+        m_batMaxDischargeCurrent = receivedBatMaxDischargeCurrent;
+        emit batMaxDischargeCurrentChanged(m_batMaxDischargeCurrent);
+    }
+}
+
 void SolaxModbusTcpConnection::handleModbusError(QModbusDevice::Error error)
 {
     if (error == QModbusDevice::NoError) {
@@ -2771,6 +2942,10 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - Phase T frequency (0x75): " << solaxModbusTcpConnection->gridFrequencyT() << " [Hz]" << "\n";
     debug.nospace().noquote() << "    - Solar energy produced total (0x94): " << solaxModbusTcpConnection->solarEnergyTotal() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Solar energy produced today (0x96): " << solaxModbusTcpConnection->solarEnergyToday() << " [kWh]" << "\n";
+    debug.nospace().noquote() << "    - Battery max charge voltage (0x8E): " << solaxModbusTcpConnection->batMaxChargeVolt() << " [V]" << "\n";
+    debug.nospace().noquote() << "    - Battery max discharge voltage (0x8F): " << solaxModbusTcpConnection->batMaxDischargeVolt() << " [V]" << "\n";
+    debug.nospace().noquote() << "    - Battery max charge current (0x90): " << solaxModbusTcpConnection->batMaxChargeCurrent() << " [A]" << "\n";
+    debug.nospace().noquote() << "    - Battery max discharge current (0x91): " << solaxModbusTcpConnection->batMaxDischargeCurrent() << " [A]" << "\n";
     return debug.quote().space();
 }
 

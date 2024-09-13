@@ -596,6 +596,20 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         if (parentThing) {
             if (m_batterystates.value(parentThing).bmsCommStatus && m_batterystates.value(parentThing).modbusReachable) {
                 thing->setStateValue(solaxBatteryConnectedStateTypeId, true);
+
+                float maxBatteryChargeCurrent = 0;
+                float maxBatteryChargeVoltage = 0;
+                if (parentThing->thingClassId() == solaxX3InverterTCPThingClassId) {
+                    SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
+                    maxBatteryChargeCurrent = connection->batMaxChargeVolt();
+                    maxBatteryChargeVoltage = connection->batMaxChargeCurrent();
+                } else if (parentThing->thingClassId() == solaxX3InverterRTUThingClassId) {
+                    SolaxModbusRtuConnection *connection = m_rtuConnections.value(thing);
+                    maxBatteryChargeCurrent = connection->batMaxChargeVolt();
+                    maxBatteryChargeVoltage = connection->batMaxChargeCurrent();
+                }
+                thing->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, maxBatteryChargeVoltage*maxBatteryChargeCurrent);
+
             } else {
                 thing->setStateValue(solaxBatteryConnectedStateTypeId, false);
                 thing->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
