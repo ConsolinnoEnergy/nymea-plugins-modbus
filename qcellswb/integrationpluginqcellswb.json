@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "qCells",
-                    "displayName": "QCells Wallbox",
+                    "displayName": "QCells Gen4 Wallbox",
                     "id": "12137d3d-45de-4594-b046-9e7dd46a0dcb",
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
