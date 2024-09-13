@@ -596,20 +596,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         if (parentThing) {
             if (m_batterystates.value(parentThing).bmsCommStatus && m_batterystates.value(parentThing).modbusReachable) {
                 thing->setStateValue(solaxBatteryConnectedStateTypeId, true);
-
-                float maxBatteryChargeCurrent = 0;
-                float maxBatteryChargeVoltage = 0;
-                if (parentThing->thingClassId() == solaxX3InverterTCPThingClassId) {
-                    SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
-                    maxBatteryChargeCurrent = connection->batMaxChargeVolt();
-                    maxBatteryChargeVoltage = connection->batMaxChargeCurrent();
-                } else if (parentThing->thingClassId() == solaxX3InverterRTUThingClassId) {
-                    SolaxModbusRtuConnection *connection = m_rtuConnections.value(thing);
-                    maxBatteryChargeCurrent = connection->batMaxChargeVolt();
-                    maxBatteryChargeVoltage = connection->batMaxChargeCurrent();
-                }
-                thing->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, maxBatteryChargeVoltage*maxBatteryChargeCurrent);
-
             } else {
                 thing->setStateValue(solaxBatteryConnectedStateTypeId, false);
                 thing->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
@@ -621,6 +607,22 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             } else if (parentThing->thingClassId() == solaxX3InverterRTUThingClassId) {
                 thing->setStateValue(solaxBatteryCapacityStateTypeId, parentThing->paramValue(solaxX3InverterRTUThingBatteryCapacityParamTypeId).toUInt());
             }
+            qCWarning(dcSolax()) << "Setting up Battery Timer";
+            m_batteryPowerTimer = new QTimer(this);
+
+            connect(m_batteryPowerTimer, &QTimer::timeout, thing, [this, thing, parentThing]() {
+                uint batteryTimeout = thing->stateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId).toUInt();
+                int powerToSet = thing->stateValue(solaxBatteryForcePowerStateTypeId).toInt();
+                bool forceBattery = thing->stateValue(solaxBatteryEnableForcePowerStateTypeId).toBool();
+                qCWarning(dcSolax()) << "Battery countdown timer timeout. Manuel mode is" << forceBattery;
+                if (forceBattery) {
+                    qCWarning(dcSolax()) << "Battery power should be" << powerToSet;
+                    qCWarning(dcSolax()) << "Battery timeout should be" << batteryTimeout;
+                    setBatteryPower(parentThing, powerToSet, batteryTimeout);
+                } else {
+                    disableRemoteControl(parentThing);
+                }
+            });
         }
         m_batteryPowerTimer = new QTimer(this);
 
@@ -831,6 +833,11 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 if (m_batteryPowerTimer->isActive()) {
                     batteryThings.first()->setStateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId, (int) m_batteryPowerTimer->remainingTime()/1000);
                 }
+
+                float batMaxVoltage = connection->batMaxDischargeVolt();
+                float batMaxCurrent = connection->batMaxDischargeCurrent();
+                double batMaxPower = batMaxCurrent*batMaxVoltage;
+                batteryThings.first()->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, batMaxPower);
             }
 
             qCDebug(dcSolax()) << "Subtract from InverterPower";
@@ -1204,7 +1211,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
 
         if (action.actionTypeId() == solaxBatteryEnableForcePowerActionTypeId) {
             bool state = action.paramValue(solaxBatteryEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
-            uint batteryTimeout = thing->stateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId).toUInt();
+            uint batteryTimeout = thing->stateValue(solaxBatteryForcePowerTimeoutStateTypeId).toUInt();
             int powerToSet = thing->stateValue(solaxBatteryForcePowerStateTypeId).toInt();
 
             qCWarning(dcSolax()) << "Battery manual mode is enabled?" << state;
