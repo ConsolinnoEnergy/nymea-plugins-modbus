@@ -135,7 +135,7 @@ The name of the plugin qcells ({32f5d13d-c372-466c-b166-3379682c51b6})</extracom
     </message>
     <message>
         <location filename="../plugininfo.h" line="118"/>
-        <source>QCells Wallbox</source>
+        <source>QCells Gen4 Wallbox</source>
         <extracomment>The name of the ThingClass ({12137d3d-45de-4594-b046-9e7dd46a0dcb})</extracomment>
         <translation></translation>
     </message>
