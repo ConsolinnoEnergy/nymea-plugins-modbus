@@ -28,8 +28,8 @@
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINQCELLSWB_H
-#define INTEGRATIONPLUGINQCELLSWB_H
+#ifndef INTEGRATIONPLUGINQCELLSG4WB_H
+#define INTEGRATIONPLUGINQCELLSG4WB_H
 
 #include <plugintimer.h>
 #include <integrations/integrationplugin.h>
@@ -46,7 +46,7 @@ class IntegrationPluginQCells : public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginqcellswb.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginqcellsg4wb.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:

@@ -29,7 +29,7 @@ PLUGIN_DIRS = \
     mtec                    \
     mypv                    \
     phoenixconnect          \
-    qcellswb                \
+    qcellsg4wb                \
     sax                     \
     schneider               \
     schneiderIEM            \

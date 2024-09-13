@@ -28,7 +28,7 @@
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "integrationpluginqcellswb.h"
+#include "integrationpluginqcellsg4wb.h"
 #include "plugininfo.h"
 
 #include <network/networkdevicediscovery.h>
