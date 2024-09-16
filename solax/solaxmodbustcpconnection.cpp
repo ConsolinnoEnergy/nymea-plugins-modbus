@@ -179,6 +179,11 @@ QModbusReply *SolaxModbusTcpConnection::setForceBatteryPower(qint32 forceBattery
     return sendWriteRequest(request, m_slaveId);
 }
 
+quint16 SolaxModbusTcpConnection::modbusPowerControl() const
+{
+    return m_modbusPowerControl;
+}
+
 QString SolaxModbusTcpConnection::factoryName() const
 {
     return m_factoryName;
@@ -1009,11 +1014,49 @@ void SolaxModbusTcpConnection::update11()
         qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"solarEnergy\" register" << 148 << "size:" << 3 << blockValues;
         processSolarEnergyTotalRegisterValues(blockValues.mid(0, 2));
         processSolarEnergyTodayRegisterValues(blockValues.mid(2, 1));
-        verifyUpdateFinished();
+        update12();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"solarEnergy\" registers" << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::update12()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read Modbus power control read-only (0x89)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Modbus power control read-only (0x89)\" register:" << 256 << "size:" << 1;
+    reply = readModbusPowerControl();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Modbus power control read-only (0x89)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Modbus power control read-only (0x89)\" register" << 256 << "size:" << 1 << unit.values();
+        processModbusPowerControlRegisterValues(unit.values());
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"Modbus power control read-only (0x89)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1194,6 +1237,36 @@ void SolaxModbusTcpConnection::updateReadExportLimit()
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"Read grid export limit (0xB6)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::updateModbusPowerControl()
+{
+    // Update registers from Modbus power control read-only (0x89)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Modbus power control read-only (0x89)\" register:" << 256 << "size:" << 1;
+    QModbusReply *reply = readModbusPowerControl();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Modbus power control read-only (0x89)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Modbus power control read-only (0x89)\" register" << 256 << "size:" << 1 << unit.values();
+            processModbusPowerControlRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"Modbus power control read-only (0x89)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1975,6 +2048,12 @@ QModbusReply *SolaxModbusTcpConnection::readInverterType()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *SolaxModbusTcpConnection::readModbusPowerControl()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 256, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *SolaxModbusTcpConnection::readFactoryName()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 7, 7);
@@ -2342,6 +2421,17 @@ void SolaxModbusTcpConnection::processInverterTypeRegisterValues(const QVector<q
     if (m_inverterType != receivedInverterType) {
         m_inverterType = receivedInverterType;
         emit inverterTypeChanged(m_inverterType);
+    }
+}
+
+void SolaxModbusTcpConnection::processModbusPowerControlRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedModbusPowerControl = ModbusDataUtils::convertToUInt16(values);
+    emit modbusPowerControlReadFinished(receivedModbusPowerControl);
+
+    if (m_modbusPowerControl != receivedModbusPowerControl) {
+        m_modbusPowerControl = receivedModbusPowerControl;
+        emit modbusPowerControlChanged(m_modbusPowerControl);
     }
 }
 
@@ -2906,6 +2996,7 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - Read grid export limit (0xB6): " << solaxModbusTcpConnection->readExportLimit() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Firmware version (0x7D): " << solaxModbusTcpConnection->firmwareVersion() << "\n";
     debug.nospace().noquote() << "    - Inverter rated power (0xBA): " << solaxModbusTcpConnection->inverterType() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - Modbus power control read-only (0x89): " << solaxModbusTcpConnection->modbusPowerControl() << "\n";
     debug.nospace().noquote() << "    - Factory name (0x07): " << solaxModbusTcpConnection->factoryName() << "\n";
     debug.nospace().noquote() << "    - Module name (0x0E): " << solaxModbusTcpConnection->moduleName() << "\n";
     debug.nospace().noquote() << "    - Inverter voltage (0x00): " << solaxModbusTcpConnection->inverterVoltage() << " [V]" << "\n";

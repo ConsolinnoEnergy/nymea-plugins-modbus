@@ -99,7 +99,8 @@ public:
         RegisterSolarEnergyToday = 150,
         RegisterReadExportLimit = 182,
         RegisterMeter1CommunicationState = 184,
-        RegisterInverterType = 186
+        RegisterInverterType = 186,
+        RegisterModbusPowerControl = 256
     };
     Q_ENUM(Registers)
 
@@ -163,6 +164,9 @@ public:
 
     /* Battery power (0x89) [W] - Address: 137, Size: 2 */
     QModbusReply *setForceBatteryPower(qint32 forceBatteryPower);
+
+    /* Modbus power control read-only (0x89) - Address: 256, Size: 1 */
+    quint16 modbusPowerControl() const;
 
     /* Factory name (0x07) - Address: 7, Size: 7 */
     QString factoryName() const;
@@ -358,6 +362,7 @@ public:
     void updateInverterFaultBits();
     void updateMeter1CommunicationState();
     void updateReadExportLimit();
+    void updateModbusPowerControl();
 
     void updateFactoryName();
     void updateModuleName();
@@ -408,6 +413,7 @@ public:
     QModbusReply *readReadExportLimit();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readInverterType();
+    QModbusReply *readModbusPowerControl();
     QModbusReply *readFactoryName();
     QModbusReply *readModuleName();
     QModbusReply *readInverterVoltage();
@@ -533,6 +539,7 @@ public:
     virtual void update9();
     virtual void update10();
     virtual void update11();
+    virtual void update12();
 
 signals:
     void reachableChanged(bool reachable);
@@ -564,6 +571,8 @@ signals:
     void modeTypeReadFinished(quint32 modeType);
     void forceBatteryPowerChanged(qint32 forceBatteryPower);
     void forceBatteryPowerReadFinished(qint32 forceBatteryPower);
+    void modbusPowerControlChanged(quint16 modbusPowerControl);
+    void modbusPowerControlReadFinished(quint16 modbusPowerControl);
 
     void factoryNameChanged(const QString &factoryName);
     void factoryNameReadFinished(const QString &factoryName);
@@ -659,6 +668,7 @@ protected:
     quint16 m_inverterType = 0;
     quint32 m_modeType = 0;
     qint32 m_forceBatteryPower = 0;
+    quint16 m_modbusPowerControl = 0;
     QString m_factoryName;
     QString m_moduleName;
     float m_inverterVoltage = 0;
@@ -708,6 +718,7 @@ protected:
     void processReadExportLimitRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processInverterTypeRegisterValues(const QVector<quint16> values);
+    void processModbusPowerControlRegisterValues(const QVector<quint16> values);
 
     void processFactoryNameRegisterValues(const QVector<quint16> values);
     void processModuleNameRegisterValues(const QVector<quint16> values);
