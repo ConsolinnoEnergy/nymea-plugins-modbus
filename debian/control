@@ -434,8 +434,8 @@ Package: nymea-plugin-qcellsg4wb
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Description: nymea integration plugin for QCells Gen 3 wallbox.
- This package contains the nymea integration plugin for the QCells Gen 3 wallbox.
+Description: nymea integration plugin for QCells Gen 4 wallbox.
+ This package contains the nymea integration plugin for the QCells Gen 4 wallbox.
 
 Package: nymea-plugin-kostalmeter
 Architecture: any
