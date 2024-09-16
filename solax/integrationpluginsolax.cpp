@@ -802,6 +802,15 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             setErrorMessage(thing, inverterFaultBits);
         });
 
+        connect(connection, &SolaxModbusTcpConnection::modbusPowerControlChanged, thing, [thing](quint16 controlMode) {
+            qCDebug(dcSolax()) << "Modbus power control changed to" << controlMode;
+            if (controlMode == 4) {
+                thing->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, true);
+            } else {
+                thing->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, false);
+            }
+        });
+
         connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection](){
             qCDebug(dcSolax()) << "Solax X3 - Update finished.";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
@@ -1199,7 +1208,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
                 disableRemoteControl(inverterThing);
             }
 
-            thing->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, state);
+            // thing->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, state);
             thing->setStateValue(solaxBatteryEnableForcePowerStateTypeId, state);
         } else if (action.actionTypeId() == solaxBatteryForcePowerActionTypeId) {
             int batteryPower = action.paramValue(solaxBatteryForcePowerActionForcePowerParamTypeId).toInt();
