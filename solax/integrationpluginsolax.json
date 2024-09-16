@@ -477,7 +477,25 @@
                         }
 
                     ],
-                    "actionTypes": [ ]
+                    "actionTypes": [ 
+                        {
+                            "id": "c92ee09c-40ee-4eac-9ce4-7f2399ddb714",
+                            "name": "setExportLimit",
+                            "displayName": "Set Grid export limit",
+                            "paramTypes": [
+                                {
+                                    "id": "56517915-3bd5-47da-85c2-950dae05cdd7",
+                                    "name": "exportLimit",
+                                    "displayName": "Grid Export Limit (percent of inverter nominal power)",
+                                    "type": "int",
+                                    "unit": "Percentage",
+                                    "defaultValue": 100,
+                                    "minValue": 0,
+                                    "maxValue": 100
+                                }
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "solaxMeter",
