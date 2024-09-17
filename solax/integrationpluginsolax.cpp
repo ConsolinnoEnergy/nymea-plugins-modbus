@@ -555,7 +555,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 if (socBat1 <= minBatteryLevel && batManualMode == true) {
                     qCWarning(dcSolax()) << "Batter level below set minimum value";
                     disableRemoteControl(thing);
-                    batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, false);
+                    // batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, false);
                     batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateTypeId, false);
                 }
             }
@@ -1060,7 +1060,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 if (socBat1 <= minBatteryLevel && batManualMode == true) {
                     qCWarning(dcSolax()) << "Batter level below set minimum value";
                     disableRemoteControl(thing);
-                    batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, false);
+                    // batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, false);
                     batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateTypeId, false);
                 }
             }
@@ -1123,7 +1123,7 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
 
         if (!m_pluginTimer) {
             qCDebug(dcSolax()) << "Starting plugin timer...";
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(SolaxModbusTcpConnection *connection, m_tcpConnections) {
                     connection->update();
