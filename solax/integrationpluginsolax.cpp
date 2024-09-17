@@ -472,8 +472,9 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &SolaxModbusRtuConnection::modbusPowerControlChanged, thing, [thing](quint16 controlMode) {
+        connect(connection, &SolaxModbusRtuConnection::modbusPowerControlChanged, thing, [this, thing](quint16 controlMode) {
             qCWarning(dcSolax()) << "Modbus power control changed to" << controlMode;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 if (controlMode == 4) {
                     batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, true);
@@ -831,8 +832,9 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             setErrorMessage(thing, inverterFaultBits);
         });
 
-        connect(connection, &SolaxModbusTcpConnection::modbusPowerControlChanged, thing, [thing](quint16 controlMode) {
+        connect(connection, &SolaxModbusTcpConnection::modbusPowerControlChanged, thing, [this, thing](quint16 controlMode) {
             qCWarning(dcSolax()) << "Modbus power control changed to" << controlMode;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 if (controlMode == 4) {
                     batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateStateTypeId, true);
