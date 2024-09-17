@@ -225,19 +225,19 @@
                             "possibleValues": [
                                 "Init",
                                 "Reference",
-                                "RestartBlock",
+                                "Restart block",
                                 "Ready",
-                                "StartPumps",
-                                "StartCompressor",
-                                "PreRegulation",
+                                "Start pumps",
+                                "Start compressor",
+                                "Pre-regulation",
                                 "Regulation",
-                                "NotUsed",
+                                "Not used",
                                 "Cooling",
                                 "Defrosting",
                                 "Stopping",
-                                "FaultLock",
-                                "AlarmBlock",
-                                "ErrorReset"
+                                "Fault lock",
+                                "Alarm block",
+                                "Error reset"
                             ],
                             "defaultValue": "Init",
                             "suggestLogging": true

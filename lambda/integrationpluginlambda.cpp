@@ -242,7 +242,7 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Start compressor");
                 break;
             case LambdaModbusTcpConnection::SystemStatusPreRegulation:
-                thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Pre regulation");
+                thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Pre-regulation");
                 break;
             case LambdaModbusTcpConnection::SystemStatusRegulation:
                 thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Regulation");
@@ -260,13 +260,13 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Stopping");
                 break;
             case LambdaModbusTcpConnection::SystemStatusFaultLock:
-                thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "FaultLock");
+                thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Fault lock");
                 break;
             case LambdaModbusTcpConnection::SystemStatusAlarmBlock:
-                thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "AlarmBlock");
+                thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Alarm block");
                 break;
             case LambdaModbusTcpConnection::SystemStatusErrorReset:
-                thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "ErrorReset");
+                thing->setStateValue(lambdaTCPSystemStatusStateTypeId, "Error reset");
                 break;
             }
 
