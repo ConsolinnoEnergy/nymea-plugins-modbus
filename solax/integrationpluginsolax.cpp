@@ -496,6 +496,19 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 float batMaxCurrent = connection->batMaxDischargeCurrent();
                 double batMaxPower = batMaxCurrent*batMaxVoltage;
                 batteryThings.first()->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, batMaxPower);
+
+                // check if manual is following the chosen setting
+                bool userSetState = batteryThings.first()->stateValue(solaxBatteryEnableForcePowerStateTypeId).toBool();
+                bool actualState = batteryThings.first()->stateValue(solaxBatteryEnableForcePowerStateStateTypeId).toBool();
+                if (userSetState != actualState) {
+                    if (userSetState == true) {
+                        uint batteryTimeout = batteryThings.first()->stateValue(solaxBatteryForcePowerTimeoutStateTypeId).toUInt();
+                        int powerToSet = batteryThings.first()->stateValue(solaxBatteryForcePowerStateTypeId).toInt();
+                        setBatteryPower(thing, powerToSet, batteryTimeout);
+                    } else {
+                        disableRemoteControl(thing);
+                    }
+                }
             }
 
             qCDebug(dcSolax()) << "Set inverter power";
@@ -856,6 +869,19 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 float batMaxCurrent = connection->batMaxDischargeCurrent();
                 double batMaxPower = batMaxCurrent*batMaxVoltage;
                 batteryThings.first()->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, batMaxPower);
+
+                // check if manual is following the chosen setting
+                bool userSetState = batteryThings.first()->stateValue(solaxBatteryEnableForcePowerStateTypeId).toBool();
+                bool actualState = batteryThings.first()->stateValue(solaxBatteryEnableForcePowerStateStateTypeId).toBool();
+                if (userSetState != actualState) {
+                    if (userSetState == true) {
+                        uint batteryTimeout = batteryThings.first()->stateValue(solaxBatteryForcePowerTimeoutStateTypeId).toUInt();
+                        int powerToSet = batteryThings.first()->stateValue(solaxBatteryForcePowerStateTypeId).toInt();
+                        setBatteryPower(thing, powerToSet, batteryTimeout);
+                    } else {
+                        disableRemoteControl(thing);
+                    }
+                }
             }
 
             qCDebug(dcSolax()) << "Set inverter power";
