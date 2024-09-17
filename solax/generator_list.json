@@ -1,6 +1,6 @@
 {
   "QCells": {
-    "Gen3 (TCP), Gen3 (RTU), QCells Meter, QCells Battery": {
+    "Gen3 (TCP), Gen3 (RTU), Meter, Battery": {
       "filename": "qcellsg3",
       "interfaces": "null",
       "uuid_offset": 7
