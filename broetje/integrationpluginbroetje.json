@@ -164,7 +164,7 @@
                             "displayName": "GTW-08 firmware version",
                             "displayNameEvent": "GTW-08 firmware version changed",
                             "type": "QString",
-                            "defaultValue": "",
+                            "defaultValue": ""
                         }
                     ]
                 }
