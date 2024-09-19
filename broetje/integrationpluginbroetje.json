@@ -157,6 +157,14 @@
                             "type": "QString",
                             "defaultValue": "No error",
                             "suggestLogging": true
+                        },
+                        {
+                            "id": "dffac5ec-bed1-47d0-ba42-c29e96faedea",
+                            "name": "gtwVersion",
+                            "displayName": "GTW-08 firmware version",
+                            "displayNameEvent": "GTW-08 firmware version changed",
+                            "type": "QString",
+                            "defaultValue": "",
                         }
                     ]
                 }

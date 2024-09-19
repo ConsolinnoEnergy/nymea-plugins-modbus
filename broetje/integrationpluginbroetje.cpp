@@ -177,6 +177,9 @@ void IntegrationPluginBroetje::executeAction(ThingActionInfo *info) {
 
 void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
 
+    // This setup method checks the version number of the heat pump before giving the signal that info finished successfully. The version number is read
+    // from a modbus register. Modbus calls can fail, making the setup fail. As a result, care needs to be taken to clean up all objects that were created.
+
     Thing *thing = info->thing();
     ModbusRtuMaster *master = hardwareManager()->modbusRtuResource()->getModbusRtuMaster(thing->paramValue(broetjeThingModbusMasterUuidParamTypeId).toUuid());
     if (!master) {
@@ -246,6 +249,54 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
 
     connect(connection, &BroetjeModbusRtuConnection::initializationFinished, info, [=](bool success){
         if (success) {
+
+            quint16 version{0};
+            // Just one typeDevice register should be 0x1E08. That is the code for gateway, which is what is responsible for the modbus communication.
+            if (connection->typeDevice1() == 0x1E08) {
+                version = connection->versionDevice1();
+                qCDebug(dcBroetje()) << "Device 1 is the gateway, version is" << hex << version;
+            }
+            if (connection->typeDevice2() == 0x1E08) {
+                version = connection->versionDevice2();
+                qCDebug(dcBroetje()) << "Device 2 is the gateway, version is" << hex << version;
+            }
+            if (connection->typeDevice3() == 0x1E08) {
+                version = connection->versionDevice3();
+                qCDebug(dcBroetje()) << "Device 3 is the gateway, version is" << hex << version;
+            }
+            if (connection->typeDevice4() == 0x1E08) {
+                version = connection->versionDevice4();
+                qCDebug(dcBroetje()) << "Device 4 is the gateway, version is" << hex << version;
+            }
+            if (connection->typeDevice5() == 0x1E08) {
+                version = connection->versionDevice5();
+                qCDebug(dcBroetje()) << "Device 5 is the gateway, version is" << hex << version;
+            }
+            if (connection->typeDevice6() == 0x1E08) {
+                version = connection->versionDevice6();
+                qCDebug(dcBroetje()) << "Device 6 is the gateway, version is" << hex << version;
+            }
+            if (connection->typeDevice7() == 0x1E08) {
+                version = connection->versionDevice7();
+                qCDebug(dcBroetje()) << "Device 7 is the gateway, version is" << hex << version;
+            }
+            if (connection->typeDevice8() == 0x1E08) {
+                version = connection->versionDevice8();
+                qCDebug(dcBroetje()) << "Device 8 is the gateway, version is" << hex << version;
+            }
+            if (connection->typeDevice9() == 0x1E08) {
+                version = connection->versionDevice9();
+                qCDebug(dcBroetje()) << "Device 9 is the gateway, version is" << hex << version;
+            }
+
+            if (version < 0x0102) {
+                qCWarning(dcBroetje()) << "The GTW-08 firmware of the heat pump needs to be at least version 1.02 for this plugin to function.";
+                info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The firmware of this heat pump is too old. Please update the GTW-08 to at least version 1.02."));
+                return;
+            }
+            QString valueInHex= QString("%1").arg(version , 0, 16);
+            thing->setStateValue(broetjeGtwVersionStateTypeId, valueInHex);
+
             m_connections.insert(info->thing(), connection);
             info->finish(Thing::ThingErrorNoError);
             connection->update();
