@@ -50,22 +50,30 @@ class IntegrationPluginHuawei: public IntegrationPlugin
 public:
     explicit IntegrationPluginHuawei();
 
+    void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
 
 private:
+    bool m_huaweiFusionSetupRunning{false};
     PluginTimer *m_pluginTimer = nullptr;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, HuaweiFusionSolar *> m_connections;
+    QHash<Thing *, HuaweiFusionSolar *> m_tcpConnections;
     QHash<Thing *, HuaweiModbusRtuConnection *> m_rtuConnections;
 
     void setupFusionSolar(ThingSetupInfo *info);
 
-    QHash<Thing *, QList<float>> m_inverterEnergyProducedHistory;
-    void evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced);
+    QString inverterStateToString(int enumValue);
+    QString batteryStateToString(int enumValue);
+
+    bool isOutlier(const QList<float>& list);
+    const int WINDOW_LENGTH{7};
+    QHash<Thing *, QList<float>> m_pvEnergyProducedValues;
+    QHash<Thing *, QList<float>> m_energyConsumedValues;
+    QHash<Thing *, QList<float>> m_energyProducedValues;
 };
 
 #endif // INTEGRATIONPLUGINHUAWEI_H

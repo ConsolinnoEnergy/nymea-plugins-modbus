@@ -1,3 +1,19 @@
+nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
+
+  * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
+  * Added kostalmeter plugin (copy of bgetech, does not include sdm72)
+  * Add generator to duplicate existing integrations with different names
+  * Added integration for FoxESS WB 3rd Gen
+  * Fix for Solax X3 Inverter: Wrong warning message; Updated inverter power
+    calculation
+  * Stiebel Eltron: Expanded plugin to also work with LWZ type heat pumps.
+  * Fix for Huawei integration
+  * Updated sunspec integration to match nymea
+  * Webasto Next: fixed reconfigure functionality.
+  * Webasto Unite: fixed reconfigure functionality.
+
+ -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
+
 nymea-plugins-modbus (1.7.008) jammy; urgency=medium
 
   * Fixes for Solax power calculation (RTU)
@@ -30,6 +46,12 @@ nymea-plugins-modbus (1.7.005-1) buster focal jammy; urgency=medium
   * Nymea Interface: Use old interface for evcharger - Hotfix 1.1.1 build
 
  -- Florian Knab <f.knab@consolinno.de> Mon, 8 Jan 2024 13:44:53 +0100
+
+nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
+
+* SDM630 & SDM72: improved discovery, improved outlier detection, fixed SDM630 generator scripts & other code improvements.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Fri, 3 May 2024 18:12:53 +0200
 
 nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
 

@@ -33,8 +33,10 @@
 
 #include <plugintimer.h>
 #include <integrations/integrationplugin.h>
+#include <network/networkdevicemonitor.h>
 
-#include "stiebeleltronmodbustcpconnection.h"
+#include "wpmmodbustcpconnection.h"
+#include "lwzmodbustcpconnection.h"
 
 class IntegrationPluginStiebelEltron: public IntegrationPlugin
 {
@@ -47,18 +49,25 @@ public:
     explicit IntegrationPluginStiebelEltron();
 
     void discoverThings(ThingDiscoveryInfo *info) override;
-    void startMonitoringAutoThings() override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
     void executeAction(ThingActionInfo *info) override;
 
 private:
+    bool m_setupConnectionRunning{false};
     PluginTimer *m_pluginTimer = nullptr;
+    QHash<Thing *, WpmModbusTcpConnection *> m_wpmConnections;
+    QHash<Thing *, LwzModbusTcpConnection *> m_lwzConnections;
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
 
-    QHash<Thing *, StiebelEltronModbusTcpConnection *> m_connections;
+    float dataType2conversion(int value);
 
-
+    void setupConnection(ThingSetupInfo *info);
+    void setupWpmConnection(ThingSetupInfo *info);
+    void setupLwzConnection(ThingSetupInfo *info);
+    void executeActionWpm(ThingActionInfo *info);
+    void executeActionLwz(ThingActionInfo *info);
 };
 
 #endif // INTEGRATIONPLUGINSTIEBELELTRON_H
