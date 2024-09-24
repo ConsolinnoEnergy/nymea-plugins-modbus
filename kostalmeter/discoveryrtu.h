@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,45 +28,45 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINKOSTALMETER_H
-#define INTEGRATIONPLUGINKOSTALMETER_H
-
-#include <integrations/integrationplugin.h>
-#include <hardware/modbus/modbusrtuhardwareresource.h>
-#include <plugintimer.h>
-
-#include "sdm630modbusrtuconnection.h"
-
-#include "extern-plugininfo.h"
+#ifndef DISCOVERYRTU_H
+#define DISCOVERYRTU_H
 
 #include <QObject>
 #include <QTimer>
 
-class IntegrationPluginBGETech: public IntegrationPlugin
+#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <modbusdatautils.h>
+
+class DiscoveryRtu : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginkostalmeter.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginBGETech();
-    void init() override;
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
+    explicit DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, uint modbusId, QObject *parent = nullptr);
+    struct Result {
+        QUuid modbusRtuMasterId;
+        quint32 serialNumber;
+        quint16 meterCode;
+        QString serialPort;
+    };
+
+    void startDiscovery();
+
+    QList<Result> discoveryResults() const;
+
+signals:
+    void discoveryFinished(bool modbusRtuMasterAvailable);
+    void repliesFinished();
+
+private slots:
+    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
 
 private:
-    bool isOutlier(const QList<float>& list);
+    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
+    uint m_modbusId;
+    qint16 m_openReplies;
+    ModbusDataUtils::ByteOrder m_endianness;
 
-    PluginTimer *m_refreshTimer = nullptr;
-    int m_windowLength{7};
-
-    QHash<Thing *, QList<float>> m_energyConsumedValues;
-    QHash<Thing *, QList<float>> m_energyProducedValues;
-
-    QHash<Thing *, Sdm630ModbusRtuConnection *> m_sdm630Connections;
+    QList<Result> m_discoveryResults;
 };
 
-#endif // INTEGRATIONPLUGINKOSTALMETER_H
+#endif // DISCOVERYRTU_H
