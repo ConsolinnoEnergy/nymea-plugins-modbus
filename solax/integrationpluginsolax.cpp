@@ -368,7 +368,8 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
                 // Sign should be correct, but check to make sure.
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -double(feedinPower));
+                // meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -double(feedinPower));
+                meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
             }
         });
 
@@ -424,7 +425,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter phase B power (gridPowerS) changed" << currentPowerPhaseB << "W";
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseBStateTypeId, double(currentPowerPhaseB));
+                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseBStateTypeId, static_cast<double>(currentPowerPhaseB));
             }
         });
 
@@ -432,7 +433,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter phase C power (gridPowerT) changed" << currentPowerPhaseC << "W";
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseCStateTypeId, double(currentPowerPhaseC));
+                meterThings.first()->setStateValue(solaxMeterCurrentPowerPhaseCStateTypeId, static_cast<double>(currentPowerPhaseC));
             }
         });
 
