@@ -488,7 +488,9 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         connect(connection, &SolaxModbusRtuConnection::updateFinished, thing, [this, thing, connection](){
             qCDebug(dcSolax()) << "Solax X3 - Update finished.";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            qint16 currentBatPower = 0;
             if (!batteryThings.isEmpty()) {
+                currentBatPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toInt();
                 if (m_batteryPowerTimer->isActive()) {
                     batteryThings.first()->setStateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId, (int) m_batteryPowerTimer->remainingTime()/1000);
                 }
@@ -515,7 +517,16 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             qCDebug(dcSolax()) << "Set inverter power";
             quint16 powerDc1 = connection->powerDc1();
             quint16 powerDc2 = connection->powerDc2();
-            thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2));
+            // If battery is currently charging, check if batteryPower is bigger than solaxpower
+            // If yes, add that difference to solarpower
+            qint16 powerDifference = 0;
+            if (currentBatPower > 0) {
+                powerDifference = currentBatPower - (powerDc1+powerDc2);
+                if (powerDifference < 0) {
+                    powerDifference = 0;
+                }
+            }
+            thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
         });
 
         // Battery
@@ -861,7 +872,9 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection](){
             qCDebug(dcSolax()) << "Solax X3 - Update finished.";
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            qint16 currentBatPower = 0;
             if (!batteryThings.isEmpty()) {
+                currentBatPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toInt();
                 if (m_batteryPowerTimer->isActive()) {
                     batteryThings.first()->setStateValue(solaxBatteryForcePowerTimeoutCountdownStateTypeId, (int) m_batteryPowerTimer->remainingTime()/1000);
                 }
@@ -888,7 +901,16 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             qCDebug(dcSolax()) << "Set inverter power";
             quint16 powerDc1 = connection->powerDc1();
             quint16 powerDc2 = connection->powerDc2();
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2));
+            // If battery is currently charging, check if batteryPower is bigger than solaxpower
+            // If yes, add that difference to solarpower
+            qint16 powerDifference = 0;
+            if (currentBatPower > 0) {
+                powerDifference = currentBatPower - (powerDc1+powerDc2);
+                if (powerDifference < 0) {
+                    powerDifference = 0;
+                }
+            }
+            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
         });
 
         // Meter
