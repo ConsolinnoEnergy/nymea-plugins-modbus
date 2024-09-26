@@ -1,0 +1,123 @@
+{
+    "className": "MyPv",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 10,
+    "checkReachableRegister": "waterTemperature",
+    "enums": [
+        {
+            "name": "ElwaStatus",
+            "values": [
+                {
+                    "key": "Heating",
+                    "value": 2
+                },
+                {
+                    "key": "Standby",
+                    "value": 3
+                },
+                {
+                    "key": "Boosted",
+                    "value": 4
+                },
+                {
+                    "key": "HeatFinished",
+                    "value": 5
+                },
+                {
+                    "key": "Setup",
+                    "value": 9
+                },
+                {
+                    "key": "ErrorOvertempFuseBlown",
+                    "value": 201
+                },
+                {
+                    "key": "ErrorOvertempMeasured",
+                    "value": 202
+                },
+                {
+                    "key": "ErrorOvertempElectronics",
+                    "value": 203
+                },
+                {
+                    "key": "ErrorHardwareFault",
+                    "value": 204
+                },
+                {
+                    "key": "ErrorTempSensor",
+                    "value": 205
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "realTimeValues",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "waterTemperature",
+                    "description": "Actual water temperature",
+                    "unit": "°C",
+                    "address": 1001,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "targetWaterTemperature",
+                    "description": "Target water temperature",
+                    "unit": "°C",
+                    "address": 1002,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "elwaStatus",
+                    "description": "Status of ELWA",
+                    "address": 1003,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "ElwaStatus",
+                    "registerType": "holdingRegister",
+                    "defaultValue": "ElwaStatusStandby",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "currentPower",
+            "description": "Current power",
+            "unit": "W",
+            "address": 1000,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": 0,
+            "readSchedule": "update",
+            "access": "RW"
+        },
+        {
+            "id": "manualStart",
+            "description": "Manual start",
+            "address": 1012,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": 0,
+            "readSchedule": "update",
+            "access": "RW"
+        }
+    ]
+}
+
