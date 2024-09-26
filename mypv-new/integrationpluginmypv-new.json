@@ -60,7 +60,7 @@
                         {
                             "id": "97caea3f-2cb0-430f-a143-9d2dd15d0399",
                             "name": "currentPower",
-                            "displayName": "Active power",
+                            "displayName": "Current power",
                             "displayNameEvent": "Power consumtion changed",
                             "type": "double",
                             "unit": "Watt",
@@ -114,20 +114,7 @@
                             "displayName": "Status",
                             "displayNameEvent": "Status changed",
                             "type": "QString",
-                            "defaultValue": "Unknown",
-                            "possibleValues": [
-                                "Unknown",
-                                "Heat",
-                                "Standby",
-                                "Boost heat",
-                                "Heat finished",
-                                "Setup",
-                                "Error Overtemp Fuse blown",
-                                "Error Overtemp measured",
-                                "Error Overtemp Electronics",
-                                "Error Hardware Fault",
-                                "Error Temp Sensor"
-                            ]
+                            "defaultValue": "Unknown"
                         }
                     ]
                 }
