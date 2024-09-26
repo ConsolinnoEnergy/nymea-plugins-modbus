@@ -171,8 +171,7 @@ void IntegrationPluginMyPv::setupThing(ThingSetupInfo *info)
         if (monitor->reachable()) {
             setupTcpConnection(info);
         } else {
-            connect(hardwareManager()->networkDeviceDiscovery(),
-                &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
+            connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [this, info]() {
                     if (!m_setupTcpConnectionRunning) {
                         m_setupTcpConnectionRunning = true;
                         setupTcpConnection(info);
