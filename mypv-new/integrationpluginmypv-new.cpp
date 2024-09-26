@@ -147,8 +147,7 @@ void IntegrationPluginMyPv::setupThing(ThingSetupInfo *info)
         // Make sure we have a valid mac address, otherwise no monitor and no auto searching is
         // possible. Testing for null is necessary, because registering a monitor with a zero mac
         // adress will cause a segfault.
-        MacAddress macAddress =
-                MacAddress(thing->paramValue(elwaThingMacAddressParamTypeId).toString());
+        MacAddress macAddress = MacAddress(thing->paramValue(elwaThingMacAddressParamTypeId).toString());
         if (macAddress.isNull()) {
             qCWarning(dcMypv())
                     << "Failed to set up MyPV AC ELWA E because the MAC address is not valid:"
@@ -163,15 +162,13 @@ void IntegrationPluginMyPv::setupThing(ThingSetupInfo *info)
         // Create a monitor so we always get the correct IP in the network and see if the device is
         // reachable without polling on our own. In this call, nymea is checking a list for known
         // mac addresses and associated ip addresses
-        NetworkDeviceMonitor *monitor =
-                hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
         // If the mac address is not known, nymea is starting a internal network discovery.
         // 'monitor' is returned while the discovery is still running -> monitor does not include ip
         // address and is set to not reachable
         m_monitors.insert(thing, monitor);
 
-        qCDebug(dcMypv()) << "Monitor reachable" << monitor->reachable()
-                              << thing->paramValue(elwaThingMacAddressParamTypeId).toString();
+        qCDebug(dcMypv()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(elwaThingMacAddressParamTypeId).toString();
         m_setupTcpConnectionRunning = false;
         if (monitor->reachable()) {
             setupTcpConnection(info);
@@ -244,6 +241,52 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    connect(connection, &MyPvModbusTcpConnection::waterTemperatureChanged, thing, [thing](double temp) {
+        qCDebug(dcMypv()) << "Actual water temperature changed" << temp << "°C";
+        thing->setStateValue(elwaTemperatureStateTypeId, temp);
+    });
+
+    connect(connection, &MyPvModbusTcpConnection::targetWaterTemperatureChanged, thing, [thing](double temp) {
+        qCDebug(dcMypv()) << "Target water temperature changed" << temp << "°C";
+        thing->setStateValue(elwaTargetWaterTemperatureStateTypeId, temp);
+    });
+
+    connect(connection, &MyPvModbusTcpConnection::elwaStatusChanged, thing, [thing](quint16 state) {
+        qCDebug(dcMypv()) << "State changed" << state;
+        switch (state) {
+        case MyPvModbusTcpConnection::ElwaStatusHeating:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Heating"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusStandby:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Standby"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusBoosted:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Boosted"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusHeatFinished:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("HeatFinished"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusSetup:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Setup"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusErrorOvertempFuseBlown:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorOvertempFuseBlown"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusErrorOvertempMeasured:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorOvertempMeasured"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusErrorOvertempElectronics:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorOvertempElectronics"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusErrorHardwareFault:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorHardwareFault"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusErrorTempSensor:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorTempSensor"));
+            break;
+        }
+    });
+
     if (monitor->reachable())
         connection->connectDevice();
 
@@ -257,8 +300,8 @@ void IntegrationPluginMyPv::postSetupThing(Thing *thing)
         qCDebug(dcMypv()) << "Starting plugin timer";
         m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
         connect(m_refreshTimer, &PluginTimer::timeout, this, [this] {
-            qCDebug(dcMypv()) << "Updated heating rod";
             foreach(MyPvModbusTcpConnection *connection, m_tcpConnections) {
+                qCDebug(dcMypv()) << "Updated heating rod";
                 connection->update();
             }
         });
