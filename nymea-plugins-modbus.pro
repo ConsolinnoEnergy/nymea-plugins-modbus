@@ -32,6 +32,7 @@ PLUGIN_DIRS = \
     modbuscommander         \
     mtec                    \
     mypv                    \
+    mypv-new                \
     phoenixconnect          \
     qcellsg4wb              \
     sax                     \
