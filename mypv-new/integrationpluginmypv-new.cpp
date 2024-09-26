@@ -69,9 +69,7 @@ void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
             return;
         }
 
-        qCDebug(dcMypv()) << "Discovery is running?" << hardwareManager()->networkDeviceDiscovery()->running();
         NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
-        qCDebug(dcMypv()) << "Discovery is running?" << hardwareManager()->networkDeviceDiscovery()->running();
 
         QTimer::singleShot(2000, this, [this, searchSocket, info, discoveryReply](){
             QList<ThingDescriptor> descriptorList;
