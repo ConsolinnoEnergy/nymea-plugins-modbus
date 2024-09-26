@@ -264,25 +264,25 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Boosted"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusHeatFinished:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("HeatFinished"));
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Heating Finished"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusSetup:
             thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Setup"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorOvertempFuseBlown:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorOvertempFuseBlown"));
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Overtemp Fuse Blown"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorOvertempMeasured:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorOvertempMeasured"));
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Overtemp Measured"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorOvertempElectronics:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorOvertempElectronics"));
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Overtemp Electronics"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorHardwareFault:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorHardwareFault"));
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Hardware Fault"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorTempSensor:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("ErrorTempSensor"));
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Tempsensor"));
             break;
         }
     });
