@@ -57,7 +57,7 @@ public:
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
-    // void executeAction(ThingActionInfo *info) override;
+    void executeAction(ThingActionInfo *info) override;
 
 private:
     PluginTimer *m_refreshTimer = nullptr;
@@ -68,11 +68,6 @@ private:
     QHash<QUuid, ThingActionInfo *> m_asyncActions;
 
     void setupTcpConnection(ThingSetupInfo *info);
-    // void onConnectionStateChanged(bool status);
-    // void onWriteRequestExecuted(QUuid requestId, bool success);
-    // void onWriteRequestError(QUuid requestId, const QString &error);
-
-    // void onReceivedHoldingRegister(quint32 slaveAddress, quint32 modbusRegister, const QVector<quint16> &values);
 };
 
 #endif // INTEGRATIONPLUGINMYPV_H

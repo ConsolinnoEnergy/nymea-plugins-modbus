@@ -232,9 +232,9 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     connect(connection, &MyPvModbusTcpConnection::initializationFinished, thing, [this, connection, thing] (bool success) {
         thing->setStateValue(elwaConnectedStateTypeId, success);
         if (success) {
-            qCDebug(dcMypv()) << "my-PV AC ELWA intialized.";
+            qCDebug(dcMypv()) << "my-PV AC ELWA-E intialized.";
         } else {
-            qCDebug(dcMypv()) << "my-PV AC ELWA initialization failed.";
+            qCDebug(dcMypv()) << "my-PV AC ELWA-E initialization failed.";
             connection->reconnectDevice();
         }
     });
@@ -304,7 +304,7 @@ void IntegrationPluginMyPv::postSetupThing(Thing *thing)
         m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
         connect(m_refreshTimer, &PluginTimer::timeout, this, [this] {
             foreach(MyPvModbusTcpConnection *connection, m_tcpConnections) {
-                qCDebug(dcMypv()) << "Updated heating rod";
+                qCDebug(dcMypv()) << "Updated my-PV ELWA-E";
                 connection->update();
             }
         });
@@ -329,141 +329,43 @@ void IntegrationPluginMyPv::thingRemoved(Thing *thing)
     }
 }
 
-// void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
-// {
-//     Thing *thing = info->thing();
-//     Action action = info->action();
-// 
-//     if (thing->thingClassId() == elwaThingClassId) {
-// 
-//         ModbusTCPMaster *modbusTCPMaster = m_modbusTcpMasters.value(thing);
-//         if (action.actionTypeId() == elwaHeatingPowerActionTypeId) {
-//             int heatingPower = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toInt();
-//             QUuid requestId = modbusTCPMaster->writeHoldingRegister(0xff, ElwaModbusRegisters::Power, heatingPower);
-//             if (requestId.isNull()) {
-//                 info->finish(Thing::ThingErrorHardwareNotAvailable);
-//             } else {
-//                 m_asyncActions.insert(requestId, info);
-//                 connect(info, &ThingActionInfo::aborted, this, [this, requestId] {m_asyncActions.remove(requestId);});
-//             }
-//         } else if (action.actionTypeId() == elwaPowerActionTypeId) {
-//             bool power = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toBool();
-//             if(power) {
-//                 QUuid requestId = modbusTCPMaster->writeHoldingRegister(0xff, ElwaModbusRegisters::ManuelStart, 1);
-//                 if (requestId.isNull()) {
-//                     info->finish(Thing::ThingErrorHardwareNotAvailable);
-//                 } else {
-//                     m_asyncActions.insert(requestId, info);
-//                     connect(info, &ThingActionInfo::aborted, this, [this, requestId] {m_asyncActions.remove(requestId);});
-//                 }
-//             }
-//         } else {
-//             Q_ASSERT_X(false, "executeAction", QString("Unhandled actionTypeId: %1").arg(action.actionTypeId().toString()).toUtf8());
-//         }
-//     } else {
-//         Q_ASSERT_X(false, "executeAction", QString("Unhandled thingClassId: %1").arg(thing->thingClassId().toString()).toUtf8());
-//     }
-// }
-
-// void IntegrationPluginMyPv::onConnectionStateChanged(bool status)
-// {
-//     ModbusTCPMaster *modbusTcpMaster = static_cast<ModbusTCPMaster *>(sender());
-//     Thing *thing = m_modbusTcpMasters.key(modbusTcpMaster);
-//     if (!thing)
-//         return;
-//     thing->setStateValue(elwaConnectedStateTypeId, status);
-// }
-// 
-// void IntegrationPluginMyPv::onWriteRequestExecuted(QUuid requestId, bool success)
-// {
-//     if (m_asyncActions.contains(requestId)) {
-//         ThingActionInfo *info = m_asyncActions.value(requestId);
-//         if (success) {
-//             info->finish(Thing::ThingErrorNoError);
-//         } else {
-//             info->finish(Thing::ThingErrorHardwareNotAvailable);
-//         }
-//     }
-// }
-// 
-// void IntegrationPluginMyPv::onReceivedHoldingRegister(quint32 slaveAddress, quint32 modbusRegister, const QVector<quint16> &value)
-// {
-//     Q_UNUSED(slaveAddress)
-//     ModbusTCPMaster *modbusTcpMaster = static_cast<ModbusTCPMaster *>(sender());
-//     Thing *thing = m_modbusTcpMasters.key(modbusTcpMaster);
-//     if (!thing)
-//         return;
-// 
-//     if(modbusRegister == ElwaModbusRegisters::Status) {
-//         switch (ElwaStatus(value[0])) {
-//         case ElwaStatus::Heating: {
-//             thing->setStateValue(elwaStatusStateTypeId, "Heating");
-//             thing->setStateValue(elwaPowerStateTypeId, true);
-//             break;
-//         }
-//         case ElwaStatus::Standby:{
-//             thing->setStateValue(elwaStatusStateTypeId, "Standby");
-//             thing->setStateValue(elwaPowerStateTypeId, false);
-//             break;
-//         }
-//         case ElwaStatus::Boosted:{
-//             thing->setStateValue(elwaStatusStateTypeId, "Boosted");
-//             thing->setStateValue(elwaPowerStateTypeId, true);
-//             break;
-//         }
-//         case ElwaStatus::HeatFinished:{
-//             thing->setStateValue(elwaStatusStateTypeId, "Heat finished");
-//             thing->setStateValue(elwaPowerStateTypeId, false);
-//             break;
-//         }
-//         case ElwaStatus::Setup:{
-//             thing->setStateValue(elwaStatusStateTypeId, "Setup");
-//             thing->setStateValue(elwaPowerStateTypeId, false);
-//             break;
-//         }
-//         case ElwaStatus::ErrorOvertempFuseBlown:{
-//             thing->setStateValue(elwaStatusStateTypeId, "Error Overtemp Fuse blown");
-//             break;
-//         }
-//         case ElwaStatus::ErrorOvertempMeasured:{
-//             thing->setStateValue(elwaStatusStateTypeId, "Error Overtemp measured");
-//             break;
-//         }
-//         case ElwaStatus::ErrorOvertempElectronics:{
-//             thing->setStateValue(elwaStatusStateTypeId, "Error Overtemp Electronics");
-//             break;
-//         }
-//         case ElwaStatus::ErrorHardwareFault:{
-//             thing->setStateValue(elwaStatusStateTypeId, "Error Hardware Fault");
-//             break;
-//         }
-//         case ElwaStatus::ErrorTempSensor:{
-//             thing->setStateValue(elwaStatusStateTypeId, "Error Temp Sensor");
-//             break;
-//         }
-//         default:
-//             thing->setStateValue(elwaStatusStateTypeId, "Unknown");
-//         }
-//     } else if(modbusRegister == ElwaModbusRegisters::WaterTemperature) {
-//         thing->setStateValue(elwaTemperatureStateTypeId, value[0]/10.00);
-//     } else if(modbusRegister == ElwaModbusRegisters::TargetWaterTemperature) {
-//         thing->setStateValue(elwaTargetWaterTemperatureStateTypeId, value[0]/10.00);
-//     } else if(modbusRegister == ElwaModbusRegisters::Power) {
-//         thing->setStateValue(elwaHeatingPowerStateTypeId, value[0]);
-//     } else {
-//         qCWarning(dcMypv()) << "Received unhandled modbus register";
-//     }
-// }
-// 
-// void IntegrationPluginMyPv::update(Thing *thing)
-// {
-//     if (thing->thingClassId() == elwaThingClassId) {
-//         ModbusTCPMaster *modbusTCPMaster = m_modbusTcpMasters.value(thing);
-// 
-//         modbusTCPMaster->readHoldingRegister(0xff, ElwaModbusRegisters::Status);
-//         modbusTCPMaster->readHoldingRegister(0xff, ElwaModbusRegisters::WaterTemperature);
-//         modbusTCPMaster->readHoldingRegister(0xff, ElwaModbusRegisters::TargetWaterTemperature);
-//         modbusTCPMaster->readHoldingRegister(0xff, ElwaModbusRegisters::Power);
-//     }
-// }
-// 
+void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
+{
+    Thing *thing = info->thing();
+    Action action = info->action();
+    
+    if (thing->thingClassId() == elwaThingClassId) {
+        MyPvModbusTcpConnection *connection = m_tcpConnections.value(thing);
+        if (action.actionTypeId() == elwaHeatingPowerActionTypeId) {
+            qCDebug(dcMypv()) << "Set heating power";
+            int heatingPower = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toInt();
+            QModbusReply *reply = connection->setCurrentPower(heatingPower);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [this, reply, heatingPower]() {
+                if (reply->error() == QModbusDevice::NoError) {
+                    qCDebug(dcMypv()) << "Heating power set successfully";
+                } else {
+                    qCDebug(dcMypv()) << "Error setting heating power";
+                }
+            });
+            info->finish(Thing::ThingErrorNoError);
+        } else if (action.actionTypeId() == elwaPowerActionTypeId) {
+            qCDebug(dcMypv()) << "Manually start heating rod";
+            bool power = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toBool();
+            QModbusReply *reply = connection->setManualStart(power ? 1 : 0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [this, reply, power]() {
+                if (reply->error() == QModbusDevice::NoError) {
+                    qCDebug(dcMypv()) << "Successfully startet heating rod";
+                } else {
+                    qCDebug(dcMypv()) << "Error starting heating power";
+                }
+            });
+            info->finish(Thing::ThingErrorNoError);
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled actionTypeId: %1").arg(action.actionTypeId().toString()).toUtf8());
+        }
+    } else {
+        Q_ASSERT_X(false, "executeAction", QString("Unhandled thingClassId: %1").arg(thing->thingClassId().toString()).toUtf8());
+    }
+}
