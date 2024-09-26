@@ -241,6 +241,11 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    connect(connection, &MyPvModbusTcpConnection::currentPowerChanged, thing, [thing](quint16 power) {
+        qCDebug(dcMypv()) << "Current power changed" << power << "W";
+        thing->setStateValue(elwaCurrentPowerStateTypeId, power);
+    });
+
     connect(connection, &MyPvModbusTcpConnection::waterTemperatureChanged, thing, [thing](double temp) {
         qCDebug(dcMypv()) << "Actual water temperature changed" << temp << "°C";
         thing->setStateValue(elwaTemperatureStateTypeId, temp);
@@ -282,7 +287,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Hardware Fault"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorTempSensor:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Tempsensor"));
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Temperatur Sensor"));
             break;
         }
     });
