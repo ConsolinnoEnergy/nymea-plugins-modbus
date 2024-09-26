@@ -1,6 +1,6 @@
 {
     "className": "MyPv",
-    "protocol": "TCP",
+    "protocol": "RTU",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "waterTemperature",
