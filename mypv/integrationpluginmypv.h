@@ -33,11 +33,14 @@
 
 #include <integrations/integrationplugin.h>
 #include <plugintimer.h>
+#include <network/networkdevicemonitor.h>
 
-#include <modbustcpmaster.h>
+#include "mypvmodbustcpconnection.h"
 
 #include <QUdpSocket>
 #include <QUuid>
+
+class NetworkDeviceMonitor;
 
 class IntegrationPluginMyPv: public IntegrationPlugin
 {
@@ -57,42 +60,14 @@ public:
     void executeAction(ThingActionInfo *info) override;
 
 private:
-
-    enum ElwaModbusRegisters {
-        Power= 1000,
-        WaterTemperature = 1001,
-        TargetWaterTemperature = 1002,
-        Status = 1003,
-        ManuelStart = 1012
-    };
-
-    enum ElwaStatus {
-        Heating = 2,
-        Standby = 3,
-        Boosted = 4,
-        HeatFinished = 5,
-        Setup = 9,
-        ErrorOvertempFuseBlown = 201,
-        ErrorOvertempMeasured = 202,
-        ErrorOvertempElectronics = 203,
-        ErrorHardwareFault = 204,
-        ErrorTempSensor = 205
-    };
-
     PluginTimer *m_refreshTimer = nullptr;
-    QHash<Thing *, ModbusTCPMaster *> m_modbusTcpMasters;
+    bool m_setupTcpConnectionRunning = false;
+
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    QHash<Thing *, MyPvModbusTcpConnection *> m_tcpConnections;
     QHash<QUuid, ThingActionInfo *> m_asyncActions;
 
-    void update(Thing *thing);
-
-private slots:
-    void onRefreshTimer();
-
-    void onConnectionStateChanged(bool status);
-    void onWriteRequestExecuted(QUuid requestId, bool success);
-    void onWriteRequestError(QUuid requestId, const QString &error);
-
-    void onReceivedHoldingRegister(quint32 slaveAddress, quint32 modbusRegister, const QVector<quint16> &values);
+    void setupTcpConnection(ThingSetupInfo *info);
 };
 
 #endif // INTEGRATIONPLUGINMYPV_H

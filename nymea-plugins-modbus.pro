@@ -27,8 +27,7 @@ PLUGIN_DIRS = \
     # mennekes                \
     # modbuscommander         \
     # mtec                    \
-    # mypv                    \
-    mypv-new                  \
+    mypv                    \
     # phoenixconnect          \
     # sax                     \
     # schneider               \
