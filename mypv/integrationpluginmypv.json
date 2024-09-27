@@ -1,36 +1,45 @@
 {
     "name": "Mypv",
     "displayName": "my-PV",
-    "id": "73c7efcc-80d5-4166-ad97-2cbbeb129d91",
+    "id": "8078476b-4fff-4558-8a3a-fc2ddfae8b12",
     "vendors": [
         {
             "name": "myPV",
             "displayName": "my-PV",
-            "id": "1f17597f-e0d0-459b-858d-ec9cbcd10b2c",
+            "id": "58c480aa-abbc-47b7-a3b8-d2828fa07f67",
             "thingClasses": [
                 {
                     "name": "elwa",
-                    "displayName": "AC Elwa E",
-                    "id": "19ac4c7c-9c0a-4998-a8f0-c77d940cbb08",
+                    "displayName": "my-PV AC Elwa E",
+                    "id": "39e0828b-8fc4-4a1c-a173-b02ef76e1a93",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["heating", "temperaturesensor", "connectable"],
+                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
                     "paramTypes": [
                         {
-                            "id": "ae66596f-f6c7-4d9c-9eee-b9190616a9e1",
+                            "id": "d54a05fc-e7e0-44b9-a49f-28d125f4a850",
                             "name":"ipAddress",
                             "displayName": "IP address",
-                            "type": "QString"
+                            "type": "QString",
+                            "readOnly": true
                         },
                         {
-                            "id": "b31a263a-2fdc-4a88-88ec-9e182025da8f",
+                            "id": "6c91451c-9824-45ff-adb3-be187c257413",
+                            "name": "macAddress",
+                            "displayName": "MAC Address",
+                            "type": "QString",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "de7fed98-39e2-4f4b-8f9c-9cdc5c56920c",
                             "name":"serialNumber",
                             "displayName": "Serial number",
-                            "type": "QString"
+                            "type": "QString",
+                            "readOnly": true
                         }
                     ],
                     "stateTypes":[
                         {
-                            "id": "a5afaad5-78bf-4cac-b98d-7eae31aac518",
+                            "id": "ae1aea74-abac-424a-9fbb-58837636035a",
                             "name": "connected",
                             "displayName": "Connected",
                             "displayNameEvent": "Connected changed",
@@ -39,7 +48,7 @@
                             "cached": false
                         },
                         {
-                            "id": "e6b0260b-f255-4f17-8ac1-bc87a950f449",
+                            "id": "b18d9582-2bf9-42fa-991f-5f6b6df2f721",
                             "name": "power",
                             "displayName": "Power",
                             "displayNameEvent": "Power changed",
@@ -49,12 +58,22 @@
                             "writable": true
                         },
                         {
-                            "id": "2eb3c40c-1b43-4b64-82e2-6558f0b8817e",
+                            "id": "97caea3f-2cb0-430f-a143-9d2dd15d0399",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Power consumtion changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "c6cac0e7-ca01-4f26-951c-e5a7636707b4",
                             "name": "heatingPower",
                             "displayName": "Power consumption",
-                            "displayNameEvent": "Power consumption changed",
+                            "displayNameEvent": "Heating power consumption changed",
                             "displayNameAction": "Change power consumption",
-                            "type": "int",
+                            "type": "uint",
                             "unit": "Watt",
                             "minValue": 0,
                             "maxValue": 3600,
@@ -62,7 +81,17 @@
                             "writable": true
                         },
                         {
-                            "id": "60006f93-8852-433b-bbc0-f10cc3939eeb",
+                            "id": "65093b09-c6e9-4bc8-90b9-595d8a9feb3b",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumption changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "a7aa8879-d095-477b-af3c-5f493949db42",
                             "name": "temperature",
                             "displayName": "Water temperature",
                             "displayNameEvent": "Water temperature changed",
@@ -71,7 +100,7 @@
                             "defaultValue": 0
                         },
                         {
-                            "id": "2b089c93-6411-41f7-96aa-f78d5cf910cb",
+                            "id": "522c0d49-f62e-406a-bb54-c89d5f4ca783",
                             "name": "targetWaterTemperature",
                             "displayName": "Target water temperature",
                             "displayNameEvent": "Target water temperature changed",
@@ -80,25 +109,12 @@
                             "defaultValue": 0
                         },
                         {
-                            "id": "d0a7065e-7773-47d7-b474-ce8d21d55aa7",
+                            "id": "4bcdbb9d-c9cd-4a27-87f6-238022499cb4",
                             "name": "status",
                             "displayName": "Status",
                             "displayNameEvent": "Status changed",
                             "type": "QString",
-                            "defaultValue": "Unknown",
-                            "possibleValues": [
-                                "Unknown",
-                                "Heat",
-                                "Standby",
-                                "Boost heat",
-                                "Heat finished",
-                                "Setup",
-                                "Error Overtemp Fuse blown",
-                                "Error Overtemp measured",
-                                "Error Overtemp Electronics",
-                                "Error Hardware Fault",
-                                "Error Temp Sensor"
-                            ]
+                            "defaultValue": "Unknown"
                         }
                     ]
                 }
