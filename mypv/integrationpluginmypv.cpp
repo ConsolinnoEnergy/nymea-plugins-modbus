@@ -130,7 +130,7 @@ void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
                 }
                 NetworkDeviceInfo heatingRod = discoveryReply->networkDeviceInfos().get(senderAddress);
                 if (heatingRod.macAddress().isNull()) {
-                    info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The wallbox was found, but the MAC address is invalid. Try searching again."));
+                    info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The device was found, but the MAC address is invalid. Try searching again."));
                 }
 
                 ParamList params;
