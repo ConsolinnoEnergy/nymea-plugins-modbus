@@ -85,21 +85,34 @@ void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
                 }
 
                 //Device Id AC•THOR = 0x4e84
+                //Device Id AC•THOR 9s = 0x4f4c
                 //Device Id Power  = 0x4e8e
                 //Device Id AC ELWA-E = 0x3efc
+                //Device Id AC ELWA-2 = 0x3f16
+                QString device;
                 qCDebug(dcMypv()) << "device Id:" << data.mid(2, 2);
                 if (data.mid(2, 2) == QByteArray::fromHex("3efc")) {
                     qCDebug(dcMypv()) << "Found Device: AC ElWA-E";
+                    device = "AC ELWA-E";
+                } else if (data.mid(2, 2) == QByteArray::fromHex("0x3f16")) {
+                    qCDebug(dcMypv()) << "Found Device: AC ELWA-2";
+                    device = "AC ELWA-2";
                 } else if (data.mid(2, 2) == QByteArray::fromHex("0x4e8e")) {
                     qCDebug(dcMypv()) << "Found Device: Powermeter";
+                    device = QT_TR_NOOP("my-PV Meter");
                 } else if (data.mid(2, 2) == QByteArray::fromHex("0x4e84")) {
                     qCDebug(dcMypv()) << "Found Device: AC Thor";
+                    device = "AC Thor";
+                } else if (data.mid(2, 2) == QByteArray::fromHex("0x4f4c")) {
+                    qCDebug(dcMypv()) << "Found Device: AC Thor 9s";
+                    device = "AC Thor 9s";
                 } else {
                     qCDebug(dcMypv()) << "Failed to parse discovery datagram from" << senderAddress << data;
+                    device = "Invalid";
                     continue;
                 }
 
-                ThingDescriptor thingDescriptors(info->thingClassId(), "AC ELWA-E", senderAddress.toString());
+                ThingDescriptor thingDescriptors(info->thingClassId(), device, senderAddress.toString());
                 QByteArray serialNumber = data.mid(8, 16);
 
                 foreach (Thing *existingThing, myThings()) {
