@@ -62,6 +62,7 @@ public:
 private:
     PluginTimer *m_refreshTimer = nullptr;
     bool m_setupTcpConnectionRunning = false;
+    bool m_isELWA_2 = false;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, MyPvModbusTcpConnection *> m_tcpConnections;

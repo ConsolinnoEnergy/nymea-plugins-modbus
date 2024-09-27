@@ -97,6 +97,7 @@ void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
                 } else if (data.mid(2, 2) == QByteArray::fromHex("0x3f16")) {
                     qCDebug(dcMypv()) << "Found Device: AC ELWA-2";
                     device = "AC ELWA-2";
+                    m_isELWA_2 = true;
                 } else if (data.mid(2, 2) == QByteArray::fromHex("0x4e8e")) {
                     qCDebug(dcMypv()) << "Found Device: Powermeter";
                     device = QT_TR_NOOP("my-PV Meter");
@@ -364,7 +365,11 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
         } else if (action.actionTypeId() == elwaPowerActionTypeId) {
             qCDebug(dcMypv()) << "Manually start heating rod";
             bool power = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toBool();
-            QModbusReply *reply = connection->setManualStart(power ? 1 : 0);
+            // For ELWA 2, manual needs to be set to 2 to manually actviate boost mode
+            quint8 manualModeValue = 1;
+            if (m_isELWA_2)
+                manualModeValue = 2;
+            QModbusReply *reply = connection->setManualStart(power ? manualModeValue : 0);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply, power]() {
                 if (reply->error() == QModbusDevice::NoError) {
