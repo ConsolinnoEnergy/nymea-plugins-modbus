@@ -242,6 +242,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    // Check if initilization works correctly
     connect(connection, &MyPvModbusTcpConnection::initializationFinished, thing, [this, connection, thing] (bool success) {
         thing->setStateValue(elwaConnectedStateTypeId, success);
         if (success) {
@@ -252,21 +253,25 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
+    // Read the current power consumed by the device
     connect(connection, &MyPvModbusTcpConnection::currentPowerChanged, thing, [thing](quint16 power) {
         qCDebug(dcMypv()) << "Current power changed" << power << "W";
         thing->setStateValue(elwaCurrentPowerStateTypeId, power);
     });
 
+    // Read the currently measured water temperature
     connect(connection, &MyPvModbusTcpConnection::waterTemperatureChanged, thing, [thing](double temp) {
         qCDebug(dcMypv()) << "Actual water temperature changed" << temp << "°C";
         thing->setStateValue(elwaTemperatureStateTypeId, temp);
     });
 
+    // Read the set target water temperature
     connect(connection, &MyPvModbusTcpConnection::targetWaterTemperatureChanged, thing, [thing](double temp) {
         qCDebug(dcMypv()) << "Target water temperature changed" << temp << "°C";
         thing->setStateValue(elwaTargetWaterTemperatureStateTypeId, temp);
     });
 
+    // Read the current status of the heating rod
     connect(connection, &MyPvModbusTcpConnection::elwaStatusChanged, thing, [thing](quint16 state) {
         qCDebug(dcMypv()) << "State changed" << state;
         switch (state) {
@@ -312,6 +317,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
 void IntegrationPluginMyPv::postSetupThing(Thing *thing)
 {
     Q_UNUSED(thing)
+    // Start plugin timer
     if (!m_refreshTimer) {
         qCDebug(dcMypv()) << "Starting plugin timer";
         m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
@@ -350,6 +356,7 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
     if (thing->thingClassId() == elwaThingClassId) {
         MyPvModbusTcpConnection *connection = m_tcpConnections.value(thing);
         if (action.actionTypeId() == elwaHeatingPowerActionTypeId) {
+            // Set the heating power of the heating rod
             qCDebug(dcMypv()) << "Set heating power";
             int heatingPower = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toInt();
             QModbusReply *reply = connection->setCurrentPower(heatingPower);
@@ -363,6 +370,7 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
             });
             info->finish(Thing::ThingErrorNoError);
         } else if (action.actionTypeId() == elwaPowerActionTypeId) {
+            // Manually start the heating rod
             qCDebug(dcMypv()) << "Manually start heating rod";
             bool power = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toBool();
             // For ELWA 2, manual needs to be set to 2 to manually actviate boost mode
