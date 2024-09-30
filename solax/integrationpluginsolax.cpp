@@ -342,11 +342,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             thing->setStateValue(solaxX3InverterRTUEnergyProducedTodayStateTypeId, solarEnergyToday);
         });
 
-        connect(connection, &SolaxModbusRtuConnection::inverterFaultBitsChanged, thing, [this, thing](quint32 inverterFaultBits){
-            qCDebug(dcSolax()) << "Inverter fault bits recieved" << inverterFaultBits;
-            setErrorMessage(thing, inverterFaultBits);
-        });
-
 
         // Meter
         connect(connection, &SolaxModbusRtuConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
@@ -584,18 +579,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                     batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateTypeId, false);
                 }
             }
-        });
-
-        connect(connection, &SolaxModbusRtuConnection::bmsWarningLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
-            qCDebug(dcSolax()) << "Battery warning bits LSB recieved" << batteryWarningBitsLsb;
-            m_batterystates.find(thing)->bmsWarningLsb = batteryWarningBitsLsb;
-            setBmsWarningMessage(thing);
-        });
-
-        connect(connection, &SolaxModbusRtuConnection::bmsWarningMsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
-            qCDebug(dcSolax()) << "Battery warning bits MSB recieved" << batteryWarningBitsMsb;
-            m_batterystates.find(thing)->bmsWarningMsb = batteryWarningBitsMsb;
-            setBmsWarningMessage(thing);
         });
 
         connect(connection, &SolaxModbusRtuConnection::batVoltageCharge1Changed, thing, [this, thing](double batVoltageCharge1){
@@ -850,11 +833,6 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         connect(connection, &SolaxModbusTcpConnection::readExportLimitChanged, thing, [thing](float limit){
             qCWarning(dcSolax()) << "Export limit changed to " << limit << "W";
             thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, limit);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::inverterFaultBitsChanged, thing, [this, thing](quint32 inverterFaultBits){
-            qCDebug(dcSolax()) << "Inverter fault bits recieved" << inverterFaultBits;
-            setErrorMessage(thing, inverterFaultBits);
         });
 
         connect(connection, &SolaxModbusTcpConnection::modbusPowerControlChanged, thing, [this, thing](quint16 controlMode) {
@@ -1113,18 +1091,6 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                     batteryThings.first()->setStateValue(solaxBatteryEnableForcePowerStateTypeId, false);
                 }
             }
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::bmsWarningLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
-            qCDebug(dcSolax()) << "Battery warning bits LSB recieved" << batteryWarningBitsLsb;
-            m_batterystates.find(thing)->bmsWarningLsb = batteryWarningBitsLsb;
-            setBmsWarningMessage(thing);
-        });
-
-        connect(connection, &SolaxModbusTcpConnection::bmsWarningMsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
-            qCDebug(dcSolax()) << "Battery warning bits MSB recieved" << batteryWarningBitsMsb;
-            m_batterystates.find(thing)->bmsWarningMsb = batteryWarningBitsMsb;
-            setBmsWarningMessage(thing);
         });
 
         connect(connection, &SolaxModbusTcpConnection::batVoltageCharge1Changed, thing, [this, thing](double batVoltageCharge1){
@@ -1450,44 +1416,6 @@ void IntegrationPluginSolax::setRunMode(Thing *thing, quint16 runModeAsInt)
         thing->setStateValue(solaxX3InverterRTUInverterStatusStateTypeId, runModeAsString);
     }
 }
-
-void IntegrationPluginSolax::setErrorMessage(Thing *thing, quint32 errorBits)
-{
-    QString errorMessage{""};
-    if (errorBits == 0) {
-        errorMessage = QT_TR_NOOP("No error, everything ok.");
-    } else {
-        errorMessage = QT_TR_NOOP("Error reported! Check with Solax.");
-    }
-    qCDebug(dcSolax()) << errorMessage;
-    if (thing->thingClassId() == solaxX3InverterTCPThingClassId) {
-        thing->setStateValue(solaxX3InverterTCPErrorMessageStateTypeId, errorMessage);
-    } else if (thing->thingClassId() == solaxX3InverterRTUThingClassId) {
-        thing->setStateValue(solaxX3InverterRTUErrorMessageStateTypeId, errorMessage);
-    }
-}
-
-void IntegrationPluginSolax::setBmsWarningMessage(Thing *thing)
-{
-    Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-    if (!batteryThings.isEmpty()) {
-        QString warningMessage{""};
-        quint16 warningBitsLsb = m_batterystates.value(thing).bmsWarningLsb;
-        quint16 warningBitsMsb = m_batterystates.value(thing).bmsWarningMsb;
-
-        quint32 warningBits = warningBitsMsb;
-        warningBits = (warningBits << 16) + warningBitsLsb;
-
-        if (warningBits == 0) {
-            warningMessage = QT_TR_NOOP("No warning, everything ok.");
-        } else {
-            warningMessage = QT_TR_NOOP("Warning reported! Check with Solax.");
-        }
-        qCDebug(dcSolax()) << warningMessage;
-        batteryThings.first()->setStateValue(solaxBatteryWarningMessageStateTypeId, warningMessage);
-    }
-}
-
 
 void IntegrationPluginSolax::disableRemoteControl(Thing *thing)
 {

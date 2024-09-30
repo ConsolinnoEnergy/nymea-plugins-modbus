@@ -127,16 +127,6 @@
                             "cached": false
                         },
                         {
-                            "id": "259c7479-8fb3-44ac-84bb-74cfe4a90336",
-                            "name": "errorMessage",
-                            "displayName": "Error message",
-                            "displayNameEvent": "Error message changed",
-                            "type": "QString",
-                            "defaultValue": "No error, everything ok.",
-                            "suggestLogging": true,
-                            "cached": false
-                        },
-                        {
                             "id": "e2c14c76-7d93-4dee-bb4e-5b6f18b20633",
                             "name": "nominalPower",
                             "displayName": "Rated power",
@@ -355,16 +345,6 @@
                             "displayNameEvent": "Inverter status changed",
                             "type": "QString",
                             "defaultValue": "Unknown",
-                            "cached": false
-                        },
-                        {
-                            "id": "ec84a765-6c18-4ffe-9372-93d20853d300",
-                            "name": "errorMessage",
-                            "displayName": "Error message",
-                            "displayNameEvent": "Error message changed",
-                            "type": "QString",
-                            "defaultValue": "No error, everything ok.",
-                            "suggestLogging": true,
                             "cached": false
                         },
                         {
@@ -692,16 +672,6 @@
                             "displayNameEvent": "Connected changed",
                             "type": "bool",
                             "defaultValue": false,
-                            "cached": false
-                        },
-                        {
-                            "id": "2f16aef5-9459-4205-8e81-d444354b7c2a",
-                            "name": "warningMessage",
-                            "displayName": "Warning message",
-                            "displayNameEvent": "Warning message changed",
-                            "type": "QString",
-                            "defaultValue": "No warning, everything ok.",
-                            "suggestLogging": true,
                             "cached": false
                         },
                         {
