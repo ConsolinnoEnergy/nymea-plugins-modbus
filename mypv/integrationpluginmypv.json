@@ -76,7 +76,7 @@
                             "type": "uint",
                             "unit": "Watt",
                             "minValue": 0,
-                            "maxValue": 3600,
+                            "maxValue": 1000,
                             "defaultValue": 0,
                             "writable": true
                         },
