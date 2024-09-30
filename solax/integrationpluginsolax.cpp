@@ -912,7 +912,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
                 // Sign should be correct, but check to make sure.
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -double(feedinPower));
+                meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
             }
         });
 
