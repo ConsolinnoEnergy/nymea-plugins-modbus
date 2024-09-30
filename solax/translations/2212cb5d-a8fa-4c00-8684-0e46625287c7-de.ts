@@ -34,24 +34,24 @@
         <translation>Der ausgewählte Modbus RTU Master ist nicht verfügbar.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="1403"/>
+        <location filename="../integrationpluginsolax.cpp" line="1458"/>
         <source>No error, everything ok.</source>
         <translation>Keine Fehler, alles in Ordnung.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="1405"/>
-        <source>The following error bits are active: </source>
-        <translation>Die folgenden Error-Bits sind aktiv: </translation>
+        <location filename="../integrationpluginsolax.cpp" line="1460"/>
+        <source>Error reported! Check with Solax.</source>
+        <translation>Fehler gemeldet! Kontaktieren Sie Solax.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="1504"/>
+        <location filename="../integrationpluginsolax.cpp" line="1484"/>
+        <source>Warning reported! Check with Solax.</source>
+        <translation>Warnung gemeldet! Kontaktieren Sie Solax.</translation>
+    </message>
+    <message>
+        <location filename="../integrationpluginsolax.cpp" line="1482"/>
         <source>No warning, everything ok.</source>
         <translation>Keine Warnungen, alles in Ordnung.</translation>
-    </message>
-    <message>
-        <location filename="../integrationpluginsolax.cpp" line="1506"/>
-        <source>The following warning bits are active: </source>
-        <translation>The folgenden Warning-Bits sind aktiv: </translation>
     </message>
 </context>
 <context>

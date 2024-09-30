@@ -34,23 +34,23 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="1403"/>
+        <location filename="../integrationpluginsolax.cpp" line="1458"/>
         <source>No error, everything ok.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="1405"/>
-        <source>The following error bits are active: </source>
+        <location filename="../integrationpluginsolax.cpp" line="1460"/>
+        <source>Error reported! Check with Solax.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="1504"/>
+        <location filename="../integrationpluginsolax.cpp" line="1484"/>
+        <source>Warning reported! Check with Solax.</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../integrationpluginsolax.cpp" line="1482"/>
         <source>No warning, everything ok.</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../integrationpluginsolax.cpp" line="1506"/>
-        <source>The following warning bits are active: </source>
         <translation></translation>
     </message>
 </context>
