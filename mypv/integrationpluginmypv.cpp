@@ -94,19 +94,23 @@ void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
                 if (data.mid(2, 2) == QByteArray::fromHex("3efc")) {
                     qCDebug(dcMypv()) << "Found Device: AC ElWA-E";
                     device = "AC ELWA-E";
+                    m_myDevice = AC_ELWA_E;
                 } else if (data.mid(2, 2) == QByteArray::fromHex("0x3f16")) {
                     qCDebug(dcMypv()) << "Found Device: AC ELWA-2";
                     device = "AC ELWA-2";
-                    m_isELWA_2 = true;
+                    m_myDevice = AC_ELWA_2;
                 } else if (data.mid(2, 2) == QByteArray::fromHex("0x4e8e")) {
                     qCDebug(dcMypv()) << "Found Device: Powermeter";
                     device = QT_TR_NOOP("my-PV Meter");
+                    m_myDevice = POWER_METER;
                 } else if (data.mid(2, 2) == QByteArray::fromHex("0x4e84")) {
                     qCDebug(dcMypv()) << "Found Device: AC Thor";
                     device = "AC Thor";
+                    m_myDevice = AC_THOR;
                 } else if (data.mid(2, 2) == QByteArray::fromHex("0x4f4c")) {
                     qCDebug(dcMypv()) << "Found Device: AC Thor 9s";
                     device = "AC Thor 9s";
+                    m_myDevice = AC_THOR_9s;
                 } else {
                     qCDebug(dcMypv()) << "Failed to parse discovery datagram from" << senderAddress << data;
                     device = "Invalid";
@@ -247,6 +251,9 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue(elwaConnectedStateTypeId, success);
         if (success) {
             qCDebug(dcMypv()) << "my-PV AC ELWA-E intialized.";
+            qCDebug(dcMypv()) << "### Current device is" << m_myDevice;
+            qCDebug(dcMypv()) << "### Max Power should be set to" << m_devicePower[m_myDevice];
+            thing->setStateMaxValue(elwaHeatingPowerStateTypeId, m_devicePower[m_myDevice]);
         } else {
             qCDebug(dcMypv()) << "my-PV AC ELWA-E initialization failed.";
             connection->reconnectDevice();
@@ -368,14 +375,15 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
                     qCDebug(dcMypv()) << "Error setting heating power";
                 }
             });
+            thing->setStateValue(elwaHeatingPowerStateTypeId, heatingPower);
             info->finish(Thing::ThingErrorNoError);
         } else if (action.actionTypeId() == elwaPowerActionTypeId) {
             // Manually start the heating rod
             qCDebug(dcMypv()) << "Manually start heating rod";
-            bool power = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toBool();
+            bool power = action.param(elwaPowerActionPowerParamTypeId).value().toBool();
             // For ELWA 2, manual needs to be set to 2 to manually actviate boost mode
             quint8 manualModeValue = 1;
-            if (m_isELWA_2)
+            if (m_myDevice == AC_ELWA_2)
                 manualModeValue = 2;
             QModbusReply *reply = connection->setManualStart(power ? manualModeValue : 0);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
@@ -386,6 +394,7 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
                     qCDebug(dcMypv()) << "Error starting heating power";
                 }
             });
+            thing->setStateValue(elwaPowerStateTypeId, power);
             info->finish(Thing::ThingErrorNoError);
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled actionTypeId: %1").arg(action.actionTypeId().toString()).toUtf8());

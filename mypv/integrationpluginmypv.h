@@ -62,11 +62,21 @@ public:
 private:
     PluginTimer *m_refreshTimer = nullptr;
     bool m_setupTcpConnectionRunning = false;
-    bool m_isELWA_2 = false;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, MyPvModbusTcpConnection *> m_tcpConnections;
     QHash<QUuid, ThingActionInfo *> m_asyncActions;
+
+    enum Device {
+        AC_ELWA_E,
+        AC_ELWA_2,
+        AC_THOR,
+        AC_THOR_9s,
+        POWER_METER,
+        UNKNOWN
+    };
+    enum Device m_myDevice = UNKNOWN;
+    QHash<Device, uint> const m_devicePower = {{AC_ELWA_E, 3000}, {AC_ELWA_2, 3500}, {AC_THOR, 3000}, {AC_THOR_9s, 9000}, {POWER_METER, 1000}, {UNKNOWN, 100}};
 
     void setupTcpConnection(ThingSetupInfo *info);
 };
