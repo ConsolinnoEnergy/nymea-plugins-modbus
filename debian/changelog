@@ -1,5 +1,11 @@
 nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
 
+  * Fix for Mennekes: Set phaseCount to 1 when not charging.
+
+ -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
+
+nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
+
   * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
   * Added kostalmeter plugin (copy of bgetech, does not include sdm72)
   * Add generator to duplicate existing integrations with different names
