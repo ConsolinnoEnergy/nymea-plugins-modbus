@@ -43,6 +43,18 @@ void IntegrationPluginDvModbusIR::init()
 {
     // Initialisation can be done here.
     qCDebug(dcDvModbusIR()) << "Initialize plugin.";
+    connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=] (const QUuid &modbusUuid) {
+        qCDebug(dcDvModbusIR()) << "Modbus RTU master has been removed" << modbusUuid.toString();
+        foreach (Thing *thing, myThings()) {
+            if (thing->thingClassId() == dvModbusIRThingClassId) {
+                if (thing->paramValue(dvModbusIRThingModbusMasterUuidParamTypeId) == modbusUuid) {
+                    qCWarning(dcDvModbusIR()) << "Modbus RTU hardware resource removed for" << thing <<". The thing will not be functional anymore.";
+                    thing->setStateValue(dvModbusIRConnectedStateTypeId, false);
+                    delete m_rtuConnections.take(thing);
+                }
+            }
+        }
+    });
 }
 
 /**
