@@ -316,7 +316,7 @@ void IntegrationPluginSungrow::postSetupThing(Thing *thing)
         // Create the update timer if not already set up
         if (!m_refreshTimer) {
             qCDebug(dcSungrow()) << "Starting plugin timer...";
-            m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+            m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
             connect(m_refreshTimer, &PluginTimer::timeout, this, [this] {
                 foreach(auto thing, myThings().filterByThingClassId(sungrowInverterTcpThingClassId)) {
                     auto monitor = m_monitors.value(thing);

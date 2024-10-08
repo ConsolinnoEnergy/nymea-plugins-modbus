@@ -385,7 +385,7 @@ bool SungrowModbusTcpConnection::initialize()
         processProtocolVersionRegisterValues(blockValues.mid(2, 2));
         processArmSoftwareVersionRegisterValues(blockValues.mid(4, 15));
         processDspSoftwareVersionRegisterValues(blockValues.mid(19, 15));
-        initialize2();
+        initialize1();
     });
 
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [reply] (QModbusDevice::Error error){
