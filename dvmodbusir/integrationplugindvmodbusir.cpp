@@ -167,28 +167,27 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
             }
         });
 
-        // connect(connection, &DvModbusIRModbusRtuConnection::producedEnergyExponentChanged, this, [=](qint16 producedEnergyExponent) {
-        //     qCDebug(dcDvModbusIR()) << "Total produced energy exponent changed.";
-        //     thing->setStateValue(dvModbusIRTotalEnergyProducedExponentStateTypeId, producedEnergyExponent);
-        // });
+        connect(connection, &DvModbusIRModbusRtuConnection::updateFinished, this, [thing, connection]() {
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Update finished";
 
-        // // Connect and calculate the total produced energy
-        // connect(connection, &DvModbusIRModbusRtuConnection::totalProducedEnergyChanged, this, [=](quint64 totalProducedEnergy) {
-        //     qCDebug(dcDvModbusIR()) << "Total produced energy change.";
-        //     qint16 producedEnergyExponent = thing->stateValue(dvModbusIRTotalEnergyProducedExponentStateTypeId).toInt();
-        //     thing->setStateValue(dvModbusIRTotalEnergyProducedStateTypeId, totalProducedEnergy*qPow(10, producedEnergyExponent-3));
-        // });
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set produced energy";
+            qint16 prodEnergyExpReg = connection->producedEnergyExponent();
+            quint64 prodEngReg = connection->totalProducedEnergy();
+            double producedEnergy = prodEngReg*qPow(10, prodEnergyExpReg-3);
+            thing->setStateValue(dvModbusIRTotalEnergyProducedStateTypeId, producedEnergy);
 
-        // connect(connection, &DvModbusIRModbusRtuConnection::consumedEnergyExponentChanged, this, [=](qint16 consumedEnergyExponent) {
-        //     qCDebug(dcDvModbusIR()) << "Total consumed energy exponent changed.";
-        //     thing->setStateValue(dvModbusIRTotalEnergyConsumedExponentStateTypeId, consumedEnergyExponent);
-        // });
-        // // Connect and calculate the total consumed energy
-        // connect(connection, &DvModbusIRModbusRtuConnection::totalConsumedEnergyChanged, this, [=](quint64 totalConsumedEnergy) {
-        //     qCDebug(dcDvModbusIR()) << "Total consumed energy change.";
-        //     qint16 consumedEnergyExponent = thing->stateValue(dvModbusIRTotalEnergyConsumedExponentStateTypeId).toInt();
-        //     thing->setStateValue(dvModbusIRTotalEnergyConsumedStateTypeId, totalConsumedEnergy*qPow(10, consumedEnergyExponent-3));
-        // });
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set consumed energy";
+            qint16 consEnergyExpReg = connection->consumedEnergyExponent();
+            quint64 consEngReg = connection->totalConsumedEnergy();
+            double consumedEnergy = consEngReg*qPow(10, consEnergyExpReg-3);
+            thing->setStateValue(dvModbusIRTotalEnergyConsumedStateTypeId, consumedEnergy);
+
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set current power";
+            qint16 currentPowerExpReg = connection->currentPowerExponent();
+            quint32 currentPowerReg = connection->currentPower();
+            double currentPower = currentPowerReg*qPow(10, currentPowerExpReg);
+            thing->setStateValue(dvModbusIRCurrentPowerStateTypeId, currentPower);
+        });
         m_rtuConnections.insert(thing, connection);
     }
     info->finish(Thing::ThingErrorNoError);
