@@ -385,13 +385,19 @@ bool SungrowModbusTcpConnection::initialize()
         processProtocolVersionRegisterValues(blockValues.mid(2, 2));
         processArmSoftwareVersionRegisterValues(blockValues.mid(4, 15));
         processDspSoftwareVersionRegisterValues(blockValues.mid(19, 15));
-        verifyInitFinished();
+        initialize2();
     });
 
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [reply] (QModbusDevice::Error error){
         qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating block \"version\" registers" << error << reply->errorString();
     });
 
+    return true;
+}
+
+void SungrowModbusTcpConnection::initialize1()
+{
+    QModbusReply *reply = nullptr;
 
     // Read identification
     qCDebug(dcSungrowModbusTcpConnection()) << "--> Read init block \"identification\" registers from:" << 4989 << "size:" << 12;
@@ -399,12 +405,12 @@ bool SungrowModbusTcpConnection::initialize()
     if (!reply) {
         qCWarning(dcSungrowModbusTcpConnection()) << "Error occurred while reading block \"identification\" registers";
         finishInitialization(false);
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingInitReplies.append(reply);
@@ -423,13 +429,17 @@ bool SungrowModbusTcpConnection::initialize()
         processSerialNumberRegisterValues(blockValues.mid(0, 10));
         processDeviceTypeCodeRegisterValues(blockValues.mid(10, 1));
         processNominalOutputPowerRegisterValues(blockValues.mid(11, 1));
-        verifyInitFinished();
+        initialize2();
     });
 
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [reply] (QModbusDevice::Error error){
         qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating block \"identification\" registers" << error << reply->errorString();
     });
+}
 
+void SungrowModbusTcpConnection::initialize2()
+{
+    QModbusReply *reply = nullptr;
 
     // Read batteryInformation
     qCDebug(dcSungrowModbusTcpConnection()) << "--> Read init block \"batteryInformation\" registers from:" << 13054 << "size:" << 3;
@@ -437,12 +447,12 @@ bool SungrowModbusTcpConnection::initialize()
     if (!reply) {
         qCWarning(dcSungrowModbusTcpConnection()) << "Error occurred while reading block \"batteryInformation\" registers";
         finishInitialization(false);
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingInitReplies.append(reply);
@@ -467,8 +477,6 @@ bool SungrowModbusTcpConnection::initialize()
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [reply] (QModbusDevice::Error error){
         qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating block \"batteryInformation\" registers" << error << reply->errorString();
     });
-
-    return true;
 }
 
 bool SungrowModbusTcpConnection::update()
@@ -519,25 +527,31 @@ bool SungrowModbusTcpConnection::update()
         processReactivePowerRegisterValues(blockValues.mid(25, 2));
         processPowerFactorRegisterValues(blockValues.mid(27, 1));
         processGridFrequencyRegisterValues(blockValues.mid(28, 1));
-        verifyUpdateFinished();
+        update2();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating block \"energyValues1\" registers" << error << reply->errorString();
     });
 
+    return true;
+}
+
+void SungrowModbusTcpConnection::update2()
+{
+    QModbusReply *reply = nullptr;
 
     // Read energyValues2
     reply = readBlockEnergyValues2();
     qCDebug(dcSungrowModbusTcpConnection()) << "--> Read block \"energyValues2\" registers from:" << 12999 << "size:" << 48;
     if (!reply) {
         qCWarning(dcSungrowModbusTcpConnection()) << "Error occurred while reading block \"energyValues2\" registers";
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -586,8 +600,6 @@ bool SungrowModbusTcpConnection::update()
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating block \"energyValues2\" registers" << error << reply->errorString();
     });
-
-    return true;
 }
 
 void SungrowModbusTcpConnection::updateVersionBlock()
