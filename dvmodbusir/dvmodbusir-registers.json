@@ -26,20 +26,35 @@
             "description": "Info about connected meters.",
             "defaultValue": 0,
             "access": "RO"
-        },
-        {
-            "id": "meterId",
-            "address": 11,
-            "size": 2,
-            "type": "uint32",
-            "registerType": "holdingRegister",
-            "readSchedule": "init",
-            "description": "Devicenumber of connected meter.",
-            "defaultValue": 0,
-            "access": "RO"
         }
     ],
     "blocks": [
+        {
+            "id": "deviceInfo",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "meterData",
+                    "address": 10,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Available data.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "meterId",
+                    "address": 11,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Devicenumber of connected meter.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                }
+            ]
+        },
         {
             "id": "consumedEnergy",
             "readSchedule": "update",
@@ -50,7 +65,6 @@
                     "size": 4,
                     "type": "uint64",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
                     "description": "Total consumed energy without comma.",
                     "defaultValue": 0,
                     "access": "RO"
@@ -61,7 +75,6 @@
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
                     "description": "10-exponent for consumed energy.",
                     "defaultValue": 0,
                     "access": "RO"
@@ -78,7 +91,6 @@
                     "size": 4,
                     "type": "uint64",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
                     "description": "Total produced energy without comma.",
                     "defaultValue": 0,
                     "access": "RO"
@@ -89,8 +101,33 @@
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
                     "description": "10-exponent for produced energy.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "currentPowerBlock",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currentPower",
+                    "address": 43,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Current power without comma.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPowerExponent",
+                    "address": 45,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "10-exponent for current power.",
                     "defaultValue": 0,
                     "access": "RO"
                 }
