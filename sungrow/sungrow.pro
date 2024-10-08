@@ -7,8 +7,10 @@ include(../modbus.pri)
 
 HEADERS += \
     integrationpluginsungrow.h \
-    sungrowdiscovery.h
+    sungrowdiscovery.h \
+    sungrowmodbustcpconnection.cpp
 
 SOURCES += \
     integrationpluginsungrow.cpp \
-    sungrowdiscovery.cpp
+    sungrowdiscovery.cpp \
+    sungrowmodbustcpconnection.h
