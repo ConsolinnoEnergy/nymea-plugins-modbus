@@ -143,7 +143,7 @@ void SungrowDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
 
 void SungrowDiscovery::cleanupConnection(SungrowModbusTcpConnection *connection)
 {
-    qCDebug(dcSungrow()) << "Discovery: Cleanup connection" << connection;
+    qCDebug(dcSungrow()) << "Discovery: Cleanup connection";
     m_connections.removeAll(connection);
     connection->disconnectDevice();
     connection->deleteLater();
