@@ -220,9 +220,9 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 meterThing->setStateValue(sungrowMeterCurrentPowerStateTypeId, sungrowConnection->exportPower() * -1);
                 meterThing->setStateValue(sungrowMeterTotalEnergyConsumedStateTypeId, sungrowConnection->totalImportEnergy());
                 meterThing->setStateValue(sungrowMeterTotalEnergyProducedStateTypeId, sungrowConnection->totalExportEnergy());
-                meterThing->setStateValue(sungrowMeterCurrentPhaseAStateTypeId, sungrowConnection->phaseACurrent() * -1);
-                meterThing->setStateValue(sungrowMeterCurrentPhaseBStateTypeId, sungrowConnection->phaseBCurrent() * -1);
-                meterThing->setStateValue(sungrowMeterCurrentPhaseCStateTypeId, sungrowConnection->phaseCCurrent() * -1);
+                meterThing->setStateValue(sungrowMeterCurrentPhaseAStateTypeId, sungrowConnection->phaseACurrent());
+                meterThing->setStateValue(sungrowMeterCurrentPhaseBStateTypeId, sungrowConnection->phaseBCurrent());
+                meterThing->setStateValue(sungrowMeterCurrentPhaseCStateTypeId, sungrowConnection->phaseCCurrent());
                 meterThing->setStateValue(sungrowMeterVoltagePhaseAStateTypeId, sungrowConnection->phaseAVoltage());
                 meterThing->setStateValue(sungrowMeterVoltagePhaseBStateTypeId, sungrowConnection->phaseBVoltage());
                 meterThing->setStateValue(sungrowMeterVoltagePhaseCStateTypeId, sungrowConnection->phaseCVoltage());
