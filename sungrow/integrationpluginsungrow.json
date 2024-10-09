@@ -152,30 +152,6 @@
                             "cached": false
                         },
                         {
-                            "id": "167aa300-faef-11ee-859a-bb6f4e8be7c9",
-                            "name": "apparentPowerPhaseA",
-                            "displayName": "Apparent power phase A",
-                            "type": "double",
-                            "unit": "VoltAmpere",
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "2c3ac134-faef-11ee-9c28-9f6bb77683d3",
-                            "name": "apparentPowerPhaseB",
-                            "displayName": "Apparent power phase B",
-                            "type": "double",
-                            "unit": "VoltAmpere",
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "3f7ca9e2-faef-11ee-81e7-6f53d07e9197",
-                            "name": "apparentPowerPhaseC",
-                            "displayName": "Apparent power phase C",
-                            "type": "double",
-                            "unit": "VoltAmpere",
-                            "defaultValue": 0
-                        },
-                        {
                             "id": "00eb83c2-da08-11ee-b67d-1f74a41e6218",
                             "name": "totalEnergyProduced",
                             "displayName": "Total returned energy",

@@ -156,9 +156,6 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                     child->setStateValue(sungrowMeterCurrentPhaseAStateTypeId, 0);
                     child->setStateValue(sungrowMeterCurrentPhaseBStateTypeId, 0);
                     child->setStateValue(sungrowMeterCurrentPhaseCStateTypeId, 0);
-                    child->setStateValue(sungrowMeterApparentPowerPhaseAStateTypeId, 0);
-                    child->setStateValue(sungrowMeterApparentPowerPhaseBStateTypeId, 0);
-                    child->setStateValue(sungrowMeterApparentPowerPhaseCStateTypeId, 0);
                 }
 
                 child = getBatteryThing(thing);
@@ -229,9 +226,6 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 meterThing->setStateValue(sungrowMeterVoltagePhaseAStateTypeId, sungrowConnection->phaseAVoltage());
                 meterThing->setStateValue(sungrowMeterVoltagePhaseBStateTypeId, sungrowConnection->phaseBVoltage());
                 meterThing->setStateValue(sungrowMeterVoltagePhaseCStateTypeId, sungrowConnection->phaseCVoltage());
-                meterThing->setStateValue(sungrowMeterApparentPowerPhaseAStateTypeId, sungrowConnection->phaseAVoltage() * sungrowConnection->phaseACurrent() * -1);
-                meterThing->setStateValue(sungrowMeterApparentPowerPhaseBStateTypeId, sungrowConnection->phaseBVoltage() * sungrowConnection->phaseBCurrent() * -1);
-                meterThing->setStateValue(sungrowMeterApparentPowerPhaseCStateTypeId, sungrowConnection->phaseCVoltage() * sungrowConnection->phaseCCurrent() * -1);
                 meterThing->setStateValue(sungrowMeterFrequencyStateTypeId, sungrowConnection->gridFrequency());
             }
 
