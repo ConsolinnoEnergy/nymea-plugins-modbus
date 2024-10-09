@@ -597,9 +597,21 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy4",
+                    "id": "batterCapacity",
                     "address": 13038,
-                    "size": 7,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Total battery capacity",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "R0"
+                },
+                {
+                    "id": "dummy4",
+                    "address": 13039,
+                    "size": 6,
                     "type": "raw",
                     "registerType": "inputRegister",
                     "description": "none",
