@@ -220,7 +220,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 qCDebug(dcSungrow()) << "Feed-in power:" << (runningState & (0x1 << 4) ? "true" : "false");
                 qCDebug(dcSungrow()) << "Import power from grid:" << (runningState & (0x1 << 5) ? "true" : "false");
                 qCDebug(dcSungrow()) << "Negative load power:" << (runningState & (0x1 << 7) ? "true" : "false");
-                meterThing->setStateValue(sungrowMeterCurrentPowerStateTypeId, sungrowConnection->totalActivePower() * -1);
+                meterThing->setStateValue(sungrowMeterCurrentPowerStateTypeId, sungrowConnection->exportPower() * -1);
                 meterThing->setStateValue(sungrowMeterTotalEnergyConsumedStateTypeId, sungrowConnection->totalImportEnergy());
                 meterThing->setStateValue(sungrowMeterTotalEnergyProducedStateTypeId, sungrowConnection->totalExportEnergy());
                 meterThing->setStateValue(sungrowMeterCurrentPhaseAStateTypeId, sungrowConnection->phaseACurrent() * -1);
