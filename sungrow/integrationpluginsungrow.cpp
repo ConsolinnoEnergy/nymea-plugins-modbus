@@ -181,6 +181,11 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             }
         });
 
+        connect(sungrowConnection, &SungrowModbusTcpConnection::batterCapacityChanged, thing, [thing](float batCapacity) {
+            qCDebug(dcSungrow()) << "Battery capacity changed";
+            thing->setStateValue(sungrowBatteryCapacityStateTypeId, batCapacity);
+        });
+
         connect(sungrowConnection, &SungrowModbusTcpConnection::updateFinished, thing, [=](){
             qCDebug(dcSungrow()) << "Updated" << sungrowConnection;
 
