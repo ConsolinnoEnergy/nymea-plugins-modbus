@@ -92,7 +92,7 @@ public:
         RegisterTotalActivePower = 13033,
         RegisterDailyImportEnergy = 13035,
         RegisterTotalImportEnergy = 13036,
-        RegisterBatterCapacity = 13038,
+        RegisterTotalBatteryCapacity = 13038,
         RegisterDummy4 = 13039,
         RegisterTotalExportEnergy = 13045,
         RegisterBatteryType = 13054,
@@ -270,7 +270,7 @@ public:
     float totalImportEnergy() const;
 
     /* Total battery capacity [kWh] - Address: 13038, Size: 1 */
-    float batterCapacity() const;
+    float totalBatteryCapacity() const;
 
     /* none - Address: 13039, Size: 6 */
     QVector<quint16> dummy4() const;
@@ -398,7 +398,7 @@ public:
     void updateTotalActivePower();
     void updateDailyImportEnergy();
     void updateTotalImportEnergy();
-    void updateBatterCapacity();
+    void updateTotalBatteryCapacity();
     void updateDummy4();
     void updateTotalExportEnergy();
     void updateBatteryType();
@@ -447,7 +447,7 @@ public:
     QModbusReply *readTotalActivePower();
     QModbusReply *readDailyImportEnergy();
     QModbusReply *readTotalImportEnergy();
-    QModbusReply *readBatterCapacity();
+    QModbusReply *readTotalBatteryCapacity();
     QModbusReply *readDummy4();
     QModbusReply *readTotalExportEnergy();
     QModbusReply *readBatteryType();
@@ -624,8 +624,8 @@ signals:
     void dailyImportEnergyReadFinished(float dailyImportEnergy);
     void totalImportEnergyChanged(float totalImportEnergy);
     void totalImportEnergyReadFinished(float totalImportEnergy);
-    void batterCapacityChanged(float batterCapacity);
-    void batterCapacityReadFinished(float batterCapacity);
+    void totalBatteryCapacityChanged(float totalBatteryCapacity);
+    void totalBatteryCapacityReadFinished(float totalBatteryCapacity);
     void dummy4Changed(QVector<quint16> dummy4);
     void dummy4ReadFinished(QVector<quint16> dummy4);
     void totalExportEnergyChanged(float totalExportEnergy);
@@ -680,7 +680,7 @@ protected:
     qint32 m_totalActivePower = 0;
     float m_dailyImportEnergy = 0;
     float m_totalImportEnergy = 0;
-    float m_batterCapacity = 0;
+    float m_totalBatteryCapacity = 0;
     QVector<quint16> m_dummy4;
     float m_totalExportEnergy = 0;
     BatteryType m_batteryType = BatteryTypeNoBattery;
@@ -733,7 +733,7 @@ protected:
     void processTotalActivePowerRegisterValues(const QVector<quint16> values);
     void processDailyImportEnergyRegisterValues(const QVector<quint16> values);
     void processTotalImportEnergyRegisterValues(const QVector<quint16> values);
-    void processBatterCapacityRegisterValues(const QVector<quint16> values);
+    void processTotalBatteryCapacityRegisterValues(const QVector<quint16> values);
     void processDummy4RegisterValues(const QVector<quint16> values);
     void processTotalExportEnergyRegisterValues(const QVector<quint16> values);
 

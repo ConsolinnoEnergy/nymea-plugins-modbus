@@ -597,7 +597,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "batterCapacity",
+                    "id": "totalBatteryCapacity",
                     "address": 13038,
                     "size": 1,
                     "type": "uint16",
@@ -605,7 +605,7 @@
                     "description": "Total battery capacity",
                     "unit": "kWh",
                     "defaultValue": "0",
-                    "staticScaleFactor": -1,
+                    "staticScaleFactor": -2,
                     "access": "RO"
                 },
                 {

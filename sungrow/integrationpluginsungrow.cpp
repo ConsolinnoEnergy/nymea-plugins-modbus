@@ -181,11 +181,6 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(sungrowConnection, &SungrowModbusTcpConnection::batterCapacityChanged, thing, [thing](float batCapacity) {
-            qCDebug(dcSungrow()) << "Battery capacity changed";
-            thing->setStateValue(sungrowBatteryCapacityStateTypeId, batCapacity);
-        });
-
         connect(sungrowConnection, &SungrowModbusTcpConnection::updateFinished, thing, [=](){
             qCDebug(dcSungrow()) << "Updated" << sungrowConnection;
 
@@ -241,6 +236,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 batteryThing->setStateValue(sungrowBatteryTemperatureStateTypeId, sungrowConnection->batteryTemperature());
                 batteryThing->setStateValue(sungrowBatteryBatteryLevelStateTypeId, sungrowConnection->batteryLevel());
                 batteryThing->setStateValue(sungrowBatteryBatteryCriticalStateTypeId, sungrowConnection->batteryLevel() < 5);
+                batteryThing->setStateValue(sungrowBatteryCapacityStateTypeId, sungrowConnection->totalBatteryCapacity());
 
                 batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, sungrowConnection->batteryPower());
                 quint16 runningState = sungrowConnection->runningState();
