@@ -844,8 +844,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             qCDebug(dcSolax()) << "Inverter solar energy total changed" << solarEnergyTotal << "kWh";
 
             double oldEnergyValue = thing->stateValue(solaxX3InverterTCPTotalEnergyProducedStateTypeId).toDouble();
-            if (solarEnergyTotal >= oldEnergyValue &&
-                solarEnergyTotal - oldEnergyValue <= 5000)
+            if ((solarEnergyTotal >= oldEnergyValue) && (solarEnergyTotal - oldEnergyValue <= 5000))
             {
                 thing->setStateValue(solaxX3InverterTCPTotalEnergyProducedStateTypeId, solarEnergyTotal);
             }
