@@ -92,7 +92,8 @@ public:
         RegisterTotalActivePower = 13033,
         RegisterDailyImportEnergy = 13035,
         RegisterTotalImportEnergy = 13036,
-        RegisterDummy4 = 13038,
+        RegisterBatterCapacity = 13038,
+        RegisterDummy4 = 13039,
         RegisterTotalExportEnergy = 13045,
         RegisterBatteryType = 13054,
         RegisterBatteryNominalVoltage = 13055,
@@ -268,7 +269,10 @@ public:
     /* Total import energy [kWh] - Address: 13036, Size: 2 */
     float totalImportEnergy() const;
 
-    /* none - Address: 13038, Size: 7 */
+    /* Total battery capacity [kWh] - Address: 13038, Size: 1 */
+    float batterCapacity() const;
+
+    /* none - Address: 13039, Size: 6 */
     QVector<quint16> dummy4() const;
 
     /* Total export energy [kWh] - Address: 13045, Size: 2 */
@@ -312,7 +316,7 @@ public:
     */
     void updateEnergyValues1Block();
 
-    /* Read block from start addess 12999 with size of 48 registers containing following 27 properties:
+    /* Read block from start addess 12999 with size of 48 registers containing following 28 properties:
       - System state - Address: 12999, Size: 1
       - Running state - Address: 13000, Size: 1
       - Daily PV generation [kWh] - Address: 13001, Size: 1
@@ -338,7 +342,8 @@ public:
       - Total active power [W] - Address: 13033, Size: 2
       - Daily import energy [kWh] - Address: 13035, Size: 1
       - Total import energy [kWh] - Address: 13036, Size: 2
-      - none - Address: 13038, Size: 7
+      - Total battery capacity [kWh] - Address: 13038, Size: 1
+      - none - Address: 13039, Size: 6
       - Total export energy [kWh] - Address: 13045, Size: 2
     */
     void updateEnergyValues2Block();
@@ -393,6 +398,7 @@ public:
     void updateTotalActivePower();
     void updateDailyImportEnergy();
     void updateTotalImportEnergy();
+    void updateBatterCapacity();
     void updateDummy4();
     void updateTotalExportEnergy();
     void updateBatteryType();
@@ -441,6 +447,7 @@ public:
     QModbusReply *readTotalActivePower();
     QModbusReply *readDailyImportEnergy();
     QModbusReply *readTotalImportEnergy();
+    QModbusReply *readBatterCapacity();
     QModbusReply *readDummy4();
     QModbusReply *readTotalExportEnergy();
     QModbusReply *readBatteryType();
@@ -476,7 +483,7 @@ public:
     */
     QModbusReply *readBlockEnergyValues1();
 
-    /* Read block from start addess 12999 with size of 48 registers containing following 27 properties:
+    /* Read block from start addess 12999 with size of 48 registers containing following 28 properties:
      - System state - Address: 12999, Size: 1
      - Running state - Address: 13000, Size: 1
      - Daily PV generation [kWh] - Address: 13001, Size: 1
@@ -502,7 +509,8 @@ public:
      - Total active power [W] - Address: 13033, Size: 2
      - Daily import energy [kWh] - Address: 13035, Size: 1
      - Total import energy [kWh] - Address: 13036, Size: 2
-     - none - Address: 13038, Size: 7
+     - Total battery capacity [kWh] - Address: 13038, Size: 1
+     - none - Address: 13039, Size: 6
      - Total export energy [kWh] - Address: 13045, Size: 2
     */
     QModbusReply *readBlockEnergyValues2();
@@ -616,6 +624,8 @@ signals:
     void dailyImportEnergyReadFinished(float dailyImportEnergy);
     void totalImportEnergyChanged(float totalImportEnergy);
     void totalImportEnergyReadFinished(float totalImportEnergy);
+    void batterCapacityChanged(float batterCapacity);
+    void batterCapacityReadFinished(float batterCapacity);
     void dummy4Changed(QVector<quint16> dummy4);
     void dummy4ReadFinished(QVector<quint16> dummy4);
     void totalExportEnergyChanged(float totalExportEnergy);
@@ -670,6 +680,7 @@ protected:
     qint32 m_totalActivePower = 0;
     float m_dailyImportEnergy = 0;
     float m_totalImportEnergy = 0;
+    float m_batterCapacity = 0;
     QVector<quint16> m_dummy4;
     float m_totalExportEnergy = 0;
     BatteryType m_batteryType = BatteryTypeNoBattery;
@@ -722,6 +733,7 @@ protected:
     void processTotalActivePowerRegisterValues(const QVector<quint16> values);
     void processDailyImportEnergyRegisterValues(const QVector<quint16> values);
     void processTotalImportEnergyRegisterValues(const QVector<quint16> values);
+    void processBatterCapacityRegisterValues(const QVector<quint16> values);
     void processDummy4RegisterValues(const QVector<quint16> values);
     void processTotalExportEnergyRegisterValues(const QVector<quint16> values);
 

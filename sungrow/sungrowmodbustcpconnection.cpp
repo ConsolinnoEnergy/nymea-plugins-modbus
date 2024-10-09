@@ -313,6 +313,11 @@ float SungrowModbusTcpConnection::totalImportEnergy() const
     return m_totalImportEnergy;
 }
 
+float SungrowModbusTcpConnection::batterCapacity() const
+{
+    return m_batterCapacity;
+}
+
 QVector<quint16> SungrowModbusTcpConnection::dummy4() const
 {
     return m_dummy4;
@@ -592,7 +597,8 @@ void SungrowModbusTcpConnection::update2()
         processTotalActivePowerRegisterValues(blockValues.mid(34, 2));
         processDailyImportEnergyRegisterValues(blockValues.mid(36, 1));
         processTotalImportEnergyRegisterValues(blockValues.mid(37, 2));
-        processDummy4RegisterValues(blockValues.mid(39, 7));
+        processBatterCapacityRegisterValues(blockValues.mid(39, 1));
+        processDummy4RegisterValues(blockValues.mid(40, 6));
         processTotalExportEnergyRegisterValues(blockValues.mid(46, 2));
         verifyUpdateFinished();
     });
@@ -756,7 +762,8 @@ void SungrowModbusTcpConnection::updateEnergyValues2Block()
             processTotalActivePowerRegisterValues(blockValues.mid(34, 2));
             processDailyImportEnergyRegisterValues(blockValues.mid(36, 1));
             processTotalImportEnergyRegisterValues(blockValues.mid(37, 2));
-            processDummy4RegisterValues(blockValues.mid(39, 7));
+            processBatterCapacityRegisterValues(blockValues.mid(39, 1));
+            processDummy4RegisterValues(blockValues.mid(40, 6));
             processTotalExportEnergyRegisterValues(blockValues.mid(46, 2));
         }
     });
@@ -1051,9 +1058,15 @@ QModbusReply *SungrowModbusTcpConnection::readTotalImportEnergy()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *SungrowModbusTcpConnection::readBatterCapacity()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 13038, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *SungrowModbusTcpConnection::readDummy4()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 13038, 7);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 13039, 6);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -1573,6 +1586,17 @@ void SungrowModbusTcpConnection::processTotalImportEnergyRegisterValues(const QV
     }
 }
 
+void SungrowModbusTcpConnection::processBatterCapacityRegisterValues(const QVector<quint16> values)
+{
+    float receivedBatterCapacity = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
+    emit batterCapacityReadFinished(receivedBatterCapacity);
+
+    if (m_batterCapacity != receivedBatterCapacity) {
+        m_batterCapacity = receivedBatterCapacity;
+        emit batterCapacityChanged(m_batterCapacity);
+    }
+}
+
 void SungrowModbusTcpConnection::processDummy4RegisterValues(const QVector<quint16> values)
 {
     QVector<quint16> receivedDummy4 = values;
@@ -1783,6 +1807,7 @@ QDebug operator<<(QDebug debug, SungrowModbusTcpConnection *sungrowModbusTcpConn
     debug.nospace().noquote() << "    - Total active power: " << sungrowModbusTcpConnection->totalActivePower() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Daily import energy: " << sungrowModbusTcpConnection->dailyImportEnergy() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Total import energy: " << sungrowModbusTcpConnection->totalImportEnergy() << " [kWh]" << "\n";
+    debug.nospace().noquote() << "    - Total battery capacity: " << sungrowModbusTcpConnection->batterCapacity() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - none: " << sungrowModbusTcpConnection->dummy4() << "\n";
     debug.nospace().noquote() << "    - Total export energy: " << sungrowModbusTcpConnection->totalExportEnergy() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Battery type: " << sungrowModbusTcpConnection->batteryType() << "\n";

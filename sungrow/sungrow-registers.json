@@ -606,7 +606,7 @@
                     "unit": "kWh",
                     "defaultValue": "0",
                     "staticScaleFactor": -1,
-                    "access": "R0"
+                    "access": "RO"
                 },
                 {
                     "id": "dummy4",
