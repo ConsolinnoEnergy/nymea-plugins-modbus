@@ -212,10 +212,10 @@ public:
     float totalPVExport() const;
 
     /* Load power [W] - Address: 13007, Size: 2 */
-    qint16 loadPower() const;
+    qint32 loadPower() const;
 
     /* Export power [W] - Address: 13009, Size: 2 */
-    qint16 exportPower() const;
+    qint32 exportPower() const;
 
     /* Daily battery charge from PV [kWh] - Address: 13011, Size: 1 */
     float dailyBatteryChargePV() const;
@@ -578,10 +578,10 @@ signals:
     void dailyPVExportReadFinished(float dailyPVExport);
     void totalPVExportChanged(float totalPVExport);
     void totalPVExportReadFinished(float totalPVExport);
-    void loadPowerChanged(qint16 loadPower);
-    void loadPowerReadFinished(qint16 loadPower);
-    void exportPowerChanged(qint16 exportPower);
-    void exportPowerReadFinished(qint16 exportPower);
+    void loadPowerChanged(qint32 loadPower);
+    void loadPowerReadFinished(qint32 loadPower);
+    void exportPowerChanged(qint32 exportPower);
+    void exportPowerReadFinished(qint32 exportPower);
     void dailyBatteryChargePVChanged(float dailyBatteryChargePV);
     void dailyBatteryChargePVReadFinished(float dailyBatteryChargePV);
     void totalBatteryChargePVChanged(float totalBatteryChargePV);
@@ -651,8 +651,8 @@ protected:
     float m_totalPVGeneration = 0;
     float m_dailyPVExport = 0;
     float m_totalPVExport = 0;
-    qint16 m_loadPower = 0;
-    qint16 m_exportPower = 0;
+    qint32 m_loadPower = 0;
+    qint32 m_exportPower = 0;
     float m_dailyBatteryChargePV = 0;
     float m_totalBatteryChargePV = 0;
     QVector<quint16> m_dummy2;

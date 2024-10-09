@@ -218,12 +218,12 @@ float SungrowModbusTcpConnection::totalPVExport() const
     return m_totalPVExport;
 }
 
-qint16 SungrowModbusTcpConnection::loadPower() const
+qint32 SungrowModbusTcpConnection::loadPower() const
 {
     return m_loadPower;
 }
 
-qint16 SungrowModbusTcpConnection::exportPower() const
+qint32 SungrowModbusTcpConnection::exportPower() const
 {
     return m_exportPower;
 }
@@ -1278,7 +1278,7 @@ void SungrowModbusTcpConnection::processReactivePowerRegisterValues(const QVecto
 
 void SungrowModbusTcpConnection::processPowerFactorRegisterValues(const QVector<quint16> values)
 {
-    float receivedPowerFactor = ModbusDataUtils::convertToInt32(values, m_endianness) * 1.0 * pow(10, -3);
+    float receivedPowerFactor = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -3);
     emit powerFactorReadFinished(receivedPowerFactor);
 
     if (m_powerFactor != receivedPowerFactor) {
@@ -1366,7 +1366,7 @@ void SungrowModbusTcpConnection::processTotalPVExportRegisterValues(const QVecto
 
 void SungrowModbusTcpConnection::processLoadPowerRegisterValues(const QVector<quint16> values)
 {
-    qint16 receivedLoadPower = ModbusDataUtils::convertToInt16(values);
+    qint32 receivedLoadPower = ModbusDataUtils::convertToInt32(values, m_endianness);
     emit loadPowerReadFinished(receivedLoadPower);
 
     if (m_loadPower != receivedLoadPower) {
@@ -1377,7 +1377,7 @@ void SungrowModbusTcpConnection::processLoadPowerRegisterValues(const QVector<qu
 
 void SungrowModbusTcpConnection::processExportPowerRegisterValues(const QVector<quint16> values)
 {
-    qint16 receivedExportPower = ModbusDataUtils::convertToInt16(values);
+    qint32 receivedExportPower = ModbusDataUtils::convertToInt32(values, m_endianness);
     emit exportPowerReadFinished(receivedExportPower);
 
     if (m_exportPower != receivedExportPower) {
