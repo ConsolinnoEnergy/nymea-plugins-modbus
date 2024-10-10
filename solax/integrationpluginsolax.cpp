@@ -29,6 +29,7 @@
 #include <QJsonDocument>
 #include <QNetworkInterface>
 #include <QEventLoop>
+#include <QtMath>
 
 IntegrationPluginSolax::IntegrationPluginSolax()
 {
@@ -365,12 +366,21 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         });
 
         connect(connection, &SolaxModbusRtuConnection::feedinPowerChanged, thing, [this, thing](qint32 feedinPower){
+            // Get max power of the inverter
+            double nominalPowerInverter = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
+            double nominalPowerBattery = 0;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                // Get max power of the battery
+                nominalPowerBattery = thing->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
+            }
+
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
-                // Sign should be correct, but check to make sure.
-                // meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -double(feedinPower));
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
+                // TODO: check if abs(MeterCurrentPower) < (InverterMaxPower + BatteryMaxPower) - DONE
+                if (qFabs(feedinPower) < (nominalPowerInverter + nominalPowerBattery))
+                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
             }
         });
 
@@ -539,7 +549,11 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                     powerDifference = 0;
                 }
             }
-            thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+            // TODO: abs(currentPower) < nominalPower - DONE
+            double nominalPowerInverter = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
+            double currentPower = powerDc1+powerDc2+2*powerDifference;
+            if (qFabs(currentPower) < nominalPowerInverter)
+                thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
         });
 
         // Battery
@@ -570,8 +584,11 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Battery power (batpowerCharge1) changed" << powerBat1 << "W";
 
-                // ToDo: Check if sign for charge / dischage is correct.
-                batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
+                // TODO: check if abs(currentPower) < abs(nominalPower) - DONE
+                double nominalPowerBattery = thing->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
+                if (qFabs(powerBat1) < nominalPowerBattery)
+                    batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
+
                 if (powerBat1 < 0) {
                     batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "discharging");
                 } else if (powerBat1 > 0) {
@@ -913,7 +930,11 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                     powerDifference = 0;
                 }
             }
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+            double nominalPowerInverter = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
+            double currentPower = powerDc1+powerDc2+2*powerDifference;
+            // TODO: abs(currentPower) < nominalPower - DONE
+            if (qFabs(currentPower) < nominalPowerInverter)
+                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
         });
 
         // Meter
@@ -933,11 +954,20 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         });
 
         connect(connection, &SolaxModbusTcpConnection::feedinPowerChanged, thing, [this, thing](qint32 feedinPower){
+            double nominalPowerInverter = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
+            double nominalPowerBattery = 0;
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            if (!batteryThings.isEmpty()) {
+                // Get max power of the battery
+                nominalPowerBattery = thing->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
+            }
+
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
-                // Sign should be correct, but check to make sure.
-                meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
+                // TODO: check if abs(MeterCurrentPower) < (InverterMaxPower + BatteryMaxPower) - DONE
+                if (qFabs(feedinPower) < (nominalPowerInverter + nominalPowerBattery))
+                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
             }
         });
 
@@ -1101,8 +1131,11 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Battery power (batpowerCharge1) changed" << powerBat1 << "W";
 
-                // ToDo: Check if sign for charge / dischage is correct.
-                batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
+                // TODO: abs(currentPower) < nominalPower - DONE
+                double nominalPowerBattery = thing->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
+                if (qFabs(powerBat1) < nominalPowerBattery)
+                    batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
+
                 if (powerBat1 < 0) {
                     batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "discharging");
                 } else if (powerBat1 > 0) {
