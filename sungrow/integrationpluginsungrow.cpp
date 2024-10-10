@@ -238,12 +238,13 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 batteryThing->setStateValue(sungrowBatteryBatteryCriticalStateTypeId, sungrowConnection->batteryLevel() < 5);
                 batteryThing->setStateValue(sungrowBatteryCapacityStateTypeId, sungrowConnection->totalBatteryCapacity());
 
-                batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, sungrowConnection->batteryPower());
                 quint16 runningState = sungrowConnection->runningState();
                 if (runningState & (0x1 << 1)) { //Bit 1: Battery charging bit
                     batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "charging");
+                    batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, static_cast<double>(sungrowConnection->batteryPower()));
                 } else if (runningState & (0x1 << 2)) { //Bit 2: Battery discharging bit
                     batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "discharging");
+                    batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, static_cast<double>(sungrowConnection->batteryPower()) * -1);
                 } else {
                     batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "idle");
                 }
