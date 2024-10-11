@@ -16,6 +16,7 @@ PLUGIN_DIRS = \
     bgetech                 \
     kostalmeter             \
     drexelundweiss          \
+    foxesswbv3              \
     goodwe                  \
     growatt                 \
     huawei                  \
