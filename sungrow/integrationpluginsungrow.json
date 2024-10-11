@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "sungrowInverterTcp",
-                    "displayName": "Sungrow Inverter",
+                    "displayName": "Sungrow SH Inverter",
                     "id": "59cb2da4-da07-11ee-adea-7397f8a9afe9",
                     "createMethods": ["discovery"],
                     "discoveryType": "weak",
