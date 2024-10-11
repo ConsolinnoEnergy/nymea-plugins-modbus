@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.009) jammy; urgency=medium
+nymea-plugins-modbus (1.7.010) jammy; urgency=medium
 
   * Updated sungrow integration to match nymea
 
