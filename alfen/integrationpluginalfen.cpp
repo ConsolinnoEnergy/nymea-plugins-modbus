@@ -115,7 +115,7 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
         uint port = thing->paramValue(alfenEveSingleProThingPortParamTypeId).toUInt();
         quint16 slaveId = thing->paramValue(alfenEveSingleProThingSlaveIdParamTypeId).toUInt();
         AlfenWallboxModbusTcpConnection *alfenWallboxTcpConnection = new AlfenWallboxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
-        alfenWallboxTcpConnection->setTimeout(2500);
+        // alfenWallboxTcpConnection->setTimeout(2500);
         connect(info, &ThingSetupInfo::aborted, monitor, [monitor, this](){ hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);});
 
         quint16 minCurrentLimit = thing->paramValue(alfenEveSingleProThingMinChargeCurrentParamTypeId).toUInt();
