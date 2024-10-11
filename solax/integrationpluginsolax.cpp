@@ -391,7 +391,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter exported energy total (feedinEnergyTotal) changed" << feedinEnergyTotal << "kWh";
                 double oldEnergyValue = thing->stateValue(solaxMeterTotalEnergyProducedStateTypeId).toDouble();
-                if ((feedinEnergyTotal >= oldEnergyValue) && (feedinEnergyTotal - oldEnergyValue <= 5000))
+                if ((feedinEnergyTotal >= oldEnergyValue) && (feedinEnergyTotal - oldEnergyValue <= 20000))
                 {
                     meterThings.first()->setStateValue(solaxMeterTotalEnergyProducedStateTypeId, feedinEnergyTotal);
                 }
@@ -405,7 +405,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter consumed energy total (consumEnergyTotal) changed" << consumEnergyTotal << "kWh";
                 double oldEnergyValue = thing->stateValue(solaxMeterTotalEnergyConsumedStateTypeId).toDouble();
-                if ((consumEnergyTotal >= oldEnergyValue) && (consumEnergyTotal - oldEnergyValue <= 5000))
+                if ((consumEnergyTotal >= oldEnergyValue) && (consumEnergyTotal - oldEnergyValue <= 20000))
                 {
                     meterThings.first()->setStateValue(solaxMeterTotalEnergyConsumedStateTypeId, consumEnergyTotal);
                 }
@@ -549,10 +549,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                     powerDifference = 0;
                 }
             }
-            // TODO: abs(currentPower) < nominalPower - DONE
+            // TODO: abs(currentPower) < nominalPower + 5000 tolerance - DONE
             double nominalPowerInverter = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
             double currentPower = powerDc1+powerDc2+2*powerDifference;
-            if (qFabs(currentPower) < nominalPowerInverter)
+            if (qFabs(currentPower) < nominalPowerInverter + 5000)
                 thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
         });
 
@@ -861,7 +861,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             qCDebug(dcSolax()) << "Inverter solar energy total changed" << solarEnergyTotal << "kWh";
 
             double oldEnergyValue = thing->stateValue(solaxX3InverterTCPTotalEnergyProducedStateTypeId).toDouble();
-            if ((solarEnergyTotal >= oldEnergyValue) && (solarEnergyTotal - oldEnergyValue <= 5000))
+            if ((solarEnergyTotal >= oldEnergyValue) && (solarEnergyTotal - oldEnergyValue <= 20000))
             {
                 thing->setStateValue(solaxX3InverterTCPTotalEnergyProducedStateTypeId, solarEnergyTotal);
             }
@@ -933,7 +933,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             double nominalPowerInverter = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
             double currentPower = powerDc1+powerDc2+2*powerDifference;
             // TODO: abs(currentPower) < nominalPower - DONE
-            if (qFabs(currentPower) < nominalPowerInverter)
+            if (qFabs(currentPower) < nominalPowerInverter + 5000)
                 thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
         });
 
@@ -978,7 +978,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter exported energy total (feedinEnergyTotal) changed" << feedinEnergyTotal << "kWh";
                 double oldEnergyValue = thing->stateValue(solaxMeterTotalEnergyProducedStateTypeId).toDouble();
-                if ((feedinEnergyTotal >= oldEnergyValue) && (feedinEnergyTotal - oldEnergyValue <= 5000))
+                if ((feedinEnergyTotal >= oldEnergyValue) && (feedinEnergyTotal - oldEnergyValue <= 20000))
                 {
                     meterThings.first()->setStateValue(solaxMeterTotalEnergyProducedStateTypeId, feedinEnergyTotal);
                 }
@@ -992,7 +992,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter consumed energy total (consumEnergyTotal) changed" << consumEnergyTotal << "kWh";
                 double oldEnergyValue = thing->stateValue(solaxMeterTotalEnergyConsumedStateTypeId).toDouble();
-                if ((consumEnergyTotal >= oldEnergyValue) && (consumEnergyTotal - oldEnergyValue <= 5000))
+                if ((consumEnergyTotal >= oldEnergyValue) && (consumEnergyTotal - oldEnergyValue <= 20000))
                 {
                     meterThings.first()->setStateValue(solaxMeterTotalEnergyConsumedStateTypeId, consumEnergyTotal);
                 }
