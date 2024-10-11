@@ -146,6 +146,23 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
 
         connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::updateFinished, thing, [alfenWallboxTcpConnection, thing](){
             qCDebug(dcAlfen()) << "Update finished:" << thing->name() << alfenWallboxTcpConnection;
+
+            double currentPhaseA = thing->stateValue(alfenEveSingleProCurrentPhaseAStateTypeId).toDouble();
+            double currentPhaseB = thing->stateValue(alfenEveSingleProCurrentPhaseBStateTypeId).toDouble();
+            double currentPhaseC = thing->stateValue(alfenEveSingleProCurrentPhaseCStateTypeId).toDouble();
+
+            uint phaseCount = 0;
+
+            if (currentPhaseA > 0)
+                phaseCount++;
+
+            if (currentPhaseB > 0)
+                phaseCount++;
+
+            if (currentPhaseC > 0)
+                phaseCount++;
+
+            thing->setStateValue(alfenEveSingleProPhaseCountStateTypeId, qMax(phaseCount, 1));
         });
 
         connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::initializationFinished, thing, [thing](bool success){
@@ -203,10 +220,10 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
             thing->setStateValue(alfenEveSingleProTotalEnergyConsumedStateTypeId, energy);
         });
 
-        connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::phaseUsedChanged, this, [thing, this](quint16 phaseCount){
-            qCDebug(dcAlfen()) << thing << "Phase count changed" << phaseCount ;
-            thing->setStateValue(alfenEveSingleProPhaseCountStateTypeId, phaseCount);
-        });
+        // connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::phaseUsedChanged, this, [thing, this](quint16 phaseCount){
+        //     qCDebug(dcAlfen()) << thing << "Phase count changed" << phaseCount ;
+        //     thing->setStateValue(alfenEveSingleProPhaseCountStateTypeId, phaseCount);
+        // });
 
         connect(alfenWallboxTcpConnection, &AlfenWallboxModbusTcpConnection::actualAppliedMaxCurrentChanged, this, [thing, this](float maxCurrent){
             qCDebug(dcAlfen()) << thing << "Max current changed" << maxCurrent ;
