@@ -357,7 +357,7 @@ public:
 
 
     virtual bool initialize();
-    virtual void update();
+    virtual bool update();
     virtual void update1();
     virtual void update2();
     virtual void update3();
