@@ -151,7 +151,7 @@ void IntegrationPluginAlfen::setupThing(ThingSetupInfo *info)
             double currentPhaseB = thing->stateValue(alfenEveSingleProCurrentPhaseBStateTypeId).toDouble();
             double currentPhaseC = thing->stateValue(alfenEveSingleProCurrentPhaseCStateTypeId).toDouble();
 
-            uint phaseCount = 0;
+            int phaseCount = 0;
 
             if (currentPhaseA > 0)
                 phaseCount++;
