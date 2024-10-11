@@ -357,7 +357,14 @@ public:
 
 
     virtual bool initialize();
-    virtual bool update();
+    virtual void update();
+    virtual void update1();
+    virtual void update2();
+    virtual void update3();
+    virtual void update4();
+    virtual void update5();
+    virtual void update6();
+    virtual void update7();
 
 signals:
     void reachableChanged(bool reachable);

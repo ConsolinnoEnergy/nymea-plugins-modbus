@@ -330,24 +330,31 @@ bool AlfenWallboxModbusTcpConnection::update()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcAlfenWallboxModbusTcpConnection()) << "<-- Response from \"modbusSlaveMaxCurrent\" register" << 1210 << "size:" << 2 << unit.values();
         processSetpointMaxCurrentRegisterValues(unit.values());
-        verifyUpdateFinished();
+        update1();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Modbus reply error occurred while reading \"modbusSlaveMaxCurrent\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
+  
+    return true;
+}
+
+void AlfenWallboxModbusTcpConnection::update1()
+{
+    QModbusReply *reply = nullptr;
 
     // Read activeLoadBalancindSafeCurrent
     qCDebug(dcAlfenWallboxModbusTcpConnection()) << "--> Read \"activeLoadBalancindSafeCurrent\" register:" << 1212 << "size:" << 2;
     reply = readActiveLoadBalancindSafeCurrent();
     if (!reply) {
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Error occurred while reading \"activeLoadBalancindSafeCurrent\" registers from" << hostAddress().toString() << errorString();
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -363,24 +370,29 @@ bool AlfenWallboxModbusTcpConnection::update()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcAlfenWallboxModbusTcpConnection()) << "<-- Response from \"activeLoadBalancindSafeCurrent\" register" << 1212 << "size:" << 2 << unit.values();
         processActiveLoadBalancindSafeCurrentRegisterValues(unit.values());
-        verifyUpdateFinished();
+        update2();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Modbus reply error occurred while reading \"activeLoadBalancindSafeCurrent\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
+}
+
+void AlfenWallboxModbusTcpConnection::update2()
+{
+    QModbusReply *reply = nullptr;
 
     // Read modbusSlaveReceivedSetpointAccountedFor
     qCDebug(dcAlfenWallboxModbusTcpConnection()) << "--> Read \"modbusSlaveReceivedSetpointAccountedFor\" register:" << 1214 << "size:" << 1;
     reply = readSetpointMaxCurrentActive();
     if (!reply) {
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Error occurred while reading \"modbusSlaveReceivedSetpointAccountedFor\" registers from" << hostAddress().toString() << errorString();
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -396,24 +408,29 @@ bool AlfenWallboxModbusTcpConnection::update()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcAlfenWallboxModbusTcpConnection()) << "<-- Response from \"modbusSlaveReceivedSetpointAccountedFor\" register" << 1214 << "size:" << 1 << unit.values();
         processSetpointMaxCurrentActiveRegisterValues(unit.values());
-        verifyUpdateFinished();
+        update3();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Modbus reply error occurred while reading \"modbusSlaveReceivedSetpointAccountedFor\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
+}
+
+void AlfenWallboxModbusTcpConnection::update3()
+{
+    QModbusReply *reply = nullptr;
 
     // Read chargingUsing1or3Phases
     qCDebug(dcAlfenWallboxModbusTcpConnection()) << "--> Read \"chargingUsing1or3Phases\" register:" << 1215 << "size:" << 1;
     reply = readPhaseUsed();
     if (!reply) {
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Error occurred while reading \"chargingUsing1or3Phases\" registers from" << hostAddress().toString() << errorString();
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -429,24 +446,29 @@ bool AlfenWallboxModbusTcpConnection::update()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcAlfenWallboxModbusTcpConnection()) << "<-- Response from \"chargingUsing1or3Phases\" register" << 1215 << "size:" << 1 << unit.values();
         processPhaseUsedRegisterValues(unit.values());
-        verifyUpdateFinished();
+        update4();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Modbus reply error occurred while reading \"chargingUsing1or3Phases\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
+}
+
+void AlfenWallboxModbusTcpConnection::update4()
+{
+    QModbusReply *reply = nullptr;
 
     // Read voltage
     reply = readBlockVoltage();
     qCDebug(dcAlfenWallboxModbusTcpConnection()) << "--> Read block \"voltage\" registers from:" << 306 << "size:" << 6;
     if (!reply) {
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Error occurred while reading block \"voltage\" registers";
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -465,25 +487,29 @@ bool AlfenWallboxModbusTcpConnection::update()
         processVoltagePhaseL1RegisterValues(blockValues.mid(0, 2));
         processVoltagePhaseL2RegisterValues(blockValues.mid(2, 2));
         processVoltagePhaseL3RegisterValues(blockValues.mid(4, 2));
-        verifyUpdateFinished();
+        update5();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"voltage\" registers" << error << reply->errorString();
     });
+}
 
+void AlfenWallboxModbusTcpConnection::update5()
+{
+    QModbusReply *reply = nullptr;
 
     // Read currentPowerFactorFreqPower
     reply = readBlockCurrentPowerFactorFreqPower();
     qCDebug(dcAlfenWallboxModbusTcpConnection()) << "--> Read block \"currentPowerFactorFreqPower\" registers from:" << 320 << "size:" << 26;
     if (!reply) {
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Error occurred while reading block \"currentPowerFactorFreqPower\" registers";
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -512,25 +538,29 @@ bool AlfenWallboxModbusTcpConnection::update()
         processRealPowerPhase2RegisterValues(blockValues.mid(20, 2));
         processRealPowerPhase3RegisterValues(blockValues.mid(22, 2));
         processRealPowerSumRegisterValues(blockValues.mid(24, 2));
-        verifyUpdateFinished();
+        update6();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"currentPowerFactorFreqPower\" registers" << error << reply->errorString();
     });
+}
 
+void AlfenWallboxModbusTcpConnection::update6()
+{
+    QModbusReply *reply = nullptr;
 
     // Read energy
     reply = readBlockEnergy();
     qCDebug(dcAlfenWallboxModbusTcpConnection()) << "--> Read block \"energy\" registers from:" << 362 << "size:" << 32;
     if (!reply) {
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Error occurred while reading block \"energy\" registers";
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -554,25 +584,29 @@ bool AlfenWallboxModbusTcpConnection::update()
         processRealEnergyConsumedPhaseL2RegisterValues(blockValues.mid(20, 4));
         processRealEnergyConsumedPhaseL3RegisterValues(blockValues.mid(24, 4));
         processRealEnergyConsumedSumRegisterValues(blockValues.mid(28, 4));
-        verifyUpdateFinished();
+        update7();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"energy\" registers" << error << reply->errorString();
     });
+}
 
+void AlfenWallboxModbusTcpConnection::update7()
+{
+    QModbusReply *reply = nullptr;
 
     // Read statusAndTransactions
     reply = readBlockStatusAndTransactions();
     qCDebug(dcAlfenWallboxModbusTcpConnection()) << "--> Read block \"statusAndTransactions\" registers from:" << 1200 << "size:" << 10;
     if (!reply) {
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Error occurred while reading block \"statusAndTransactions\" registers";
-        return false;
+        return;
     }
 
     if (reply->isFinished()) {
         reply->deleteLater(); // Broadcast reply returns immediatly
-        return false;
+        return;
     }
 
     m_pendingUpdateReplies.append(reply);
@@ -598,8 +632,6 @@ bool AlfenWallboxModbusTcpConnection::update()
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcAlfenWallboxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"statusAndTransactions\" registers" << error << reply->errorString();
     });
-
-    return true;
 }
 
 void AlfenWallboxModbusTcpConnection::updateSetpointMaxCurrent()
