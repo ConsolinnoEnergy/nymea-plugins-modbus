@@ -338,11 +338,6 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
         thing->setStateValue(broetjeReturnTemperatureStateTypeId, returnTemperature);
     });
 
-    connect(connection, &BroetjeModbusRtuConnection::storageTankTemperatureChanged, thing, [thing](float storageTankTemperature){
-        qCDebug(dcBroetje()) << thing << "Storage tank temperature changed" << storageTankTemperature << "°C";
-        thing->setStateValue(broetjeStorageTankTemperatureStateTypeId, storageTankTemperature);
-    });
-
     connect(connection, &BroetjeModbusRtuConnection::hotWaterTemperatureChanged, thing, [thing](float hotWaterTemperature){
         qCDebug(dcBroetje()) << thing << "hot water temperature changed" << hotWaterTemperature << "°C";
         thing->setStateValue(broetjeHotWaterTemperatureStateTypeId, hotWaterTemperature);
@@ -394,7 +389,7 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
 
     connect(connection, &BroetjeModbusRtuConnection::subsystemStatusChanged, thing, [thing](uint16_t subsystemStatus){
         QString subsystemStatusString;
-        bool sgReadyActive{false};
+        bool sgReadyMode3or4{false};
         switch (subsystemStatus) {
         case 0:
             subsystemStatusString = "Standby";
@@ -413,7 +408,7 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
             break;
         case 94:
             subsystemStatusString = "SG-Steuerlogik aktiv";
-            sgReadyActive = true;
+            sgReadyMode3or4 = true;
             break;
         default:
             subsystemStatusString = QString("%1").arg(subsystemStatus);
@@ -421,12 +416,12 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
 
         qCDebug(dcBroetje()) << thing << "Subsystem status changed " << subsystemStatusString;
         thing->setStateValue(broetjeSubsystemStatusStateTypeId, subsystemStatusString);
-        thing->setStateValue(broetjeSgReadyActiveStateTypeId, sgReadyActive);
+        thing->setStateValue(broetjeSgReadyMode3or4StateTypeId, sgReadyMode3or4);
     });
 
-    connect(connection, &BroetjeModbusRtuConnection::heatingPowerChanged, thing, [thing](float heatingPower){
-        qCDebug(dcBroetje()) << thing << "Heating power changed" << heatingPower << "kW";
-        thing->setStateValue(broetjeHeatingPowerStateTypeId, heatingPower);
+    connect(connection, &BroetjeModbusRtuConnection::energyConsumedYearChanged, thing, [thing](float energyConsumedYear){
+        qCDebug(dcBroetje()) << thing << "Energy consumed year changed" << energyConsumedYear << "kWh";
+        thing->setStateValue(broetjeEnergyConsumedYearStateTypeId, energyConsumedYear);
     });
 
     connect(connection, &BroetjeModbusRtuConnection::sgReadyStateChanged, thing, [thing](BroetjeModbusRtuConnection::SmartGridState smartGridState){

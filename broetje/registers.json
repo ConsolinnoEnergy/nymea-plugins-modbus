@@ -231,6 +231,32 @@
             "access": "RO"
         },
         {
+            "id": "flowTemperature",
+            "address": 273,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Flow temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "returnTemperature",
+            "address": 274,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Return temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
             "id": "error",
             "address": 277,
             "size": 1,
@@ -249,32 +275,6 @@
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "Outdoor temperature",
-            "staticScaleFactor": -2,
-            "defaultValue": 0,
-            "unit": "°C",
-            "access": "RO"
-        },
-        {
-            "id": "flowTemperature",
-            "address": 400,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Flow temperature",
-            "staticScaleFactor": -2,
-            "defaultValue": 0,
-            "unit": "°C",
-            "access": "RO"
-        },
-        {
-            "id": "returnTemperature",
-            "address": 401,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Return temperature",
             "staticScaleFactor": -2,
             "defaultValue": 0,
             "unit": "°C",
@@ -303,16 +303,16 @@
             "access": "RO"
         },
         {
-            "id": "heatingPower",
-            "address": 460,
+            "id": "energyConsumedYear",
+            "address": 439,
             "size": 2,
             "type": "uint32",
             "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "Heating power",
+            "description": "Energy consumed year",
             "staticScaleFactor": -2,
             "defaultValue": "0",
-            "unit": "kW",
+            "unit": "kWh",
             "access": "RO"
         },
         {
@@ -350,21 +350,8 @@
             "access": "RW"
         },
         {
-            "id": "storageTankTemperature",
-            "address": 7601,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Storage tank temperature",
-            "staticScaleFactor": -2,
-            "defaultValue": "0",
-            "unit": "°C",
-            "access": "RO"
-        },
-        {
             "id": "hotWaterTemperature",
-            "address": 1120,
+            "address": 1632,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",

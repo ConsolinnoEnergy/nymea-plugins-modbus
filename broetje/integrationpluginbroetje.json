@@ -64,7 +64,6 @@
                             "defaultValue": 0,
                             "suggestLogging": true
                         },
-
                         {
                             "id": "55d4f93d-8bac-49ad-9426-27af60de1f76",
                             "name": "outdoorTemperature",
@@ -86,21 +85,11 @@
                             "suggestLogging": true
                         }, 
                         {
-                            "id": "e5826e6a-1b3d-4e12-8efb-973db5f02da5",
-                            "name": "storageTankTemperature",
-                            "displayName": "Storage tank temperature",
-                            "displayNameEvent": "Storage tank temperature changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0,
-                            "suggestLogging": true
-                        },
-                        {
                             "id": "6174feff-b215-4c62-a9a2-7209f0f5879d",
-                            "name": "heatingPower",
-                            "displayName": "Heating power",
+                            "name": "energyConsumedYear",
+                            "displayName": "Energy consumed this year",
                             "displayNameEvent": "Heating power changed",
-                            "unit": "KiloWatt",
+                            "unit": "KiloWattHour",
                             "type": "double",
                             "defaultValue": 0,
                             "suggestLogging": true
@@ -119,14 +108,14 @@
                                 "High"
                             ],
                             "writable": true,
-                            "defaultValue": "Standard",
+                            "defaultValue": "Low",
                             "suggestLogging": true
                         },
                         {
                             "id": "6ecc2e8d-322a-4033-b1f6-79195a54a051",
-                            "name": "sgReadyActive",
-                            "displayName": "SG Ready active",
-                            "displayNameEvent": "SG Ready active changed",
+                            "name": "sgReadyMode3or4",
+                            "displayName": "SG Ready mode 3 or 4",
+                            "displayNameEvent": "SG Ready mode 3 or 4 changed",
                             "type": "bool",
                             "defaultValue": false,
                             "suggestLogging": true

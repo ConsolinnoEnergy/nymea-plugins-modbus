@@ -7,7 +7,8 @@ This plugin communicates via Modbus/RTU with a Brötje heat pump. Make sure the 
 
 ## Supported Things
 
-* Brötje heat pump
+* Brötje heat pump BLW Eco.1
+* Brötje heat pump BLW Mono.1
 
 ## Requirements
 
