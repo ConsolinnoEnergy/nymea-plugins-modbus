@@ -57,8 +57,8 @@ public:
         RegisterOutdoorTemperature = 4,
         RegisterEmanagerErrorNumber = 100,
         RegisterEmanagerState = 101,
-        RegisterActualPower = 102,
-        RegisterActualPowerConsumption = 103,
+        RegisterSetPointPower = 102,
+        RegisterCurrentPower = 103,
         RegisterPowerSetpoint = 104,
         RegisterHeatpumpErrorState = 1000,
         RegisterHeatpumpErrorNumber = 1001,
@@ -80,7 +80,7 @@ public:
         RegisterRequestReturnTemperature = 1017,
         RegisterRequestTemperatureSink = 1018,
         RegisterRelaisHeatingActive = 1019,
-        RegisterCompressorTotalEnergyConsumption = 1020,
+        RegisterTotalEnergyConsumed = 1020,
         RegisterCompressorTotalHeatOutput = 1022,
         RegisterErrorSettingQuit = 1050,
         RegisterHotWaterTemperature = 2002,
@@ -242,11 +242,11 @@ public:
     void setCheckReachableRetries(uint checkReachableRetries);
 
     /* power demand written by EMS [W] - Address: 102, Size: 1 */
-    quint16 actualPower() const;
-    QModbusReply *setActualPower(quint16 actualPower);
+    quint16 setPointPower() const;
+    QModbusReply *setSetPointPower(quint16 setPointPower);
 
     /* Accumulated electrical energy consumption of compressor unit since last statistic reset [kWh] - Address: 1020, Size: 2 */
-    float compressorTotalEnergyConsumption() const;
+    float totalEnergyConsumed() const;
 
     /* Accumulated thermal energy output of compressor unit since last statistic reset [kWh] - Address: 1022, Size: 2 */
     float compressorTotalHeatOutput() const;
@@ -282,7 +282,7 @@ public:
     EmanagerState emanagerState() const;
 
     /* actual power consumption of all configured heat pumps [W] - Address: 103, Size: 1 */
-    qint16 actualPowerConsumption() const;
+    qint16 currentPower() const;
 
     /* realized power consumption setpoint of all configured heat pumps [W] - Address: 104, Size: 1 */
     qint16 powerSetpoint() const;
@@ -460,8 +460,8 @@ public:
     */
     void updateHeatcircsetBlock();
 
-    void updateActualPower();
-    void updateCompressorTotalEnergyConsumption();
+    void updateSetPointPower();
+    void updateTotalEnergyConsumed();
     void updateCompressorTotalHeatOutput();
     void updateErrorSettingQuit();
     void updateHotWaterTemperature();
@@ -474,7 +474,7 @@ public:
     void updateOutdoorTemperature();
     void updateEmanagerErrorNumber();
     void updateEmanagerState();
-    void updateActualPowerConsumption();
+    void updateCurrentPower();
     void updatePowerSetpoint();
     void updateHeatpumpErrorState();
     void updateHeatpumpErrorNumber();
@@ -511,8 +511,8 @@ public:
     void updateSetpointRoomTemperatureHeating();
     void updateSetpointRoomTemperatureCooling();
 
-    QModbusReply *readActualPower();
-    QModbusReply *readCompressorTotalEnergyConsumption();
+    QModbusReply *readSetPointPower();
+    QModbusReply *readTotalEnergyConsumed();
     QModbusReply *readCompressorTotalHeatOutput();
     QModbusReply *readErrorSettingQuit();
     QModbusReply *readHotWaterTemperature();
@@ -524,7 +524,7 @@ public:
     QModbusReply *readOutdoorTemperature();
     QModbusReply *readEmanagerErrorNumber();
     QModbusReply *readEmanagerState();
-    QModbusReply *readActualPowerConsumption();
+    QModbusReply *readCurrentPower();
     QModbusReply *readPowerSetpoint();
     QModbusReply *readHeatpumpErrorState();
     QModbusReply *readHeatpumpErrorNumber();
@@ -658,10 +658,10 @@ signals:
 
     void endiannessChanged(ModbusDataUtils::ByteOrder endianness);
 
-    void actualPowerChanged(quint16 actualPower);
-    void actualPowerReadFinished(quint16 actualPower);
-    void compressorTotalEnergyConsumptionChanged(float compressorTotalEnergyConsumption);
-    void compressorTotalEnergyConsumptionReadFinished(float compressorTotalEnergyConsumption);
+    void setPointPowerChanged(quint16 setPointPower);
+    void setPointPowerReadFinished(quint16 setPointPower);
+    void totalEnergyConsumedChanged(float totalEnergyConsumed);
+    void totalEnergyConsumedReadFinished(float totalEnergyConsumed);
     void compressorTotalHeatOutputChanged(float compressorTotalHeatOutput);
     void compressorTotalHeatOutputReadFinished(float compressorTotalHeatOutput);
     void errorSettingQuitChanged(qint16 errorSettingQuit);
@@ -685,8 +685,8 @@ signals:
     void emanagerErrorNumberReadFinished(qint16 emanagerErrorNumber);
     void emanagerStateChanged(EmanagerState emanagerState);
     void emanagerStateReadFinished(EmanagerState emanagerState);
-    void actualPowerConsumptionChanged(qint16 actualPowerConsumption);
-    void actualPowerConsumptionReadFinished(qint16 actualPowerConsumption);
+    void currentPowerChanged(qint16 currentPower);
+    void currentPowerReadFinished(qint16 currentPower);
     void powerSetpointChanged(qint16 powerSetpoint);
     void powerSetpointReadFinished(qint16 powerSetpoint);
     void heatpumpErrorStateChanged(HeatpumpErrorState heatpumpErrorState);
@@ -759,8 +759,8 @@ signals:
     void setpointRoomTemperatureCoolingReadFinished(float setpointRoomTemperatureCooling);
 
 protected:
-    quint16 m_actualPower = 0;
-    float m_compressorTotalEnergyConsumption = 0;
+    quint16 m_setPointPower = 0;
+    float m_totalEnergyConsumed = 0;
     float m_compressorTotalHeatOutput = 0;
     qint16 m_errorSettingQuit = 0;
     float m_hotWaterTemperature = 0;
@@ -772,7 +772,7 @@ protected:
     float m_outdoorTemperature = 20;
     qint16 m_emanagerErrorNumber = 0;
     EmanagerState m_emanagerState = EmanagerStateOff;
-    qint16 m_actualPowerConsumption = 0;
+    qint16 m_currentPower = 0;
     qint16 m_powerSetpoint = 0;
     HeatpumpErrorState m_heatpumpErrorState = HeatpumpErrorStateNone;
     qint16 m_heatpumpErrorNumber = 0;
@@ -809,8 +809,8 @@ protected:
     float m_setpointRoomTemperatureHeating = 0;
     float m_setpointRoomTemperatureCooling = 0;
 
-    void processActualPowerRegisterValues(const QVector<quint16> values);
-    void processCompressorTotalEnergyConsumptionRegisterValues(const QVector<quint16> values);
+    void processSetPointPowerRegisterValues(const QVector<quint16> values);
+    void processTotalEnergyConsumedRegisterValues(const QVector<quint16> values);
     void processCompressorTotalHeatOutputRegisterValues(const QVector<quint16> values);
     void processErrorSettingQuitRegisterValues(const QVector<quint16> values);
     void processHotWaterTemperatureRegisterValues(const QVector<quint16> values);
@@ -825,7 +825,7 @@ protected:
     void processEmanagerErrorNumberRegisterValues(const QVector<quint16> values);
     void processEmanagerStateRegisterValues(const QVector<quint16> values);
 
-    void processActualPowerConsumptionRegisterValues(const QVector<quint16> values);
+    void processCurrentPowerRegisterValues(const QVector<quint16> values);
     void processPowerSetpointRegisterValues(const QVector<quint16> values);
 
     void processHeatpumpErrorStateRegisterValues(const QVector<quint16> values);

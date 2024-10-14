@@ -161,7 +161,7 @@
                         },
                         {
                             "id": "3e8350a9-9d2f-46c9-b8f6-aee8a6b786bb",
-                            "name": "actualPower",
+                            "name": "setPointPower",
                             "displayName": "Power demand",
                             "displayNameEvent": "Power demand changed",
                             "displayNameAction": "Set power demand",
@@ -173,7 +173,7 @@
                         },
                         {
                             "id": "b6911c3f-c722-4249-8c82-2a3b1fd28213",
-                            "name": "actualPowerConsumption",
+                            "name": "currentPower",
                             "displayName": "Actual power consumption",
                             "displayNameEvent": "Actual power consumption changed",
                             "unit": "Watt",
@@ -186,7 +186,7 @@
                             "name": "powerSetpoint",
                             "displayName": "Realized power setpoint",
                             "displayNameEvent": "Realized power setpoint changed",
-                            "unit": "DegreeCelsius",
+                            "unit": "Watt",
                             "type": "double",
                             "defaultValue": 0,
                             "suggestLogging": true
@@ -434,11 +434,11 @@
                         },
                         {
                             "id": "c1f0894e-af62-4f29-89fc-d983ce3b7ffc",
-                            "name": "compressorTotalEnergyConsumption",
+                            "name": "totalEnergyConsumed",
                             "displayName": "Accumulated electrical energy consumption of compressor",
                             "displayNameEvent": "Accumulated electrical energy consumption of compressor changed",
                             "unit": "KiloWattHour",
-                            "type": "int",
+                            "type": "double",
                             "defaultValue": 0,
                             "suggestLogging": true
                         },

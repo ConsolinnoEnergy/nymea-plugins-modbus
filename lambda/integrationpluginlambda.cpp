@@ -180,13 +180,13 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
                 break;
             }
         });
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::actualPowerChanged, thing, [thing](float actualPower){
-            qCDebug(dcLambda()) << thing << "power demand changed" << actualPower << "W";
-            thing->setStateValue(lambdaTCPActualPowerStateTypeId, actualPower);
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::setPointPowerChanged, thing, [thing](float setPointPower){
+            qCDebug(dcLambda()) << thing << "power demand changed" << setPointPower << "W";
+            thing->setStateValue(lambdaTCPSetPointPowerStateTypeId, setPointPower);
         });
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::actualPowerConsumptionChanged, thing, [thing](float actualPowerConsumption){
-            qCDebug(dcLambda()) << thing << "actual power consumption changed" << actualPowerConsumption << "W";
-            thing->setStateValue(lambdaTCPActualPowerConsumptionStateTypeId, actualPowerConsumption);
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::currentPowerChanged, thing, [thing](float currentPower){
+            qCDebug(dcLambda()) << thing << "actual power consumption changed" << currentPower << "W";
+            thing->setStateValue(lambdaTCPCurrentPowerStateTypeId, currentPower);
         });
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::powerSetpointChanged, thing, [thing](float powerSetpoint){
             qCDebug(dcLambda()) << thing << "realized power setpoint changed" << powerSetpoint << "W";
@@ -377,13 +377,13 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             thing->setStateValue(lambdaTCPCoefficientOfPerformanceStateTypeId, coefficientOfPerformance);
         });
         // 1-0-14 until 1-0-19 not connected
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::compressorTotalEnergyConsumptionChanged, thing, [thing](qint32 compressorTotalEnergyConsumption){
-            qCDebug(dcLambda()) << thing << "Accumulated electrical energy consumption of compressor unit since last statistic reset" << compressorTotalEnergyConsumption << "Wh";
-            thing->setStateValue(lambdaTCPCoefficientOfPerformanceStateTypeId, compressorTotalEnergyConsumption);
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](qint32 totalEnergyConsumed){
+            qCDebug(dcLambda()) << thing << "Accumulated electrical energy consumption of compressor unit since last statistic reset" << totalEnergyConsumed << "Wh";
+            thing->setStateValue(lambdaTCPTotalEnergyConsumedStateTypeId, totalEnergyConsumed);
         });
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::compressorTotalHeatOutputChanged, thing, [thing](qint32 compressorTotalHeatOutput){
             qCDebug(dcLambda()) << thing << "Accumulated thermal energy output of compressor unit since last statistic reset" << compressorTotalHeatOutput << "Wh";
-            thing->setStateValue(lambdaTCPCoefficientOfPerformanceStateTypeId, compressorTotalHeatOutput);
+            thing->setStateValue(lambdaTCPCompressorTotalHeatOutputStateTypeId, compressorTotalHeatOutput);
         });
         // 1-0-50 not connected
 
@@ -439,7 +439,7 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
         });
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::bufferTemperatureLowChanged, thing, [thing](float bufferTemperatureLow){
             qCDebug(dcLambda()) << thing << "Actual temperature buffer low sensor" << bufferTemperatureLow << "°C";
-            thing->setStateValue(lambdaTCPRoomTemperatureStateTypeId, bufferTemperatureLow);
+            thing->setStateValue(lambdaTCPBufferTemperatureLowStateTypeId, bufferTemperatureLow);
         });
         // 3-0-50 not connected
         
@@ -526,11 +526,11 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
         });
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::roomTemperatureChanged, thing, [thing](float roomTemperature){
             qCDebug(dcLambda()) << thing << "Actual temperature room device sensor changed" << roomTemperature << "°C";
-            thing->setStateValue(lambdaTCPSetpointFlowTemperatureStateTypeId, roomTemperature);
+            thing->setStateValue(lambdaTCPRoomTemperatureStateTypeId, roomTemperature);
         });
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::setpointFlowTemperatureChanged, thing, [thing](float setpointFlowTemperature){
             qCDebug(dcLambda()) << thing << "Setpoint temperature flow line changed" << setpointFlowTemperature << "°C";
-            thing->setStateValue(lambdaTCPRoomTemperatureStateTypeId, setpointFlowTemperature);
+            thing->setStateValue(lambdaTCPSetpointFlowTemperatureStateTypeId, setpointFlowTemperature);
         });
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::heatingcircuitModeChanged, thing, [thing](LambdaModbusTcpConnection::HeatingcircuitMode heatingcircuitMode){
             qCDebug(dcLambda()) << thing << "Heating circuit operating mode changed" << heatingcircuitMode;

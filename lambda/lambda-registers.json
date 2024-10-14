@@ -524,7 +524,7 @@
             "readSchedule": "update",
             "registers": [
                 {
-                    "id": "actualPowerConsumption",
+                    "id": "currentPower",
                     "address": 103,
                     "size": 1,
                     "type": "int16",
@@ -1006,7 +1006,7 @@
     ],
     "registers": [
         {
-            "id": "actualPower",
+            "id": "setPointPower",
             "address": 102,
             "size": 1,
             "type": "uint16",
@@ -1018,7 +1018,7 @@
             "access": "RW"
         },
         {
-            "id": "compressorTotalEnergyConsumption",
+            "id": "totalEnergyConsumed",
             "address": 1020,
             "size": 2,
             "type": "int32",

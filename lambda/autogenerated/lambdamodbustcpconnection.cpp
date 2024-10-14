@@ -103,23 +103,23 @@ void LambdaModbusTcpConnection::setEndianness(ModbusDataUtils::ByteOrder endiann
     emit endiannessChanged(m_endianness);
 }
 
-quint16 LambdaModbusTcpConnection::actualPower() const
+quint16 LambdaModbusTcpConnection::setPointPower() const
 {
-    return m_actualPower;
+    return m_setPointPower;
 }
 
-QModbusReply *LambdaModbusTcpConnection::setActualPower(quint16 actualPower)
+QModbusReply *LambdaModbusTcpConnection::setSetPointPower(quint16 setPointPower)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(actualPower);
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(setPointPower);
     qCDebug(dcLambdaModbusTcpConnection()) << "--> Write \"power demand written by EMS\" register:" << 102 << "size:" << 1 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 102, values.count());
     request.setValues(values);
     return sendWriteRequest(request, m_slaveId);
 }
 
-float LambdaModbusTcpConnection::compressorTotalEnergyConsumption() const
+float LambdaModbusTcpConnection::totalEnergyConsumed() const
 {
-    return m_compressorTotalEnergyConsumption;
+    return m_totalEnergyConsumed;
 }
 
 float LambdaModbusTcpConnection::compressorTotalHeatOutput() const
@@ -177,9 +177,9 @@ LambdaModbusTcpConnection::EmanagerState LambdaModbusTcpConnection::emanagerStat
     return m_emanagerState;
 }
 
-qint16 LambdaModbusTcpConnection::actualPowerConsumption() const
+qint16 LambdaModbusTcpConnection::currentPower() const
 {
-    return m_actualPowerConsumption;
+    return m_currentPower;
 }
 
 qint16 LambdaModbusTcpConnection::powerSetpoint() const
@@ -382,7 +382,7 @@ bool LambdaModbusTcpConnection::update()
 
     // Read power demand written by EMS
     qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"power demand written by EMS\" register:" << 102 << "size:" << 1;
-    reply = readActualPower();
+    reply = readSetPointPower();
     if (!reply) {
         qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"power demand written by EMS\" registers from" << hostAddress().toString() << errorString();
         return false;
@@ -405,7 +405,7 @@ bool LambdaModbusTcpConnection::update()
 
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"power demand written by EMS\" register" << 102 << "size:" << 1 << unit.values();
-        processActualPowerRegisterValues(unit.values());
+        processSetPointPowerRegisterValues(unit.values());
         update2();//JoOb-previous: verifyUpdateFinished();
     });
 
@@ -421,7 +421,7 @@ void LambdaModbusTcpConnection::update2()
     QModbusReply *reply = nullptr;
     // Read Accumulated electrical energy consumption of compressor unit since last statistic reset
     qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Accumulated electrical energy consumption of compressor unit since last statistic reset\" register:" << 1020 << "size:" << 2;
-    reply = readCompressorTotalEnergyConsumption();
+    reply = readTotalEnergyConsumed();
     if (!reply) {
         qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Accumulated electrical energy consumption of compressor unit since last statistic reset\" registers from" << hostAddress().toString() << errorString();
         return;
@@ -444,7 +444,7 @@ void LambdaModbusTcpConnection::update2()
 
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Accumulated electrical energy consumption of compressor unit since last statistic reset\" register" << 1020 << "size:" << 2 << unit.values();
-        processCompressorTotalEnergyConsumptionRegisterValues(unit.values());
+        processTotalEnergyConsumedRegisterValues(unit.values());
         update3();//JoOb-previous: verifyUpdateFinished();
     });
 
@@ -713,7 +713,7 @@ void LambdaModbusTcpConnection::update9()
         const QModbusDataUnit unit = reply->result();
         const QVector<quint16> blockValues = unit.values();
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"power\" register" << 103 << "size:" << 2 << blockValues;
-        processActualPowerConsumptionRegisterValues(blockValues.mid(0, 1));
+        processCurrentPowerRegisterValues(blockValues.mid(0, 1));
         processPowerSetpointRegisterValues(blockValues.mid(1, 1));
         update10();//JoOb-previous: verifyUpdateFinished();
     });
@@ -909,11 +909,11 @@ void LambdaModbusTcpConnection::update13()
     });
 }
 
-void LambdaModbusTcpConnection::updateActualPower()
+void LambdaModbusTcpConnection::updateSetPointPower()
 {
     // Update registers from power demand written by EMS
     qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"power demand written by EMS\" register:" << 102 << "size:" << 1;
-    QModbusReply *reply = readActualPower();
+    QModbusReply *reply = readSetPointPower();
     if (!reply) {
         qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"power demand written by EMS\" registers from" << hostAddress().toString() << errorString();
         return;
@@ -930,7 +930,7 @@ void LambdaModbusTcpConnection::updateActualPower()
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
             qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"power demand written by EMS\" register" << 102 << "size:" << 1 << unit.values();
-            processActualPowerRegisterValues(unit.values());
+            processSetPointPowerRegisterValues(unit.values());
         }
     });
 
@@ -939,11 +939,11 @@ void LambdaModbusTcpConnection::updateActualPower()
     });
 }
 
-void LambdaModbusTcpConnection::updateCompressorTotalEnergyConsumption()
+void LambdaModbusTcpConnection::updateTotalEnergyConsumed()
 {
     // Update registers from Accumulated electrical energy consumption of compressor unit since last statistic reset
     qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Accumulated electrical energy consumption of compressor unit since last statistic reset\" register:" << 1020 << "size:" << 2;
-    QModbusReply *reply = readCompressorTotalEnergyConsumption();
+    QModbusReply *reply = readTotalEnergyConsumed();
     if (!reply) {
         qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Accumulated electrical energy consumption of compressor unit since last statistic reset\" registers from" << hostAddress().toString() << errorString();
         return;
@@ -960,7 +960,7 @@ void LambdaModbusTcpConnection::updateCompressorTotalEnergyConsumption()
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
             qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Accumulated electrical energy consumption of compressor unit since last statistic reset\" register" << 1020 << "size:" << 2 << unit.values();
-            processCompressorTotalEnergyConsumptionRegisterValues(unit.values());
+            processTotalEnergyConsumedRegisterValues(unit.values());
         }
     });
 
@@ -1299,11 +1299,11 @@ void LambdaModbusTcpConnection::updateEmanagerState()
     });
 }
 
-void LambdaModbusTcpConnection::updateActualPowerConsumption()
+void LambdaModbusTcpConnection::updateCurrentPower()
 {
     // Update registers from actual power consumption of all configured heat pumps
     qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"actual power consumption of all configured heat pumps\" register:" << 103 << "size:" << 1;
-    QModbusReply *reply = readActualPowerConsumption();
+    QModbusReply *reply = readCurrentPower();
     if (!reply) {
         qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"actual power consumption of all configured heat pumps\" registers from" << hostAddress().toString() << errorString();
         return;
@@ -1320,7 +1320,7 @@ void LambdaModbusTcpConnection::updateActualPowerConsumption()
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
             qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"actual power consumption of all configured heat pumps\" register" << 103 << "size:" << 1 << unit.values();
-            processActualPowerConsumptionRegisterValues(unit.values());
+            processCurrentPowerRegisterValues(unit.values());
         }
     });
 
@@ -2468,7 +2468,7 @@ void LambdaModbusTcpConnection::updatePowerBlock()
             const QModbusDataUnit unit = reply->result();
             const QVector<quint16> blockValues = unit.values();
             qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"power\" register" << 103 << "size:" << 2 << blockValues;
-            processActualPowerConsumptionRegisterValues(blockValues.mid(0, 1));
+            processCurrentPowerRegisterValues(blockValues.mid(0, 1));
             processPowerSetpointRegisterValues(blockValues.mid(1, 1));
         }
     });
@@ -2632,13 +2632,13 @@ void LambdaModbusTcpConnection::updateHeatcircsetBlock()
     });
 }
 
-QModbusReply *LambdaModbusTcpConnection::readActualPower()
+QModbusReply *LambdaModbusTcpConnection::readSetPointPower()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 102, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *LambdaModbusTcpConnection::readCompressorTotalEnergyConsumption()
+QModbusReply *LambdaModbusTcpConnection::readTotalEnergyConsumed()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1020, 2);
     return sendReadRequest(request, m_slaveId);
@@ -2710,7 +2710,7 @@ QModbusReply *LambdaModbusTcpConnection::readEmanagerState()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *LambdaModbusTcpConnection::readActualPowerConsumption()
+QModbusReply *LambdaModbusTcpConnection::readCurrentPower()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 103, 1);
     return sendReadRequest(request, m_slaveId);
@@ -2968,25 +2968,25 @@ QModbusReply *LambdaModbusTcpConnection::readBlockHeatcircset()
     return sendReadRequest(request, m_slaveId);
 }
 
-void LambdaModbusTcpConnection::processActualPowerRegisterValues(const QVector<quint16> values)
+void LambdaModbusTcpConnection::processSetPointPowerRegisterValues(const QVector<quint16> values)
 {
-    quint16 receivedActualPower = ModbusDataUtils::convertToUInt16(values);
-    emit actualPowerReadFinished(receivedActualPower);
+    quint16 receivedSetPointPower = ModbusDataUtils::convertToUInt16(values);
+    emit setPointPowerReadFinished(receivedSetPointPower);
 
-    if (m_actualPower != receivedActualPower) {
-        m_actualPower = receivedActualPower;
-        emit actualPowerChanged(m_actualPower);
+    if (m_setPointPower != receivedSetPointPower) {
+        m_setPointPower = receivedSetPointPower;
+        emit setPointPowerChanged(m_setPointPower);
     }
 }
 
-void LambdaModbusTcpConnection::processCompressorTotalEnergyConsumptionRegisterValues(const QVector<quint16> values)
+void LambdaModbusTcpConnection::processTotalEnergyConsumedRegisterValues(const QVector<quint16> values)
 {
-    float receivedCompressorTotalEnergyConsumption = ModbusDataUtils::convertToInt32(values, m_endianness) * 1.0 * pow(10, 3);
-    emit compressorTotalEnergyConsumptionReadFinished(receivedCompressorTotalEnergyConsumption);
+    float receivedTotalEnergyConsumed = ModbusDataUtils::convertToInt32(values, m_endianness) * 1.0 * pow(10, 3);
+    emit totalEnergyConsumedReadFinished(receivedTotalEnergyConsumed);
 
-    if (m_compressorTotalEnergyConsumption != receivedCompressorTotalEnergyConsumption) {
-        m_compressorTotalEnergyConsumption = receivedCompressorTotalEnergyConsumption;
-        emit compressorTotalEnergyConsumptionChanged(m_compressorTotalEnergyConsumption);
+    if (m_totalEnergyConsumed != receivedTotalEnergyConsumed) {
+        m_totalEnergyConsumed = receivedTotalEnergyConsumed;
+        emit totalEnergyConsumedChanged(m_totalEnergyConsumed);
     }
 }
 
@@ -3111,14 +3111,14 @@ void LambdaModbusTcpConnection::processEmanagerStateRegisterValues(const QVector
     }
 }
 
-void LambdaModbusTcpConnection::processActualPowerConsumptionRegisterValues(const QVector<quint16> values)
+void LambdaModbusTcpConnection::processCurrentPowerRegisterValues(const QVector<quint16> values)
 {
-    qint16 receivedActualPowerConsumption = ModbusDataUtils::convertToInt16(values);
-    emit actualPowerConsumptionReadFinished(receivedActualPowerConsumption);
+    qint16 receivedCurrentPower = ModbusDataUtils::convertToInt16(values);
+    emit currentPowerReadFinished(receivedCurrentPower);
 
-    if (m_actualPowerConsumption != receivedActualPowerConsumption) {
-        m_actualPowerConsumption = receivedActualPowerConsumption;
-        emit actualPowerConsumptionChanged(m_actualPowerConsumption);
+    if (m_currentPower != receivedCurrentPower) {
+        m_currentPower = receivedCurrentPower;
+        emit currentPowerChanged(m_currentPower);
     }
 }
 
@@ -3620,8 +3620,8 @@ void LambdaModbusTcpConnection::evaluateReachableState()
 QDebug operator<<(QDebug debug, LambdaModbusTcpConnection *lambdaModbusTcpConnection)
 {
     debug.nospace().noquote() << "LambdaModbusTcpConnection(" << lambdaModbusTcpConnection->hostAddress().toString() << ":" << lambdaModbusTcpConnection->port() << ")" << "\n";
-    debug.nospace().noquote() << "    - power demand written by EMS: " << lambdaModbusTcpConnection->actualPower() << " [W]" << "\n";
-    debug.nospace().noquote() << "    - Accumulated electrical energy consumption of compressor unit since last statistic reset: " << lambdaModbusTcpConnection->compressorTotalEnergyConsumption() << " [kWh]" << "\n";
+    debug.nospace().noquote() << "    - power demand written by EMS: " << lambdaModbusTcpConnection->setPointPower() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - Accumulated electrical energy consumption of compressor unit since last statistic reset: " << lambdaModbusTcpConnection->totalEnergyConsumed() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Accumulated thermal energy output of compressor unit since last statistic reset: " << lambdaModbusTcpConnection->compressorTotalHeatOutput() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Quit all active heat pump errors (0: inactive, 1: active): " << lambdaModbusTcpConnection->errorSettingQuit() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Actual temperature boiler high sensor: " << lambdaModbusTcpConnection->hotWaterTemperature() << " [°C]" << "\n";
@@ -3633,7 +3633,7 @@ QDebug operator<<(QDebug debug, LambdaModbusTcpConnection *lambdaModbusTcpConnec
     debug.nospace().noquote() << "    - calculated ambient temperature: " << lambdaModbusTcpConnection->outdoorTemperature() << " [°C]" << "\n";
     debug.nospace().noquote() << "    - E-Manager error number, 0: no error: " << lambdaModbusTcpConnection->emanagerErrorNumber() << "\n";
     debug.nospace().noquote() << "    - operating state for E-Manager module: " << lambdaModbusTcpConnection->emanagerState() << "\n";
-    debug.nospace().noquote() << "    - actual power consumption of all configured heat pumps: " << lambdaModbusTcpConnection->actualPowerConsumption() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - actual power consumption of all configured heat pumps: " << lambdaModbusTcpConnection->currentPower() << " [W]" << "\n";
     debug.nospace().noquote() << "    - realized power consumption setpoint of all configured heat pumps: " << lambdaModbusTcpConnection->powerSetpoint() << " [W]" << "\n";
     debug.nospace().noquote() << "    - error state for heat pump module: " << lambdaModbusTcpConnection->heatpumpErrorState() << "\n";
     debug.nospace().noquote() << "    - active heat pump error numbers: " << lambdaModbusTcpConnection->heatpumpErrorNumber() << "\n";
