@@ -25,6 +25,14 @@
                     ],
                     "paramTypes": [
                         {
+                            "id": "16f21e05-5a8d-4ad9-9999-74d43fb7ef63",
+                            "name": "serialNumber",
+                            "displayName": "Serial Number",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "readOnly": true
+                        },
+                        {
                             "id": "74ab93ec-3e22-4768-be5b-4cb3b71f5af9",
                             "name": "modbusMasterUuid",
                             "displayName": "Modbus RTU master",

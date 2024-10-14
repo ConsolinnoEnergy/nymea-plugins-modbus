@@ -95,12 +95,35 @@ void IntegrationPluginDvModbusIR::discoverThings(ThingDiscoveryInfo *info)
             if (!modbusMaster->connected())
                 continue;
 
-            ThingDescriptor descriptor(info->thingClassId(), "dvModbusIR", QString::number(modbusAddress) + " " + modbusMaster->serialPort());
-            ParamList params;
-            params << Param(dvModbusIRThingModbusIdParamTypeId, modbusAddress);
-            params << Param(dvModbusIRThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
-            descriptor.setParams(params);
-            info->addThingDescriptor(descriptor);
+            ModbusRtuReply *reply = modbusMaster->readHoldingRegister(modbusAddress, 0, 1);
+            connect(reply, &ModbusRtuReply::finished, this, [=]() {
+                qCDebug(dcDvModbusIR()) << "Test reply finished!" << reply->error() << reply->result();
+                if (reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
+                    quint16 serialNumber = reply->result().first();
+                    qCDebug(dcDvModbusIR()) << "Read serialNumber is" << serialNumber;
+                    
+                    if (serialNumber == modbusAddress) {
+                        ThingDescriptor descriptor(info->thingClassId(), "dvModbusIR", QString::number(modbusAddress) + " " + modbusMaster->serialPort());
+                        ParamList params;
+                        params << Param(dvModbusIRThingModbusIdParamTypeId, modbusAddress);
+                        params << Param(dvModbusIRThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
+                        params << Param(dvModbusIRThingSerialNumberParamTypeId, serialNumber);
+                        descriptor.setParams(params);
+
+                        // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+                        // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+                        // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
+                        Things existingThings = myThings().filterByThingClassId(dvModbusIRThingClassId).filterByParam(dvModbusIRThingSerialNumberParamTypeId, serialNumber);
+                        if (!existingThings.isEmpty()) {
+                            descriptor.setThingId(existingThings.first()->id());
+                        }
+
+                        info->addThingDescriptor(descriptor);
+                    } else {
+                        qCWarning(dcDvModbusIR()) << "Read serial number is" << serialNumber << "while the modbus address is" << modbusAddress;
+                    }
+                }
+            });
         }
         info->finish(Thing::ThingErrorNoError);
     }
@@ -158,6 +181,7 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
                 qCDebug(dcDvModbusIR()) << "Device " << thing << "is reachable via Modbus RTU on" << connection->modbusRtuMaster()->serialPort();
             } else {
                 qCWarning(dcDvModbusIR()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
+                thing->setStateValue(dvModbusIRCurrentPowerStateTypeId, 0);
             }
         });
 
@@ -219,7 +243,7 @@ void IntegrationPluginDvModbusIR::postSetupThing(Thing *thing)
 
     if (!m_pluginTimer)
     {
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10*60);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcDvModbusIR()) << "Update dvModbusIR";
             foreach(Thing *thing, myThings()) {
