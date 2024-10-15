@@ -102,7 +102,7 @@ void IntegrationPluginDvModbusIR::discoverThings(ThingDiscoveryInfo *info)
                     quint16 serialNumber = reply->result().first();
                     qCDebug(dcDvModbusIR()) << "Read serialNumber is" << serialNumber;
                     
-                    if (serialNumber == modbusAddress) {
+                    if (serialNumber != 0) {
                         ThingDescriptor descriptor(info->thingClassId(), "dvModbusIR", QString::number(modbusAddress) + " " + modbusMaster->serialPort());
                         ParamList params;
                         params << Param(dvModbusIRThingModbusIdParamTypeId, modbusAddress);
@@ -120,7 +120,7 @@ void IntegrationPluginDvModbusIR::discoverThings(ThingDiscoveryInfo *info)
 
                         info->addThingDescriptor(descriptor);
                     } else {
-                        qCWarning(dcDvModbusIR()) << "Read serial number is" << serialNumber << "while the modbus address is" << modbusAddress;
+                        qCWarning(dcDvModbusIR()) << "Could not read serialNumber.";
                     }
                 }
             });
