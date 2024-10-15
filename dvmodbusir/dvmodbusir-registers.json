@@ -5,32 +5,45 @@
     "errorLimitUntilNotReachable": 20,
     "checkReachableRegister": "serialNumber",
     "registers": [
-        {
-            "id": "serialNumber",
-            "address": 0,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "init",
-            "description": "Serialnumber of read-out head.",
-            "defaultValue": 0,
-            "access": "RO"
-        },
-        {
-            "id": "deviceStatus",
-            "address": 4,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "init",
-            "description": "Info about connected meters.",
-            "defaultValue": 0,
-            "access": "RO"
-        }
     ],
     "blocks": [
         {
             "id": "deviceInfo",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "serialNumber",
+                    "address": 0,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Serialnumber of read-out head.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy0",
+                    "address": 1,
+                    "size": 3,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy0",
+                    "access": "RO"
+                },
+                {
+                    "id": "deviceStatus",
+                    "address": 4,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Info about connected meters.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "modbusInfo",
             "readSchedule": "init",
             "registers": [
                 {
@@ -56,7 +69,7 @@
             ]
         },
         {
-            "id": "consumedEnergy",
+            "id": "energyAndPower",
             "readSchedule": "update",
             "registers": [
                 {
@@ -78,13 +91,47 @@
                     "description": "10-exponent for consumed energy.",
                     "defaultValue": 0,
                     "access": "RO"
-                }
-            ]
-        },
-        {
-            "id": "producedEnergy",
-            "readSchedule": "update",
-            "registers": [
+                },
+                {
+                    "id": "totalConsumedEnergyTarif1",
+                    "address": 18,
+                    "size": 4,
+                    "type": "uint64",
+                    "registerType": "holdingRegister",
+                    "description": "Total consumed energy without comma Tarif 1.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "consumedEnergyExponentTarif1",
+                    "address": 22,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "10-exponent for consumed energy Tarif 1.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "totalConsumedEnergyTarif2",
+                    "address": 23,
+                    "size": 4,
+                    "type": "uint64",
+                    "registerType": "holdingRegister",
+                    "description": "Total consumed energy without comma Tarif 2.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "consumedEnergyExponentTarif2",
+                    "address": 27,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "10-exponent for consumed energy Tarif 2.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
                 {
                     "id": "totalProducedEnergy",
                     "address": 28,
@@ -104,13 +151,47 @@
                     "description": "10-exponent for produced energy.",
                     "defaultValue": 0,
                     "access": "RO"
-                }
-            ]
-        },
-        {
-            "id": "currentPowerBlock",
-            "readSchedule": "update",
-            "registers": [
+                },
+                {
+                    "id": "totalProducedEnergyTarif1",
+                    "address": 33,
+                    "size": 4,
+                    "type": "uint64",
+                    "registerType": "holdingRegister",
+                    "description": "Total produced energy without comma Tarif 1.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "producedEnergyExponentTarif1",
+                    "address": 37,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "10-exponent for produced energy Tarif 1.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "totalProducedEnergyTarif2",
+                    "address": 38,
+                    "size": 4,
+                    "type": "uint64",
+                    "registerType": "holdingRegister",
+                    "description": "Total produced energy without comma Tarif 2.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "producedEnergyExponentTarif2",
+                    "address": 42,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "10-exponent for produced energy Tarif 2.",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
                 {
                     "id": "currentPower",
                     "address": 43,
