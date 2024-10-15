@@ -212,11 +212,35 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
             double producedEnergy = prodEngReg*qPow(10, prodEnergyExpReg-3);
             thing->setStateValue(dvModbusIRTotalEnergyProducedStateTypeId, producedEnergy);
 
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set produced energy Tarif 1";
+            qint16 prodEnergyExpRegTarif1 = connection->producedEnergyExponentTarif1();
+            quint64 prodEngRegTarif1 = connection->totalProducedEnergyTarif1();
+            double producedEnergyTarif1 = prodEngRegTarif1*qPow(10, prodEnergyExpRegTarif1-3);
+            thing->setStateValue(dvModbusIRTotalEnergyProducedTarif1StateTypeId, producedEnergyTarif2);
+
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set produced energy Tarif 2";
+            qint16 prodEnergyExpRegTarif2 = connection->producedEnergyExponentTarif2();
+            quint64 prodEngRegTarif2 = connection->totalProducedEnergyTarif2();
+            double producedEnergyTarif2 = prodEngRegTarif2*qPow(10, prodEnergyExpRegTarif2-3);
+            thing->setStateValue(dvModbusIRTotalEnergyProducedTarif2StateTypeId, producedEnergyTarif2);
+
             qCDebug(dcDvModbusIR()) << "dvModbusIR - Set consumed energy";
             qint16 consEnergyExpReg = connection->consumedEnergyExponent();
             quint64 consEngReg = connection->totalConsumedEnergy();
             double consumedEnergy = consEngReg*qPow(10, consEnergyExpReg-3);
             thing->setStateValue(dvModbusIRTotalEnergyConsumedStateTypeId, consumedEnergy);
+
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set consumed energy Tarif 1";
+            qint16 consEnergyExpRegTarif1 = connection->consumedEnergyExponentTarif1();
+            quint64 consEngRegTarif1 = connection->totalConsumedEnergyTarif1();
+            double consumedEnergyTarif1 = consEngRegTarif1*qPow(10, consEnergyExpRegTarif1-3);
+            thing->setStateValue(dvModbusIRTotalEnergyConsumedTarif1StateTypeId, consumedEnergyTarif1);
+
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set consumed energy Tarif 2";
+            qint16 consEnergyExpRegTarif2 = connection->consumedEnergyExponentTarif2();
+            quint64 consEngRegTarif2 = connection->totalConsumedEnergyTarif2();
+            double consumedEnergyTarif2 = consEngRegTarif2*qPow(10, consEnergyExpRegTarif2-3);
+            thing->setStateValue(dvModbusIRTotalEnergyConsumedTarif2StateTypeId, consumedEnergyTarif2);
 
             qCDebug(dcDvModbusIR()) << "dvModbusIR - Set current power";
             qint16 currentPowerExpReg = connection->currentPowerExponent();
