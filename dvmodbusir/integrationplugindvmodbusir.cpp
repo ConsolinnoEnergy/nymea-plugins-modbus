@@ -216,7 +216,7 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
             qint16 prodEnergyExpRegTarif1 = connection->producedEnergyExponentTarif1();
             quint64 prodEngRegTarif1 = connection->totalProducedEnergyTarif1();
             double producedEnergyTarif1 = prodEngRegTarif1*qPow(10, prodEnergyExpRegTarif1-3);
-            thing->setStateValue(dvModbusIRTotalEnergyProducedTarif1StateTypeId, producedEnergyTarif2);
+            thing->setStateValue(dvModbusIRTotalEnergyProducedTarif1StateTypeId, producedEnergyTarif1);
 
             qCDebug(dcDvModbusIR()) << "dvModbusIR - Set produced energy Tarif 2";
             qint16 prodEnergyExpRegTarif2 = connection->producedEnergyExponentTarif2();
