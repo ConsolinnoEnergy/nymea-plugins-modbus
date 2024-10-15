@@ -117,6 +117,28 @@
             "defaultValue": 0,
             "readSchedule": "update",
             "access": "RW"
+        },
+        {
+            "id": "maxPower",
+            "description": "Maximum power",
+            "address": 1014,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": 0,
+            "readSchedule": "update",
+            "access": "RW"
+        },
+        {
+            "id": "powerTimeout",
+            "description": "Timeout of set power",
+            "address": 1004,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": 0,
+            "readSchedule": "update",
+            "access": "RO"
         }
     ]
 }

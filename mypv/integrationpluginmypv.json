@@ -37,7 +37,8 @@
                             "readOnly": true
                         }
                     ],
-                    "stateTypes":[
+                    "stateTypes":
+                    [
                         {
                             "id": "ae1aea74-abac-424a-9fbb-58837636035a",
                             "name": "connected",
