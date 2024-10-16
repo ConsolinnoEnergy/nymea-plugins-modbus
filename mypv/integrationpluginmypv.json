@@ -62,7 +62,7 @@
                             "id": "97caea3f-2cb0-430f-a143-9d2dd15d0399",
                             "name": "currentPower",
                             "displayName": "Current power",
-                            "displayNameEvent": "Power consumtion changed",
+                            "displayNameEvent": "Power consumption changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0,
@@ -98,7 +98,8 @@
                             "displayNameEvent": "Water temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "522c0d49-f62e-406a-bb54-c89d5f4ca783",
@@ -107,6 +108,47 @@
                             "displayNameEvent": "Target water temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "",
+                            "name": "immersionHeaterPower",
+                            "displayName": "Immersion Heater power",
+                            "displayNameEvent": "Immersion Heater power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "",
+                            "name": "auxRelayPower",
+                            "displayName": "Aux Relay power",
+                            "displayNameEvent": "Aux Relay power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "",
+                            "name": "maxPower",
+                            "displayName": "Maximum power of heating rod",
+                            "displayNameEvent": "Max power of heating rod changed",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "",
+                            "name": "powerTimeout",
+                            "displayName": "Power timeout of heating rod",
+                            "displayNameEvent": "Power timeoutheating rod changed",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "cached": false,
                             "defaultValue": 0
                         },
                         {
