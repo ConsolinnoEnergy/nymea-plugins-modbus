@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.010) jammy; urgency=medium
+
+  * DvModbusIR: Read more state and more frequently
+
+ -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
+
 nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
 
   * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
