@@ -29,6 +29,18 @@
                     "value": 9
                 },
                 {
+                    "key": "LageionellaBoost",
+                    "value": 20
+                },
+                {
+                    "key": "DeviceDisabled",
+                    "value": 21
+                },
+                {
+                    "key": "DeviceBlocked",
+                    "value": 22
+                },
+                {
                     "key": "ErrorOvertempFuseBlown",
                     "value": 201
                 },
@@ -92,6 +104,94 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "setPointValues",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "manualStart",
+                    "description": "Manual start",
+                    "address": 1012,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "readSchedule": "update",
+                    "access": "RW"
+                },
+                {
+                    "id": "deviceNumber",
+                    "description": "AC ELWA Number",
+                    "address": 1013,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "readSchedule": "update",
+                    "access": "RW"
+                },
+                {
+                    "id": "maxPower",
+                    "description": "Maximum power",
+                    "address": 1014,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "readSchedule": "update",
+                    "access": "RW"
+                }
+            ]
+        },
+        {
+            "id": "powerValues",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "meterPower",
+                    "description": "Power at meter",
+                    "address": 1069,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "readSchedule": "update",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy0",
+                    "description": "Dummy0",
+                    "address": 1070,
+                    "size": 4,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "access": "RO"
+                },
+                {
+                    "id": "immHeaterPower",
+                    "description": "Power at ELWA immersion heater",
+                    "address": 1074,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "readSchedule": "update",
+                    "access": "RO"
+                },
+                {
+                    "id": "auxRelayPower",
+                    "description": "Power at AUX relay",
+                    "address": 1075,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "readSchedule": "update",
+                    "access": "RO"
+                }
+            ]
         }
     ],
     "registers": [
@@ -108,28 +208,6 @@
             "access": "RW"
         },
         {
-            "id": "manualStart",
-            "description": "Manual start",
-            "address": 1012,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "defaultValue": 0,
-            "readSchedule": "update",
-            "access": "RW"
-        },
-        {
-            "id": "maxPower",
-            "description": "Maximum power",
-            "address": 1014,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "defaultValue": 0,
-            "readSchedule": "update",
-            "access": "RW"
-        },
-        {
             "id": "powerTimeout",
             "description": "Timeout of set power",
             "address": 1004,
@@ -138,7 +216,7 @@
             "registerType": "holdingRegister",
             "defaultValue": 0,
             "readSchedule": "update",
-            "access": "RO"
+            "access": "RW"
         }
     ]
 }
