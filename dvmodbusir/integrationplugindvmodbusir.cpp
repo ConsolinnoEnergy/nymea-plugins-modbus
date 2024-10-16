@@ -103,6 +103,7 @@ void IntegrationPluginDvModbusIR::discoverThings(ThingDiscoveryInfo *info)
                     qCDebug(dcDvModbusIR()) << "Read serialNumber is" << serialNumber;
                     
                     if (serialNumber != 0) {
+                        qCDebug(dcDvModbusIR()) << "Add discovered thing!";
                         ThingDescriptor descriptor(info->thingClassId(), "dvModbusIR", QString::number(modbusAddress) + " " + modbusMaster->serialPort());
                         ParamList params;
                         params << Param(dvModbusIRThingModbusIdParamTypeId, modbusAddress);
@@ -115,17 +116,18 @@ void IntegrationPluginDvModbusIR::discoverThings(ThingDiscoveryInfo *info)
                         // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
                         Things existingThings = myThings().filterByThingClassId(dvModbusIRThingClassId).filterByParam(dvModbusIRThingSerialNumberParamTypeId, serialNumber);
                         if (!existingThings.isEmpty()) {
+                            qCDebug(dcDvModbusIR()) << "Thing already exists, reconfigure.";
                             descriptor.setThingId(existingThings.first()->id());
                         }
 
                         info->addThingDescriptor(descriptor);
+                        info->finish(Thing::ThingErrorNoError);
                     } else {
                         qCWarning(dcDvModbusIR()) << "Could not read serialNumber.";
                     }
                 }
             });
         }
-        info->finish(Thing::ThingErrorNoError);
     }
 }
 
