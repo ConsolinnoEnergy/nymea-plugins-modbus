@@ -122,6 +122,16 @@
                             "cached": false
                         },
                         {
+                            "id": "63f72157-f1c0-46b1-900f-c9d3d7511651",
+                            "name": "meterPower",
+                            "displayName": "Meter power",
+                            "displayNameEvent": "Meter power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "0cb3ddf6-0a7a-4d89-a59e-3c1da2078196",
                             "name": "auxRelayPower",
                             "displayName": "Aux Relay power",
