@@ -104,26 +104,6 @@
 
                         },
                         {
-                            "id": "92a2f22d-373a-4589-a642-a0ef38b3992f",
-                            "name": "totalEnergyConsumedTarif1",
-                            "displayName": "Total consumed energy Tarif 1",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": "0",
-                            "cached": false
-
-                        },
-                        {
-                            "id": "89cfe5fa-44ac-482c-a255-4b639721a0f9",
-                            "name": "totalEnergyConsumedTarif2",
-                            "displayName": "Total consumed energy Tarif 2",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": "0",
-                            "cached": false
-
-                        },
-                        {
                             "id": "c8d066c9-ca46-468a-aea7-a37a6464cc6b",
                             "name": "totalEnergyProduced",
                             "displayName": "Total produced energy",
@@ -134,9 +114,29 @@
 
                         },
                         {
+                            "id": "92a2f22d-373a-4589-a642-a0ef38b3992f",
+                            "name": "totalEnergyConsumedTarif1",
+                            "displayName": "Total consumed energy Tarif 1",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0",
+                            "cached": false
+
+                        },
+                        {
                             "id": "02e5bc2c-fe75-4f00-a998-498b37ecd360",
                             "name": "totalEnergyProducedTarif1",
                             "displayName": "Total produced energy Tarif 1",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0",
+                            "cached": false
+
+                        },
+                        {
+                            "id": "89cfe5fa-44ac-482c-a255-4b639721a0f9",
+                            "name": "totalEnergyConsumedTarif2",
+                            "displayName": "Total consumed energy Tarif 2",
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": "0",
