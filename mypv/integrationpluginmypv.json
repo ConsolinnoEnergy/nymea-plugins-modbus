@@ -112,7 +112,7 @@
                             "defaultValue": 0
                         },
                         {
-                            "id": "",
+                            "id": "fe6c7f4b-a231-484a-b2b7-8756784edc5f",
                             "name": "immersionHeaterPower",
                             "displayName": "Immersion Heater power",
                             "displayNameEvent": "Immersion Heater power consumption changed",
@@ -122,7 +122,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "0cb3ddf6-0a7a-4d89-a59e-3c1da2078196",
                             "name": "auxRelayPower",
                             "displayName": "Aux Relay power",
                             "displayNameEvent": "Aux Relay power consumption changed",
@@ -132,7 +132,7 @@
                             "cached": false
                         },
                         {
-                            "id": "",
+                            "id": "67c2943e-3262-4ac5-820a-4ba0b52e6bb9",
                             "name": "maxPower",
                             "displayName": "Maximum power of heating rod",
                             "displayNameEvent": "Max power of heating rod changed",
@@ -142,7 +142,7 @@
                             "defaultValue": 0
                         },
                         {
-                            "id": "",
+                            "id": "dc9893e8-fc18-4d8d-a995-3d78030c51cd",
                             "name": "powerTimeout",
                             "displayName": "Power timeout of heating rod",
                             "displayNameEvent": "Power timeoutheating rod changed",

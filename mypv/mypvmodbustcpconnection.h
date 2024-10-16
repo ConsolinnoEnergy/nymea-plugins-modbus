@@ -54,7 +54,14 @@ public:
         RegisterWaterTemperature = 1001,
         RegisterTargetWaterTemperature = 1002,
         RegisterElwaStatus = 1003,
-        RegisterManualStart = 1012
+        RegisterPowerTimeout = 1004,
+        RegisterManualStart = 1012,
+        RegisterDeviceNumber = 1013,
+        RegisterMaxPower = 1014,
+        RegisterMeterPower = 1069,
+        RegisterDummy0 = 1070,
+        RegisterImmHeaterPower = 1074,
+        RegisterAuxRelayPower = 1075
     };
     Q_ENUM(Registers)
 
@@ -64,6 +71,9 @@ public:
         ElwaStatusBoosted = 4,
         ElwaStatusHeatFinished = 5,
         ElwaStatusSetup = 9,
+        ElwaStatusLageionellaBoost = 20,
+        ElwaStatusDeviceDisabled = 21,
+        ElwaStatusDeviceBlocked = 22,
         ElwaStatusErrorOvertempFuseBlown = 201,
         ElwaStatusErrorOvertempMeasured = 202,
         ElwaStatusErrorOvertempElectronics = 203,
@@ -87,9 +97,9 @@ public:
     quint16 currentPower() const;
     QModbusReply *setCurrentPower(quint16 currentPower);
 
-    /* Manual start - Address: 1012, Size: 1 */
-    quint16 manualStart() const;
-    QModbusReply *setManualStart(quint16 manualStart);
+    /* Timeout of set power - Address: 1004, Size: 1 */
+    quint16 powerTimeout() const;
+    QModbusReply *setPowerTimeout(quint16 powerTimeout);
 
     /* Actual water temperature [°C] - Address: 1001, Size: 1 */
     float waterTemperature() const;
@@ -100,6 +110,30 @@ public:
     /* Status of ELWA - Address: 1003, Size: 1 */
     ElwaStatus elwaStatus() const;
 
+    /* Manual start - Address: 1012, Size: 1 */
+    quint16 manualStart() const;
+    QModbusReply *setManualStart(quint16 manualStart);
+
+    /* AC ELWA Number - Address: 1013, Size: 1 */
+    quint16 deviceNumber() const;
+    QModbusReply *setDeviceNumber(quint16 deviceNumber);
+
+    /* Maximum power - Address: 1014, Size: 1 */
+    quint16 maxPower() const;
+    QModbusReply *setMaxPower(quint16 maxPower);
+
+    /* Power at meter - Address: 1069, Size: 1 */
+    qint16 meterPower() const;
+
+    /* Dummy0 - Address: 1070, Size: 4 */
+    QVector<quint16> dummy0() const;
+
+    /* Power at ELWA immersion heater - Address: 1074, Size: 1 */
+    qint16 immHeaterPower() const;
+
+    /* Power at AUX relay - Address: 1075, Size: 1 */
+    qint16 auxRelayPower() const;
+
     /* Read block from start addess 1001 with size of 3 registers containing following 3 properties:
       - Actual water temperature [°C] - Address: 1001, Size: 1
       - Target water temperature [°C] - Address: 1002, Size: 1
@@ -107,18 +141,47 @@ public:
     */
     void updateRealTimeValuesBlock();
 
+    /* Read block from start addess 1012 with size of 3 registers containing following 3 properties:
+      - Manual start - Address: 1012, Size: 1
+      - AC ELWA Number - Address: 1013, Size: 1
+      - Maximum power - Address: 1014, Size: 1
+    */
+    void updateSetPointValuesBlock();
+
+    /* Read block from start addess 1069 with size of 7 registers containing following 4 properties:
+      - Power at meter - Address: 1069, Size: 1
+      - Dummy0 - Address: 1070, Size: 4
+      - Power at ELWA immersion heater - Address: 1074, Size: 1
+      - Power at AUX relay - Address: 1075, Size: 1
+    */
+    void updatePowerValuesBlock();
+
     void updateCurrentPower();
-    void updateManualStart();
+    void updatePowerTimeout();
 
     void updateWaterTemperature();
     void updateTargetWaterTemperature();
     void updateElwaStatus();
+    void updateManualStart();
+    void updateDeviceNumber();
+    void updateMaxPower();
+    void updateMeterPower();
+    void updateDummy0();
+    void updateImmHeaterPower();
+    void updateAuxRelayPower();
 
     QModbusReply *readCurrentPower();
-    QModbusReply *readManualStart();
+    QModbusReply *readPowerTimeout();
     QModbusReply *readWaterTemperature();
     QModbusReply *readTargetWaterTemperature();
     QModbusReply *readElwaStatus();
+    QModbusReply *readManualStart();
+    QModbusReply *readDeviceNumber();
+    QModbusReply *readMaxPower();
+    QModbusReply *readMeterPower();
+    QModbusReply *readDummy0();
+    QModbusReply *readImmHeaterPower();
+    QModbusReply *readAuxRelayPower();
 
     /* Read block from start addess 1001 with size of 3 registers containing following 3 properties:
      - Actual water temperature [°C] - Address: 1001, Size: 1
@@ -127,11 +190,28 @@ public:
     */
     QModbusReply *readBlockRealTimeValues();
 
+    /* Read block from start addess 1012 with size of 3 registers containing following 3 properties:
+     - Manual start - Address: 1012, Size: 1
+     - AC ELWA Number - Address: 1013, Size: 1
+     - Maximum power - Address: 1014, Size: 1
+    */
+    QModbusReply *readBlockSetPointValues();
+
+    /* Read block from start addess 1069 with size of 7 registers containing following 4 properties:
+     - Power at meter - Address: 1069, Size: 1
+     - Dummy0 - Address: 1070, Size: 4
+     - Power at ELWA immersion heater - Address: 1074, Size: 1
+     - Power at AUX relay - Address: 1075, Size: 1
+    */
+    QModbusReply *readBlockPowerValues();
+
 
     virtual bool initialize();
     virtual bool update();
     virtual void update2();
     virtual void update3();
+    virtual void update4();
+    virtual void update5();
 
 signals:
     void reachableChanged(bool reachable);
@@ -145,8 +225,8 @@ signals:
 
     void currentPowerChanged(quint16 currentPower);
     void currentPowerReadFinished(quint16 currentPower);
-    void manualStartChanged(quint16 manualStart);
-    void manualStartReadFinished(quint16 manualStart);
+    void powerTimeoutChanged(quint16 powerTimeout);
+    void powerTimeoutReadFinished(quint16 powerTimeout);
 
     void waterTemperatureChanged(float waterTemperature);
     void waterTemperatureReadFinished(float waterTemperature);
@@ -154,20 +234,50 @@ signals:
     void targetWaterTemperatureReadFinished(float targetWaterTemperature);
     void elwaStatusChanged(ElwaStatus elwaStatus);
     void elwaStatusReadFinished(ElwaStatus elwaStatus);
+    void manualStartChanged(quint16 manualStart);
+    void manualStartReadFinished(quint16 manualStart);
+    void deviceNumberChanged(quint16 deviceNumber);
+    void deviceNumberReadFinished(quint16 deviceNumber);
+    void maxPowerChanged(quint16 maxPower);
+    void maxPowerReadFinished(quint16 maxPower);
+    void meterPowerChanged(qint16 meterPower);
+    void meterPowerReadFinished(qint16 meterPower);
+    void dummy0Changed(QVector<quint16> dummy0);
+    void dummy0ReadFinished(QVector<quint16> dummy0);
+    void immHeaterPowerChanged(qint16 immHeaterPower);
+    void immHeaterPowerReadFinished(qint16 immHeaterPower);
+    void auxRelayPowerChanged(qint16 auxRelayPower);
+    void auxRelayPowerReadFinished(qint16 auxRelayPower);
 
 protected:
     quint16 m_currentPower = 0;
-    quint16 m_manualStart = 0;
+    quint16 m_powerTimeout = 0;
     float m_waterTemperature = 0;
     float m_targetWaterTemperature = 0;
     ElwaStatus m_elwaStatus = ElwaStatusStandby;
+    quint16 m_manualStart = 0;
+    quint16 m_deviceNumber = 0;
+    quint16 m_maxPower = 0;
+    qint16 m_meterPower = 0;
+    QVector<quint16> m_dummy0;
+    qint16 m_immHeaterPower = 0;
+    qint16 m_auxRelayPower = 0;
 
     void processCurrentPowerRegisterValues(const QVector<quint16> values);
-    void processManualStartRegisterValues(const QVector<quint16> values);
+    void processPowerTimeoutRegisterValues(const QVector<quint16> values);
 
     void processWaterTemperatureRegisterValues(const QVector<quint16> values);
     void processTargetWaterTemperatureRegisterValues(const QVector<quint16> values);
     void processElwaStatusRegisterValues(const QVector<quint16> values);
+
+    void processManualStartRegisterValues(const QVector<quint16> values);
+    void processDeviceNumberRegisterValues(const QVector<quint16> values);
+    void processMaxPowerRegisterValues(const QVector<quint16> values);
+
+    void processMeterPowerRegisterValues(const QVector<quint16> values);
+    void processDummy0RegisterValues(const QVector<quint16> values);
+    void processImmHeaterPowerRegisterValues(const QVector<quint16> values);
+    void processAuxRelayPowerRegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();
