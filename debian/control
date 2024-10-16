@@ -134,6 +134,16 @@ Description: nymea integration plugin for B+G E-Tech Modbus based energy meters
  made by B+G E-Tech.
 
 
+Package: nymea-plugin-broetje
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Brötje heat pump models BLW Eco.1 and BLW Mono.1 based on Modbus
+ This package contains the nymea integration plugin for Brötje heat pump models BLW Eco.1 and BLW Mono.1 based on Modbus.
+
+
 Package: nymea-plugin-drexelundweiss
 Architecture: any
 Section: libs
