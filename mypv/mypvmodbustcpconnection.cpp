@@ -117,16 +117,16 @@ QModbusReply *MyPvModbusTcpConnection::setCurrentPower(quint16 currentPower)
     return sendWriteRequest(request, m_slaveId);
 }
 
-quint16 MyPvModbusTcpConnection::manualStart() const
+quint16 MyPvModbusTcpConnection::powerTimeout() const
 {
-    return m_manualStart;
+    return m_powerTimeout;
 }
 
-QModbusReply *MyPvModbusTcpConnection::setManualStart(quint16 manualStart)
+QModbusReply *MyPvModbusTcpConnection::setPowerTimeout(quint16 powerTimeout)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(manualStart);
-    qCDebug(dcMyPvModbusTcpConnection()) << "--> Write \"Manual start\" register:" << 1012 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1012, values.count());
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(powerTimeout);
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Write \"Timeout of set power\" register:" << 1004 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1004, values.count());
     request.setValues(values);
     return sendWriteRequest(request, m_slaveId);
 }
@@ -144,6 +144,68 @@ float MyPvModbusTcpConnection::targetWaterTemperature() const
 MyPvModbusTcpConnection::ElwaStatus MyPvModbusTcpConnection::elwaStatus() const
 {
     return m_elwaStatus;
+}
+
+quint16 MyPvModbusTcpConnection::manualStart() const
+{
+    return m_manualStart;
+}
+
+QModbusReply *MyPvModbusTcpConnection::setManualStart(quint16 manualStart)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(manualStart);
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Write \"Manual start\" register:" << 1012 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1012, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
+quint16 MyPvModbusTcpConnection::deviceNumber() const
+{
+    return m_deviceNumber;
+}
+
+QModbusReply *MyPvModbusTcpConnection::setDeviceNumber(quint16 deviceNumber)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(deviceNumber);
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Write \"AC ELWA Number\" register:" << 1013 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1013, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
+quint16 MyPvModbusTcpConnection::maxPower() const
+{
+    return m_maxPower;
+}
+
+QModbusReply *MyPvModbusTcpConnection::setMaxPower(quint16 maxPower)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(maxPower);
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Write \"Maximum power\" register:" << 1014 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1014, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
+qint16 MyPvModbusTcpConnection::meterPower() const
+{
+    return m_meterPower;
+}
+
+QVector<quint16> MyPvModbusTcpConnection::dummy0() const
+{
+    return m_dummy0;
+}
+
+qint16 MyPvModbusTcpConnection::immHeaterPower() const
+{
+    return m_immHeaterPower;
+}
+
+qint16 MyPvModbusTcpConnection::auxRelayPower() const
+{
+    return m_auxRelayPower;
 }
 
 bool MyPvModbusTcpConnection::initialize()
@@ -201,18 +263,19 @@ bool MyPvModbusTcpConnection::update()
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while reading \"Current power\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
-    
+
     return true;
 }
 
 void MyPvModbusTcpConnection::update2()
 {
     QModbusReply *reply = nullptr;
-    // Read Manual start
-    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Manual start\" register:" << 1012 << "size:" << 1;
-    reply = readManualStart();
+
+    // Read Timeout of set power
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Timeout of set power\" register:" << 1004 << "size:" << 1;
+    reply = readPowerTimeout();
     if (!reply) {
-        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Manual start\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Timeout of set power\" registers from" << hostAddress().toString() << errorString();
         return;
     }
 
@@ -232,13 +295,13 @@ void MyPvModbusTcpConnection::update2()
         }
 
         const QModbusDataUnit unit = reply->result();
-        qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Manual start\" register" << 1012 << "size:" << 1 << unit.values();
-        processManualStartRegisterValues(unit.values());
+        qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Timeout of set power\" register" << 1004 << "size:" << 1 << unit.values();
+        processPowerTimeoutRegisterValues(unit.values());
         update3();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while reading \"Manual start\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while reading \"Timeout of set power\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -275,11 +338,94 @@ void MyPvModbusTcpConnection::update3()
         processWaterTemperatureRegisterValues(blockValues.mid(0, 1));
         processTargetWaterTemperatureRegisterValues(blockValues.mid(1, 1));
         processElwaStatusRegisterValues(blockValues.mid(2, 1));
-        verifyUpdateFinished();
+        update4();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating block \"realTimeValues\" registers" << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::update4()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read setPointValues
+    reply = readBlockSetPointValues();
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read block \"setPointValues\" registers from:" << 1012 << "size:" << 3;
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading block \"setPointValues\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        const QVector<quint16> blockValues = unit.values();
+        qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from reading block \"setPointValues\" register" << 1012 << "size:" << 3 << blockValues;
+        processManualStartRegisterValues(blockValues.mid(0, 1));
+        processDeviceNumberRegisterValues(blockValues.mid(1, 1));
+        processMaxPowerRegisterValues(blockValues.mid(2, 1));
+        update5();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating block \"setPointValues\" registers" << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::update5()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read powerValues
+    reply = readBlockPowerValues();
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read block \"powerValues\" registers from:" << 1069 << "size:" << 7;
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading block \"powerValues\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        const QVector<quint16> blockValues = unit.values();
+        qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from reading block \"powerValues\" register" << 1069 << "size:" << 7 << blockValues;
+        processMeterPowerRegisterValues(blockValues.mid(0, 1));
+        processDummy0RegisterValues(blockValues.mid(1, 4));
+        processImmHeaterPowerRegisterValues(blockValues.mid(5, 1));
+        processAuxRelayPowerRegisterValues(blockValues.mid(6, 1));
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating block \"powerValues\" registers" << error << reply->errorString();
     });
 }
 
@@ -313,6 +459,36 @@ void MyPvModbusTcpConnection::updateCurrentPower()
     });
 }
 
+void MyPvModbusTcpConnection::updatePowerTimeout()
+{
+    // Update registers from Timeout of set power
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Timeout of set power\" register:" << 1004 << "size:" << 1;
+    QModbusReply *reply = readPowerTimeout();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Timeout of set power\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Timeout of set power\" register" << 1004 << "size:" << 1 << unit.values();
+            processPowerTimeoutRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"Timeout of set power\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
 void MyPvModbusTcpConnection::updateManualStart()
 {
     // Update registers from Manual start
@@ -340,6 +516,186 @@ void MyPvModbusTcpConnection::updateManualStart()
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"Manual start\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::updateDeviceNumber()
+{
+    // Update registers from AC ELWA Number
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"AC ELWA Number\" register:" << 1013 << "size:" << 1;
+    QModbusReply *reply = readDeviceNumber();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"AC ELWA Number\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"AC ELWA Number\" register" << 1013 << "size:" << 1 << unit.values();
+            processDeviceNumberRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"AC ELWA Number\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::updateMaxPower()
+{
+    // Update registers from Maximum power
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Maximum power\" register:" << 1014 << "size:" << 1;
+    QModbusReply *reply = readMaxPower();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Maximum power\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Maximum power\" register" << 1014 << "size:" << 1 << unit.values();
+            processMaxPowerRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"Maximum power\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::updateMeterPower()
+{
+    // Update registers from Power at meter
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Power at meter\" register:" << 1069 << "size:" << 1;
+    QModbusReply *reply = readMeterPower();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Power at meter\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Power at meter\" register" << 1069 << "size:" << 1 << unit.values();
+            processMeterPowerRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"Power at meter\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::updateDummy0()
+{
+    // Update registers from Dummy0
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Dummy0\" register:" << 1070 << "size:" << 4;
+    QModbusReply *reply = readDummy0();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Dummy0\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Dummy0\" register" << 1070 << "size:" << 4 << unit.values();
+            processDummy0RegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"Dummy0\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::updateImmHeaterPower()
+{
+    // Update registers from Power at ELWA immersion heater
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Power at ELWA immersion heater\" register:" << 1074 << "size:" << 1;
+    QModbusReply *reply = readImmHeaterPower();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Power at ELWA immersion heater\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Power at ELWA immersion heater\" register" << 1074 << "size:" << 1 << unit.values();
+            processImmHeaterPowerRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"Power at ELWA immersion heater\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::updateAuxRelayPower()
+{
+    // Update registers from Power at AUX relay
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Power at AUX relay\" register:" << 1075 << "size:" << 1;
+    QModbusReply *reply = readAuxRelayPower();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Power at AUX relay\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Power at AUX relay\" register" << 1075 << "size:" << 1 << unit.values();
+            processAuxRelayPowerRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"Power at AUX relay\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -376,15 +732,82 @@ void MyPvModbusTcpConnection::updateRealTimeValuesBlock()
     });
 }
 
+void MyPvModbusTcpConnection::updateSetPointValuesBlock()
+{
+    // Update register block "setPointValues"
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read block \"setPointValues\" registers from:" << 1012 << "size:" << 3;
+    QModbusReply *reply = readBlockSetPointValues();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading block \"setPointValues\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            const QVector<quint16> blockValues = unit.values();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from reading block \"setPointValues\" register" << 1012 << "size:" << 3 << blockValues;
+            processManualStartRegisterValues(blockValues.mid(0, 1));
+            processDeviceNumberRegisterValues(blockValues.mid(1, 1));
+            processMaxPowerRegisterValues(blockValues.mid(2, 1));
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating block \"setPointValues\" registers" << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::updatePowerValuesBlock()
+{
+    // Update register block "powerValues"
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read block \"powerValues\" registers from:" << 1069 << "size:" << 7;
+    QModbusReply *reply = readBlockPowerValues();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading block \"powerValues\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            const QVector<quint16> blockValues = unit.values();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from reading block \"powerValues\" register" << 1069 << "size:" << 7 << blockValues;
+            processMeterPowerRegisterValues(blockValues.mid(0, 1));
+            processDummy0RegisterValues(blockValues.mid(1, 4));
+            processImmHeaterPowerRegisterValues(blockValues.mid(5, 1));
+            processAuxRelayPowerRegisterValues(blockValues.mid(6, 1));
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating block \"powerValues\" registers" << error << reply->errorString();
+    });
+}
+
 QModbusReply *MyPvModbusTcpConnection::readCurrentPower()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1000, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *MyPvModbusTcpConnection::readManualStart()
+QModbusReply *MyPvModbusTcpConnection::readPowerTimeout()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1012, 1);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1004, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -406,9 +829,63 @@ QModbusReply *MyPvModbusTcpConnection::readElwaStatus()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *MyPvModbusTcpConnection::readManualStart()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1012, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *MyPvModbusTcpConnection::readDeviceNumber()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1013, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *MyPvModbusTcpConnection::readMaxPower()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1014, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *MyPvModbusTcpConnection::readMeterPower()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1069, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *MyPvModbusTcpConnection::readDummy0()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1070, 4);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *MyPvModbusTcpConnection::readImmHeaterPower()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1074, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *MyPvModbusTcpConnection::readAuxRelayPower()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1075, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *MyPvModbusTcpConnection::readBlockRealTimeValues()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1001, 3);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *MyPvModbusTcpConnection::readBlockSetPointValues()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1012, 3);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *MyPvModbusTcpConnection::readBlockPowerValues()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1069, 7);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -423,14 +900,14 @@ void MyPvModbusTcpConnection::processCurrentPowerRegisterValues(const QVector<qu
     }
 }
 
-void MyPvModbusTcpConnection::processManualStartRegisterValues(const QVector<quint16> values)
+void MyPvModbusTcpConnection::processPowerTimeoutRegisterValues(const QVector<quint16> values)
 {
-    quint16 receivedManualStart = ModbusDataUtils::convertToUInt16(values);
-    emit manualStartReadFinished(receivedManualStart);
+    quint16 receivedPowerTimeout = ModbusDataUtils::convertToUInt16(values);
+    emit powerTimeoutReadFinished(receivedPowerTimeout);
 
-    if (m_manualStart != receivedManualStart) {
-        m_manualStart = receivedManualStart;
-        emit manualStartChanged(m_manualStart);
+    if (m_powerTimeout != receivedPowerTimeout) {
+        m_powerTimeout = receivedPowerTimeout;
+        emit powerTimeoutChanged(m_powerTimeout);
     }
 }
 
@@ -464,6 +941,83 @@ void MyPvModbusTcpConnection::processElwaStatusRegisterValues(const QVector<quin
     if (m_elwaStatus != receivedElwaStatus) {
         m_elwaStatus = receivedElwaStatus;
         emit elwaStatusChanged(m_elwaStatus);
+    }
+}
+
+void MyPvModbusTcpConnection::processManualStartRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedManualStart = ModbusDataUtils::convertToUInt16(values);
+    emit manualStartReadFinished(receivedManualStart);
+
+    if (m_manualStart != receivedManualStart) {
+        m_manualStart = receivedManualStart;
+        emit manualStartChanged(m_manualStart);
+    }
+}
+
+void MyPvModbusTcpConnection::processDeviceNumberRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedDeviceNumber = ModbusDataUtils::convertToUInt16(values);
+    emit deviceNumberReadFinished(receivedDeviceNumber);
+
+    if (m_deviceNumber != receivedDeviceNumber) {
+        m_deviceNumber = receivedDeviceNumber;
+        emit deviceNumberChanged(m_deviceNumber);
+    }
+}
+
+void MyPvModbusTcpConnection::processMaxPowerRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedMaxPower = ModbusDataUtils::convertToUInt16(values);
+    emit maxPowerReadFinished(receivedMaxPower);
+
+    if (m_maxPower != receivedMaxPower) {
+        m_maxPower = receivedMaxPower;
+        emit maxPowerChanged(m_maxPower);
+    }
+}
+
+void MyPvModbusTcpConnection::processMeterPowerRegisterValues(const QVector<quint16> values)
+{
+    qint16 receivedMeterPower = ModbusDataUtils::convertToInt16(values);
+    emit meterPowerReadFinished(receivedMeterPower);
+
+    if (m_meterPower != receivedMeterPower) {
+        m_meterPower = receivedMeterPower;
+        emit meterPowerChanged(m_meterPower);
+    }
+}
+
+void MyPvModbusTcpConnection::processDummy0RegisterValues(const QVector<quint16> values)
+{
+    QVector<quint16> receivedDummy0 = values;
+    emit dummy0ReadFinished(receivedDummy0);
+
+    if (m_dummy0 != receivedDummy0) {
+        m_dummy0 = receivedDummy0;
+        emit dummy0Changed(m_dummy0);
+    }
+}
+
+void MyPvModbusTcpConnection::processImmHeaterPowerRegisterValues(const QVector<quint16> values)
+{
+    qint16 receivedImmHeaterPower = ModbusDataUtils::convertToInt16(values);
+    emit immHeaterPowerReadFinished(receivedImmHeaterPower);
+
+    if (m_immHeaterPower != receivedImmHeaterPower) {
+        m_immHeaterPower = receivedImmHeaterPower;
+        emit immHeaterPowerChanged(m_immHeaterPower);
+    }
+}
+
+void MyPvModbusTcpConnection::processAuxRelayPowerRegisterValues(const QVector<quint16> values)
+{
+    qint16 receivedAuxRelayPower = ModbusDataUtils::convertToInt16(values);
+    emit auxRelayPowerReadFinished(receivedAuxRelayPower);
+
+    if (m_auxRelayPower != receivedAuxRelayPower) {
+        m_auxRelayPower = receivedAuxRelayPower;
+        emit auxRelayPowerChanged(m_auxRelayPower);
     }
 }
 
@@ -581,10 +1135,17 @@ QDebug operator<<(QDebug debug, MyPvModbusTcpConnection *myPvModbusTcpConnection
 {
     debug.nospace().noquote() << "MyPvModbusTcpConnection(" << myPvModbusTcpConnection->hostAddress().toString() << ":" << myPvModbusTcpConnection->port() << ")" << "\n";
     debug.nospace().noquote() << "    - Current power: " << myPvModbusTcpConnection->currentPower() << " [W]" << "\n";
-    debug.nospace().noquote() << "    - Manual start: " << myPvModbusTcpConnection->manualStart() << "\n";
+    debug.nospace().noquote() << "    - Timeout of set power: " << myPvModbusTcpConnection->powerTimeout() << "\n";
     debug.nospace().noquote() << "    - Actual water temperature: " << myPvModbusTcpConnection->waterTemperature() << " [°C]" << "\n";
     debug.nospace().noquote() << "    - Target water temperature: " << myPvModbusTcpConnection->targetWaterTemperature() << " [°C]" << "\n";
     debug.nospace().noquote() << "    - Status of ELWA: " << myPvModbusTcpConnection->elwaStatus() << "\n";
+    debug.nospace().noquote() << "    - Manual start: " << myPvModbusTcpConnection->manualStart() << "\n";
+    debug.nospace().noquote() << "    - AC ELWA Number: " << myPvModbusTcpConnection->deviceNumber() << "\n";
+    debug.nospace().noquote() << "    - Maximum power: " << myPvModbusTcpConnection->maxPower() << "\n";
+    debug.nospace().noquote() << "    - Power at meter: " << myPvModbusTcpConnection->meterPower() << "\n";
+    debug.nospace().noquote() << "    - Dummy0: " << myPvModbusTcpConnection->dummy0() << "\n";
+    debug.nospace().noquote() << "    - Power at ELWA immersion heater: " << myPvModbusTcpConnection->immHeaterPower() << "\n";
+    debug.nospace().noquote() << "    - Power at AUX relay: " << myPvModbusTcpConnection->auxRelayPower() << "\n";
     return debug.quote().space();
 }
 
