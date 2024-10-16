@@ -278,6 +278,31 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue(elwaTargetWaterTemperatureStateTypeId, temp);
     });
 
+    connect(connection, &MyPvModbusTcpConnection::maxPowerChanged, thing, [thing](quint16 power) {
+        qCDebug(dcMypv()) << "Max power changed to" << power;
+        thing->setStateValue(elwaImmersionHeaterPowerStateTypeId, power);
+    });
+
+    connect(connection, &MyPvModbusTcpConnection::meterPowerChanged, thing, [thing](qint16 power) {
+        qCDebug(dcMypv()) << "Meter power changed to" << power;
+        thing->setStateValue(elwaMeterPowerStateTypeId, power);
+    });
+
+    connect(connection, &MyPvModbusTcpConnection::immHeaterPowerChanged, thing, [thing](qint16 power) {
+        qCDebug(dcMypv()) << "Immersion heater power changed to" << power;
+        thing->setStateValue(elwaImmersionHeaterPowerStateTypeId, power);
+    });
+
+    connect(connection, &MyPvModbusTcpConnection::auxRelayPowerChanged, thing, [thing](qint16 power) {
+        qCDebug(dcMypv()) << "AUX relay power changed to" << power;
+        thing->setStateValue(elwaAuxRelayPowerStateTypeId, power);
+    });
+
+    connect(connection, &MyPvModbusTcpConnection::powerTimeoutChanged, thing, [thing](quint16 timeout) {
+        qCDebug(dcMypv()) << "Power timeout changed to" << timeout;
+        thing->setStateValue(elwaPowerTimeoutStateTypeId, timeout);
+    });
+
     // Read the current status of the heating rod
     connect(connection, &MyPvModbusTcpConnection::elwaStatusChanged, thing, [thing](quint16 state) {
         qCDebug(dcMypv()) << "State changed" << state;
@@ -296,6 +321,15 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
             break;
         case MyPvModbusTcpConnection::ElwaStatusSetup:
             thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Setup"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusLageionellaBoost:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Lageionella Boost"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusDeviceDisabled:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Device Disabled"));
+            break;
+        case MyPvModbusTcpConnection::ElwaStatusDeviceBlocked:
+            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Device Blocked"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorOvertempFuseBlown:
             thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Overtemp Fuse Blown"));
