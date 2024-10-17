@@ -411,10 +411,10 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
             });
             thing->setStateValue(elwaHeatingPowerStateTypeId, heatingPower);
             info->finish(Thing::ThingErrorNoError);
-        } else if (action.actionTypeId() == elwaPowerActionTypeId) {
+        } else if (action.actionTypeId() == elwaExternalControlActionTypeId) {
             // Manually start the heating rod
             qCDebug(dcMypv()) << "Manually start heating rod";
-            bool power = action.param(elwaPowerActionPowerParamTypeId).value().toBool();
+            bool power = action.param(elwaExternalControlActionExternalControlParamTypeId).value().toBool();
             // For ELWA 2, manual needs to be set to 2 to manually actviate boost mode
             quint8 manualModeValue = 1;
             if (m_myDevice == AC_ELWA_2)
@@ -428,7 +428,7 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
                     qCDebug(dcMypv()) << "Error starting heating power";
                 }
             });
-            thing->setStateValue(elwaPowerStateTypeId, power);
+            thing->setStateValue(elwaExternalControlStateTypeId, power);
             info->finish(Thing::ThingErrorNoError);
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled actionTypeId: %1").arg(action.actionTypeId().toString()).toUtf8());

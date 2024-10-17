@@ -50,10 +50,10 @@
                         },
                         {
                             "id": "b18d9582-2bf9-42fa-991f-5f6b6df2f721",
-                            "name": "power",
-                            "displayName": "Power",
-                            "displayNameEvent": "Power changed",
-                            "displayNameAction": "Change power",
+                            "name": "externalControl",
+                            "displayName": "External Control",
+                            "displayNameEvent": "External Control changed",
+                            "displayNameAction": "Change external control",
                             "type": "bool",
                             "defaultValue": 0,
                             "writable": true
