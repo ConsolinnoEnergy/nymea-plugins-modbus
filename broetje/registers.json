@@ -10,8 +10,8 @@
             "values": [
                 {
                     "key": "ModeOne",
-                    "value": 1,
-                    "comment": "0x00000001"
+                    "value": 65536,
+                    "comment": "0x00010000"
                 },
                 {
                     "key": "ModeTwo",
@@ -20,8 +20,8 @@
                 },
                 {
                     "key": "ModeThree",
-                    "value": 65536,
-                    "comment": "0x00010000"
+                    "value": 1,
+                    "comment": "0x00000001"
                 },
                 {
                     "key": "ModeFour",
@@ -231,19 +231,6 @@
             "access": "RO"
         },
         {
-            "id": "flowTemperature",
-            "address": 273,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Flow temperature",
-            "staticScaleFactor": -2,
-            "defaultValue": 0,
-            "unit": "°C",
-            "access": "RO"
-        },
-        {
             "id": "returnTemperature",
             "address": 274,
             "size": 1,
@@ -275,6 +262,19 @@
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "Outdoor temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "flowTemperature",
+            "address": 400,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Flow temperature",
             "staticScaleFactor": -2,
             "defaultValue": 0,
             "unit": "°C",

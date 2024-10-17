@@ -403,6 +403,15 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
         case 4:
             subsystemStatusString = "Warte auf Startfreigabe";
             break;
+        case 30:
+            subsystemStatusString = "Interner Sollwert";
+            break;
+        case 31:
+            subsystemStatusString = "Begr. int. Sollwert";
+            break;
+        case 60:
+            subsystemStatusString = "Pumpennachlauf";
+            break;
         case 89:
             subsystemStatusString = "BL WP aus";
             break;
