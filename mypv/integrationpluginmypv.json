@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "elwa",
-                    "displayName": "my-PV AC Elwa E",
+                    "displayName": "my-PV Heating Rod",
                     "id": "39e0828b-8fc4-4a1c-a173-b02ef76e1a93",
                     "createMethods": ["Discovery"],
                     "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
