@@ -43,7 +43,10 @@ IntegrationPluginMyPv::IntegrationPluginMyPv()
 
 void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
 {
-    if (info->thingClassId() == elwaThingClassId) {
+    if (info->thingClassId() == elwaThingClassId ||
+        info->thingClassId() == acThor9sThingClassId ||
+        info->thingClassId() == acThorThingClassId) {
+
         if (!hardwareManager()->networkDeviceDiscovery()->available()) {
             qCWarning(dcMypv()) << "The network discovery is not available on this platform.";
             info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
@@ -56,11 +59,15 @@ void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
         searchSocket->bind(QHostAddress::AnyIPv4, 16124);
 
         QByteArray discoveryString;
+        // TODO: These might need to be changed (at least for AC Thor, discovery worked for ELWA 2)
+        // AC ELWA 2    - a4d93f16
+        // AC THOR      - cb7a4e84
+        // AC THOR 9s   - 84db4f4c
         discoveryString.resize(19);
         discoveryString.fill(0);
         discoveryString.insert(0, QByteArray::fromHex("86d93efc"));
-
         discoveryString.insert(4, "AC ELWA-E");
+
         qCDebug(dcMypv()) << "Send datagram:" << discoveryString << "length: " << discoveryString.length();
         qint64 len = searchSocket->writeDatagram(discoveryString, QHostAddress("255.255.255.255"), 16124);
         if (len != discoveryString.length()) {
@@ -121,7 +128,7 @@ void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
                 QByteArray serialNumber = data.mid(8, 16);
 
                 foreach (Thing *existingThing, myThings()) {
-                    if (serialNumber == existingThing->paramValue(elwaThingSerialNumberParamTypeId).toString()) {
+                    if (serialNumber == existingThing->paramValue("serialNumber").toString()) {
                         qCDebug(dcMypv()) << "Rediscovered device " << existingThing->name();
                         thingDescriptors.setThingId(existingThing->id());
                         break;
@@ -139,9 +146,20 @@ void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
                 }
 
                 ParamList params;
-                params << Param(elwaThingIpAddressParamTypeId, senderAddress.toString());
-                params << Param(elwaThingSerialNumberParamTypeId, serialNumber);
-                params << Param(elwaThingMacAddressParamTypeId, heatingRod.macAddress());
+                if (info->thingClassId() == elwaThingClassId) {
+                    params << Param(elwaThingIpAddressParamTypeId, senderAddress.toString());
+                    params << Param(elwaThingSerialNumberParamTypeId, serialNumber);
+                    params << Param(elwaThingMacAddressParamTypeId, heatingRod.macAddress());
+                } else if (info->thingClassId() == acThorThingClassId) {
+                    params << Param(acThorThingIpAddressParamTypeId, senderAddress.toString());
+                    params << Param(acThorThingSerialNumberParamTypeId, serialNumber);
+                    params << Param(acThorThingMacAddressParamTypeId, heatingRod.macAddress());
+                } else if (info->thingClassId() == acThor9sThingClassId) {
+                    params << Param(acThor9sThingIpAddressParamTypeId, senderAddress.toString());
+                    params << Param(acThor9sThingSerialNumberParamTypeId, serialNumber);
+                    params << Param(acThor9sThingMacAddressParamTypeId, heatingRod.macAddress());
+                }
+
                 thingDescriptors.setParams(params);
                 descriptorList << thingDescriptors;
             }
@@ -159,15 +177,17 @@ void IntegrationPluginMyPv::setupThing(ThingSetupInfo *info)
     Thing *thing = info->thing();
     Q_UNUSED(thing)
 
-    if(thing->thingClassId() == elwaThingClassId) {
+    if (thing->thingClassId() == elwaThingClassId ||
+        thing->thingClassId() == acThor9sThingClassId ||
+        thing->thingClassId() == acThorThingClassId) {
         // Make sure we have a valid mac address, otherwise no monitor and no auto searching is
         // possible. Testing for null is necessary, because registering a monitor with a zero mac
         // adress will cause a segfault.
-        MacAddress macAddress = MacAddress(thing->paramValue(elwaThingMacAddressParamTypeId).toString());
+        MacAddress macAddress = MacAddress(thing->paramValue("macAddress").toString());
         if (macAddress.isNull()) {
             qCWarning(dcMypv())
-                    << "Failed to set up MyPV AC ELWA E because the MAC address is not valid:"
-                    << thing->paramValue(elwaThingMacAddressParamTypeId).toString()
+                    << "Failed to set up MyPV Heating Rod because the MAC address is not valid:"
+                    << thing->paramValue("macAddress").toString()
                     << macAddress.toString();
             info->finish(Thing::ThingErrorInvalidParameter,
                          QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device "
@@ -184,7 +204,7 @@ void IntegrationPluginMyPv::setupThing(ThingSetupInfo *info)
         // address and is set to not reachable
         m_monitors.insert(thing, monitor);
 
-        qCDebug(dcMypv()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(elwaThingMacAddressParamTypeId).toString();
+        qCDebug(dcMypv()) << "Monitor reachable" << monitor->reachable() << thing->paramValue("macAddress").toString();
         m_setupTcpConnectionRunning = false;
         if (monitor->reachable()) {
             setupTcpConnection(info);
@@ -224,7 +244,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
         qCDebug(dcMypv()) << "Network device monitor reachable changed for" << thing->name()
                               << reachable;
-        if (reachable && !thing->stateValue(elwaConnectedStateTypeId).toBool()) {
+        if (reachable && !thing->stateValue("connected").toBool()) {
             connection->setHostAddress(monitor->networkDeviceInfo().address());
             connection->reconnectDevice();
         } else {
@@ -242,20 +262,20 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
             // Connected true will be set after successfull init.
             connection->initialize();
         } else {
-            thing->setStateValue(elwaConnectedStateTypeId, false);
+            thing->setStateValue("connected", false);
         }
     });
 
     // Check if initilization works correctly
     connect(connection, &MyPvModbusTcpConnection::initializationFinished, thing, [this, connection, thing] (bool success) {
-        thing->setStateValue(elwaConnectedStateTypeId, success);
+        thing->setStateValue("connected", success);
         if (success) {
-            qCDebug(dcMypv()) << "my-PV AC ELWA-E intialized.";
+            qCDebug(dcMypv()) << "my-PV Heating Rod intialized.";
             qCDebug(dcMypv()) << "### Current device is" << m_myDevice;
             qCDebug(dcMypv()) << "### Max Power should be set to" << m_devicePower[m_myDevice];
-            thing->setStateMaxValue(elwaHeatingPowerStateTypeId, m_devicePower[m_myDevice]);
+            thing->setStateMaxValue("heatingPower", m_devicePower[m_myDevice]);
         } else {
-            qCDebug(dcMypv()) << "my-PV AC ELWA-E initialization failed.";
+            qCDebug(dcMypv()) << "my-PV Heating Rod initialization failed.";
             connection->reconnectDevice();
         }
     });
@@ -263,91 +283,96 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     // Read the current power consumed by the device
     connect(connection, &MyPvModbusTcpConnection::currentPowerChanged, thing, [thing](quint16 power) {
         qCDebug(dcMypv()) << "Current power changed" << power << "W";
-        thing->setStateValue(elwaCurrentPowerStateTypeId, power);
+        thing->setStateValue("currentPower", power);
     });
 
     // Read the currently measured water temperature
     connect(connection, &MyPvModbusTcpConnection::waterTemperatureChanged, thing, [thing](double temp) {
         qCDebug(dcMypv()) << "Actual water temperature changed" << temp << "°C";
-        thing->setStateValue(elwaTemperatureStateTypeId, temp);
+        thing->setStateValue("temperature", temp);
     });
 
     // Read the set target water temperature
     connect(connection, &MyPvModbusTcpConnection::targetWaterTemperatureChanged, thing, [thing](double temp) {
         qCDebug(dcMypv()) << "Target water temperature changed" << temp << "°C";
-        thing->setStateValue(elwaTargetWaterTemperatureStateTypeId, temp);
+        thing->setStateValue("targetWaterTemperature", temp);
     });
 
     connect(connection, &MyPvModbusTcpConnection::maxPowerChanged, thing, [thing](quint16 power) {
         qCDebug(dcMypv()) << "Max power changed to" << power;
-        thing->setStateValue(elwaImmersionHeaterPowerStateTypeId, power);
+        thing->setStateValue("maxPower", power);
     });
 
     connect(connection, &MyPvModbusTcpConnection::meterPowerChanged, thing, [thing](qint16 power) {
         qCDebug(dcMypv()) << "Meter power changed to" << power;
-        thing->setStateValue(elwaMeterPowerStateTypeId, power);
+        thing->setStateValue("meterPower", power);
     });
 
     connect(connection, &MyPvModbusTcpConnection::immHeaterPowerChanged, thing, [thing](qint16 power) {
         qCDebug(dcMypv()) << "Immersion heater power changed to" << power;
-        thing->setStateValue(elwaImmersionHeaterPowerStateTypeId, power);
+        thing->setStateValue("immersionHeaterPower", power);
     });
 
     connect(connection, &MyPvModbusTcpConnection::auxRelayPowerChanged, thing, [thing](qint16 power) {
         qCDebug(dcMypv()) << "AUX relay power changed to" << power;
-        thing->setStateValue(elwaAuxRelayPowerStateTypeId, power);
+        thing->setStateValue("auxRelayPower", power);
     });
 
     connect(connection, &MyPvModbusTcpConnection::powerTimeoutChanged, thing, [thing](quint16 timeout) {
         qCDebug(dcMypv()) << "Power timeout changed to" << timeout;
-        thing->setStateValue(elwaPowerTimeoutStateTypeId, timeout);
+        thing->setStateValue("powerTimeout", timeout);
     });
 
     // Read the current status of the heating rod
+    /*
     connect(connection, &MyPvModbusTcpConnection::elwaStatusChanged, thing, [thing](quint16 state) {
         qCDebug(dcMypv()) << "State changed" << state;
         switch (state) {
         case MyPvModbusTcpConnection::ElwaStatusHeating:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Heating"));
+            thing->setStateValue("status", QT_TR_NOOP("Heating"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusStandby:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Standby"));
+            thing->setStateValue("status", QT_TR_NOOP("Standby"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusBoosted:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Boosted"));
+            thing->setStateValue("status", QT_TR_NOOP("Boosted"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusHeatFinished:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Heating Finished"));
+            thing->setStateValue("status", QT_TR_NOOP("Heating Finished"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusSetup:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Setup"));
+            thing->setStateValue("status", QT_TR_NOOP("Setup"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusLageionellaBoost:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Lageionella Boost"));
+            thing->setStateValue("status", QT_TR_NOOP("Lageionella Boost"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusDeviceDisabled:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Device Disabled"));
+            thing->setStateValue("status", QT_TR_NOOP("Device Disabled"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusDeviceBlocked:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Device Blocked"));
+            thing->setStateValue("status", QT_TR_NOOP("Device Blocked"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorOvertempFuseBlown:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Overtemp Fuse Blown"));
+            thing->setStateValue("status", QT_TR_NOOP("Error Overtemp Fuse Blown"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorOvertempMeasured:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Overtemp Measured"));
+            thing->setStateValue("status", QT_TR_NOOP("Error Overtemp Measured"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorOvertempElectronics:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Overtemp Electronics"));
+            thing->setStateValue("status", QT_TR_NOOP("Error Overtemp Electronics"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorHardwareFault:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Hardware Fault"));
+            thing->setStateValue("status", QT_TR_NOOP("Error Hardware Fault"));
             break;
         case MyPvModbusTcpConnection::ElwaStatusErrorTempSensor:
-            thing->setStateValue(elwaStatusStateTypeId, QT_TR_NOOP("Error Temperatur Sensor"));
+            thing->setStateValue("status", QT_TR_NOOP("Error Temperatur Sensor"));
+            break;
+        default:
+            thing->setStateValue("status", QT_TR_NOOP("Unknown"));
             break;
         }
     });
+    */
 
     if (monitor->reachable())
         connection->connectDevice();
@@ -364,7 +389,7 @@ void IntegrationPluginMyPv::postSetupThing(Thing *thing)
         m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
         connect(m_refreshTimer, &PluginTimer::timeout, this, [this] {
             foreach(MyPvModbusTcpConnection *connection, m_tcpConnections) {
-                qCDebug(dcMypv()) << "Updated my-PV ELWA-E";
+                qCDebug(dcMypv()) << "Updated my-PV Heating Rod";
                 connection->update();
             }
         });
@@ -391,15 +416,22 @@ void IntegrationPluginMyPv::thingRemoved(Thing *thing)
 
 void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
 {
+    qCDebug(dcMypv()) << "Executing action for" << info->thing();
     Thing *thing = info->thing();
     Action action = info->action();
     
-    if (thing->thingClassId() == elwaThingClassId) {
+    StateTypeId heatingPowerActionId = thing->state("heatingPower").stateTypeId();
+    StateTypeId externalControlActionId = thing->state("externalControl").stateTypeId();
+    
+    if (thing->thingClassId() == elwaThingClassId ||
+        thing->thingClassId() == acThor9sThingClassId ||
+        thing->thingClassId() == acThorThingClassId) {
         MyPvModbusTcpConnection *connection = m_tcpConnections.value(thing);
-        if (action.actionTypeId() == elwaHeatingPowerActionTypeId) {
+        if (action.actionTypeId() == heatingPowerActionId) {
             // Set the heating power of the heating rod
             qCDebug(dcMypv()) << "Set heating power";
-            int heatingPower = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toInt();
+            // int heatingPower = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toInt();
+            int heatingPower = action.params()[0].value().toInt();
             QModbusReply *reply = connection->setCurrentPower(heatingPower);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply, heatingPower]() {
@@ -411,10 +443,11 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
             });
             thing->setStateValue(elwaHeatingPowerStateTypeId, heatingPower);
             info->finish(Thing::ThingErrorNoError);
-        } else if (action.actionTypeId() == elwaExternalControlActionTypeId) {
+        } else if (action.actionTypeId() == externalControlActionId) {
             // Manually start the heating rod
             qCDebug(dcMypv()) << "Manually start heating rod";
-            bool power = action.param(elwaExternalControlActionExternalControlParamTypeId).value().toBool();
+            // bool power = action.param(elwaExternalControlActionExternalControlParamTypeId).value().toBool();
+            bool power = action.params()[0].value().toBool();
             // For ELWA 2, manual needs to be set to 2 to manually actviate boost mode
             quint8 manualModeValue = 1;
             if (m_myDevice == AC_ELWA_2)
