@@ -160,19 +160,11 @@
                             "unit": "Seconds",
                             "cached": false,
                             "defaultValue": 0
-                        },
-                        {
-                            "id": "4bcdbb9d-c9cd-4a27-87f6-238022499cb4",
-                            "name": "status",
-                            "displayName": "Status",
-                            "displayNameEvent": "Status changed",
-                            "type": "QString",
-                            "defaultValue": "Unknown"
                         }
                     ]
                 },
                 {
-                    "name": "acthor",
+                    "name": "acThor",
                     "displayName": "my-PV AC Thor",
                     "id": "8f52cb8a-dec8-4419-b024-d4e6dfa3f9a4",
                     "createMethods": ["Discovery"],
@@ -323,19 +315,11 @@
                             "unit": "Seconds",
                             "cached": false,
                             "defaultValue": 0
-                        },
-                        {
-                            "id": "ccd0a568-25bd-4243-92b6-dbe5f18deb1c",
-                            "name": "status",
-                            "displayName": "Status",
-                            "displayNameEvent": "Status changed",
-                            "type": "QString",
-                            "defaultValue": "Unknown"
                         }
                     ]
                 },
                 {
-                    "name": "acthor9s",
+                    "name": "acThor9s",
                     "displayName": "my-PV AC Thor 9s",
                     "id": "400ee515-6e99-4f66-9c9e-a7777de5c461",
                     "createMethods": ["Discovery"],
@@ -486,14 +470,6 @@
                             "unit": "Seconds",
                             "cached": false,
                             "defaultValue": 0
-                        },
-                        {
-                            "id": "8370db8c-79fe-4616-a339-2943b625f24d",
-                            "name": "status",
-                            "displayName": "Status",
-                            "displayNameEvent": "Status changed",
-                            "type": "QString",
-                            "defaultValue": "Unknown"
                         }
                     ]
                 }
