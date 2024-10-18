@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "elwa",
-                    "displayName": "my-PV Heating Rod",
+                    "displayName": "my-PV ELWA 2",
                     "id": "39e0828b-8fc4-4a1c-a173-b02ef76e1a93",
                     "createMethods": ["Discovery"],
                     "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
@@ -163,6 +163,332 @@
                         },
                         {
                             "id": "4bcdbb9d-c9cd-4a27-87f6-238022499cb4",
+                            "name": "status",
+                            "displayName": "Status",
+                            "displayNameEvent": "Status changed",
+                            "type": "QString",
+                            "defaultValue": "Unknown"
+                        }
+                    ]
+                },
+                {
+                    "name": "acthor",
+                    "displayName": "my-PV AC Thor",
+                    "id": "8f52cb8a-dec8-4419-b024-d4e6dfa3f9a4",
+                    "createMethods": ["Discovery"],
+                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
+                    "paramTypes": [
+                        {
+                            "id": "35373d72-d3fc-49f2-bf2f-d06382dfe463",
+                            "name":"ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "da0ff0b5-011d-4929-a1b6-f42bbe47a7e5",
+                            "name": "macAddress",
+                            "displayName": "MAC Address",
+                            "type": "QString",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "b8e71029-5bbe-4624-933a-6b9d3f8487d7",
+                            "name":"serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes":
+                    [
+                        {
+                            "id": "1b7d9c76-c54a-49ee-b541-db44e7cf0e5f",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "f0487048-0951-4434-a6cd-b06132d84b66",
+                            "name": "externalControl",
+                            "displayName": "External Control",
+                            "displayNameEvent": "External Control changed",
+                            "displayNameAction": "Change external control",
+                            "type": "bool",
+                            "defaultValue": 0,
+                            "writable": true
+                        },
+                        {
+                            "id": "fda30e5a-2a61-421e-b4d9-ae0e8fd41684",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "3a745987-d583-4db4-9fa9-409d2fd29fed",
+                            "name": "heatingPower",
+                            "displayName": "Power consumption",
+                            "displayNameEvent": "Heating power consumption changed",
+                            "displayNameAction": "Change power consumption",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "minValue": 0,
+                            "maxValue": 1000,
+                            "defaultValue": 0,
+                            "writable": true
+                        },
+                        {
+                            "id": "f5724206-9138-433c-b352-fe17cb7eae5b",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumption changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "d04fb302-20a2-4576-9459-654ede6e1c53",
+                            "name": "temperature",
+                            "displayName": "Water temperature",
+                            "displayNameEvent": "Water temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "e7b12a26-01dd-4f3e-bc2c-7b08c2d083fe",
+                            "name": "targetWaterTemperature",
+                            "displayName": "Target water temperature",
+                            "displayNameEvent": "Target water temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "0ca2d93a-1fc2-4151-840f-af6ea6893e26",
+                            "name": "immersionHeaterPower",
+                            "displayName": "Immersion Heater power",
+                            "displayNameEvent": "Immersion Heater power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "2a0018ba-efc6-4324-806a-9fe1d341f3ea",
+                            "name": "meterPower",
+                            "displayName": "Meter power",
+                            "displayNameEvent": "Meter power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "7bfa71c8-45f1-4216-9bca-a3b327b9d61d",
+                            "name": "auxRelayPower",
+                            "displayName": "Aux Relay power",
+                            "displayNameEvent": "Aux Relay power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "93261aef-a8e4-458d-b56a-39a402058faf",
+                            "name": "maxPower",
+                            "displayName": "Maximum power of heating rod",
+                            "displayNameEvent": "Max power of heating rod changed",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "3191e449-1046-466f-bf7e-ccce4d37e113",
+                            "name": "powerTimeout",
+                            "displayName": "Power timeout of heating rod",
+                            "displayNameEvent": "Power timeoutheating rod changed",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "ccd0a568-25bd-4243-92b6-dbe5f18deb1c",
+                            "name": "status",
+                            "displayName": "Status",
+                            "displayNameEvent": "Status changed",
+                            "type": "QString",
+                            "defaultValue": "Unknown"
+                        }
+                    ]
+                },
+                {
+                    "name": "acthor9s",
+                    "displayName": "my-PV AC Thor 9s",
+                    "id": "400ee515-6e99-4f66-9c9e-a7777de5c461",
+                    "createMethods": ["Discovery"],
+                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
+                    "paramTypes": [
+                        {
+                            "id": "4b9524fb-3aea-4ff7-9e89-4e3b4d670ff4",
+                            "name":"ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "941ae5bb-c411-48e2-a1cb-e0c72d275864",
+                            "name": "macAddress",
+                            "displayName": "MAC Address",
+                            "type": "QString",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "9a11377f-ea6e-44df-a25d-ecc981646d54",
+                            "name":"serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes":
+                    [
+                        {
+                            "id": "5a30c2ae-5708-4816-b106-86ff94e35ccf",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "16cae965-42fd-4335-9b06-ae8e3da5b9ca",
+                            "name": "externalControl",
+                            "displayName": "External Control",
+                            "displayNameEvent": "External Control changed",
+                            "displayNameAction": "Change external control",
+                            "type": "bool",
+                            "defaultValue": 0,
+                            "writable": true
+                        },
+                        {
+                            "id": "d428f4a4-1b8f-4b29-9dd1-beb277abc734",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "f16dfecc-893d-479f-99a4-ceb68a2dda4a",
+                            "name": "heatingPower",
+                            "displayName": "Power consumption",
+                            "displayNameEvent": "Heating power consumption changed",
+                            "displayNameAction": "Change power consumption",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "minValue": 0,
+                            "maxValue": 1000,
+                            "defaultValue": 0,
+                            "writable": true
+                        },
+                        {
+                            "id": "5666b573-4dd5-4f3b-84c5-64a4d413dadf",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumption changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "2ae943dd-0468-4ae1-be54-d44c61fb1a99",
+                            "name": "temperature",
+                            "displayName": "Water temperature",
+                            "displayNameEvent": "Water temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "cd03cb54-8c1c-4db9-8d09-5de8a6a8c44d",
+                            "name": "targetWaterTemperature",
+                            "displayName": "Target water temperature",
+                            "displayNameEvent": "Target water temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "7215c979-f982-4d67-8614-f1b05ed38ec8",
+                            "name": "immersionHeaterPower",
+                            "displayName": "Immersion Heater power",
+                            "displayNameEvent": "Immersion Heater power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "2f33ce76-4491-4c0a-9e45-dbd070c7d680",
+                            "name": "meterPower",
+                            "displayName": "Meter power",
+                            "displayNameEvent": "Meter power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "d02ee4e4-5d51-4d45-bb1c-b33135a72145",
+                            "name": "auxRelayPower",
+                            "displayName": "Aux Relay power",
+                            "displayNameEvent": "Aux Relay power consumption changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "c426facc-7eb3-4c14-9208-3d594644c9a1",
+                            "name": "maxPower",
+                            "displayName": "Maximum power of heating rod",
+                            "displayNameEvent": "Max power of heating rod changed",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "32e54965-41c0-4de3-a86d-473ca7f2ac94",
+                            "name": "powerTimeout",
+                            "displayName": "Power timeout of heating rod",
+                            "displayNameEvent": "Power timeoutheating rod changed",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "8370db8c-79fe-4616-a339-2943b625f24d",
                             "name": "status",
                             "displayName": "Status",
                             "displayNameEvent": "Status changed",
