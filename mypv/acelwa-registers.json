@@ -192,6 +192,33 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "timeoutAndBoost",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "powerTimeout",
+                    "description": "Timeout of set power",
+                    "address": 1004,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "boostMode",
+                    "description": "Boost mode",
+                    "address": 1005,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "access": "RW"
+                }
+
+            ]
         }
     ],
     "registers": [
@@ -200,17 +227,6 @@
             "description": "Current power",
             "unit": "W",
             "address": 1000,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "defaultValue": 0,
-            "readSchedule": "update",
-            "access": "RW"
-        },
-        {
-            "id": "powerTimeout",
-            "description": "Timeout of set power",
-            "address": 1004,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
