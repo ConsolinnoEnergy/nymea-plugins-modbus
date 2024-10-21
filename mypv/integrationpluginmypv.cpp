@@ -432,6 +432,8 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
             qCDebug(dcMypv()) << "Set heating power";
             // int heatingPower = action.param(elwaHeatingPowerActionHeatingPowerParamTypeId).value().toInt();
             int heatingPower = action.params()[0].value().toInt();
+            // TODO: Setzen von der Leistung über setCurrentPower() oder setMaxPower()
+            // Wenn maxPower: Muss dies nach deaktivieren der externen Controlle wieder auf max moeglichen Wert gesetzt werden?
             QModbusReply *reply = connection->setCurrentPower(heatingPower);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply, heatingPower]() {
@@ -449,10 +451,9 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
             // bool power = action.param(elwaExternalControlActionExternalControlParamTypeId).value().toBool();
             bool power = action.params()[0].value().toBool();
             // For ELWA 2, manual needs to be set to 2 to manually actviate boost mode
-            quint8 manualModeValue = 1;
-            if (m_myDevice == AC_ELWA_2)
-                manualModeValue = 2;
-            QModbusReply *reply = connection->setManualStart(power ? manualModeValue : 0);
+            // mode = 1 - autoboost
+            // mode = 2 - manual boost
+            QModbusReply *reply = connection->setManualStart(power ? 2 : 0);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply, power]() {
                 if (reply->error() == QModbusDevice::NoError) {
