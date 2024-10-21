@@ -380,7 +380,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
-                if (qFabs(feedinPower) < (nominalPowerInverter + nominalPowerBattery))
+                if (qFabs(feedinPower) < (nominalPowerInverter + nominalPowerBattery + 1000))
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
             }
         });
@@ -591,7 +591,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
                 // TODO: check if abs(currentPower) < abs(nominalPower) - DONE
                 double nominalPowerBattery = batteryThings.first()->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
-                if (qFabs(powerBat1) < nominalPowerBattery)
+                if (qFabs(powerBat1) < nominalPowerBattery + 1000)
                     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
 
                 if (powerBat1 < 0) {
@@ -973,7 +973,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
                 // TODO: check if abs(MeterCurrentPower) < (InverterMaxPower + BatteryMaxPower) - DONE
-                if (qFabs(feedinPower) < (nominalPowerInverter + nominalPowerBattery))
+                if (qFabs(feedinPower) < (nominalPowerInverter + nominalPowerBattery + 1000))
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
             }
         });
@@ -1144,7 +1144,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
                 // TODO: abs(currentPower) < nominalPower - DONE
                 double nominalPowerBattery = batteryThings.first()->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
-                if (qFabs(powerBat1) < nominalPowerBattery)
+                if (qFabs(powerBat1) < nominalPowerBattery + 1000)
                     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
 
                 if (powerBat1 < 0) {
