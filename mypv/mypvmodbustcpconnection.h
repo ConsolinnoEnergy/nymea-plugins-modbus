@@ -55,6 +55,7 @@ public:
         RegisterTargetWaterTemperature = 1002,
         RegisterElwaStatus = 1003,
         RegisterPowerTimeout = 1004,
+        RegisterBoostMode = 1005,
         RegisterManualStart = 1012,
         RegisterDeviceNumber = 1013,
         RegisterMaxPower = 1014,
@@ -97,10 +98,6 @@ public:
     quint16 currentPower() const;
     QModbusReply *setCurrentPower(quint16 currentPower);
 
-    /* Timeout of set power - Address: 1004, Size: 1 */
-    quint16 powerTimeout() const;
-    QModbusReply *setPowerTimeout(quint16 powerTimeout);
-
     /* Actual water temperature [°C] - Address: 1001, Size: 1 */
     float waterTemperature() const;
 
@@ -134,6 +131,14 @@ public:
     /* Power at AUX relay - Address: 1075, Size: 1 */
     qint16 auxRelayPower() const;
 
+    /* Timeout of set power - Address: 1004, Size: 1 */
+    quint16 powerTimeout() const;
+    QModbusReply *setPowerTimeout(quint16 powerTimeout);
+
+    /* Boost mode - Address: 1005, Size: 1 */
+    quint16 boostMode() const;
+    QModbusReply *setBoostMode(quint16 boostMode);
+
     /* Read block from start addess 1001 with size of 3 registers containing following 3 properties:
       - Actual water temperature [°C] - Address: 1001, Size: 1
       - Target water temperature [°C] - Address: 1002, Size: 1
@@ -156,8 +161,13 @@ public:
     */
     void updatePowerValuesBlock();
 
+    /* Read block from start addess 1004 with size of 2 registers containing following 2 properties:
+      - Timeout of set power - Address: 1004, Size: 1
+      - Boost mode - Address: 1005, Size: 1
+    */
+    void updateTimeoutAndBoostBlock();
+
     void updateCurrentPower();
-    void updatePowerTimeout();
 
     void updateWaterTemperature();
     void updateTargetWaterTemperature();
@@ -169,9 +179,10 @@ public:
     void updateDummy0();
     void updateImmHeaterPower();
     void updateAuxRelayPower();
+    void updatePowerTimeout();
+    void updateBoostMode();
 
     QModbusReply *readCurrentPower();
-    QModbusReply *readPowerTimeout();
     QModbusReply *readWaterTemperature();
     QModbusReply *readTargetWaterTemperature();
     QModbusReply *readElwaStatus();
@@ -182,6 +193,8 @@ public:
     QModbusReply *readDummy0();
     QModbusReply *readImmHeaterPower();
     QModbusReply *readAuxRelayPower();
+    QModbusReply *readPowerTimeout();
+    QModbusReply *readBoostMode();
 
     /* Read block from start addess 1001 with size of 3 registers containing following 3 properties:
      - Actual water temperature [°C] - Address: 1001, Size: 1
@@ -205,6 +218,12 @@ public:
     */
     QModbusReply *readBlockPowerValues();
 
+    /* Read block from start addess 1004 with size of 2 registers containing following 2 properties:
+     - Timeout of set power - Address: 1004, Size: 1
+     - Boost mode - Address: 1005, Size: 1
+    */
+    QModbusReply *readBlockTimeoutAndBoost();
+
 
     virtual bool initialize();
     virtual bool update();
@@ -225,8 +244,6 @@ signals:
 
     void currentPowerChanged(quint16 currentPower);
     void currentPowerReadFinished(quint16 currentPower);
-    void powerTimeoutChanged(quint16 powerTimeout);
-    void powerTimeoutReadFinished(quint16 powerTimeout);
 
     void waterTemperatureChanged(float waterTemperature);
     void waterTemperatureReadFinished(float waterTemperature);
@@ -248,10 +265,13 @@ signals:
     void immHeaterPowerReadFinished(qint16 immHeaterPower);
     void auxRelayPowerChanged(qint16 auxRelayPower);
     void auxRelayPowerReadFinished(qint16 auxRelayPower);
+    void powerTimeoutChanged(quint16 powerTimeout);
+    void powerTimeoutReadFinished(quint16 powerTimeout);
+    void boostModeChanged(quint16 boostMode);
+    void boostModeReadFinished(quint16 boostMode);
 
 protected:
     quint16 m_currentPower = 0;
-    quint16 m_powerTimeout = 0;
     float m_waterTemperature = 0;
     float m_targetWaterTemperature = 0;
     ElwaStatus m_elwaStatus = ElwaStatusStandby;
@@ -262,9 +282,10 @@ protected:
     QVector<quint16> m_dummy0;
     qint16 m_immHeaterPower = 0;
     qint16 m_auxRelayPower = 0;
+    quint16 m_powerTimeout = 0;
+    quint16 m_boostMode = 0;
 
     void processCurrentPowerRegisterValues(const QVector<quint16> values);
-    void processPowerTimeoutRegisterValues(const QVector<quint16> values);
 
     void processWaterTemperatureRegisterValues(const QVector<quint16> values);
     void processTargetWaterTemperatureRegisterValues(const QVector<quint16> values);
@@ -278,6 +299,9 @@ protected:
     void processDummy0RegisterValues(const QVector<quint16> values);
     void processImmHeaterPowerRegisterValues(const QVector<quint16> values);
     void processAuxRelayPowerRegisterValues(const QVector<quint16> values);
+
+    void processPowerTimeoutRegisterValues(const QVector<quint16> values);
+    void processBoostModeRegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();

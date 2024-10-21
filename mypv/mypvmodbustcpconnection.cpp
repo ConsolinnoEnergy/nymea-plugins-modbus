@@ -117,20 +117,6 @@ QModbusReply *MyPvModbusTcpConnection::setCurrentPower(quint16 currentPower)
     return sendWriteRequest(request, m_slaveId);
 }
 
-quint16 MyPvModbusTcpConnection::powerTimeout() const
-{
-    return m_powerTimeout;
-}
-
-QModbusReply *MyPvModbusTcpConnection::setPowerTimeout(quint16 powerTimeout)
-{
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(powerTimeout);
-    qCDebug(dcMyPvModbusTcpConnection()) << "--> Write \"Timeout of set power\" register:" << 1004 << "size:" << 1 << values;
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1004, values.count());
-    request.setValues(values);
-    return sendWriteRequest(request, m_slaveId);
-}
-
 float MyPvModbusTcpConnection::waterTemperature() const
 {
     return m_waterTemperature;
@@ -208,6 +194,34 @@ qint16 MyPvModbusTcpConnection::auxRelayPower() const
     return m_auxRelayPower;
 }
 
+quint16 MyPvModbusTcpConnection::powerTimeout() const
+{
+    return m_powerTimeout;
+}
+
+QModbusReply *MyPvModbusTcpConnection::setPowerTimeout(quint16 powerTimeout)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(powerTimeout);
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Write \"Timeout of set power\" register:" << 1004 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1004, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
+quint16 MyPvModbusTcpConnection::boostMode() const
+{
+    return m_boostMode;
+}
+
+QModbusReply *MyPvModbusTcpConnection::setBoostMode(quint16 boostMode)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(boostMode);
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Write \"Boost mode\" register:" << 1005 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1005, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
 bool MyPvModbusTcpConnection::initialize()
 {
     if (!m_reachable) {
@@ -271,44 +285,6 @@ void MyPvModbusTcpConnection::update2()
 {
     QModbusReply *reply = nullptr;
 
-    // Read Timeout of set power
-    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Timeout of set power\" register:" << 1004 << "size:" << 1;
-    reply = readPowerTimeout();
-    if (!reply) {
-        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Timeout of set power\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    m_pendingUpdateReplies.append(reply);
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        m_pendingUpdateReplies.removeAll(reply);
-        handleModbusError(reply->error());
-        if (reply->error() != QModbusDevice::NoError) {
-            verifyUpdateFinished();
-            return;
-        }
-
-        const QModbusDataUnit unit = reply->result();
-        qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Timeout of set power\" register" << 1004 << "size:" << 1 << unit.values();
-        processPowerTimeoutRegisterValues(unit.values());
-        update3();
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while reading \"Timeout of set power\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void MyPvModbusTcpConnection::update3()
-{
-    QModbusReply *reply = nullptr;
-
     // Read realTimeValues
     reply = readBlockRealTimeValues();
     qCDebug(dcMyPvModbusTcpConnection()) << "--> Read block \"realTimeValues\" registers from:" << 1001 << "size:" << 3;
@@ -338,7 +314,7 @@ void MyPvModbusTcpConnection::update3()
         processWaterTemperatureRegisterValues(blockValues.mid(0, 1));
         processTargetWaterTemperatureRegisterValues(blockValues.mid(1, 1));
         processElwaStatusRegisterValues(blockValues.mid(2, 1));
-        update4();
+        update3();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -346,7 +322,7 @@ void MyPvModbusTcpConnection::update3()
     });
 }
 
-void MyPvModbusTcpConnection::update4()
+void MyPvModbusTcpConnection::update3()
 {
     QModbusReply *reply = nullptr;
 
@@ -379,7 +355,7 @@ void MyPvModbusTcpConnection::update4()
         processManualStartRegisterValues(blockValues.mid(0, 1));
         processDeviceNumberRegisterValues(blockValues.mid(1, 1));
         processMaxPowerRegisterValues(blockValues.mid(2, 1));
-        update5();
+        update4();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -387,7 +363,7 @@ void MyPvModbusTcpConnection::update4()
     });
 }
 
-void MyPvModbusTcpConnection::update5()
+void MyPvModbusTcpConnection::update4()
 {
     QModbusReply *reply = nullptr;
 
@@ -421,11 +397,51 @@ void MyPvModbusTcpConnection::update5()
         processDummy0RegisterValues(blockValues.mid(1, 4));
         processImmHeaterPowerRegisterValues(blockValues.mid(5, 1));
         processAuxRelayPowerRegisterValues(blockValues.mid(6, 1));
-        verifyUpdateFinished();
+        update5();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating block \"powerValues\" registers" << error << reply->errorString();
+    });
+}
+
+void MyPvModbusTcpConnection::update5()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read timeoutAndBoost
+    reply = readBlockTimeoutAndBoost();
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read block \"timeoutAndBoost\" registers from:" << 1004 << "size:" << 2;
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading block \"timeoutAndBoost\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        const QVector<quint16> blockValues = unit.values();
+        qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from reading block \"timeoutAndBoost\" register" << 1004 << "size:" << 2 << blockValues;
+        processPowerTimeoutRegisterValues(blockValues.mid(0, 1));
+        processBoostModeRegisterValues(blockValues.mid(1, 1));
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating block \"timeoutAndBoost\" registers" << error << reply->errorString();
     });
 }
 
@@ -456,36 +472,6 @@ void MyPvModbusTcpConnection::updateCurrentPower()
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"Current power\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void MyPvModbusTcpConnection::updatePowerTimeout()
-{
-    // Update registers from Timeout of set power
-    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read \"Timeout of set power\" register:" << 1004 << "size:" << 1;
-    QModbusReply *reply = readPowerTimeout();
-    if (!reply) {
-        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading \"Timeout of set power\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from \"Timeout of set power\" register" << 1004 << "size:" << 1 << unit.values();
-            processPowerTimeoutRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating \"Timeout of set power\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -799,15 +785,41 @@ void MyPvModbusTcpConnection::updatePowerValuesBlock()
     });
 }
 
+void MyPvModbusTcpConnection::updateTimeoutAndBoostBlock()
+{
+    // Update register block "timeoutAndBoost"
+    qCDebug(dcMyPvModbusTcpConnection()) << "--> Read block \"timeoutAndBoost\" registers from:" << 1004 << "size:" << 2;
+    QModbusReply *reply = readBlockTimeoutAndBoost();
+    if (!reply) {
+        qCWarning(dcMyPvModbusTcpConnection()) << "Error occurred while reading block \"timeoutAndBoost\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            const QVector<quint16> blockValues = unit.values();
+            qCDebug(dcMyPvModbusTcpConnection()) << "<-- Response from reading block \"timeoutAndBoost\" register" << 1004 << "size:" << 2 << blockValues;
+            processPowerTimeoutRegisterValues(blockValues.mid(0, 1));
+            processBoostModeRegisterValues(blockValues.mid(1, 1));
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcMyPvModbusTcpConnection()) << "Modbus reply error occurred while updating block \"timeoutAndBoost\" registers" << error << reply->errorString();
+    });
+}
+
 QModbusReply *MyPvModbusTcpConnection::readCurrentPower()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1000, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *MyPvModbusTcpConnection::readPowerTimeout()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1004, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -871,6 +883,18 @@ QModbusReply *MyPvModbusTcpConnection::readAuxRelayPower()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *MyPvModbusTcpConnection::readPowerTimeout()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1004, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *MyPvModbusTcpConnection::readBoostMode()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1005, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *MyPvModbusTcpConnection::readBlockRealTimeValues()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1001, 3);
@@ -889,6 +913,12 @@ QModbusReply *MyPvModbusTcpConnection::readBlockPowerValues()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *MyPvModbusTcpConnection::readBlockTimeoutAndBoost()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1004, 2);
+    return sendReadRequest(request, m_slaveId);
+}
+
 void MyPvModbusTcpConnection::processCurrentPowerRegisterValues(const QVector<quint16> values)
 {
     quint16 receivedCurrentPower = ModbusDataUtils::convertToUInt16(values);
@@ -897,17 +927,6 @@ void MyPvModbusTcpConnection::processCurrentPowerRegisterValues(const QVector<qu
     if (m_currentPower != receivedCurrentPower) {
         m_currentPower = receivedCurrentPower;
         emit currentPowerChanged(m_currentPower);
-    }
-}
-
-void MyPvModbusTcpConnection::processPowerTimeoutRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedPowerTimeout = ModbusDataUtils::convertToUInt16(values);
-    emit powerTimeoutReadFinished(receivedPowerTimeout);
-
-    if (m_powerTimeout != receivedPowerTimeout) {
-        m_powerTimeout = receivedPowerTimeout;
-        emit powerTimeoutChanged(m_powerTimeout);
     }
 }
 
@@ -1018,6 +1037,28 @@ void MyPvModbusTcpConnection::processAuxRelayPowerRegisterValues(const QVector<q
     if (m_auxRelayPower != receivedAuxRelayPower) {
         m_auxRelayPower = receivedAuxRelayPower;
         emit auxRelayPowerChanged(m_auxRelayPower);
+    }
+}
+
+void MyPvModbusTcpConnection::processPowerTimeoutRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedPowerTimeout = ModbusDataUtils::convertToUInt16(values);
+    emit powerTimeoutReadFinished(receivedPowerTimeout);
+
+    if (m_powerTimeout != receivedPowerTimeout) {
+        m_powerTimeout = receivedPowerTimeout;
+        emit powerTimeoutChanged(m_powerTimeout);
+    }
+}
+
+void MyPvModbusTcpConnection::processBoostModeRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedBoostMode = ModbusDataUtils::convertToUInt16(values);
+    emit boostModeReadFinished(receivedBoostMode);
+
+    if (m_boostMode != receivedBoostMode) {
+        m_boostMode = receivedBoostMode;
+        emit boostModeChanged(m_boostMode);
     }
 }
 
@@ -1135,7 +1176,6 @@ QDebug operator<<(QDebug debug, MyPvModbusTcpConnection *myPvModbusTcpConnection
 {
     debug.nospace().noquote() << "MyPvModbusTcpConnection(" << myPvModbusTcpConnection->hostAddress().toString() << ":" << myPvModbusTcpConnection->port() << ")" << "\n";
     debug.nospace().noquote() << "    - Current power: " << myPvModbusTcpConnection->currentPower() << " [W]" << "\n";
-    debug.nospace().noquote() << "    - Timeout of set power: " << myPvModbusTcpConnection->powerTimeout() << "\n";
     debug.nospace().noquote() << "    - Actual water temperature: " << myPvModbusTcpConnection->waterTemperature() << " [°C]" << "\n";
     debug.nospace().noquote() << "    - Target water temperature: " << myPvModbusTcpConnection->targetWaterTemperature() << " [°C]" << "\n";
     debug.nospace().noquote() << "    - Status of ELWA: " << myPvModbusTcpConnection->elwaStatus() << "\n";
@@ -1146,6 +1186,8 @@ QDebug operator<<(QDebug debug, MyPvModbusTcpConnection *myPvModbusTcpConnection
     debug.nospace().noquote() << "    - Dummy0: " << myPvModbusTcpConnection->dummy0() << "\n";
     debug.nospace().noquote() << "    - Power at ELWA immersion heater: " << myPvModbusTcpConnection->immHeaterPower() << "\n";
     debug.nospace().noquote() << "    - Power at AUX relay: " << myPvModbusTcpConnection->auxRelayPower() << "\n";
+    debug.nospace().noquote() << "    - Timeout of set power: " << myPvModbusTcpConnection->powerTimeout() << "\n";
+    debug.nospace().noquote() << "    - Boost mode: " << myPvModbusTcpConnection->boostMode() << "\n";
     return debug.quote().space();
 }
 
