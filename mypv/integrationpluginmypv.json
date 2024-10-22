@@ -13,7 +13,7 @@
                     "displayName": "my-PV ELWA 2",
                     "id": "39e0828b-8fc4-4a1c-a173-b02ef76e1a93",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
+                    "interfaces": ["smartheatingrod", "connectable"],
                     "paramTypes": [
                         {
                             "id": "d54a05fc-e7e0-44b9-a49f-28d125f4a850",
@@ -80,16 +80,6 @@
                             "maxValue": 1000,
                             "defaultValue": 0,
                             "writable": true
-                        },
-                        {
-                            "id": "65093b09-c6e9-4bc8-90b9-595d8a9feb3b",
-                            "name": "totalEnergyConsumed",
-                            "displayName": "Total energy consumed",
-                            "displayNameEvent": "Total energy consumption changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0,
-                            "cached": true
                         },
                         {
                             "id": "a7aa8879-d095-477b-af3c-5f493949db42",
@@ -160,6 +150,24 @@
                             "unit": "Seconds",
                             "cached": false,
                             "defaultValue": 0
+                        },
+                        {
+                            "id": "6fe7f7de-5c86-460b-b906-a62b27438eba",
+                            "name": "oldBoostMode",
+                            "displayName": "Saved boost mode",
+                            "displayNameEvent": "Saved boost mode changed",
+                            "type": "uint",
+                            "cached": true,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "79346eb9-6875-4952-8b00-ed286044a851",
+                            "name": "oldBoostActive",
+                            "displayName": "Saved boost active",
+                            "type": "uint",
+                            "displayNameEvent": "Saved boost active changed",
+                            "cached": true,
+                            "defaultValue": 0
                         }
                     ]
                 },
@@ -168,7 +176,7 @@
                     "displayName": "my-PV AC Thor",
                     "id": "8f52cb8a-dec8-4419-b024-d4e6dfa3f9a4",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
+                    "interfaces": ["smartheatingrod", "connectable"],
                     "paramTypes": [
                         {
                             "id": "35373d72-d3fc-49f2-bf2f-d06382dfe463",
@@ -235,16 +243,6 @@
                             "maxValue": 1000,
                             "defaultValue": 0,
                             "writable": true
-                        },
-                        {
-                            "id": "f5724206-9138-433c-b352-fe17cb7eae5b",
-                            "name": "totalEnergyConsumed",
-                            "displayName": "Total energy consumed",
-                            "displayNameEvent": "Total energy consumption changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0,
-                            "cached": true
                         },
                         {
                             "id": "d04fb302-20a2-4576-9459-654ede6e1c53",
@@ -315,6 +313,24 @@
                             "unit": "Seconds",
                             "cached": false,
                             "defaultValue": 0
+                        },
+                        {
+                            "id": "e5e206a0-14c2-40b9-bd6a-ac97df11f238",
+                            "name": "oldBoostMode",
+                            "displayName": "Saved boost mode",
+                            "displayNameEvent": "Saved boost mode changed",
+                            "type": "uint",
+                            "cached": true,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "c0838d87-a831-4752-a9f5-06c625723598",
+                            "name": "oldBoostActive",
+                            "displayName": "Saved boost active",
+                            "displayNameEvent": "Saved boost active changed",
+                            "type": "uint",
+                            "cached": true,
+                            "defaultValue": 0
                         }
                     ]
                 },
@@ -323,7 +339,7 @@
                     "displayName": "my-PV AC Thor 9s",
                     "id": "400ee515-6e99-4f66-9c9e-a7777de5c461",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
+                    "interfaces": ["smartheatingrod", "connectable"],
                     "paramTypes": [
                         {
                             "id": "4b9524fb-3aea-4ff7-9e89-4e3b4d670ff4",
@@ -390,16 +406,6 @@
                             "maxValue": 1000,
                             "defaultValue": 0,
                             "writable": true
-                        },
-                        {
-                            "id": "5666b573-4dd5-4f3b-84c5-64a4d413dadf",
-                            "name": "totalEnergyConsumed",
-                            "displayName": "Total energy consumed",
-                            "displayNameEvent": "Total energy consumption changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0,
-                            "cached": true
                         },
                         {
                             "id": "2ae943dd-0468-4ae1-be54-d44c61fb1a99",
@@ -469,6 +475,24 @@
                             "type": "uint",
                             "unit": "Seconds",
                             "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "e1544cc2-bbc6-4783-81fb-73a0c9150583",
+                            "name": "oldBoostMode",
+                            "displayName": "Saved boost mode",
+                            "displayNameEvent": "Saved boost mode changed",
+                            "type": "uint",
+                            "cached": true,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "2ac051c9-209d-431b-8486-2ae96a19e214",
+                            "name": "oldBoostActive",
+                            "displayName": "Saved boost active",
+                            "displayNameEvent": "Saved boost active changed",
+                            "type": "uint",
+                            "cached": true,
                             "defaultValue": 0
                         }
                     ]

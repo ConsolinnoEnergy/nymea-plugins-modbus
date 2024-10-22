@@ -216,8 +216,19 @@
                     "registerType": "holdingRegister",
                     "defaultValue": 0,
                     "access": "RW"
+                },
+                {
+                    "id": "backTemperature",
+                    "description": "Backup target temperature",
+                    "unit": "°C",
+                    "address": 1006,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RW"
                 }
-
             ]
         }
     ],
@@ -233,6 +244,19 @@
             "defaultValue": 0,
             "readSchedule": "update",
             "access": "RW"
+        },
+        {
+            "id": "externalTemperature",
+            "description": "External temperature sensor",
+            "unit": "°C",
+            "address": 1030,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": 0,
+            "staticScaleFactor": -1,
+            "readSchedule": "update",
+            "access": "RO"
         }
     ]
 }
