@@ -6,11 +6,11 @@ MODBUS_CONNECTIONS += solax-ultra-registers.json
 include(../modbus.pri)
 
 HEADERS += \
-    integrationpluginsolax-ultra.h \
+    integrationpluginsolaxultra.h \
     solaxmodbustcpconnection.h \
     discoverytcp.h
 
 SOURCES += \
-    integrationpluginsolax-ultra.cpp \
+    integrationpluginsolaxultra.cpp \
     solaxmodbustcpconnection.cpp \
     discoverytcp.cpp

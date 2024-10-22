@@ -4,12 +4,12 @@
 <context>
     <name>IntegrationPluginSolax</name>
     <message>
-        <location filename="../integrationpluginsolax-ultra.cpp" line="46"/>
+        <location filename="../integrationpluginsolaxultra.cpp" line="46"/>
         <source>The network device discovery is not available.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax-ultra.cpp" line="115"/>
+        <location filename="../integrationpluginsolaxultra.cpp" line="115"/>
         <source>The MAC address is not vaild. Please reconfigure the device to fix this.</source>
         <translation></translation>
     </message>
