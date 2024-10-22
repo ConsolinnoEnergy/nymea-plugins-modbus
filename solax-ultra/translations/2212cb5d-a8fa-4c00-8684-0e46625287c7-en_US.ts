@@ -4,424 +4,392 @@
 <context>
     <name>IntegrationPluginSolax</name>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="73"/>
+        <location filename="../integrationpluginsolax-ultra.cpp" line="46"/>
         <source>The network device discovery is not available.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="110"/>
-        <source>No Modbus RTU interface available. Please set up a Modbus RTU interface first.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../integrationpluginsolax.cpp" line="117"/>
-        <source>No modbus RTU master with appropriate settings found.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../integrationpluginsolax.cpp" line="178"/>
+        <location filename="../integrationpluginsolax-ultra.cpp" line="115"/>
         <source>The MAC address is not vaild. Please reconfigure the device to fix this.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../integrationpluginsolax.cpp" line="587"/>
-        <source>The Modbus address not valid. It must be a value between 1 and 247.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../integrationpluginsolax.cpp" line="594"/>
-        <source>The Modbus RTU resource is not available.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
-    <name>Solax</name>
+    <name>SolaxUltra</name>
     <message>
-        <location filename="../plugininfo.h" line="102"/>
-        <location filename="../plugininfo.h" line="105"/>
-        <location filename="../plugininfo.h" line="108"/>
+        <location filename="../plugininfo.h" line="95"/>
+        <location filename="../plugininfo.h" line="98"/>
         <source>Active power</source>
-        <extracomment>The name of the StateType ({ea30fbf2-deef-4e6d-843b-e7123faa2ee8}) of ThingClass solaxMeter
+        <extracomment>The name of the StateType ({9bc7630d-6290-4248-877d-aba675295257}) of ThingClass solaxMeter
 ----------
-The name of the StateType ({da92b1db-b743-47a2-a6f9-36c975e1305f}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({33aaf5de-8307-455f-930e-3cdd5a8387f2}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+The name of the StateType ({69561fd4-cc69-4bb9-875e-d68c41bba2ea}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="111"/>
-        <location filename="../plugininfo.h" line="114"/>
+        <location filename="../plugininfo.h" line="101"/>
         <source>Active power limit</source>
-        <extracomment>The name of the StateType ({e446c3dd-c929-4a09-80a1-c0be3cc50a0e}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({253cbe80-73d5-492a-98fb-22439697bd67}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({2dfe8a10-f6cd-457f-9430-8a6ffc0c5cb9}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="117"/>
+        <location filename="../plugininfo.h" line="104"/>
+        <source>Battery 1 capacity (if present) [kWh]</source>
+        <extracomment>The name of the ParamType (ThingClass: solaxX3Ultra, Type: thing, ID: {10facbb7-1ec4-40e5-ad56-55ae8f7bcdad})</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="107"/>
+        <source>Battery 2 capacity (if present) [kWh]</source>
+        <extracomment>The name of the ParamType (ThingClass: solaxX3Ultra, Type: thing, ID: {9903f4e0-ae33-42fc-99a4-4b59ec23f6a0})</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="110"/>
+        <location filename="../plugininfo.h" line="113"/>
         <source>Battery capacity</source>
-        <extracomment>The name of the StateType ({413f5f64-d3d9-4fa0-981e-d707c1367139}) of ThingClass solaxBattery</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="120"/>
-        <location filename="../plugininfo.h" line="123"/>
-        <source>Battery capacity (if present) [kWh]</source>
-        <extracomment>The name of the ParamType (ThingClass: solaxX3InverterRTU, Type: thing, ID: {c64aa05c-ea87-417e-91d9-238cdd55a4a5})
+        <extracomment>The name of the StateType ({11fb6e3c-f8a4-47a4-9643-a726a255cca4}) of ThingClass solaxBattery2
 ----------
-The name of the ParamType (ThingClass: solaxX3InverterTCP, Type: thing, ID: {c2986cf6-65e0-4a80-9f6e-9cdd1fb839f1})</extracomment>
-        <translation type="unfinished"></translation>
+The name of the StateType ({2f9b6b19-fa2d-4723-ba67-a54c789a565b}) of ThingClass solaxBattery</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="126"/>
+        <location filename="../plugininfo.h" line="116"/>
+        <location filename="../plugininfo.h" line="119"/>
         <source>Battery charge percent</source>
-        <extracomment>The name of the StateType ({0a380479-c472-4645-9d89-68dd73ee5439}) of ThingClass solaxBattery</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({de173ee4-8593-46aa-9328-58cd6a4349b2}) of ThingClass solaxBattery2
+----------
+The name of the StateType ({4c0f588f-d24d-43df-89c2-8730cd9101b1}) of ThingClass solaxBattery</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="129"/>
+        <location filename="../plugininfo.h" line="122"/>
+        <location filename="../plugininfo.h" line="125"/>
         <source>Battery current</source>
-        <extracomment>The name of the StateType ({aa5fd804-36d4-4ea4-8d67-eaad70b33bad}) of ThingClass solaxBattery</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({cc1b8f39-5b00-4915-b17f-34dc47905703}) of ThingClass solaxBattery2
+----------
+The name of the StateType ({a8463477-5850-4cb4-9930-c4d13b3ff692}) of ThingClass solaxBattery</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="132"/>
+        <location filename="../plugininfo.h" line="128"/>
+        <location filename="../plugininfo.h" line="131"/>
         <source>Battery low charge</source>
-        <extracomment>The name of the StateType ({09f60c18-4fc9-4117-b58c-b0b470eeface}) of ThingClass solaxBattery</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({4c054994-868b-496c-a340-3460381368b7}) of ThingClass solaxBattery2
+----------
+The name of the StateType ({8f269fc4-12b5-4f28-8907-43972fb278d7}) of ThingClass solaxBattery</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="135"/>
+        <location filename="../plugininfo.h" line="134"/>
+        <location filename="../plugininfo.h" line="137"/>
         <source>Battery power input/output</source>
-        <extracomment>The name of the StateType ({a7da06fc-2cf8-427b-87f3-707f0f7cbc8c}) of ThingClass solaxBattery</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({9bba377d-af9a-465d-aec2-874a6cc5465f}) of ThingClass solaxBattery2
+----------
+The name of the StateType ({8dc6f026-4784-4abc-8158-ed4f3c408255}) of ThingClass solaxBattery</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="138"/>
+        <location filename="../plugininfo.h" line="140"/>
+        <location filename="../plugininfo.h" line="143"/>
         <source>Battery voltage</source>
-        <extracomment>The name of the StateType ({80254271-949b-4b32-93de-7b2554942d8f}) of ThingClass solaxBattery</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({e5a82559-57d5-4a78-90ca-eea88a82a787}) of ThingClass solaxBattery2
+----------
+The name of the StateType ({5df7ecca-decb-4a38-bf0c-396919df8e36}) of ThingClass solaxBattery</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="141"/>
+        <location filename="../plugininfo.h" line="146"/>
+        <location filename="../plugininfo.h" line="149"/>
         <source>Charging state</source>
-        <extracomment>The name of the StateType ({46ac0f13-4619-4a29-a869-f9a257555994}) of ThingClass solaxBattery</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({1a775c5a-61ff-4b6a-9149-76b214383d0a}) of ThingClass solaxBattery2
+----------
+The name of the StateType ({43aaf7a8-0ad1-47ad-bfc0-4e936044c288}) of ThingClass solaxBattery</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="144"/>
-        <location filename="../plugininfo.h" line="147"/>
-        <location filename="../plugininfo.h" line="150"/>
-        <location filename="../plugininfo.h" line="153"/>
+        <location filename="../plugininfo.h" line="152"/>
+        <location filename="../plugininfo.h" line="155"/>
+        <location filename="../plugininfo.h" line="158"/>
+        <location filename="../plugininfo.h" line="161"/>
         <source>Connected</source>
-        <extracomment>The name of the StateType ({0f4ace08-576b-4b7b-8e3a-ec740a826e0b}) of ThingClass solaxBattery
+        <extracomment>The name of the StateType ({222e3c4b-4f7d-42a7-9b4f-b23861947e1c}) of ThingClass solaxBattery2
 ----------
-The name of the StateType ({386c4fdf-3e33-47bf-879d-2acf9411a1a4}) of ThingClass solaxMeter
+The name of the StateType ({b34f575e-4667-42a5-ae7a-0283d8735e33}) of ThingClass solaxBattery
 ----------
-The name of the StateType ({7145dfcf-711b-4e66-b2d4-61217395677e}) of ThingClass solaxX3InverterRTU
+The name of the StateType ({6aa60c0c-1994-46ad-bab8-4d30d063dd41}) of ThingClass solaxMeter
 ----------
-The name of the StateType ({badb5699-4022-4cbe-b856-7623b088def4}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+The name of the StateType ({8771a7ee-97d9-4d8e-b191-d869bf13e11f}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="156"/>
+        <location filename="../plugininfo.h" line="164"/>
         <source>Current power phase A</source>
-        <extracomment>The name of the StateType ({4bd36e81-7981-471b-ac9f-90b22014c6f0}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({3bc91775-500b-409e-9f77-4bd81f8fec20}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="159"/>
+        <location filename="../plugininfo.h" line="167"/>
         <source>Current power phase B</source>
-        <extracomment>The name of the StateType ({8a92966f-775a-4da7-b3a6-292813b1eaa7}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({779f991c-dfcd-45ca-a94e-6657520be903}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="162"/>
+        <location filename="../plugininfo.h" line="170"/>
         <source>Current power phase C</source>
-        <extracomment>The name of the StateType ({4d3daf5c-cd17-4027-bcbe-c548994f1c27}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({d5286d44-67ee-4f21-9189-e3b422333cfd}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="165"/>
-        <location filename="../plugininfo.h" line="168"/>
+        <location filename="../plugininfo.h" line="173"/>
         <source>Energy produced today</source>
-        <extracomment>The name of the StateType ({15fded99-2304-4779-92b8-bc76dcbb6267}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({448bc272-6ad5-4c53-8646-b52b004c2fe6}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({0f3c639a-f401-41a1-a1b8-2374ac2a5dec}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="171"/>
-        <location filename="../plugininfo.h" line="174"/>
+        <location filename="../plugininfo.h" line="176"/>
         <source>Error message</source>
-        <extracomment>The name of the StateType ({ec84a765-6c18-4ffe-9372-93d20853d300}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({259c7479-8fb3-44ac-84bb-74cfe4a90336}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({38e1fc7f-4b3a-46b4-9e4e-9e1f26d23450}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="177"/>
-        <location filename="../plugininfo.h" line="180"/>
+        <location filename="../plugininfo.h" line="179"/>
         <source>Firmware version</source>
-        <extracomment>The name of the StateType ({eefe145d-04fd-4beb-baaa-a0233cec5f00}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({749d3c0d-2102-4f74-852c-2ae2cb7e8f32}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({acb25768-0338-42df-89c0-41bc688186cd}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="183"/>
+        <location filename="../plugininfo.h" line="182"/>
         <source>Frequency phase A</source>
-        <extracomment>The name of the StateType ({cce5c14e-f808-4366-a9f2-2ea1395c960c}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({978a26a8-43e2-403f-8cb8-421989ecc13d}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="186"/>
+        <location filename="../plugininfo.h" line="185"/>
         <source>Frequency phase B</source>
-        <extracomment>The name of the StateType ({26f8984f-9303-43f7-82a6-bc83a24b03b1}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({a236ca10-9a25-4301-a797-f8f0d91e6ac1}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="189"/>
+        <location filename="../plugininfo.h" line="188"/>
         <source>Frequency phase C</source>
-        <extracomment>The name of the StateType ({e1074feb-3c73-4376-8a3f-e5cbacd61418}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({073d2148-5f05-4ece-80a1-b7d37c47e07e}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="192"/>
+        <location filename="../plugininfo.h" line="191"/>
         <source>Grid frequency</source>
-        <extracomment>The name of the StateType ({ed3a0202-f348-41e9-9ebd-3edac0ebb259}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({e3150b04-d776-4483-b17c-e289b57a4065}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="195"/>
+        <location filename="../plugininfo.h" line="194"/>
         <source>IP address</source>
-        <extracomment>The name of the ParamType (ThingClass: solaxX3InverterTCP, Type: thing, ID: {f2089b5c-407b-47d1-a250-cd201292c769})</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the ParamType (ThingClass: solaxX3Ultra, Type: thing, ID: {c8ed4ae0-f2c5-41b5-a320-7cb04d2bd614})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="198"/>
-        <location filename="../plugininfo.h" line="201"/>
+        <location filename="../plugininfo.h" line="197"/>
         <source>Inverter current</source>
-        <extracomment>The name of the StateType ({1b298d08-722b-4870-acd7-2ec34584c972}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({6c0486b0-45ac-4623-86cb-b556a5a3f263}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({cfd6b770-2654-4c12-9c80-4e49325b5c41}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="204"/>
-        <location filename="../plugininfo.h" line="207"/>
+        <location filename="../plugininfo.h" line="200"/>
         <source>Inverter status</source>
-        <extracomment>The name of the StateType ({e2b992f6-eb95-4d88-adc1-6426f4d071bc}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({0084168f-3ea3-4d79-b275-447d145587aa}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({62d4ee76-de2f-4ec8-921e-f308a0ce8d6d}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="210"/>
-        <location filename="../plugininfo.h" line="213"/>
+        <location filename="../plugininfo.h" line="203"/>
         <source>Inverter voltage</source>
-        <extracomment>The name of the StateType ({997034d0-7e32-4fcd-a295-102462891b6b}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({ae43476d-763b-4d75-a8eb-fddb46cd1e14}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({84cecd7c-ba15-4096-829c-d44bc38ddc92}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="228"/>
-        <location filename="../plugininfo.h" line="231"/>
-        <source>PV1 current</source>
-        <extracomment>The name of the StateType ({8096dd57-b70c-4c75-a5db-0603c9f493b9}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({ff1827dc-88db-4765-8a80-9b1d8a192281}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="234"/>
-        <location filename="../plugininfo.h" line="237"/>
-        <source>PV1 power</source>
-        <extracomment>The name of the StateType ({29c368c0-20a6-4fe5-be11-2c87cac6c7fd}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({21d03306-a98e-4973-835c-2d41d3c64573}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="240"/>
-        <location filename="../plugininfo.h" line="243"/>
-        <source>PV1 voltage</source>
-        <extracomment>The name of the StateType ({cd1abef8-7d64-4690-bf98-20ef6d24683f}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({fa3f1289-5900-4311-9d3a-5cf3249f9145}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="246"/>
-        <location filename="../plugininfo.h" line="249"/>
-        <source>PV2 current</source>
-        <extracomment>The name of the StateType ({90ee2234-9a8b-4a0f-91e6-61fd8b917c96}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({6e62add8-72de-401b-840b-0e52365ddb1c}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="252"/>
-        <location filename="../plugininfo.h" line="255"/>
-        <source>PV2 power</source>
-        <extracomment>The name of the StateType ({d636d626-053c-459a-8793-e7ebc7d8d8bf}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({53432bf2-900e-485b-9d72-04a9d2d2c8fd}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="258"/>
-        <location filename="../plugininfo.h" line="261"/>
-        <source>PV2 voltage</source>
-        <extracomment>The name of the StateType ({876661a8-e0a4-43b7-a6f2-75d1aa7fc03b}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({1b857285-b735-43ac-aec5-041f78d58fff}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="276"/>
-        <location filename="../plugininfo.h" line="279"/>
-        <source>Rated power</source>
-        <extracomment>The name of the StateType ({03cb0b85-f466-4d2d-aafd-92acc8f716f3}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({e2c14c76-7d93-4dee-bb4e-5b6f18b20633}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="294"/>
-        <source>Solax X3 Hybrid Inverter (RTU)</source>
-        <extracomment>The name of the ThingClass ({4190fc56-3804-43c4-bcd3-c5f86638513e})</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="297"/>
-        <source>Solax X3 Hybrid Inverter (TCP)</source>
-        <extracomment>The name of the ThingClass ({b1cb3137-b293-4df2-ae4f-b662c6835653})</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="300"/>
-        <location filename="../plugininfo.h" line="303"/>
-        <location filename="../plugininfo.h" line="306"/>
-        <source>Temperature</source>
-        <extracomment>The name of the StateType ({c58d4489-f963-4add-9b18-b845860178c5}) of ThingClass solaxBattery
-----------
-The name of the StateType ({072c40e6-48f6-4170-a370-2a5ea2510c89}) of ThingClass solaxX3InverterRTU
-----------
-The name of the StateType ({ca61046c-abf2-423d-8a48-5864d3940d57}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="330"/>
-        <source>Warning message</source>
-        <extracomment>The name of the StateType ({2f16aef5-9459-4205-8e81-d444354b7c2a}) of ThingClass solaxBattery</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="216"/>
+        <location filename="../plugininfo.h" line="206"/>
         <source>MAC address</source>
-        <extracomment>The name of the ParamType (ThingClass: solaxX3InverterTCP, Type: thing, ID: {83ffc100-a926-4590-87d4-4e69f3aa7948})</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the ParamType (ThingClass: solaxX3Ultra, Type: thing, ID: {8ff721c0-04bd-42b9-9ded-d2c092f951d7})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="219"/>
-        <location filename="../plugininfo.h" line="222"/>
+        <location filename="../plugininfo.h" line="209"/>
         <source>Modbus ID</source>
-        <extracomment>The name of the ParamType (ThingClass: solaxX3InverterRTU, Type: thing, ID: {7baf3bf5-d7b5-492a-a9f2-84789e45964f})
-----------
-The name of the ParamType (ThingClass: solaxX3InverterTCP, Type: thing, ID: {6ee3b4a1-b41e-4594-9002-eef12f8c2a08})</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the ParamType (ThingClass: solaxX3Ultra, Type: thing, ID: {654a9447-f9b7-413a-adac-a45db04ce0b1})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="225"/>
-        <source>Modbus RTU master</source>
-        <extracomment>The name of the ParamType (ThingClass: solaxX3InverterRTU, Type: thing, ID: {186dc796-e2ef-4034-9693-8561cd44c2ac})</extracomment>
-        <translation type="unfinished"></translation>
+        <location filename="../plugininfo.h" line="212"/>
+        <source>PV1 current</source>
+        <extracomment>The name of the StateType ({8aef7aa4-2846-4705-b98a-a97164d3d311}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="264"/>
+        <location filename="../plugininfo.h" line="215"/>
+        <source>PV1 power</source>
+        <extracomment>The name of the StateType ({0248b502-2a19-4921-b7e0-128a3841b5d7}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="218"/>
+        <source>PV1 voltage</source>
+        <extracomment>The name of the StateType ({dd53078d-056d-4ed4-a910-1e9fe07c78ee}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="221"/>
+        <source>PV2 current</source>
+        <extracomment>The name of the StateType ({10706e58-b6af-46f6-873e-da7d329db32c}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="224"/>
+        <source>PV2 power</source>
+        <extracomment>The name of the StateType ({8c03b1c7-fb3c-4c20-81db-f926976e2e30}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="227"/>
+        <source>PV2 voltage</source>
+        <extracomment>The name of the StateType ({b092e350-f221-4ffd-aab7-2bd73874ddfd}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="230"/>
+        <source>PV3 current</source>
+        <extracomment>The name of the StateType ({401e369e-39ed-410b-9c61-ca11a8d37098}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="233"/>
+        <source>PV3 power</source>
+        <extracomment>The name of the StateType ({f1d29c4f-ebab-416c-8008-8c41cc25d279}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="236"/>
+        <source>PV3 voltage</source>
+        <extracomment>The name of the StateType ({4a69d7e3-a47b-4a32-9bed-f3378706e20c}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="239"/>
         <source>Phase A current</source>
-        <extracomment>The name of the StateType ({beda0148-a8bb-4979-9f33-06afa4bd402c}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({5b2ff78b-9e68-4858-a885-66614258d8ff}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="267"/>
+        <location filename="../plugininfo.h" line="242"/>
         <source>Phase B current</source>
-        <extracomment>The name of the StateType ({57c604aa-3d1f-46c2-aabb-c8084311d5da}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({0b49da63-e80c-46cf-bcda-a1d73e5971e2}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="270"/>
+        <location filename="../plugininfo.h" line="245"/>
         <source>Phase C current</source>
-        <extracomment>The name of the StateType ({28a8a285-e509-4215-a03b-144a6d3130f7}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({119e342f-f60d-4af8-9bac-472570b24859}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="273"/>
+        <location filename="../plugininfo.h" line="248"/>
         <source>Port</source>
-        <extracomment>The name of the ParamType (ThingClass: solaxX3InverterTCP, Type: thing, ID: {dbac37a7-f311-4083-b56f-fd0490f1afcc})</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the ParamType (ThingClass: solaxX3Ultra, Type: thing, ID: {fe5f5e25-fe98-4aad-82e8-0374864459aa})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="282"/>
-        <location filename="../plugininfo.h" line="285"/>
+        <location filename="../plugininfo.h" line="251"/>
+        <source>Rated power</source>
+        <extracomment>The name of the StateType ({5be3c13f-7aec-4896-9022-d66941ed404e}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="254"/>
+        <location filename="../plugininfo.h" line="257"/>
         <source>Solax</source>
-        <extracomment>The name of the vendor ({093a76b1-f60d-41de-8d34-0ffe74a62c19})
+        <extracomment>The name of the vendor ({32b15f07-00c1-4f25-b699-64fea134b653})
 ----------
-The name of the plugin Solax ({2212cb5d-a8fa-4c00-8684-0e46625287c7})</extracomment>
-        <translation type="unfinished"></translation>
+The name of the plugin SolaxUltra ({135cb30e-4697-4189-a60f-052a5431145f})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="288"/>
+        <location filename="../plugininfo.h" line="260"/>
         <source>Solax Battery</source>
-        <extracomment>The name of the ThingClass ({fb017a49-0a2e-4ae6-8277-3da0142cbbd2})</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the ThingClass ({dc4135e5-8d19-4c57-8c79-cbaa9b6e6a97})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="291"/>
+        <location filename="../plugininfo.h" line="263"/>
+        <source>Solax Battery 2</source>
+        <extracomment>The name of the ThingClass ({62dc49a9-05df-49f8-ba23-ed761ea69cd1})</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="266"/>
         <source>Solax Meter</source>
-        <extracomment>The name of the ThingClass ({d67da0b2-34af-4c96-bad8-22b770629a28})</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the ThingClass ({8817b092-186a-422d-a8dd-117951ff65e5})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="309"/>
-        <source>Total energy exported to grid</source>
-        <extracomment>The name of the StateType ({51170a92-812b-4932-9b7f-b90b5947114a}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <location filename="../plugininfo.h" line="269"/>
+        <source>Solax X3 Ultra</source>
+        <extracomment>The name of the ThingClass ({85f30e34-c206-446a-a594-750ce0f47fb8})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="312"/>
-        <source>Total energy imported from grid</source>
-        <extracomment>The name of the StateType ({2a65f11c-cc5d-4dcf-85a8-4d21ae487ffc}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugininfo.h" line="315"/>
-        <location filename="../plugininfo.h" line="318"/>
-        <source>Total energy produced</source>
-        <extracomment>The name of the StateType ({d894bfa9-7d1e-4eb8-99a2-410fab5994a9}) of ThingClass solaxX3InverterRTU
+        <location filename="../plugininfo.h" line="272"/>
+        <location filename="../plugininfo.h" line="275"/>
+        <location filename="../plugininfo.h" line="278"/>
+        <source>Temperature</source>
+        <extracomment>The name of the StateType ({26c81559-2313-4ea5-af6f-9727a3f05ea1}) of ThingClass solaxBattery2
 ----------
-The name of the StateType ({077dfd18-4785-4069-8af5-f94a00389ede}) of ThingClass solaxX3InverterTCP</extracomment>
-        <translation type="unfinished"></translation>
+The name of the StateType ({a5608f4c-a26b-45f6-ac2d-2254a8c65663}) of ThingClass solaxBattery
+----------
+The name of the StateType ({075b3e2f-7e38-4a7b-b1a2-d77539d14c8a}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="321"/>
+        <location filename="../plugininfo.h" line="281"/>
+        <source>Total energy exported to grid</source>
+        <extracomment>The name of the StateType ({cd681545-1345-4d97-a235-39c229d99a66}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="284"/>
+        <source>Total energy imported from grid</source>
+        <extracomment>The name of the StateType ({8aa63873-f2d4-4e3e-a2b0-69dab5a14066}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="287"/>
+        <source>Total energy produced</source>
+        <extracomment>The name of the StateType ({4d5c7bc2-0cf8-4864-ba12-e13976183f03}) of ThingClass solaxX3Ultra</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="290"/>
         <source>Voltage phase A</source>
-        <extracomment>The name of the StateType ({20a9a0f1-456b-43ad-8d07-def6c43d51d3}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({1a6510af-568d-4aca-8f26-6a8bf54a2f6f}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="324"/>
+        <location filename="../plugininfo.h" line="293"/>
         <source>Voltage phase B</source>
-        <extracomment>The name of the StateType ({0b5c1bc9-3982-45e2-87ae-cb3f3f6db031}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({e5b3f4fa-24e7-4e42-85e0-2c204fb3c633}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../plugininfo.h" line="327"/>
+        <location filename="../plugininfo.h" line="296"/>
         <source>Voltage phase C</source>
-        <extracomment>The name of the StateType ({5ec86b4c-b217-459c-a961-bf00dfbe8e98}) of ThingClass solaxMeter</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({202e4a0e-bc2e-4938-aa4c-1a5d51534965}) of ThingClass solaxMeter</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="299"/>
+        <location filename="../plugininfo.h" line="302"/>
+        <source>Warning message</source>
+        <extracomment>The name of the StateType ({f166aeac-35dd-410a-8669-9da08f9724c2}) of ThingClass solaxBattery2
+----------
+The name of the StateType ({85141df9-39ff-4c1b-9f23-ec9529ecb009}) of ThingClass solaxBattery</extracomment>
+        <translation></translation>
     </message>
 </context>
 </TS>
