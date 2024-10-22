@@ -612,6 +612,15 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
         info->finish(Thing::ThingErrorHardwareNotAvailable);
         return;
     }
+
+    if (info->action().actionTypeId() == lambdaTCPSetPointPowerActionTypeId) {
+        double setPointPower = info->action().paramValue(lambdaTCPSetPointPowerActionSetPointPowerParamTypeId).toDouble();
+        qCDebug(dcLambda()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
+        
+        // Set global variable m_demandPower in case SetPointPower state changed
+        connection->setDemandPower(setPointPower);
+    }
+
 }
 
 

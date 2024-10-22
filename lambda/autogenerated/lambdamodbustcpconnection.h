@@ -241,6 +241,9 @@ public:
     uint checkReachableRetries() const;
     void setCheckReachableRetries(uint checkReachableRetries);
 
+    /* manually added for saving powerDemand as global variable*/
+    void setDemandPower(float value);
+    
     /* power demand written by EMS [W] - Address: 102, Size: 1 */
     quint16 setPointPower() const;
     QModbusReply *setSetPointPower(quint16 setPointPower);
@@ -647,6 +650,7 @@ public:
     virtual void update11();
     virtual void update12();
     virtual void update13();
+    virtual void updateWrite();
     
 signals:
     void reachableChanged(bool reachable);
@@ -759,6 +763,7 @@ signals:
     void setpointRoomTemperatureCoolingReadFinished(float setpointRoomTemperatureCooling);
 
 protected:
+    quint16 m_demandPower = 0;
     quint16 m_setPointPower = 0;
     float m_totalEnergyConsumed = 0;
     float m_compressorTotalHeatOutput = 0;
@@ -892,6 +897,8 @@ private:
 
     void onReachabilityCheckFailed();
     void evaluateReachableState();
+
+    QString exceptionToString(QModbusPdu::ExceptionCode exception);
 
 };
 

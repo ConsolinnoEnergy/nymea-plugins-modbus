@@ -117,6 +117,14 @@ QModbusReply *LambdaModbusTcpConnection::setSetPointPower(quint16 setPointPower)
     return sendWriteRequest(request, m_slaveId);
 }
 
+void LambdaModbusTcpConnection::setDemandPower(float value)
+{
+   quint16 demandProvided = static_cast<quint16>(value);
+    if (m_demandPower != demandProvided) {
+        m_demandPower = demandProvided;
+    }
+}
+
 float LambdaModbusTcpConnection::totalEnergyConsumed() const
 {
     return m_totalEnergyConsumed;
@@ -901,12 +909,70 @@ void LambdaModbusTcpConnection::update13()
         processHeatingcircuitOffsetFlowTemperatureRegisterValues(blockValues.mid(0, 1));
         processSetpointRoomTemperatureHeatingRegisterValues(blockValues.mid(1, 1));
         processSetpointRoomTemperatureCoolingRegisterValues(blockValues.mid(2, 1));
+        
+        // JoOb: manual write to address 102
+        updateWrite();
+
+
         verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating block \"heatcircset\" registers" << error << reply->errorString();
     });
+}
+
+void LambdaModbusTcpConnection::updateWrite()
+{
+    QModbusReply *reply = nullptr;
+    //quint16 pwrDmnd = 0;
+
+    // JoOb: Write powerDemand not working (FC6 not supported )
+    //reply = setPowerDemand(pwrDmnd);
+    
+    
+    
+    // JoOb: sendRawRequest is working successfull    
+    quint16 startAddress = 102, numberOfRegisters = 1;
+    quint8 payloadInBytes = 2;
+    
+    quint8 outputHigh = (m_demandPower>>8) & 0xFF;
+    quint8 outputLow = m_demandPower & 0xFF;
+    qCDebug(dcLambdaModbusTcpConnection()) << "demand power value: " << m_demandPower << "; highByte: " << outputHigh << "; lowByte: " << outputLow;
+
+    QModbusRequest request(QModbusRequest::WriteMultipleRegisters, startAddress, numberOfRegisters,
+    payloadInBytes, outputHigh, outputLow);
+
+    //QModbusRequest request(QModbusRequest::WriteMultipleRegisters, QByteArray::fromHex("00660001020001")); // joOb
+    reply = m_modbusTcpClient->sendRawRequest(request, m_slaveId);
+
+    if (!reply) {
+        qCWarning(dcLambdaModbusTcpConnection()) 
+            << "Write powerDemand failed because the reply could not be created.";
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        if (reply->error() != QModbusDevice::NoError) {
+            qCWarning(dcLambdaModbusTcpConnection())
+                    << "Write powerDemand finished with error" << reply->errorString();
+            return;
+        }
+
+        qCDebug(dcLambdaModbusTcpConnection()) << "Write powerDemand finished successfully";
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+            if (reply->error() == QModbusDevice::ProtocolError) {
+                QModbusResponse response = reply->rawResult();
+                if (response.isException()) {
+                    qCDebug(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while writing powerDemand" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                }
+            } else {
+                qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while writing powerDemand" << hostAddress().toString() << error << reply->errorString();
+            }
+        });   
 }
 
 void LambdaModbusTcpConnection::updateSetPointPower()
@@ -3672,3 +3738,43 @@ QDebug operator<<(QDebug debug, LambdaModbusTcpConnection *lambdaModbusTcpConnec
     return debug.quote().space();
 }
 
+QString LambdaModbusTcpConnection::exceptionToString(QModbusPdu::ExceptionCode exception)
+{
+    QString exceptionString;
+    switch (exception) {
+    case QModbusPdu::IllegalFunction:
+        exceptionString = "Illegal function";
+        break;
+    case QModbusPdu::IllegalDataAddress:
+        exceptionString = "Illegal data address";
+        break;
+    case QModbusPdu::IllegalDataValue:
+        exceptionString = "Illegal data value";
+        break;
+    case QModbusPdu::ServerDeviceFailure:
+        exceptionString = "Server device failure";
+        break;
+    case QModbusPdu::Acknowledge:
+        exceptionString = "Acknowledge";
+        break;
+    case QModbusPdu::ServerDeviceBusy:
+        exceptionString = "Server device busy";
+        break;
+    case QModbusPdu::NegativeAcknowledge:
+        exceptionString = "Negative acknowledge";
+        break;
+    case QModbusPdu::MemoryParityError:
+        exceptionString = "Memory parity error";
+        break;
+    case QModbusPdu::GatewayPathUnavailable:
+        exceptionString = "Gateway path unavailable";
+        break;
+    case QModbusPdu::GatewayTargetDeviceFailedToRespond:
+        exceptionString = "Gateway target device failed to respond";
+        break;
+    case QModbusPdu::ExtendedException:
+        exceptionString = "Extended exception";
+        break;
+    }
+    return exceptionString;
+}
