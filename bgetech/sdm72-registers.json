@@ -2,7 +2,7 @@
     "className": "Sdm72",
     "protocol": "RTU",
     "endianness": "BigEndian",
-    "errorLimitUntilNotReachable": 15,
+    "errorLimitUntilNotReachable": 3,
     "checkReachableRegister": "voltagePhaseA",
     "registers": [
         {
@@ -176,6 +176,34 @@
                     "readSchedule": "update",
                     "description": "Total energy produced",
                     "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "serialAndMeterCode",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "serialNumber",
+                    "address": 64512,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
+                    "description": "Serial number",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCode",
+                    "address": 64514,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
+                    "description": "Meter code",
                     "defaultValue": "0",
                     "access": "RO"
                 }

@@ -1,0 +1,13 @@
+{
+    "title": "SolaxEVC",
+    "tagline": "Connect Solax EVC wallboxes to nymea.",
+    "icon": "solax.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}
