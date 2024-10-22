@@ -670,6 +670,42 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "inverterControl",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "exportLimit",
+                    "address": 13073,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter export limit",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "dummy5",
+                    "address": 13074,
+                    "size": 12,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "exportLimitMode",
+                    "address": 13086,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter export mode",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RW"
+                }
+            ]
         }
     ],
     "registers": [

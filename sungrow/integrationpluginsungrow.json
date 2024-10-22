@@ -71,6 +71,34 @@
                             "unit": "Hertz",
                             "defaultValue": 0.00,
                             "cached": false
+                        },
+                        {
+                            "id": "50861a64-557d-4235-a61d-665944fc42ab",
+                            "name": "nominalPower",
+                            "displayName": "Nominal power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        }
+                    ],
+                    "actionTypes": [ 
+                        {
+                            "id": "5ea0f808-f6b8-44f4-8099-ee1e7a14d60c",
+                            "name": "setExportLimit",
+                            "displayName": "Set Grid export limit",
+                            "paramTypes": [
+                                {
+                                    "id": "0afa8777-615c-4927-9581-6500e0bc5346",
+                                    "name": "exportLimit",
+                                    "displayName": "Grid Export Limit (percent of inverter nominal power)",
+                                    "type": "int",
+                                    "unit": "Percentage",
+                                    "defaultValue": 100,
+                                    "minValue": 0,
+                                    "maxValue": 100
+                                }
+                            ]
                         }
                     ]
                 },
