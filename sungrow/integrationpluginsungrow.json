@@ -285,6 +285,45 @@
                             "possibleValues": ["idle", "charging", "discharging"],
                             "defaultValue": "idle",
                             "cached": false
+                        },
+                        {
+                            "id": "1885eec9-7875-48c9-a5cc-6db68b89f738",
+                            "name": "nominalPowerBattery",
+                            "displayName": "Nominal Power for control",
+                            "displayNameEvent": "Nominal power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 10000
+                        },
+                        {
+                            "id": "87c4a86c-11a9-4cf8-ab90-d93dc0f3c497",
+                            "name": "enableForcePower",
+                            "displayName": "Battery manual mode",
+                            "displayNameEvent": "Battery manual mode",
+                            "displayNameAction": "Battery manual mode enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
+                        },
+                        {
+                            "id": "3b3381b2-372f-45d2-9bb6-af3e0c61ed83",
+                            "name": "enableForcePowerState",
+                            "displayName": "Battery manual mode enabled",
+                            "displayNameEvent": "Battery manual mode state changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "d592d654-afcd-4097-bb46-ab9f9af2c8a0",
+                            "name": "forcePower",
+                            "displayName": "Battery force power (+:charge, -:discharge)",
+                            "displayNameEvent": "Battery force power changed",
+                            "displayNameAction": "Battery force power enabled",
+                            "type": "int",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "writable": true,
+                            "cached": true
                         }
                     ]
                 }
