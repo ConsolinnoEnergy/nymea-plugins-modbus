@@ -95,9 +95,15 @@ public:
         RegisterTotalBatteryCapacity = 13038,
         RegisterDummy4 = 13039,
         RegisterTotalExportEnergy = 13045,
+        RegisterEmsModeSelection = 13049,
+        RegisterChargeCommand = 13050,
+        RegisterChargePower = 13051,
         RegisterBatteryType = 13054,
         RegisterBatteryNominalVoltage = 13055,
-        RegisterBatteryCapacity = 13056
+        RegisterBatteryCapacity = 13056,
+        RegisterExportLimit = 13073,
+        RegisterExportLimitMode = 13086,
+        RegisterBatteryNominalPower = 33046
     };
     Q_ENUM(Registers)
 
@@ -142,6 +148,17 @@ public:
 
     uint checkReachableRetries() const;
     void setCheckReachableRetries(uint checkReachableRetries);
+
+    /* Battery nominal power [W] - Address: 33046, Size: 1 */
+    float batteryNominalPower() const;
+
+    /* Inverter export limit - Address: 13073, Size: 1 */
+    quint16 exportLimit() const;
+    QModbusReply *setExportLimit(quint16 exportLimit);
+
+    /* Inverter export mode [V] - Address: 13086, Size: 1 */
+    quint16 exportLimitMode() const;
+    QModbusReply *setExportLimitMode(quint16 exportLimitMode);
 
     /* Protocol number - Address: 4949, Size: 2 */
     quint32 protocolNumber() const;
@@ -287,6 +304,18 @@ public:
     /* Battery capacity [Ah] - Address: 13056, Size: 1 */
     quint16 batteryCapacity() const;
 
+    /* EMS mode (0/2/3/4) - Address: 13049, Size: 1 */
+    quint16 emsModeSelection() const;
+    QModbusReply *setEmsModeSelection(quint16 emsModeSelection);
+
+    /* Force charge or discharge - Address: 13050, Size: 1 */
+    quint16 chargeCommand() const;
+    QModbusReply *setChargeCommand(quint16 chargeCommand);
+
+    /* Set batter power - Address: 13051, Size: 1 */
+    quint16 chargePower() const;
+    QModbusReply *setChargePower(quint16 chargePower);
+
     /* Read block from start addess 4949 with size of 34 registers containing following 4 properties:
       - Protocol number - Address: 4949, Size: 2
       - Device type code - Address: 4951, Size: 2
@@ -355,6 +384,16 @@ public:
     */
     void updateBatteryInformationBlock();
 
+    /* Read block from start addess 13049 with size of 3 registers containing following 3 properties:
+      - EMS mode (0/2/3/4) - Address: 13049, Size: 1
+      - Force charge or discharge - Address: 13050, Size: 1
+      - Set batter power - Address: 13051, Size: 1
+    */
+    void updateBatteryControlBlock();
+
+    void updateBatteryNominalPower();
+    void updateExportLimit();
+    void updateExportLimitMode();
 
     void updateProtocolNumber();
     void updateProtocolVersion();
@@ -404,7 +443,13 @@ public:
     void updateBatteryType();
     void updateBatteryNominalVoltage();
     void updateBatteryCapacity();
+    void updateEmsModeSelection();
+    void updateChargeCommand();
+    void updateChargePower();
 
+    QModbusReply *readBatteryNominalPower();
+    QModbusReply *readExportLimit();
+    QModbusReply *readExportLimitMode();
     QModbusReply *readProtocolNumber();
     QModbusReply *readProtocolVersion();
     QModbusReply *readArmSoftwareVersion();
@@ -453,6 +498,9 @@ public:
     QModbusReply *readBatteryType();
     QModbusReply *readBatteryNominalVoltage();
     QModbusReply *readBatteryCapacity();
+    QModbusReply *readEmsModeSelection();
+    QModbusReply *readChargeCommand();
+    QModbusReply *readChargePower();
 
     /* Read block from start addess 4949 with size of 34 registers containing following 4 properties:
      - Protocol number - Address: 4949, Size: 2
@@ -522,12 +570,23 @@ public:
     */
     QModbusReply *readBlockBatteryInformation();
 
+    /* Read block from start addess 13049 with size of 3 registers containing following 3 properties:
+     - EMS mode (0/2/3/4) - Address: 13049, Size: 1
+     - Force charge or discharge - Address: 13050, Size: 1
+     - Set batter power - Address: 13051, Size: 1
+    */
+    QModbusReply *readBlockBatteryControl();
+
 
     virtual bool initialize();
-    virtual void initialize1();
     virtual void initialize2();
+    virtual void initialize3();
     virtual bool update();
     virtual void update2();
+    virtual void update3();
+    virtual void update4();
+    virtual void update5();
+    virtual void update6();
 
 signals:
     void reachableChanged(bool reachable);
@@ -539,6 +598,12 @@ signals:
 
     void endiannessChanged(ModbusDataUtils::ByteOrder endianness);
 
+    void batteryNominalPowerChanged(float batteryNominalPower);
+    void batteryNominalPowerReadFinished(float batteryNominalPower);
+    void exportLimitChanged(quint16 exportLimit);
+    void exportLimitReadFinished(quint16 exportLimit);
+    void exportLimitModeChanged(quint16 exportLimitMode);
+    void exportLimitModeReadFinished(quint16 exportLimitMode);
 
     void protocolNumberChanged(quint32 protocolNumber);
     void protocolNumberReadFinished(quint32 protocolNumber);
@@ -636,8 +701,17 @@ signals:
     void batteryNominalVoltageReadFinished(float batteryNominalVoltage);
     void batteryCapacityChanged(quint16 batteryCapacity);
     void batteryCapacityReadFinished(quint16 batteryCapacity);
+    void emsModeSelectionChanged(quint16 emsModeSelection);
+    void emsModeSelectionReadFinished(quint16 emsModeSelection);
+    void chargeCommandChanged(quint16 chargeCommand);
+    void chargeCommandReadFinished(quint16 chargeCommand);
+    void chargePowerChanged(quint16 chargePower);
+    void chargePowerReadFinished(quint16 chargePower);
 
 protected:
+    float m_batteryNominalPower = 0;
+    quint16 m_exportLimit = 0;
+    quint16 m_exportLimitMode = 0;
     quint32 m_protocolNumber = 0;
     quint32 m_protocolVersion = 0;
     QString m_armSoftwareVersion;
@@ -686,7 +760,13 @@ protected:
     BatteryType m_batteryType = BatteryTypeNoBattery;
     float m_batteryNominalVoltage = 0;
     quint16 m_batteryCapacity = 10;
+    quint16 m_emsModeSelection = 0;
+    quint16 m_chargeCommand = 0;
+    quint16 m_chargePower = 0;
 
+    void processBatteryNominalPowerRegisterValues(const QVector<quint16> values);
+    void processExportLimitRegisterValues(const QVector<quint16> values);
+    void processExportLimitModeRegisterValues(const QVector<quint16> values);
 
     void processProtocolNumberRegisterValues(const QVector<quint16> values);
     void processProtocolVersionRegisterValues(const QVector<quint16> values);
@@ -740,6 +820,10 @@ protected:
     void processBatteryTypeRegisterValues(const QVector<quint16> values);
     void processBatteryNominalVoltageRegisterValues(const QVector<quint16> values);
     void processBatteryCapacityRegisterValues(const QVector<quint16> values);
+
+    void processEmsModeSelectionRegisterValues(const QVector<quint16> values);
+    void processChargeCommandRegisterValues(const QVector<quint16> values);
+    void processChargePowerRegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();
