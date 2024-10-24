@@ -39,6 +39,13 @@
 
 #include "sungrowmodbustcpconnection.h"
 
+#define INVERTER_EXPORT_LIMITED 0xAA
+#define INVERTER_EXPORT_UNLIMITED 0x55
+
+#define BATTERY_FORCE_CHARGE 0xAA
+#define BATTERY_FORCE_STOP 0xBB
+#define BATTERY_FORCE_DISCHARGE 0xCC
+
 class IntegrationPluginSungrow: public IntegrationPlugin
 {
     Q_OBJECT
@@ -67,6 +74,10 @@ private:
 
     Thing *getMeterThing(Thing *parentThing);
     Thing *getBatteryThing(Thing *parentThing);
+
+    void setBatteryPower(SungrowModbusTcpConnection *connection, double targetPower);
+    void forceBatteryState(SungrowModbusTcpConnection *connection, quint16 mode);
+    void setEmsMode(SungrowModbusTcpConnection *connection, quint16 mode);
 };
 
 #endif // INTEGRATIONPLUGINSUNGROW_H
