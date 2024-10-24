@@ -57,7 +57,7 @@ public:
         RegisterOutdoorTemperature = 4,
         RegisterEmanagerErrorNumber = 100,
         RegisterEmanagerState = 101,
-        RegisterSetPointPower = 102,
+        RegisterActualPvSurplus = 102,
         RegisterCurrentPower = 103,
         RegisterPowerSetpoint = 104,
         RegisterHeatpumpErrorState = 1000,
@@ -74,31 +74,20 @@ public:
         RegisterActualHeatingCapacity = 1011,
         RegisterPowerActualInverter = 1012,
         RegisterCoefficientOfPerformance = 1013,
-        RegisterPasswordRegister = 1014,
-        RegisterRequestType = 1015,
-        RegisterRequestFlowTemperature = 1016,
-        RegisterRequestReturnTemperature = 1017,
-        RegisterRequestTemperatureSink = 1018,
-        RegisterRelaisHeatingActive = 1019,
         RegisterTotalEnergyConsumed = 1020,
         RegisterCompressorTotalHeatOutput = 1022,
-        RegisterErrorSettingQuit = 1050,
         RegisterHotWaterTemperature = 2002,
         RegisterBufferErrorNumber = 3000,
         RegisterBufferState = 3001,
         RegisterBufferTemperatureHigh = 3002,
         RegisterBufferTemperatureLow = 3003,
-        RegisterBufferTemperatureMaximum = 3050,
         RegisterHeatingcircuitErrorNumber = 5000,
         RegisterHeatingcircuitState = 5001,
         RegisterFlowTemperature = 5002,
         RegisterReturnTemperature = 5003,
         RegisterRoomTemperature = 5004,
         RegisterSetpointFlowTemperature = 5005,
-        RegisterHeatingcircuitMode = 5006,
-        RegisterHeatingcircuitOffsetFlowTemperature = 5050,
-        RegisterSetpointRoomTemperatureHeating = 5051,
-        RegisterSetpointRoomTemperatureCooling = 5052
+        RegisterHeatingcircuitMode = 5006
     };
     Q_ENUM(Registers)
 
@@ -170,15 +159,6 @@ public:
     };
     Q_ENUM(HeatpumpState)
 
-    enum RequestType {
-        RequestTypeNoRequest = 0,
-        RequestTypeFlowPumpCirculation = 1,
-        RequestTypeCentralHeating = 2,
-        RequestTypeCentralCooling = 3,
-        RequestTypeDomesticHotWater = 4
-    };
-    Q_ENUM(RequestType)
-
     enum BufferState {
         BufferStateStby = 0,
         BufferStateHeating = 1,
@@ -244,9 +224,9 @@ public:
     /* manually added for saving powerDemand as global variable*/
     void setDemandPower(float value);
     
-    /* power demand written by EMS [W] - Address: 102, Size: 1 */
-    quint16 setPointPower() const;
-    QModbusReply *setSetPointPower(quint16 setPointPower);
+    /* actual PV surplus power [W] - Address: 102, Size: 1 */
+    qint16 actualPvSurplus() const;
+    QModbusReply *setActualPvSurplus(qint16 actualPvSurplus);
 
     /* Accumulated electrical energy consumption of compressor unit since last statistic reset [kWh] - Address: 1020, Size: 2 */
     float totalEnergyConsumed() const;
@@ -254,14 +234,8 @@ public:
     /* Accumulated thermal energy output of compressor unit since last statistic reset [kWh] - Address: 1022, Size: 2 */
     float compressorTotalHeatOutput() const;
 
-    /* Quit all active heat pump errors (0: inactive, 1: active) [W] - Address: 1050, Size: 1 */
-    qint16 errorSettingQuit() const;
-
     /* Actual temperature boiler high sensor [°C] - Address: 2002, Size: 1 */
     float hotWaterTemperature() const;
-
-    /* Maximum buffer temperature setting [°C] - Address: 3050, Size: 1 */
-    float bufferTemperatureMaximum() const;
 
     /* ambient error number - Address: 0, Size: 1 */
     qint16 ambientErrorNumber() const;
@@ -332,24 +306,6 @@ public:
     /* Coefficient of performance [%] - Address: 1013, Size: 1 */
     float coefficientOfPerformance() const;
 
-    /* Password register to release modbus request registers - Address: 1014, Size: 1 */
-    quint16 passwordRegister() const;
-
-    /* request type for the heatpump - Address: 1015, Size: 1 */
-    RequestType requestType() const;
-
-    /* Requested flow line temperature [°C] - Address: 1016, Size: 1 */
-    float requestFlowTemperature() const;
-
-    /* Requested return line temperature [°C] - Address: 1017, Size: 1 */
-    float requestReturnTemperature() const;
-
-    /* Requested temperature difference between flow line and return line [K] - Address: 1018, Size: 1 */
-    float requestTemperatureSink() const;
-
-    /* NO-Relais for 2nd heating stage is activated - Address: 1019, Size: 1 */
-    qint16 relaisHeatingActive() const;
-
     /* buffer error number, 0: no error - Address: 3000, Size: 1 */
     qint16 bufferErrorNumber() const;
 
@@ -383,15 +339,6 @@ public:
     /* Operating mode of the heating circuit - Address: 5006, Size: 1 */
     HeatingcircuitMode heatingcircuitMode() const;
 
-    /* Setting for flow line temperature setpoint offset - Address: 5050, Size: 1 */
-    float heatingcircuitOffsetFlowTemperature() const;
-
-    /* Setting for heating mode room setpoint temperature [°C] - Address: 5051, Size: 1 */
-    float setpointRoomTemperatureHeating() const;
-
-    /* Setting for cooling mode room setpoint temperature [°C] - Address: 5052, Size: 1 */
-    float setpointRoomTemperatureCooling() const;
-
     /* Read block from start addess 0 with size of 5 registers containing following 5 properties:
       - ambient error number - Address: 0, Size: 1
       - operating state for ambient module - Address: 1, Size: 1
@@ -413,7 +360,7 @@ public:
     */
     void updatePowerBlock();
 
-    /* Read block from start addess 1000 with size of 20 registers containing following 20 properties:
+    /* Read block from start addess 1000 with size of 14 registers containing following 14 properties:
       - error state for heat pump module - Address: 1000, Size: 1
       - active heat pump error numbers - Address: 1001, Size: 1
       - System status of the heat pump - Address: 1002, Size: 1
@@ -428,12 +375,6 @@ public:
       - Actual heating capacity [kW] - Address: 1011, Size: 1
       - Frequency inverter actual power consumption [W] - Address: 1012, Size: 1
       - Coefficient of performance [%] - Address: 1013, Size: 1
-      - Password register to release modbus request registers - Address: 1014, Size: 1
-      - request type for the heatpump - Address: 1015, Size: 1
-      - Requested flow line temperature [°C] - Address: 1016, Size: 1
-      - Requested return line temperature [°C] - Address: 1017, Size: 1
-      - Requested temperature difference between flow line and return line [K] - Address: 1018, Size: 1
-      - NO-Relais for 2nd heating stage is activated - Address: 1019, Size: 1
     */
     void updateHeatpumpBlock();
 
@@ -456,19 +397,10 @@ public:
     */
     void updateHeatcircBlock();
 
-    /* Read block from start addess 5050 with size of 3 registers containing following 3 properties:
-      - Setting for flow line temperature setpoint offset - Address: 5050, Size: 1
-      - Setting for heating mode room setpoint temperature [°C] - Address: 5051, Size: 1
-      - Setting for cooling mode room setpoint temperature [°C] - Address: 5052, Size: 1
-    */
-    void updateHeatcircsetBlock();
-
-    void updateSetPointPower();
+    void updateActualPvSurplus();
     void updateTotalEnergyConsumed();
     void updateCompressorTotalHeatOutput();
-    void updateErrorSettingQuit();
     void updateHotWaterTemperature();
-    void updateBufferTemperatureMaximum();
 
     void updateAmbientErrorNumber();
     void updateAmbientState();
@@ -493,12 +425,6 @@ public:
     void updateActualHeatingCapacity();
     void updatePowerActualInverter();
     void updateCoefficientOfPerformance();
-    void updatePasswordRegister();
-    void updateRequestType();
-    void updateRequestFlowTemperature();
-    void updateRequestReturnTemperature();
-    void updateRequestTemperatureSink();
-    void updateRelaisHeatingActive();
     void updateBufferErrorNumber();
     void updateBufferState();
     void updateBufferTemperatureHigh();
@@ -510,16 +436,11 @@ public:
     void updateRoomTemperature();
     void updateSetpointFlowTemperature();
     void updateHeatingcircuitMode();
-    void updateHeatingcircuitOffsetFlowTemperature();
-    void updateSetpointRoomTemperatureHeating();
-    void updateSetpointRoomTemperatureCooling();
 
-    QModbusReply *readSetPointPower();
+    QModbusReply *readActualPvSurplus();
     QModbusReply *readTotalEnergyConsumed();
     QModbusReply *readCompressorTotalHeatOutput();
-    QModbusReply *readErrorSettingQuit();
     QModbusReply *readHotWaterTemperature();
-    QModbusReply *readBufferTemperatureMaximum();
     QModbusReply *readAmbientErrorNumber();
     QModbusReply *readAmbientState();
     QModbusReply *readActualAmbientTemperature();
@@ -543,12 +464,6 @@ public:
     QModbusReply *readActualHeatingCapacity();
     QModbusReply *readPowerActualInverter();
     QModbusReply *readCoefficientOfPerformance();
-    QModbusReply *readPasswordRegister();
-    QModbusReply *readRequestType();
-    QModbusReply *readRequestFlowTemperature();
-    QModbusReply *readRequestReturnTemperature();
-    QModbusReply *readRequestTemperatureSink();
-    QModbusReply *readRelaisHeatingActive();
     QModbusReply *readBufferErrorNumber();
     QModbusReply *readBufferState();
     QModbusReply *readBufferTemperatureHigh();
@@ -560,9 +475,6 @@ public:
     QModbusReply *readRoomTemperature();
     QModbusReply *readSetpointFlowTemperature();
     QModbusReply *readHeatingcircuitMode();
-    QModbusReply *readHeatingcircuitOffsetFlowTemperature();
-    QModbusReply *readSetpointRoomTemperatureHeating();
-    QModbusReply *readSetpointRoomTemperatureCooling();
 
     /* Read block from start addess 0 with size of 5 registers containing following 5 properties:
      - ambient error number - Address: 0, Size: 1
@@ -585,7 +497,7 @@ public:
     */
     QModbusReply *readBlockPower();
 
-    /* Read block from start addess 1000 with size of 20 registers containing following 20 properties:
+    /* Read block from start addess 1000 with size of 14 registers containing following 14 properties:
      - error state for heat pump module - Address: 1000, Size: 1
      - active heat pump error numbers - Address: 1001, Size: 1
      - System status of the heat pump - Address: 1002, Size: 1
@@ -600,12 +512,6 @@ public:
      - Actual heating capacity [kW] - Address: 1011, Size: 1
      - Frequency inverter actual power consumption [W] - Address: 1012, Size: 1
      - Coefficient of performance [%] - Address: 1013, Size: 1
-     - Password register to release modbus request registers - Address: 1014, Size: 1
-     - request type for the heatpump - Address: 1015, Size: 1
-     - Requested flow line temperature [°C] - Address: 1016, Size: 1
-     - Requested return line temperature [°C] - Address: 1017, Size: 1
-     - Requested temperature difference between flow line and return line [K] - Address: 1018, Size: 1
-     - NO-Relais for 2nd heating stage is activated - Address: 1019, Size: 1
     */
     QModbusReply *readBlockHeatpump();
 
@@ -628,13 +534,6 @@ public:
     */
     QModbusReply *readBlockHeatcirc();
 
-    /* Read block from start addess 5050 with size of 3 registers containing following 3 properties:
-     - Setting for flow line temperature setpoint offset - Address: 5050, Size: 1
-     - Setting for heating mode room setpoint temperature [°C] - Address: 5051, Size: 1
-     - Setting for cooling mode room setpoint temperature [°C] - Address: 5052, Size: 1
-    */
-    QModbusReply *readBlockHeatcircset();
-
 
     virtual bool initialize();
     virtual bool update();    
@@ -647,9 +546,6 @@ public:
     virtual void update8();
     virtual void update9();
     virtual void update10();
-    virtual void update11();
-    virtual void update12();
-    virtual void update13();
     virtual void updateWrite();
     
 signals:
@@ -662,18 +558,14 @@ signals:
 
     void endiannessChanged(ModbusDataUtils::ByteOrder endianness);
 
-    void setPointPowerChanged(quint16 setPointPower);
-    void setPointPowerReadFinished(quint16 setPointPower);
+    void actualPvSurplusChanged(qint16 actualPvSurplus);
+    void actualPvSurplusReadFinished(qint16 actualPvSurplus);
     void totalEnergyConsumedChanged(float totalEnergyConsumed);
     void totalEnergyConsumedReadFinished(float totalEnergyConsumed);
     void compressorTotalHeatOutputChanged(float compressorTotalHeatOutput);
     void compressorTotalHeatOutputReadFinished(float compressorTotalHeatOutput);
-    void errorSettingQuitChanged(qint16 errorSettingQuit);
-    void errorSettingQuitReadFinished(qint16 errorSettingQuit);
     void hotWaterTemperatureChanged(float hotWaterTemperature);
     void hotWaterTemperatureReadFinished(float hotWaterTemperature);
-    void bufferTemperatureMaximumChanged(float bufferTemperatureMaximum);
-    void bufferTemperatureMaximumReadFinished(float bufferTemperatureMaximum);
 
     void ambientErrorNumberChanged(qint16 ambientErrorNumber);
     void ambientErrorNumberReadFinished(qint16 ambientErrorNumber);
@@ -721,18 +613,6 @@ signals:
     void powerActualInverterReadFinished(qint16 powerActualInverter);
     void coefficientOfPerformanceChanged(float coefficientOfPerformance);
     void coefficientOfPerformanceReadFinished(float coefficientOfPerformance);
-    void passwordRegisterChanged(quint16 passwordRegister);
-    void passwordRegisterReadFinished(quint16 passwordRegister);
-    void requestTypeChanged(RequestType requestType);
-    void requestTypeReadFinished(RequestType requestType);
-    void requestFlowTemperatureChanged(float requestFlowTemperature);
-    void requestFlowTemperatureReadFinished(float requestFlowTemperature);
-    void requestReturnTemperatureChanged(float requestReturnTemperature);
-    void requestReturnTemperatureReadFinished(float requestReturnTemperature);
-    void requestTemperatureSinkChanged(float requestTemperatureSink);
-    void requestTemperatureSinkReadFinished(float requestTemperatureSink);
-    void relaisHeatingActiveChanged(qint16 relaisHeatingActive);
-    void relaisHeatingActiveReadFinished(qint16 relaisHeatingActive);
     void bufferErrorNumberChanged(qint16 bufferErrorNumber);
     void bufferErrorNumberReadFinished(qint16 bufferErrorNumber);
     void bufferStateChanged(BufferState bufferState);
@@ -755,21 +635,13 @@ signals:
     void setpointFlowTemperatureReadFinished(float setpointFlowTemperature);
     void heatingcircuitModeChanged(HeatingcircuitMode heatingcircuitMode);
     void heatingcircuitModeReadFinished(HeatingcircuitMode heatingcircuitMode);
-    void heatingcircuitOffsetFlowTemperatureChanged(float heatingcircuitOffsetFlowTemperature);
-    void heatingcircuitOffsetFlowTemperatureReadFinished(float heatingcircuitOffsetFlowTemperature);
-    void setpointRoomTemperatureHeatingChanged(float setpointRoomTemperatureHeating);
-    void setpointRoomTemperatureHeatingReadFinished(float setpointRoomTemperatureHeating);
-    void setpointRoomTemperatureCoolingChanged(float setpointRoomTemperatureCooling);
-    void setpointRoomTemperatureCoolingReadFinished(float setpointRoomTemperatureCooling);
 
 protected:
-    quint16 m_demandPower = 0;
-    quint16 m_setPointPower = 0;
+    qint16 m_demandPower = 0;
+    qint16 m_actualPvSurplus = 0;
     float m_totalEnergyConsumed = 0;
     float m_compressorTotalHeatOutput = 0;
-    qint16 m_errorSettingQuit = 0;
     float m_hotWaterTemperature = 0;
-    float m_bufferTemperatureMaximum = 0;
     qint16 m_ambientErrorNumber = 0;
     AmbientState m_ambientState = AmbientStateOff;
     float m_actualAmbientTemperature = 20;
@@ -793,12 +665,6 @@ protected:
     float m_actualHeatingCapacity = 0;
     qint16 m_powerActualInverter = 0;
     float m_coefficientOfPerformance = 0;
-    quint16 m_passwordRegister = 0;
-    RequestType m_requestType = RequestTypeNoRequest;
-    float m_requestFlowTemperature = 0;
-    float m_requestReturnTemperature = 0;
-    float m_requestTemperatureSink = 0;
-    qint16 m_relaisHeatingActive = 0;
     qint16 m_bufferErrorNumber = 0;
     BufferState m_bufferState = BufferStateStby;
     float m_bufferTemperatureHigh = 0;
@@ -810,16 +676,11 @@ protected:
     float m_roomTemperature = 0;
     float m_setpointFlowTemperature = 0;
     HeatingcircuitMode m_heatingcircuitMode = HeatingcircuitModeOff;
-    float m_heatingcircuitOffsetFlowTemperature = 0;
-    float m_setpointRoomTemperatureHeating = 0;
-    float m_setpointRoomTemperatureCooling = 0;
 
-    void processSetPointPowerRegisterValues(const QVector<quint16> values);
+    void processActualPvSurplusRegisterValues(const QVector<quint16> values);
     void processTotalEnergyConsumedRegisterValues(const QVector<quint16> values);
     void processCompressorTotalHeatOutputRegisterValues(const QVector<quint16> values);
-    void processErrorSettingQuitRegisterValues(const QVector<quint16> values);
     void processHotWaterTemperatureRegisterValues(const QVector<quint16> values);
-    void processBufferTemperatureMaximumRegisterValues(const QVector<quint16> values);
 
     void processAmbientErrorNumberRegisterValues(const QVector<quint16> values);
     void processAmbientStateRegisterValues(const QVector<quint16> values);
@@ -847,12 +708,6 @@ protected:
     void processActualHeatingCapacityRegisterValues(const QVector<quint16> values);
     void processPowerActualInverterRegisterValues(const QVector<quint16> values);
     void processCoefficientOfPerformanceRegisterValues(const QVector<quint16> values);
-    void processPasswordRegisterRegisterValues(const QVector<quint16> values);
-    void processRequestTypeRegisterValues(const QVector<quint16> values);
-    void processRequestFlowTemperatureRegisterValues(const QVector<quint16> values);
-    void processRequestReturnTemperatureRegisterValues(const QVector<quint16> values);
-    void processRequestTemperatureSinkRegisterValues(const QVector<quint16> values);
-    void processRelaisHeatingActiveRegisterValues(const QVector<quint16> values);
 
     void processBufferErrorNumberRegisterValues(const QVector<quint16> values);
     void processBufferStateRegisterValues(const QVector<quint16> values);
@@ -866,10 +721,6 @@ protected:
     void processRoomTemperatureRegisterValues(const QVector<quint16> values);
     void processSetpointFlowTemperatureRegisterValues(const QVector<quint16> values);
     void processHeatingcircuitModeRegisterValues(const QVector<quint16> values);
-
-    void processHeatingcircuitOffsetFlowTemperatureRegisterValues(const QVector<quint16> values);
-    void processSetpointRoomTemperatureHeatingRegisterValues(const QVector<quint16> values);
-    void processSetpointRoomTemperatureCoolingRegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();

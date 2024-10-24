@@ -161,10 +161,10 @@
                         },
                         {
                             "id": "3e8350a9-9d2f-46c9-b8f6-aee8a6b786bb",
-                            "name": "setPointPower",
-                            "displayName": "Power demand",
-                            "displayNameEvent": "Power demand changed",
-                            "displayNameAction": "Set power demand",
+                            "name": "actualPvSurplus",
+                            "displayName": "actual PV surplus",
+                            "displayNameEvent": "PV surplus changed",
+                            "displayNameAction": "Set PV surplus",
                             "unit": "Watt",
                             "type": "double",
                             "writable": true,
@@ -184,8 +184,8 @@
                         {
                             "id": "bf3b6231-8990-49c9-95d5-7799e20bc2ec",
                             "name": "powerSetpoint",
-                            "displayName": "Realized power setpoint",
-                            "displayNameEvent": "Realized power setpoint changed",
+                            "displayName": "heatpump power setpoint",
+                            "displayNameEvent": "heatpump power setpoint changed",
                             "unit": "Watt",
                             "type": "double",
                             "defaultValue": 0,
@@ -275,8 +275,8 @@
                         {
                             "id": "b01c6d79-8451-45c6-98bc-2bff314c9b85",
                             "name": "heatpumpFlowTemperature",
-                            "displayName": "Flow temperature",
-                            "displayNameEvent": "Flow temperature changed",
+                            "displayName": "Flow temperature heat pump",
+                            "displayNameEvent": "Flow temperature heat pump changed",
                             "unit": "DegreeCelsius",
                             "type": "double",
                             "defaultValue": 0.00,
@@ -285,8 +285,8 @@
                         {
                             "id": "48964c77-4dfa-4fbb-8fd8-66cc8dc9a806",
                             "name": "heatpumpReturnTemperature",
-                            "displayName": "Return temperature",
-                            "displayNameEvent": "Return temperature changed",
+                            "displayName": "Return temperature heat pump",
+                            "displayNameEvent": "Return temperature heat pump changed",
                             "unit": "DegreeCelsius",
                             "type": "double",
                             "defaultValue": 0.00,
@@ -373,66 +373,6 @@
                             "suggestLogging": true
                         },
                         {
-                            "id": "353c341c-6772-4d4f-b59f-5176b8d4151b",
-                            "name": "passwordRegister",
-                            "displayName": "Password register modbus request",
-                            "displayNameEvent": "Password register modbus request changed",
-                            "unit": "None",
-                            "type": "uint",
-                            "defaultValue": 0,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "5572696d-deea-4d63-94f6-2ef1bf8c24ec",
-                            "name": "requestType",
-                            "displayName": "Request type",
-                            "displayNameEvent": "Request type",
-                            "unit": "None",
-                            "type": "int",
-                            "defaultValue": 0,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "058637d9-58a8-47a4-b19d-2351b0b69dbf",
-                            "name": "requestFlowTemperature",
-                            "displayName": "Requested flow line temperature",
-                            "displayNameEvent": "Requested flow line temperature changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0.00,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "0e17e632-6dda-4718-8c4a-b6720352cac0",
-                            "name": "requestReturnTemperature",
-                            "displayName": "Requested return line temperature",
-                            "displayNameEvent": "Requested return line temperature changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0.00,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "2be0f29f-0a4e-4c1f-99f7-90e95c626da7",
-                            "name": "requestTemperatureSink",
-                            "displayName": "Requested temperature difference between flow and return line",
-                            "displayNameEvent": "Requested temperature difference between flow and return line changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0.00,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "5817f298-df0f-456c-9a25-d5f2aa87c02d",
-                            "name": "relaisHeatingActive",
-                            "displayName": "Relais 2nd heating stage activated",
-                            "displayNameEvent": "Relais 2nd heating stage activated changed",
-                            "unit": "None",
-                            "type": "bool",
-                            "defaultValue": false,
-                            "suggestLogging": true
-                        },
-                        {
                             "id": "c1f0894e-af62-4f29-89fc-d983ce3b7ffc",
                             "name": "totalEnergyConsumed",
                             "displayName": "Accumulated electrical energy consumption of compressor",
@@ -450,16 +390,6 @@
                             "unit": "KiloWattHour",
                             "type": "int",
                             "defaultValue": 0,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "8f4194e9-2b01-4272-a9f6-e478b548ad14",
-                            "name": "errorSettingQuit",
-                            "displayName": "Quit all active heat pump errors",
-                            "displayNameEvent": "Quit all active heat pump errors changed",
-                            "unit": "None",
-                            "type": "bool",
-                            "defaultValue": false,
                             "suggestLogging": true
                         },
                         {
@@ -517,16 +447,6 @@
                             "name": "bufferTemperatureLow",
                             "displayName": "Actual buffer temperature low",
                             "displayNameEvent": "Actual buffer temperature low",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0.00,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "a15818bd-8a3c-493f-9b6c-5ddbeaaf1373",
-                            "name": "bufferTemperatureMaximum",
-                            "displayName": "Maximum buffer temperature setting",
-                            "displayNameEvent": "Maximum buffer temperature setting changed",
                             "unit": "DegreeCelsius",
                             "type": "double",
                             "defaultValue": 0.00,
@@ -630,36 +550,6 @@
                                 "FloorDry"
                             ],
                             "defaultValue": "Off",
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "5b6bd516-6f29-42eb-add8-a3bec30927f8",
-                            "name": "heatingcircuitOffsetFlowTemperature",
-                            "displayName": "Flow line temperature setpoint offset",
-                            "displayNameEvent": "Flow line temperature setpoint offset changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0.00,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "f828b180-5aa9-4b3d-bed6-81e76a475485",
-                            "name": "setpointRoomTemperatureHeating",
-                            "displayName": "Room temperature heating setpoint",
-                            "displayNameEvent": "Room temperature heating setpoint changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0.00,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "5308995d-f4ad-45d1-b300-15d5bb680c07",
-                            "name": "setpointRoomTemperatureCooling",
-                            "displayName": "Room temperature cooling setpoint",
-                            "displayNameEvent": "Room temperature cooling setpoint changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0.00,
                             "suggestLogging": true
                         }
                     ],

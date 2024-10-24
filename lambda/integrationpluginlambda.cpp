@@ -180,9 +180,9 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
                 break;
             }
         });
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::setPointPowerChanged, thing, [thing](float setPointPower){
-            qCDebug(dcLambda()) << thing << "power demand changed" << setPointPower << "W";
-            thing->setStateValue(lambdaTCPSetPointPowerStateTypeId, setPointPower);
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::actualPvSurplusChanged, thing, [thing](float actualPvSurplus){
+            qCDebug(dcLambda()) << thing << "power demand changed" << actualPvSurplus << "W";
+            thing->setStateValue(lambdaTCPActualPvSurplusStateTypeId, actualPvSurplus);
         });
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::currentPowerChanged, thing, [thing](float currentPower){
             qCDebug(dcLambda()) << thing << "actual power consumption changed" << currentPower << "W";
@@ -575,7 +575,7 @@ void IntegrationPluginLambda::postSetupThing(Thing *thing)
     if (thing->thingClassId() == lambdaTCPThingClassId) {
         if (!m_pluginTimer) {
             qCDebug(dcLambda()) << "Starting plugin timer...";
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
+            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach (LambdaModbusTcpConnection *connection, m_connections) {
                     if (connection->connected()) {
@@ -613,12 +613,12 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
         return;
     }
 
-    if (info->action().actionTypeId() == lambdaTCPSetPointPowerActionTypeId) {
-        double setPointPower = info->action().paramValue(lambdaTCPSetPointPowerActionSetPointPowerParamTypeId).toDouble();
+    if (info->action().actionTypeId() == lambdaTCPActualPvSurplusActionTypeId) {
+        double actualPvSurplus = info->action().paramValue(lambdaTCPActualPvSurplusActionActualPvSurplusParamTypeId).toDouble();
         qCDebug(dcLambda()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
         
-        // Set global variable m_demandPower in case SetPointPower state changed
-        connection->setDemandPower(setPointPower);
+        // Set global variable m_demandPower in case ActualPvSurplus state changed
+        connection->setDemandPower(actualPvSurplus);
     }
 
 }

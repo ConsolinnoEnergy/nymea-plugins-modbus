@@ -103,15 +103,15 @@ void LambdaModbusTcpConnection::setEndianness(ModbusDataUtils::ByteOrder endiann
     emit endiannessChanged(m_endianness);
 }
 
-quint16 LambdaModbusTcpConnection::setPointPower() const
+qint16 LambdaModbusTcpConnection::actualPvSurplus() const
 {
-    return m_setPointPower;
+    return m_actualPvSurplus;
 }
 
-QModbusReply *LambdaModbusTcpConnection::setSetPointPower(quint16 setPointPower)
+QModbusReply *LambdaModbusTcpConnection::setActualPvSurplus(qint16 actualPvSurplus)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(setPointPower);
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Write \"power demand written by EMS\" register:" << 102 << "size:" << 1 << values;
+    QVector<quint16> values = ModbusDataUtils::convertFromInt16(actualPvSurplus);
+    qCDebug(dcLambdaModbusTcpConnection()) << "--> Write \"actual PV surplus power\" register:" << 102 << "size:" << 1 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 102, values.count());
     request.setValues(values);
     return sendWriteRequest(request, m_slaveId);
@@ -119,7 +119,7 @@ QModbusReply *LambdaModbusTcpConnection::setSetPointPower(quint16 setPointPower)
 
 void LambdaModbusTcpConnection::setDemandPower(float value)
 {
-   quint16 demandProvided = static_cast<quint16>(value);
+   qint16 demandProvided = static_cast<qint16>(value);
     if (m_demandPower != demandProvided) {
         m_demandPower = demandProvided;
     }
@@ -135,19 +135,9 @@ float LambdaModbusTcpConnection::compressorTotalHeatOutput() const
     return m_compressorTotalHeatOutput;
 }
 
-qint16 LambdaModbusTcpConnection::errorSettingQuit() const
-{
-    return m_errorSettingQuit;
-}
-
 float LambdaModbusTcpConnection::hotWaterTemperature() const
 {
     return m_hotWaterTemperature;
-}
-
-float LambdaModbusTcpConnection::bufferTemperatureMaximum() const
-{
-    return m_bufferTemperatureMaximum;
 }
 
 qint16 LambdaModbusTcpConnection::ambientErrorNumber() const
@@ -265,36 +255,6 @@ float LambdaModbusTcpConnection::coefficientOfPerformance() const
     return m_coefficientOfPerformance;
 }
 
-quint16 LambdaModbusTcpConnection::passwordRegister() const
-{
-    return m_passwordRegister;
-}
-
-LambdaModbusTcpConnection::RequestType LambdaModbusTcpConnection::requestType() const
-{
-    return m_requestType;
-}
-
-float LambdaModbusTcpConnection::requestFlowTemperature() const
-{
-    return m_requestFlowTemperature;
-}
-
-float LambdaModbusTcpConnection::requestReturnTemperature() const
-{
-    return m_requestReturnTemperature;
-}
-
-float LambdaModbusTcpConnection::requestTemperatureSink() const
-{
-    return m_requestTemperatureSink;
-}
-
-qint16 LambdaModbusTcpConnection::relaisHeatingActive() const
-{
-    return m_relaisHeatingActive;
-}
-
 qint16 LambdaModbusTcpConnection::bufferErrorNumber() const
 {
     return m_bufferErrorNumber;
@@ -350,21 +310,6 @@ LambdaModbusTcpConnection::HeatingcircuitMode LambdaModbusTcpConnection::heating
     return m_heatingcircuitMode;
 }
 
-float LambdaModbusTcpConnection::heatingcircuitOffsetFlowTemperature() const
-{
-    return m_heatingcircuitOffsetFlowTemperature;
-}
-
-float LambdaModbusTcpConnection::setpointRoomTemperatureHeating() const
-{
-    return m_setpointRoomTemperatureHeating;
-}
-
-float LambdaModbusTcpConnection::setpointRoomTemperatureCooling() const
-{
-    return m_setpointRoomTemperatureCooling;
-}
-
 bool LambdaModbusTcpConnection::initialize()
 {
     if (!m_reachable) {
@@ -388,11 +333,11 @@ bool LambdaModbusTcpConnection::update()
 
     QModbusReply *reply = nullptr;
 
-    // Read power demand written by EMS
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"power demand written by EMS\" register:" << 102 << "size:" << 1;
-    reply = readSetPointPower();
+    // Read actual PV surplus power
+    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"actual PV surplus power\" register:" << 102 << "size:" << 1;
+    reply = readActualPvSurplus();
     if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"power demand written by EMS\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"actual PV surplus power\" registers from" << hostAddress().toString() << errorString();
         return false;
     }
 
@@ -412,13 +357,13 @@ bool LambdaModbusTcpConnection::update()
         }
 
         const QModbusDataUnit unit = reply->result();
-        qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"power demand written by EMS\" register" << 102 << "size:" << 1 << unit.values();
-        processSetPointPowerRegisterValues(unit.values());
+        qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"actual PV surplus power\" register" << 102 << "size:" << 1 << unit.values();
+        processActualPvSurplusRegisterValues(unit.values());
         update2();//JoOb-previous: verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading \"power demand written by EMS\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading \"actual PV surplus power\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
     return true;
 }
@@ -501,43 +446,6 @@ void LambdaModbusTcpConnection::update3()
 void LambdaModbusTcpConnection::update4()
 {
     QModbusReply *reply = nullptr;
-    // Read Quit all active heat pump errors (0: inactive, 1: active)
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Quit all active heat pump errors (0: inactive, 1: active)\" register:" << 1050 << "size:" << 1;
-    reply = readErrorSettingQuit();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Quit all active heat pump errors (0: inactive, 1: active)\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    m_pendingUpdateReplies.append(reply);
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        m_pendingUpdateReplies.removeAll(reply);
-        handleModbusError(reply->error());
-        if (reply->error() != QModbusDevice::NoError) {
-            verifyUpdateFinished();
-            return;
-        }
-
-        const QModbusDataUnit unit = reply->result();
-        qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Quit all active heat pump errors (0: inactive, 1: active)\" register" << 1050 << "size:" << 1 << unit.values();
-        processErrorSettingQuitRegisterValues(unit.values());
-        update5();//JoOb-previous: verifyUpdateFinished();
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading \"Quit all active heat pump errors (0: inactive, 1: active)\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::update5()
-{
-    QModbusReply *reply = nullptr;
     // Read Actual temperature boiler high sensor
     qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Actual temperature boiler high sensor\" register:" << 2002 << "size:" << 1;
     reply = readHotWaterTemperature();
@@ -564,7 +472,7 @@ void LambdaModbusTcpConnection::update5()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Actual temperature boiler high sensor\" register" << 2002 << "size:" << 1 << unit.values();
         processHotWaterTemperatureRegisterValues(unit.values());
-        update6();//JoOb-previous: verifyUpdateFinished();
+        update5();//JoOb-previous: verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
@@ -572,44 +480,7 @@ void LambdaModbusTcpConnection::update5()
     });
 }
 
-void LambdaModbusTcpConnection::update6()
-{
-    QModbusReply *reply = nullptr;
-    // Read Maximum buffer temperature setting
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Maximum buffer temperature setting\" register:" << 3050 << "size:" << 1;
-    reply = readBufferTemperatureMaximum();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Maximum buffer temperature setting\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    m_pendingUpdateReplies.append(reply);
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        m_pendingUpdateReplies.removeAll(reply);
-        handleModbusError(reply->error());
-        if (reply->error() != QModbusDevice::NoError) {
-            verifyUpdateFinished();
-            return;
-        }
-
-        const QModbusDataUnit unit = reply->result();
-        qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Maximum buffer temperature setting\" register" << 3050 << "size:" << 1 << unit.values();
-        processBufferTemperatureMaximumRegisterValues(unit.values());
-        update7();//JoOb-previous: verifyUpdateFinished();
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading \"Maximum buffer temperature setting\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::update7()
+void LambdaModbusTcpConnection::update5()
 {
     QModbusReply *reply = nullptr;
     // Read ambient
@@ -643,7 +514,7 @@ void LambdaModbusTcpConnection::update7()
         processActualAmbientTemperatureRegisterValues(blockValues.mid(2, 1));
         processAverageAmbientTemperatureRegisterValues(blockValues.mid(3, 1));
         processOutdoorTemperatureRegisterValues(blockValues.mid(4, 1));
-        update8();//JoOb-previous: verifyUpdateFinished();
+        update6();//JoOb-previous: verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -651,7 +522,7 @@ void LambdaModbusTcpConnection::update7()
     });
 }
 
-void LambdaModbusTcpConnection::update8()
+void LambdaModbusTcpConnection::update6()
 {
     QModbusReply *reply = nullptr;
 
@@ -683,7 +554,7 @@ void LambdaModbusTcpConnection::update8()
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"emanager\" register" << 100 << "size:" << 2 << blockValues;
         processEmanagerErrorNumberRegisterValues(blockValues.mid(0, 1));
         processEmanagerStateRegisterValues(blockValues.mid(1, 1));
-        update9();//JoOb-previous: verifyUpdateFinished();
+        update7();//JoOb-previous: verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -691,7 +562,7 @@ void LambdaModbusTcpConnection::update8()
     });
 }
 
-void LambdaModbusTcpConnection::update9()
+void LambdaModbusTcpConnection::update7()
 {
     QModbusReply *reply = nullptr;
 
@@ -723,7 +594,7 @@ void LambdaModbusTcpConnection::update9()
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"power\" register" << 103 << "size:" << 2 << blockValues;
         processCurrentPowerRegisterValues(blockValues.mid(0, 1));
         processPowerSetpointRegisterValues(blockValues.mid(1, 1));
-        update10();//JoOb-previous: verifyUpdateFinished();
+        update8();//JoOb-previous: verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -731,7 +602,7 @@ void LambdaModbusTcpConnection::update9()
     });
 }
 
-void LambdaModbusTcpConnection::update10()
+void LambdaModbusTcpConnection::update8()
 {
     QModbusReply *reply = nullptr;
 
@@ -760,7 +631,7 @@ void LambdaModbusTcpConnection::update10()
 
         const QModbusDataUnit unit = reply->result();
         const QVector<quint16> blockValues = unit.values();
-        qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"heatpump\" register" << 1000 << "size:" << 20 << blockValues;
+        qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"heatpump\" register" << 1000 << "size:" << 14 << blockValues;
         processHeatpumpErrorStateRegisterValues(blockValues.mid(0, 1));
         processHeatpumpErrorNumberRegisterValues(blockValues.mid(1, 1));
         processSystemStatusRegisterValues(blockValues.mid(2, 1));
@@ -775,13 +646,7 @@ void LambdaModbusTcpConnection::update10()
         processActualHeatingCapacityRegisterValues(blockValues.mid(11, 1));
         processPowerActualInverterRegisterValues(blockValues.mid(12, 1));
         processCoefficientOfPerformanceRegisterValues(blockValues.mid(13, 1));
-        processPasswordRegisterRegisterValues(blockValues.mid(14, 1));
-        processRequestTypeRegisterValues(blockValues.mid(15, 1));
-        processRequestFlowTemperatureRegisterValues(blockValues.mid(16, 1));
-        processRequestReturnTemperatureRegisterValues(blockValues.mid(17, 1));
-        processRequestTemperatureSinkRegisterValues(blockValues.mid(18, 1));
-        processRelaisHeatingActiveRegisterValues(blockValues.mid(19, 1));
-        update11();//JoOb-previous: verifyUpdateFinished();
+        update9();//JoOb-previous: verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -789,7 +654,7 @@ void LambdaModbusTcpConnection::update10()
     });
 }
 
-void LambdaModbusTcpConnection::update11()
+void LambdaModbusTcpConnection::update9()
 {
     QModbusReply *reply = nullptr;
 
@@ -823,7 +688,7 @@ void LambdaModbusTcpConnection::update11()
         processBufferStateRegisterValues(blockValues.mid(1, 1));
         processBufferTemperatureHighRegisterValues(blockValues.mid(2, 1));
         processBufferTemperatureLowRegisterValues(blockValues.mid(3, 1));
-        update12();//JoOb-previous: verifyUpdateFinished();
+        update10();//JoOb-previous: verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -831,7 +696,7 @@ void LambdaModbusTcpConnection::update11()
     });
 }
 
-void LambdaModbusTcpConnection::update12()
+void LambdaModbusTcpConnection::update10()
 {
     QModbusReply *reply = nullptr;
 
@@ -868,57 +733,15 @@ void LambdaModbusTcpConnection::update12()
         processRoomTemperatureRegisterValues(blockValues.mid(4, 1));
         processSetpointFlowTemperatureRegisterValues(blockValues.mid(5, 1));
         processHeatingcircuitModeRegisterValues(blockValues.mid(6, 1));
-        update13();//JoOb-previous: verifyUpdateFinished();
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating block \"heatcirc\" registers" << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::update13()
-{
-    QModbusReply *reply = nullptr;
-
-    // Read heatcircset
-    reply = readBlockHeatcircset();
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read block \"heatcircset\" registers from:" << 5050 << "size:" << 3;
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading block \"heatcircset\" registers";
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    m_pendingUpdateReplies.append(reply);
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        m_pendingUpdateReplies.removeAll(reply);
-        handleModbusError(reply->error());
-        if (reply->error() != QModbusDevice::NoError) {
-            verifyUpdateFinished();
-            return;
-        }
-
-        const QModbusDataUnit unit = reply->result();
-        const QVector<quint16> blockValues = unit.values();
-        qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"heatcircset\" register" << 5050 << "size:" << 3 << blockValues;
-        processHeatingcircuitOffsetFlowTemperatureRegisterValues(blockValues.mid(0, 1));
-        processSetpointRoomTemperatureHeatingRegisterValues(blockValues.mid(1, 1));
-        processSetpointRoomTemperatureCoolingRegisterValues(blockValues.mid(2, 1));
         
-        // JoOb: manual write to address 102
+	// JoOb: manual write to address 102
         updateWrite();
-
 
         verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating block \"heatcircset\" registers" << error << reply->errorString();
+        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating block \"heatcirc\" registers" << error << reply->errorString();
     });
 }
 
@@ -928,8 +751,7 @@ void LambdaModbusTcpConnection::updateWrite()
     //quint16 pwrDmnd = 0;
 
     // JoOb: Write powerDemand not working (FC6 not supported )
-    //reply = setPowerDemand(pwrDmnd);
-    
+    //reply = setPowerDemand(pwrDmnd);    
     
     
     // JoOb: sendRawRequest is working successfull    
@@ -975,13 +797,13 @@ void LambdaModbusTcpConnection::updateWrite()
         });   
 }
 
-void LambdaModbusTcpConnection::updateSetPointPower()
+void LambdaModbusTcpConnection::updateActualPvSurplus()
 {
-    // Update registers from power demand written by EMS
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"power demand written by EMS\" register:" << 102 << "size:" << 1;
-    QModbusReply *reply = readSetPointPower();
+    // Update registers from actual PV surplus power
+    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"actual PV surplus power\" register:" << 102 << "size:" << 1;
+    QModbusReply *reply = readActualPvSurplus();
     if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"power demand written by EMS\" registers from" << hostAddress().toString() << errorString();
+        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"actual PV surplus power\" registers from" << hostAddress().toString() << errorString();
         return;
     }
 
@@ -995,13 +817,13 @@ void LambdaModbusTcpConnection::updateSetPointPower()
         handleModbusError(reply->error());
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"power demand written by EMS\" register" << 102 << "size:" << 1 << unit.values();
-            processSetPointPowerRegisterValues(unit.values());
+            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"actual PV surplus power\" register" << 102 << "size:" << 1 << unit.values();
+            processActualPvSurplusRegisterValues(unit.values());
         }
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"power demand written by EMS\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"actual PV surplus power\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1065,36 +887,6 @@ void LambdaModbusTcpConnection::updateCompressorTotalHeatOutput()
     });
 }
 
-void LambdaModbusTcpConnection::updateErrorSettingQuit()
-{
-    // Update registers from Quit all active heat pump errors (0: inactive, 1: active)
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Quit all active heat pump errors (0: inactive, 1: active)\" register:" << 1050 << "size:" << 1;
-    QModbusReply *reply = readErrorSettingQuit();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Quit all active heat pump errors (0: inactive, 1: active)\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Quit all active heat pump errors (0: inactive, 1: active)\" register" << 1050 << "size:" << 1 << unit.values();
-            processErrorSettingQuitRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Quit all active heat pump errors (0: inactive, 1: active)\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
 void LambdaModbusTcpConnection::updateHotWaterTemperature()
 {
     // Update registers from Actual temperature boiler high sensor
@@ -1122,36 +914,6 @@ void LambdaModbusTcpConnection::updateHotWaterTemperature()
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Actual temperature boiler high sensor\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::updateBufferTemperatureMaximum()
-{
-    // Update registers from Maximum buffer temperature setting
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Maximum buffer temperature setting\" register:" << 3050 << "size:" << 1;
-    QModbusReply *reply = readBufferTemperatureMaximum();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Maximum buffer temperature setting\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Maximum buffer temperature setting\" register" << 3050 << "size:" << 1 << unit.values();
-            processBufferTemperatureMaximumRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Maximum buffer temperature setting\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1845,186 +1607,6 @@ void LambdaModbusTcpConnection::updateCoefficientOfPerformance()
     });
 }
 
-void LambdaModbusTcpConnection::updatePasswordRegister()
-{
-    // Update registers from Password register to release modbus request registers
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Password register to release modbus request registers\" register:" << 1014 << "size:" << 1;
-    QModbusReply *reply = readPasswordRegister();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Password register to release modbus request registers\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Password register to release modbus request registers\" register" << 1014 << "size:" << 1 << unit.values();
-            processPasswordRegisterRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Password register to release modbus request registers\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::updateRequestType()
-{
-    // Update registers from request type for the heatpump
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"request type for the heatpump\" register:" << 1015 << "size:" << 1;
-    QModbusReply *reply = readRequestType();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"request type for the heatpump\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"request type for the heatpump\" register" << 1015 << "size:" << 1 << unit.values();
-            processRequestTypeRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"request type for the heatpump\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::updateRequestFlowTemperature()
-{
-    // Update registers from Requested flow line temperature
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Requested flow line temperature\" register:" << 1016 << "size:" << 1;
-    QModbusReply *reply = readRequestFlowTemperature();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Requested flow line temperature\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Requested flow line temperature\" register" << 1016 << "size:" << 1 << unit.values();
-            processRequestFlowTemperatureRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Requested flow line temperature\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::updateRequestReturnTemperature()
-{
-    // Update registers from Requested return line temperature
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Requested return line temperature\" register:" << 1017 << "size:" << 1;
-    QModbusReply *reply = readRequestReturnTemperature();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Requested return line temperature\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Requested return line temperature\" register" << 1017 << "size:" << 1 << unit.values();
-            processRequestReturnTemperatureRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Requested return line temperature\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::updateRequestTemperatureSink()
-{
-    // Update registers from Requested temperature difference between flow line and return line
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Requested temperature difference between flow line and return line\" register:" << 1018 << "size:" << 1;
-    QModbusReply *reply = readRequestTemperatureSink();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Requested temperature difference between flow line and return line\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Requested temperature difference between flow line and return line\" register" << 1018 << "size:" << 1 << unit.values();
-            processRequestTemperatureSinkRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Requested temperature difference between flow line and return line\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::updateRelaisHeatingActive()
-{
-    // Update registers from NO-Relais for 2nd heating stage is activated
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"NO-Relais for 2nd heating stage is activated\" register:" << 1019 << "size:" << 1;
-    QModbusReply *reply = readRelaisHeatingActive();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"NO-Relais for 2nd heating stage is activated\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"NO-Relais for 2nd heating stage is activated\" register" << 1019 << "size:" << 1 << unit.values();
-            processRelaisHeatingActiveRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"NO-Relais for 2nd heating stage is activated\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
 void LambdaModbusTcpConnection::updateBufferErrorNumber()
 {
     // Update registers from buffer error number, 0: no error
@@ -2355,96 +1937,6 @@ void LambdaModbusTcpConnection::updateHeatingcircuitMode()
     });
 }
 
-void LambdaModbusTcpConnection::updateHeatingcircuitOffsetFlowTemperature()
-{
-    // Update registers from Setting for flow line temperature setpoint offset
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Setting for flow line temperature setpoint offset\" register:" << 5050 << "size:" << 1;
-    QModbusReply *reply = readHeatingcircuitOffsetFlowTemperature();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Setting for flow line temperature setpoint offset\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Setting for flow line temperature setpoint offset\" register" << 5050 << "size:" << 1 << unit.values();
-            processHeatingcircuitOffsetFlowTemperatureRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Setting for flow line temperature setpoint offset\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::updateSetpointRoomTemperatureHeating()
-{
-    // Update registers from Setting for heating mode room setpoint temperature
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Setting for heating mode room setpoint temperature\" register:" << 5051 << "size:" << 1;
-    QModbusReply *reply = readSetpointRoomTemperatureHeating();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Setting for heating mode room setpoint temperature\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Setting for heating mode room setpoint temperature\" register" << 5051 << "size:" << 1 << unit.values();
-            processSetpointRoomTemperatureHeatingRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Setting for heating mode room setpoint temperature\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void LambdaModbusTcpConnection::updateSetpointRoomTemperatureCooling()
-{
-    // Update registers from Setting for cooling mode room setpoint temperature
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read \"Setting for cooling mode room setpoint temperature\" register:" << 5052 << "size:" << 1;
-    QModbusReply *reply = readSetpointRoomTemperatureCooling();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading \"Setting for cooling mode room setpoint temperature\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Setting for cooling mode room setpoint temperature\" register" << 5052 << "size:" << 1 << unit.values();
-            processSetpointRoomTemperatureCoolingRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating \"Setting for cooling mode room setpoint temperature\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
 void LambdaModbusTcpConnection::updateAmbientBlock()
 {
     // Update register block "ambient"
@@ -2547,7 +2039,7 @@ void LambdaModbusTcpConnection::updatePowerBlock()
 void LambdaModbusTcpConnection::updateHeatpumpBlock()
 {
     // Update register block "heatpump"
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read block \"heatpump\" registers from:" << 1000 << "size:" << 20;
+    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read block \"heatpump\" registers from:" << 1000 << "size:" << 14;
     QModbusReply *reply = readBlockHeatpump();
     if (!reply) {
         qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading block \"heatpump\" registers";
@@ -2565,7 +2057,7 @@ void LambdaModbusTcpConnection::updateHeatpumpBlock()
         if (reply->error() == QModbusDevice::NoError) {
             const QModbusDataUnit unit = reply->result();
             const QVector<quint16> blockValues = unit.values();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"heatpump\" register" << 1000 << "size:" << 20 << blockValues;
+            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"heatpump\" register" << 1000 << "size:" << 14 << blockValues;
             processHeatpumpErrorStateRegisterValues(blockValues.mid(0, 1));
             processHeatpumpErrorNumberRegisterValues(blockValues.mid(1, 1));
             processSystemStatusRegisterValues(blockValues.mid(2, 1));
@@ -2580,12 +2072,6 @@ void LambdaModbusTcpConnection::updateHeatpumpBlock()
             processActualHeatingCapacityRegisterValues(blockValues.mid(11, 1));
             processPowerActualInverterRegisterValues(blockValues.mid(12, 1));
             processCoefficientOfPerformanceRegisterValues(blockValues.mid(13, 1));
-            processPasswordRegisterRegisterValues(blockValues.mid(14, 1));
-            processRequestTypeRegisterValues(blockValues.mid(15, 1));
-            processRequestFlowTemperatureRegisterValues(blockValues.mid(16, 1));
-            processRequestReturnTemperatureRegisterValues(blockValues.mid(17, 1));
-            processRequestTemperatureSinkRegisterValues(blockValues.mid(18, 1));
-            processRelaisHeatingActiveRegisterValues(blockValues.mid(19, 1));
         }
     });
 
@@ -2665,40 +2151,7 @@ void LambdaModbusTcpConnection::updateHeatcircBlock()
     });
 }
 
-void LambdaModbusTcpConnection::updateHeatcircsetBlock()
-{
-    // Update register block "heatcircset"
-    qCDebug(dcLambdaModbusTcpConnection()) << "--> Read block \"heatcircset\" registers from:" << 5050 << "size:" << 3;
-    QModbusReply *reply = readBlockHeatcircset();
-    if (!reply) {
-        qCWarning(dcLambdaModbusTcpConnection()) << "Error occurred while reading block \"heatcircset\" registers";
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            const QVector<quint16> blockValues = unit.values();
-            qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"heatcircset\" register" << 5050 << "size:" << 3 << blockValues;
-            processHeatingcircuitOffsetFlowTemperatureRegisterValues(blockValues.mid(0, 1));
-            processSetpointRoomTemperatureHeatingRegisterValues(blockValues.mid(1, 1));
-            processSetpointRoomTemperatureCoolingRegisterValues(blockValues.mid(2, 1));
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while updating block \"heatcircset\" registers" << error << reply->errorString();
-    });
-}
-
-QModbusReply *LambdaModbusTcpConnection::readSetPointPower()
+QModbusReply *LambdaModbusTcpConnection::readActualPvSurplus()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 102, 1);
     return sendReadRequest(request, m_slaveId);
@@ -2716,21 +2169,9 @@ QModbusReply *LambdaModbusTcpConnection::readCompressorTotalHeatOutput()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *LambdaModbusTcpConnection::readErrorSettingQuit()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1050, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
 QModbusReply *LambdaModbusTcpConnection::readHotWaterTemperature()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 2002, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *LambdaModbusTcpConnection::readBufferTemperatureMaximum()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 3050, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -2872,42 +2313,6 @@ QModbusReply *LambdaModbusTcpConnection::readCoefficientOfPerformance()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *LambdaModbusTcpConnection::readPasswordRegister()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1014, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *LambdaModbusTcpConnection::readRequestType()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1015, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *LambdaModbusTcpConnection::readRequestFlowTemperature()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1016, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *LambdaModbusTcpConnection::readRequestReturnTemperature()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1017, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *LambdaModbusTcpConnection::readRequestTemperatureSink()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1018, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *LambdaModbusTcpConnection::readRelaisHeatingActive()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1019, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
 QModbusReply *LambdaModbusTcpConnection::readBufferErrorNumber()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 3000, 1);
@@ -2974,24 +2379,6 @@ QModbusReply *LambdaModbusTcpConnection::readHeatingcircuitMode()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *LambdaModbusTcpConnection::readHeatingcircuitOffsetFlowTemperature()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 5050, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *LambdaModbusTcpConnection::readSetpointRoomTemperatureHeating()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 5051, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
-QModbusReply *LambdaModbusTcpConnection::readSetpointRoomTemperatureCooling()
-{
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 5052, 1);
-    return sendReadRequest(request, m_slaveId);
-}
-
 QModbusReply *LambdaModbusTcpConnection::readBlockAmbient()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0, 5);
@@ -3012,7 +2399,7 @@ QModbusReply *LambdaModbusTcpConnection::readBlockPower()
 
 QModbusReply *LambdaModbusTcpConnection::readBlockHeatpump()
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1000, 20);
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1000, 14);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -3028,26 +2415,20 @@ QModbusReply *LambdaModbusTcpConnection::readBlockHeatcirc()
     return sendReadRequest(request, m_slaveId);
 }
 
-QModbusReply *LambdaModbusTcpConnection::readBlockHeatcircset()
+void LambdaModbusTcpConnection::processActualPvSurplusRegisterValues(const QVector<quint16> values)
 {
-    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 5050, 3);
-    return sendReadRequest(request, m_slaveId);
-}
+    qint16 receivedActualPvSurplus = ModbusDataUtils::convertToInt16(values);
+    emit actualPvSurplusReadFinished(receivedActualPvSurplus);
 
-void LambdaModbusTcpConnection::processSetPointPowerRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedSetPointPower = ModbusDataUtils::convertToUInt16(values);
-    emit setPointPowerReadFinished(receivedSetPointPower);
-
-    if (m_setPointPower != receivedSetPointPower) {
-        m_setPointPower = receivedSetPointPower;
-        emit setPointPowerChanged(m_setPointPower);
+    if (m_actualPvSurplus != receivedActualPvSurplus) {
+        m_actualPvSurplus = receivedActualPvSurplus;
+        emit actualPvSurplusChanged(m_actualPvSurplus);
     }
 }
 
 void LambdaModbusTcpConnection::processTotalEnergyConsumedRegisterValues(const QVector<quint16> values)
 {
-    float receivedTotalEnergyConsumed = ModbusDataUtils::convertToInt32(values, m_endianness) * 1.0 * pow(10, 3);
+    float receivedTotalEnergyConsumed = ModbusDataUtils::convertToUInt32(values, m_endianness) * 1.0 * pow(10, -3);
     emit totalEnergyConsumedReadFinished(receivedTotalEnergyConsumed);
 
     if (m_totalEnergyConsumed != receivedTotalEnergyConsumed) {
@@ -3058,23 +2439,12 @@ void LambdaModbusTcpConnection::processTotalEnergyConsumedRegisterValues(const Q
 
 void LambdaModbusTcpConnection::processCompressorTotalHeatOutputRegisterValues(const QVector<quint16> values)
 {
-    float receivedCompressorTotalHeatOutput = ModbusDataUtils::convertToInt32(values, m_endianness) * 1.0 * pow(10, 3);
+    float receivedCompressorTotalHeatOutput = ModbusDataUtils::convertToUInt32(values, m_endianness) * 1.0 * pow(10, -3);
     emit compressorTotalHeatOutputReadFinished(receivedCompressorTotalHeatOutput);
 
     if (m_compressorTotalHeatOutput != receivedCompressorTotalHeatOutput) {
         m_compressorTotalHeatOutput = receivedCompressorTotalHeatOutput;
         emit compressorTotalHeatOutputChanged(m_compressorTotalHeatOutput);
-    }
-}
-
-void LambdaModbusTcpConnection::processErrorSettingQuitRegisterValues(const QVector<quint16> values)
-{
-    qint16 receivedErrorSettingQuit = ModbusDataUtils::convertToInt16(values);
-    emit errorSettingQuitReadFinished(receivedErrorSettingQuit);
-
-    if (m_errorSettingQuit != receivedErrorSettingQuit) {
-        m_errorSettingQuit = receivedErrorSettingQuit;
-        emit errorSettingQuitChanged(m_errorSettingQuit);
     }
 }
 
@@ -3086,17 +2456,6 @@ void LambdaModbusTcpConnection::processHotWaterTemperatureRegisterValues(const Q
     if (m_hotWaterTemperature != receivedHotWaterTemperature) {
         m_hotWaterTemperature = receivedHotWaterTemperature;
         emit hotWaterTemperatureChanged(m_hotWaterTemperature);
-    }
-}
-
-void LambdaModbusTcpConnection::processBufferTemperatureMaximumRegisterValues(const QVector<quint16> values)
-{
-    float receivedBufferTemperatureMaximum = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -1);
-    emit bufferTemperatureMaximumReadFinished(receivedBufferTemperatureMaximum);
-
-    if (m_bufferTemperatureMaximum != receivedBufferTemperatureMaximum) {
-        m_bufferTemperatureMaximum = receivedBufferTemperatureMaximum;
-        emit bufferTemperatureMaximumChanged(m_bufferTemperatureMaximum);
     }
 }
 
@@ -3353,72 +2712,6 @@ void LambdaModbusTcpConnection::processCoefficientOfPerformanceRegisterValues(co
     }
 }
 
-void LambdaModbusTcpConnection::processPasswordRegisterRegisterValues(const QVector<quint16> values)
-{
-    quint16 receivedPasswordRegister = ModbusDataUtils::convertToUInt16(values);
-    emit passwordRegisterReadFinished(receivedPasswordRegister);
-
-    if (m_passwordRegister != receivedPasswordRegister) {
-        m_passwordRegister = receivedPasswordRegister;
-        emit passwordRegisterChanged(m_passwordRegister);
-    }
-}
-
-void LambdaModbusTcpConnection::processRequestTypeRegisterValues(const QVector<quint16> values)
-{
-    RequestType receivedRequestType = static_cast<RequestType>(ModbusDataUtils::convertToUInt16(values));
-    emit requestTypeReadFinished(receivedRequestType);
-
-    if (m_requestType != receivedRequestType) {
-        m_requestType = receivedRequestType;
-        emit requestTypeChanged(m_requestType);
-    }
-}
-
-void LambdaModbusTcpConnection::processRequestFlowTemperatureRegisterValues(const QVector<quint16> values)
-{
-    float receivedRequestFlowTemperature = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -1);
-    emit requestFlowTemperatureReadFinished(receivedRequestFlowTemperature);
-
-    if (m_requestFlowTemperature != receivedRequestFlowTemperature) {
-        m_requestFlowTemperature = receivedRequestFlowTemperature;
-        emit requestFlowTemperatureChanged(m_requestFlowTemperature);
-    }
-}
-
-void LambdaModbusTcpConnection::processRequestReturnTemperatureRegisterValues(const QVector<quint16> values)
-{
-    float receivedRequestReturnTemperature = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -1);
-    emit requestReturnTemperatureReadFinished(receivedRequestReturnTemperature);
-
-    if (m_requestReturnTemperature != receivedRequestReturnTemperature) {
-        m_requestReturnTemperature = receivedRequestReturnTemperature;
-        emit requestReturnTemperatureChanged(m_requestReturnTemperature);
-    }
-}
-
-void LambdaModbusTcpConnection::processRequestTemperatureSinkRegisterValues(const QVector<quint16> values)
-{
-    float receivedRequestTemperatureSink = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -1);
-    emit requestTemperatureSinkReadFinished(receivedRequestTemperatureSink);
-
-    if (m_requestTemperatureSink != receivedRequestTemperatureSink) {
-        m_requestTemperatureSink = receivedRequestTemperatureSink;
-        emit requestTemperatureSinkChanged(m_requestTemperatureSink);
-    }
-}
-
-void LambdaModbusTcpConnection::processRelaisHeatingActiveRegisterValues(const QVector<quint16> values)
-{
-    qint16 receivedRelaisHeatingActive = ModbusDataUtils::convertToInt16(values);
-    emit relaisHeatingActiveReadFinished(receivedRelaisHeatingActive);
-
-    if (m_relaisHeatingActive != receivedRelaisHeatingActive) {
-        m_relaisHeatingActive = receivedRelaisHeatingActive;
-        emit relaisHeatingActiveChanged(m_relaisHeatingActive);
-    }
-}
-
 void LambdaModbusTcpConnection::processBufferErrorNumberRegisterValues(const QVector<quint16> values)
 {
     qint16 receivedBufferErrorNumber = ModbusDataUtils::convertToInt16(values);
@@ -3540,39 +2833,6 @@ void LambdaModbusTcpConnection::processHeatingcircuitModeRegisterValues(const QV
     }
 }
 
-void LambdaModbusTcpConnection::processHeatingcircuitOffsetFlowTemperatureRegisterValues(const QVector<quint16> values)
-{
-    float receivedHeatingcircuitOffsetFlowTemperature = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -1);
-    emit heatingcircuitOffsetFlowTemperatureReadFinished(receivedHeatingcircuitOffsetFlowTemperature);
-
-    if (m_heatingcircuitOffsetFlowTemperature != receivedHeatingcircuitOffsetFlowTemperature) {
-        m_heatingcircuitOffsetFlowTemperature = receivedHeatingcircuitOffsetFlowTemperature;
-        emit heatingcircuitOffsetFlowTemperatureChanged(m_heatingcircuitOffsetFlowTemperature);
-    }
-}
-
-void LambdaModbusTcpConnection::processSetpointRoomTemperatureHeatingRegisterValues(const QVector<quint16> values)
-{
-    float receivedSetpointRoomTemperatureHeating = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -1);
-    emit setpointRoomTemperatureHeatingReadFinished(receivedSetpointRoomTemperatureHeating);
-
-    if (m_setpointRoomTemperatureHeating != receivedSetpointRoomTemperatureHeating) {
-        m_setpointRoomTemperatureHeating = receivedSetpointRoomTemperatureHeating;
-        emit setpointRoomTemperatureHeatingChanged(m_setpointRoomTemperatureHeating);
-    }
-}
-
-void LambdaModbusTcpConnection::processSetpointRoomTemperatureCoolingRegisterValues(const QVector<quint16> values)
-{
-    float receivedSetpointRoomTemperatureCooling = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -1);
-    emit setpointRoomTemperatureCoolingReadFinished(receivedSetpointRoomTemperatureCooling);
-
-    if (m_setpointRoomTemperatureCooling != receivedSetpointRoomTemperatureCooling) {
-        m_setpointRoomTemperatureCooling = receivedSetpointRoomTemperatureCooling;
-        emit setpointRoomTemperatureCoolingChanged(m_setpointRoomTemperatureCooling);
-    }
-}
-
 void LambdaModbusTcpConnection::handleModbusError(QModbusDevice::Error error)
 {
     if (error == QModbusDevice::NoError) {
@@ -3686,12 +2946,10 @@ void LambdaModbusTcpConnection::evaluateReachableState()
 QDebug operator<<(QDebug debug, LambdaModbusTcpConnection *lambdaModbusTcpConnection)
 {
     debug.nospace().noquote() << "LambdaModbusTcpConnection(" << lambdaModbusTcpConnection->hostAddress().toString() << ":" << lambdaModbusTcpConnection->port() << ")" << "\n";
-    debug.nospace().noquote() << "    - power demand written by EMS: " << lambdaModbusTcpConnection->setPointPower() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - actual PV surplus power: " << lambdaModbusTcpConnection->actualPvSurplus() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Accumulated electrical energy consumption of compressor unit since last statistic reset: " << lambdaModbusTcpConnection->totalEnergyConsumed() << " [kWh]" << "\n";
     debug.nospace().noquote() << "    - Accumulated thermal energy output of compressor unit since last statistic reset: " << lambdaModbusTcpConnection->compressorTotalHeatOutput() << " [kWh]" << "\n";
-    debug.nospace().noquote() << "    - Quit all active heat pump errors (0: inactive, 1: active): " << lambdaModbusTcpConnection->errorSettingQuit() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Actual temperature boiler high sensor: " << lambdaModbusTcpConnection->hotWaterTemperature() << " [°C]" << "\n";
-    debug.nospace().noquote() << "    - Maximum buffer temperature setting: " << lambdaModbusTcpConnection->bufferTemperatureMaximum() << " [°C]" << "\n";
     debug.nospace().noquote() << "    - ambient error number: " << lambdaModbusTcpConnection->ambientErrorNumber() << "\n";
     debug.nospace().noquote() << "    - operating state for ambient module: " << lambdaModbusTcpConnection->ambientState() << "\n";
     debug.nospace().noquote() << "    - actual ambient temperature: " << lambdaModbusTcpConnection->actualAmbientTemperature() << " [°C]" << "\n";
@@ -3715,12 +2973,6 @@ QDebug operator<<(QDebug debug, LambdaModbusTcpConnection *lambdaModbusTcpConnec
     debug.nospace().noquote() << "    - Actual heating capacity: " << lambdaModbusTcpConnection->actualHeatingCapacity() << " [kW]" << "\n";
     debug.nospace().noquote() << "    - Frequency inverter actual power consumption: " << lambdaModbusTcpConnection->powerActualInverter() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Coefficient of performance: " << lambdaModbusTcpConnection->coefficientOfPerformance() << " [%]" << "\n";
-    debug.nospace().noquote() << "    - Password register to release modbus request registers: " << lambdaModbusTcpConnection->passwordRegister() << "\n";
-    debug.nospace().noquote() << "    - request type for the heatpump: " << lambdaModbusTcpConnection->requestType() << "\n";
-    debug.nospace().noquote() << "    - Requested flow line temperature: " << lambdaModbusTcpConnection->requestFlowTemperature() << " [°C]" << "\n";
-    debug.nospace().noquote() << "    - Requested return line temperature: " << lambdaModbusTcpConnection->requestReturnTemperature() << " [°C]" << "\n";
-    debug.nospace().noquote() << "    - Requested temperature difference between flow line and return line: " << lambdaModbusTcpConnection->requestTemperatureSink() << " [K]" << "\n";
-    debug.nospace().noquote() << "    - NO-Relais for 2nd heating stage is activated: " << lambdaModbusTcpConnection->relaisHeatingActive() << "\n";
     debug.nospace().noquote() << "    - buffer error number, 0: no error: " << lambdaModbusTcpConnection->bufferErrorNumber() << "\n";
     debug.nospace().noquote() << "    - Operating state of the buffer: " << lambdaModbusTcpConnection->bufferState() << "\n";
     debug.nospace().noquote() << "    - Actual temperature buffer high sensor: " << lambdaModbusTcpConnection->bufferTemperatureHigh() << " [°C]" << "\n";
@@ -3732,9 +2984,6 @@ QDebug operator<<(QDebug debug, LambdaModbusTcpConnection *lambdaModbusTcpConnec
     debug.nospace().noquote() << "    - actual temperatur room device sensor: " << lambdaModbusTcpConnection->roomTemperature() << " [°C]" << "\n";
     debug.nospace().noquote() << "    - Setpoint flow temperature: " << lambdaModbusTcpConnection->setpointFlowTemperature() << " [°C]" << "\n";
     debug.nospace().noquote() << "    - Operating mode of the heating circuit: " << lambdaModbusTcpConnection->heatingcircuitMode() << "\n";
-    debug.nospace().noquote() << "    - Setting for flow line temperature setpoint offset: " << lambdaModbusTcpConnection->heatingcircuitOffsetFlowTemperature() << "\n";
-    debug.nospace().noquote() << "    - Setting for heating mode room setpoint temperature: " << lambdaModbusTcpConnection->setpointRoomTemperatureHeating() << " [°C]" << "\n";
-    debug.nospace().noquote() << "    - Setting for cooling mode room setpoint temperature: " << lambdaModbusTcpConnection->setpointRoomTemperatureCooling() << " [°C]" << "\n";
     return debug.quote().space();
 }
 

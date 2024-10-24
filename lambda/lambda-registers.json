@@ -223,31 +223,6 @@
             ]
         },
         {
-            "name": "RequestType",
-            "values": [
-                {
-                    "key": "NoRequest",
-                    "value": 0
-                },
-                {
-                    "key": "FlowPumpCirculation",
-                    "value": 1
-                },
-                {
-                    "key": "CentralHeating",
-                    "value": 2
-                },
-                {
-                    "key": "CentralCooling",
-                    "value": 3
-                },
-                {
-                    "key": "DomesticHotWater",
-                    "value": 4
-                }
-            ]
-        },
-        {
             "name": "BufferState",
             "values": [
                 {
@@ -612,7 +587,7 @@
                     "staticScaleFactor": -2,
                     "defaultValue": "0",
                     "unit": "°C",
-                    "access": "R!" // error introduced for avoiding regeneration of modbustcp code
+                    "access": "RO"
                 },
                 {
                     "id": "heatpumpReturnTemperature",
@@ -729,82 +704,7 @@
                     "defaultValue": "0",
                     "unit": "%",
                     "access": "RO"
-                },
-                {
-                    "id": "passwordRegister",
-                    "address": 1014,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Password register to release modbus request registers",
-                    "defaultValue": "0",
-                    "unit": "",
-                    "access": "RO"
-                },
-                {
-                    "id": "requestType",
-                    "address": 1015,
-                    "size": 1,
-                    "type": "uint16",
-                    "enum": "RequestType",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "request type for the heatpump",
-                    "defaultValue": "RequestTypeNoRequest",
-                    "access": "RO"
-                },
-                {
-                    "id": "requestFlowTemperature",
-                    "address": 1016,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Requested flow line temperature",
-                    "staticScaleFactor": -1,
-                    "defaultValue": "0",
-                    "unit": "°C",
-                    "access": "RO"
-                },
-                {
-                    "id": "requestReturnTemperature",
-                    "address": 1017,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Requested return line temperature",
-                    "staticScaleFactor": -1,
-                    "defaultValue": "0",
-                    "unit": "°C",
-                    "access": "RO"
-                },
-                {
-                    "id": "requestTemperatureSink",
-                    "address": 1018,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Requested temperature difference between flow line and return line",
-                    "staticScaleFactor": -1,
-                    "defaultValue": "0",
-                    "unit": "K",
-                    "access": "RO"
-                },
-                {
-                    "id": "relaisHeatingActive",
-                    "address": 1019,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "NO-Relais for 2nd heating stage is activated",
-                    "defaultValue": "0",
-                    "unit": "",
-                    "access": "RO"
-                }                
+                }
             ]
         },
         {
@@ -942,7 +842,7 @@
                     "staticScaleFactor": -1,
                     "defaultValue": "0",
                     "unit": "°C",
-                    "access": "RO"
+                    "access": "R0" // error introduced to avoid regeneration of tcp code
                 },
                 {
                     "id": "heatingcircuitMode",
@@ -957,62 +857,17 @@
                     "access": "RO"
                 }
             ]
-        },
-        {
-            "id": "heatcircset",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "heatingcircuitOffsetFlowTemperature",
-                    "address": 5050,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Setting for flow line temperature setpoint offset",
-                    "staticScaleFactor": -1,
-                    "defaultValue": "0",
-                    "unit": "",
-                    "access": "RO"
-                },
-                {
-                    "id": "setpointRoomTemperatureHeating",
-                    "address": 5051,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Setting for heating mode room setpoint temperature",
-                    "staticScaleFactor": -1,
-                    "defaultValue": "0",
-                    "unit": "°C",
-                    "access": "RO"
-                },
-                {
-                    "id": "setpointRoomTemperatureCooling",
-                    "address": 5052,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Setting for cooling mode room setpoint temperature",
-                    "staticScaleFactor": -1,
-                    "defaultValue": "0",
-                    "unit": "°C",
-                    "access": "RO"
-                }
-            ]
         }
     ],
     "registers": [
         {
-            "id": "setPointPower",
+            "id": "actualPvSurplus",
             "address": 102,
             "size": 1,
-            "type": "uint16",
+            "type": "int16",
             "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "power demand written by EMS",
+            "description": "actual PV surplus power",
             "defaultValue": "0",
             "unit": "W",
             "access": "RW"
@@ -1021,11 +876,11 @@
             "id": "totalEnergyConsumed",
             "address": 1020,
             "size": 2,
-            "type": "int32",
+            "type": "uint32",
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "Accumulated electrical energy consumption of compressor unit since last statistic reset",
-            "staticScaleFactor": 3,
+            "staticScaleFactor": -3,
             "defaultValue": "0",
             "unit": "kWh",
             "access": "RO"
@@ -1034,25 +889,13 @@
             "id": "compressorTotalHeatOutput",
             "address": 1022,
             "size": 2,
-            "type": "int32",
+            "type": "uint32",
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "Accumulated thermal energy output of compressor unit since last statistic reset",
-            "staticScaleFactor": 3,
+            "staticScaleFactor": -3,
             "defaultValue": "0",
             "unit": "kWh",
-            "access": "RO"
-        },
-        {
-            "id": "errorSettingQuit",
-            "address": 1050,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Quit all active heat pump errors (0: inactive, 1: active)",
-            "defaultValue": "0",
-            "unit": "W",
             "access": "RO"
         },
         {
@@ -1063,19 +906,6 @@
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "Actual temperature boiler high sensor",
-            "staticScaleFactor": -1,
-            "defaultValue": "0",
-            "unit": "°C",
-            "access": "RO"
-        },
-        {
-            "id": "bufferTemperatureMaximum",
-            "address": 3050,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Maximum buffer temperature setting",
             "staticScaleFactor": -1,
             "defaultValue": "0",
             "unit": "°C",
