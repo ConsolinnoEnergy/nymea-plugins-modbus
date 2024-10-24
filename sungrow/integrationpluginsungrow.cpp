@@ -177,6 +177,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 sungrowConnection->reconnectDevice();
             } else {
                 qCInfo(dcSungrow()) << "Connection initialized successfully for" << thing;
+                thing->setStateValue(sungrowInverterTcpNominalPowerStateTypeId, sungrowConnection->nominalOutputPower());
                 sungrowConnection->update();
             }
         });
@@ -251,6 +252,27 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 }
                 batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, batteryPower);
             }
+
+            // Mode: 170 - ON | Export will be limited to chosen value
+            //       85 - OFF | Export not limited, max export
+            // Check if mode is 85. If yes, set to 170
+            if (sungrowConnection->exportLimitMode() == 85) {
+                QModbusReply *reply = sungrowConnection->setExportLimitMode(170);
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+                connect(reply, &QModbusReply::finished, thing, [reply]() {
+                    qCDebug(dcSungrow()) << "Set export mode finished";
+                    if (reply->error() != QModbusDevice::NoError) {
+                        qCWarning(dcSungrow()) << "Error setting export limit mode";
+                    } else {
+                        qCDebug(dcSungrow()) << "Successfully set export limit mode";
+                    }
+                });
+            }
+        });
+
+        connect(sungrowConnection, &SungrowModbusTcpConnection::exportLimitChanged, thing, [thing](quint16 exportLimit) {
+            qCDebug(dcSungrow()) << "Export limit changed to" << exportLimit << "W";
+            thing->setStateValue(sungrowInverterTcpExportLimitStateTypeId, exportLimit);
         });
 
         m_tcpConnections.insert(thing, sungrowConnection);
@@ -382,4 +404,50 @@ Thing *IntegrationPluginSungrow::getBatteryThing(Thing *parentThing)
         return nullptr;
 
     return batteryThings.first();
+}
+
+// TODO: Define min and max SOC
+void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
+{
+    Thing *thing = info->thing();
+    Action action = info->action();
+
+    if (thing->thingClassId() == sungrowInverterTcpThingClassId) {
+    } else if (thing->thingClassId() == sungrowBatteryThingClassId) {
+        SungrowModbusTcpConnection *connection = m_tcpConnections.value(thing);
+        if (!connection) {
+            qCDebug(dcSungrow()) << "executeAction - Modbus connection not available.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (!connection->connected()) {
+            qCDebug(dcSungrow()) << "Could not execute action. Modbus connection is not connected.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (action.actionTypeId() == sungrowInverterTcpSetExportLimitActionTypeId) {
+            double ratedPower = thing->stateValue(sungrowInverterTcpNominalPowerStateTypeId).toDouble();
+            quint16 powerLimit = action.paramValue(sungrowInverterTcpSetExportLimitActionExportLimitParamTypeId).toUInt();
+            quint16 targetPowerLimit = powerLimit * (ratedPower/100);
+
+            QModbusReply *reply = connection->setExportLimit(targetPowerLimit);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, reply, [info, reply, targetPowerLimit] (){
+                qCDebug(dcSungrow()) << "Set export limit - Received reply";
+                if (reply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSungrow()) << "Error settting active power limit" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                } else {
+                    qCDebug(dcSungrow()) << "Successfully set export limit to " << targetPowerLimit;
+                    info->finish(Thing::ThingErrorNoError);
+                }
+            });
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+        }
+    } else {
+        Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+    }
 }

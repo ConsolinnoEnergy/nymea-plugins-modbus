@@ -80,6 +80,15 @@
                             "unit": "Watt",
                             "defaultValue": 0,
                             "cached": false
+                        },
+                        {
+                            "id": "629ab8ef-755b-4741-94df-2899703504d3",
+                            "name": "exportLimit",
+                            "displayName": "Export power limit",
+                            "displayNameEvent": "Export power limit changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0
                         }
                     ],
                     "actionTypes": [ 
