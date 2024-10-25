@@ -434,7 +434,7 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
             int heatingPower = action.params()[0].value().toInt();
             // TODO: Setzen von der Leistung über setCurrentPower() oder setMaxPower()
             // Wenn maxPower: Muss dies nach deaktivieren der externen Controlle wieder auf max moeglichen Wert gesetzt werden?
-            QModbusReply *reply = connection->setCurrentPower(heatingPower);
+            QModbusReply *reply = connection->setMaxPower(heatingPower);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, this, [this, reply, heatingPower]() {
                 if (reply->error() == QModbusDevice::NoError) {
@@ -450,14 +450,34 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
             qCDebug(dcMypv()) << "Manually start heating rod";
             // bool power = action.param(elwaExternalControlActionExternalControlParamTypeId).value().toBool();
             bool power = action.params()[0].value().toBool();
+
+            // Save previously configured values; so we can restore standard regulation
+            // when heating rod should not be controlled by HEMS
+            if (power == true) {
+                thing->setStateValue("oldBoostMode", connection->boostMode());
+                thing->setStateValue("oldBoostActive", connection->manualStart());
+            }
+
             // For ELWA 2, manual needs to be set to 2 to manually actviate boost mode
+            // mode = 0 - off / pv surpslus heating / internal logic
             // mode = 1 - autoboost
             // mode = 2 - manual boost
-            QModbusReply *reply = connection->setManualStart(power ? 2 : 0);
+            QModbusReply *reply = connection->setBoostMode(power ? 0 : thing->stateValue("oldBoostMode").toUInt());
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, this, [this, reply, power]() {
+            connect(reply, &QModbusReply::finished, this, [this, reply, connection]() {
                 if (reply->error() == QModbusDevice::NoError) {
                     qCDebug(dcMypv()) << "Successfully startet heating rod";
+
+                    QModbusReply *reply = connection->setMaxPower(m_devicePower[m_myDevice]);
+                    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+                    connect(reply, &QModbusReply::finished, this, [this, reply]() {
+                        if (reply->error() == QModbusDevice::NoError) {
+                            qCDebug(dcMypv()) << "Heating power set successfully";
+                        } else {
+                            qCDebug(dcMypv()) << "Error setting heating power";
+                        }
+                    });
+
                 } else {
                     qCDebug(dcMypv()) << "Error starting heating power";
                 }
