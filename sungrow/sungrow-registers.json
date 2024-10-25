@@ -744,6 +744,20 @@
             "unit": "V",
             "defaultValue": "0",
             "access": "RW"
+        },
+        {
+            "id": "batteryMinLevel",
+            "address": 13058,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Battery min SOC",
+            "unit": "%",
+            "staticScaleFactor": -1,
+            "defaultValue": "0",
+            "access": "RW"
         }
+
     ]
 }

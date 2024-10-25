@@ -136,6 +136,20 @@ QModbusReply *SungrowModbusTcpConnection::setExportLimitMode(quint16 exportLimit
     return sendWriteRequest(request, m_slaveId);
 }
 
+float SungrowModbusTcpConnection::batteryMinLevel() const
+{
+    return m_batteryMinLevel;
+}
+
+QModbusReply *SungrowModbusTcpConnection::setBatteryMinLevel(float batteryMinLevel)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(static_cast<quint16>(batteryMinLevel  * 1.0 / pow(10, -1)));
+    qCDebug(dcSungrowModbusTcpConnection()) << "--> Write \"Battery min SOC\" register:" << 13058 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 13058, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
+}
+
 quint32 SungrowModbusTcpConnection::protocolNumber() const
 {
     return m_protocolNumber;
@@ -828,11 +842,49 @@ void SungrowModbusTcpConnection::update6()
         processEmsModeSelectionRegisterValues(blockValues.mid(0, 1));
         processChargeCommandRegisterValues(blockValues.mid(1, 1));
         processChargePowerRegisterValues(blockValues.mid(2, 1));
-        verifyUpdateFinished();
+        update7();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating block \"batteryControl\" registers" << error << reply->errorString();
+    });
+}
+
+void SungrowModbusTcpConnection::update7()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read Battery min SOC
+    qCDebug(dcSungrowModbusTcpConnection()) << "--> Read \"Battery min SOC\" register:" << 13058 << "size:" << 1;
+    reply = readBatteryMinLevel();
+    if (!reply) {
+        qCWarning(dcSungrowModbusTcpConnection()) << "Error occurred while reading \"Battery min SOC\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcSungrowModbusTcpConnection()) << "<-- Response from \"Battery min SOC\" register" << 13058 << "size:" << 1 << unit.values();
+        processBatteryMinLevelRegisterValues(unit.values());
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while reading \"Battery min SOC\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -923,6 +975,36 @@ void SungrowModbusTcpConnection::updateExportLimitMode()
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating \"Inverter export mode\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SungrowModbusTcpConnection::updateBatteryMinLevel()
+{
+    // Update registers from Battery min SOC
+    qCDebug(dcSungrowModbusTcpConnection()) << "--> Read \"Battery min SOC\" register:" << 13058 << "size:" << 1;
+    QModbusReply *reply = readBatteryMinLevel();
+    if (!reply) {
+        qCWarning(dcSungrowModbusTcpConnection()) << "Error occurred while reading \"Battery min SOC\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcSungrowModbusTcpConnection()) << "<-- Response from \"Battery min SOC\" register" << 13058 << "size:" << 1 << unit.values();
+            processBatteryMinLevelRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating \"Battery min SOC\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1172,6 +1254,12 @@ QModbusReply *SungrowModbusTcpConnection::readExportLimit()
 QModbusReply *SungrowModbusTcpConnection::readExportLimitMode()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 13086, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SungrowModbusTcpConnection::readBatteryMinLevel()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 13058, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -1547,6 +1635,17 @@ void SungrowModbusTcpConnection::processExportLimitModeRegisterValues(const QVec
     if (m_exportLimitMode != receivedExportLimitMode) {
         m_exportLimitMode = receivedExportLimitMode;
         emit exportLimitModeChanged(m_exportLimitMode);
+    }
+}
+
+void SungrowModbusTcpConnection::processBatteryMinLevelRegisterValues(const QVector<quint16> values)
+{
+    float receivedBatteryMinLevel = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
+    emit batteryMinLevelReadFinished(receivedBatteryMinLevel);
+
+    if (m_batteryMinLevel != receivedBatteryMinLevel) {
+        m_batteryMinLevel = receivedBatteryMinLevel;
+        emit batteryMinLevelChanged(m_batteryMinLevel);
     }
 }
 
@@ -2227,6 +2326,7 @@ QDebug operator<<(QDebug debug, SungrowModbusTcpConnection *sungrowModbusTcpConn
     debug.nospace().noquote() << "    - Battery nominal power: " << sungrowModbusTcpConnection->batteryNominalPower() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Inverter export limit: " << sungrowModbusTcpConnection->exportLimit() << "\n";
     debug.nospace().noquote() << "    - Inverter export mode: " << sungrowModbusTcpConnection->exportLimitMode() << " [V]" << "\n";
+    debug.nospace().noquote() << "    - Battery min SOC: " << sungrowModbusTcpConnection->batteryMinLevel() << " [%]" << "\n";
     debug.nospace().noquote() << "    - Protocol number: " << sungrowModbusTcpConnection->protocolNumber() << "\n";
     debug.nospace().noquote() << "    - Device type code: " << sungrowModbusTcpConnection->protocolVersion() << "\n";
     debug.nospace().noquote() << "    - ARM software version: " << sungrowModbusTcpConnection->armSoftwareVersion() << "\n";

@@ -333,6 +333,20 @@
                             "defaultValue": 0.0,
                             "writable": true,
                             "cached": true
+                        },
+                        {
+                            "id": "a36b9145-8a23-45c4-87cc-89fdeed5ec67",
+                            "name": "minBatteryLevel",
+                            "displayName": "min. Battery level",
+                            "displayNameEvent": "min Battery level changed",
+                            "displayNameAction": "min Battery level set",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 5,
+                            "maxValue": 50,
+                            "defaultValue": 5,
+                            "writable": true,
+                            "cached": true
                         }
                     ]
                 }

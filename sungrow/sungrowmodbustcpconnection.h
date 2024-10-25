@@ -101,6 +101,7 @@ public:
         RegisterBatteryType = 13054,
         RegisterBatteryNominalVoltage = 13055,
         RegisterBatteryCapacity = 13056,
+        RegisterBatteryMinLevel = 13058,
         RegisterExportLimit = 13073,
         RegisterExportLimitMode = 13086,
         RegisterBatteryNominalPower = 33046
@@ -159,6 +160,10 @@ public:
     /* Inverter export mode [V] - Address: 13086, Size: 1 */
     quint16 exportLimitMode() const;
     QModbusReply *setExportLimitMode(quint16 exportLimitMode);
+
+    /* Battery min SOC [%] - Address: 13058, Size: 1 */
+    float batteryMinLevel() const;
+    QModbusReply *setBatteryMinLevel(float batteryMinLevel);
 
     /* Protocol number - Address: 4949, Size: 2 */
     quint32 protocolNumber() const;
@@ -394,6 +399,7 @@ public:
     void updateBatteryNominalPower();
     void updateExportLimit();
     void updateExportLimitMode();
+    void updateBatteryMinLevel();
 
     void updateProtocolNumber();
     void updateProtocolVersion();
@@ -450,6 +456,7 @@ public:
     QModbusReply *readBatteryNominalPower();
     QModbusReply *readExportLimit();
     QModbusReply *readExportLimitMode();
+    QModbusReply *readBatteryMinLevel();
     QModbusReply *readProtocolNumber();
     QModbusReply *readProtocolVersion();
     QModbusReply *readArmSoftwareVersion();
@@ -587,6 +594,7 @@ public:
     virtual void update4();
     virtual void update5();
     virtual void update6();
+    virtual void update7();
 
 signals:
     void reachableChanged(bool reachable);
@@ -604,6 +612,8 @@ signals:
     void exportLimitReadFinished(quint16 exportLimit);
     void exportLimitModeChanged(quint16 exportLimitMode);
     void exportLimitModeReadFinished(quint16 exportLimitMode);
+    void batteryMinLevelChanged(float batteryMinLevel);
+    void batteryMinLevelReadFinished(float batteryMinLevel);
 
     void protocolNumberChanged(quint32 protocolNumber);
     void protocolNumberReadFinished(quint32 protocolNumber);
@@ -712,6 +722,7 @@ protected:
     float m_batteryNominalPower = 0;
     quint16 m_exportLimit = 0;
     quint16 m_exportLimitMode = 0;
+    float m_batteryMinLevel = 0;
     quint32 m_protocolNumber = 0;
     quint32 m_protocolVersion = 0;
     QString m_armSoftwareVersion;
@@ -767,6 +778,7 @@ protected:
     void processBatteryNominalPowerRegisterValues(const QVector<quint16> values);
     void processExportLimitRegisterValues(const QVector<quint16> values);
     void processExportLimitModeRegisterValues(const QVector<quint16> values);
+    void processBatteryMinLevelRegisterValues(const QVector<quint16> values);
 
     void processProtocolNumberRegisterValues(const QVector<quint16> values);
     void processProtocolVersionRegisterValues(const QVector<quint16> values);
