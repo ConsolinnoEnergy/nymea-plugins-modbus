@@ -78,6 +78,10 @@ private:
     void setBatteryPower(SungrowModbusTcpConnection *connection, double targetPower);
     void forceBatteryState(SungrowModbusTcpConnection *connection, quint16 mode);
     void setEmsMode(SungrowModbusTcpConnection *connection, quint16 mode);
+
+signals:
+    void setEmsModeDone(bool result);
+    void setBatteryPowerDone(bool result);
 };
 
 #endif // INTEGRATIONPLUGINSUNGROW_H
