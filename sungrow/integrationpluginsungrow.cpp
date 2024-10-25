@@ -288,6 +288,15 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             }
         });
 
+        connect(sungrowConnection, &SungrowModbusTcpConnection::batteryMinLevelChanged, thing, [this, thing] (float level) {
+            qCDebug(dcSungrow()) << "Min battery level changed to" << level;
+
+            Thing *batteryThing = getBatteryThing(thing);
+            if (batteryThing) {
+                batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, (uint) level);
+            }
+        });
+
         m_tcpConnections.insert(thing, sungrowConnection);
 
         if (monitor->reachable())
@@ -537,6 +546,21 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
 
             setBatteryPower(connection, targetPower);
 
+        } else if (action.actionTypeId() == sungrowBatteryMinBatteryLevelActionTypeId) {
+            double minLevel = thing->paramValue(sungrowBatteryMinBatteryLevelActionMinBatteryLevelParamTypeId).toDouble();
+
+            QModbusReply *reply = connection->setBatteryMinLevel(minLevel);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, reply, [info, reply, minLevel] (){
+                qCDebug(dcSungrow()) << "Set min battery level - Received reply";
+                if (reply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSungrow()) << "Error: Set min battery level" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                } else {
+                    qCDebug(dcSungrow()) << "Set min battery level to" << minLevel;
+                    info->finish(Thing::ThingErrorNoError);
+                }
+            });
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
