@@ -12,7 +12,7 @@ sed 's/bgetech\.json/bgetech_inverter\.json/g' integrationpluginbgetech_inverter
 sed 's/bgetech\.h/bgetech_inverter\.h/g' integrationpluginbgetech_inverter.cpp -i
 sed 's/bgetech\./bgetech_inverter\./g' bgetech_inverter.pro -i
 cd ..
-sed 's/bgetech/bgetech      \\\n    bgetech_inverter/g' nymea-plugins-modbus.pro -i
+sed 's/bgetech /bgetech      \\\n    bgetech_inverter/' nymea-plugins-modbus.pro -i
 
 tee -a debian/control <<EOF 
 

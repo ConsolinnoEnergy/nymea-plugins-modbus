@@ -35,7 +35,8 @@
 NYMEA_LOGGING_CATEGORY(dcHuaweiFusionSolar, "HuaweiFusionSolar")
 
 HuaweiFusionSolar::HuaweiFusionSolar(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent) :
-    HuaweiFusionModbusTcpConnection(hostAddress, port, slaveId, parent)
+    HuaweiFusionModbusTcpConnection(hostAddress, port, slaveId, parent),
+    m_slaveId(slaveId)
 {
     // Note: sometimes right after the discovery / setup the check fails the first time due to server busy error,
     // this is a very slow or busy device since it returns quiet often that error. Don't faile with the first busy error...
@@ -46,86 +47,74 @@ HuaweiFusionSolar::HuaweiFusionSolar(const QHostAddress &hostAddress, uint port,
             m_registersQueue.clear();
         }
     });
-}
 
-bool HuaweiFusionSolar::initialize()
-{
-    if (!reachable()) {
-        qCWarning(dcHuaweiFusionSolar()) << "Tried to initialize but the device is not to be reachable.";
-        return false;
-    }
-
-    if (m_initReply) {
-        qCWarning(dcHuaweiFusionSolar()) << "Tried to initialize but the init process is already running.";
-        return false;
-    }
-
-    qCDebug(dcHuaweiFusionSolar()) << "Initialize connection by reading \"Inverter active power\" register:" << 32080 << "size:" << 2;
-    m_initReply = readInverterActivePower();
-    if (!m_initReply) {
-        qCWarning(dcHuaweiFusionSolar()) << "Error occurred while initializing connection and read \"Inverter active power\" register from" << hostAddress().toString() << errorString();
-        return false;
-    }
-
-    if (m_initReply->isFinished()) {
-        m_initReply->deleteLater(); // Broadcast reply returns immediatly
-        m_initReply = nullptr;
-        return false;
-    }
-
-    connect(m_initReply, &QModbusReply::finished, this, [this](){
-        if (m_initReply->error() == QModbusDevice::NoError) {
-            qCDebug(dcHuaweiFusionSolar()) << "Initialization finished of HuaweiFusionSolar" << hostAddress().toString() << "finished successfully";
-            emit initializationFinished(true);
-        } else {
-            qCWarning(dcHuaweiFusionSolar()) << "Initialization finished of HuaweiFusionSolar" << hostAddress().toString() << "failed.";
-            emit initializationFinished(false);
+    connect(this, &HuaweiFusionModbusTcpConnection::initializationFinished, this, [=](bool success) {
+        if (success) {
+            qCDebug(dcHuawei()) << "Huawei init finished successfully:" << model() << serialNumber() << productNumber();
         }
-
-        m_initReply->deleteLater();
-        m_initReply = nullptr;
     });
-
-    connect(m_initReply, &QModbusReply::errorOccurred, this, [this] (QModbusDevice::Error error){
-        qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while initializing connection and read \"Inverter active power\" registers from" << hostAddress().toString() << error << m_initReply->errorString();
-    });
-
-    return true;
 }
 
 bool HuaweiFusionSolar::update()
 {
+    if (!connected())
+        return false;
+
     // Make sure there is not an update still running
     if (!m_registersQueue.isEmpty())
         return true;
 
-    // Add the requests to queue, begin with power values, since they are most important
-    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterInverterActivePower);
-    if (m_battery1Available)
-        m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery1Power);
+    // Add the requests to queue.
 
-    if (m_battery2Available)
-        m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery2Power);
+    // initialize
+    if (model().isEmpty()) {
+        m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterModel);
+    }
 
-    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterPowerMeterActivePower);
-    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterInverterEnergyProduced);
-    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterInverterDeviceStatus);
+    // inverterStuff
+    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterInverterInputPower);
 
-    // Note: we constantly read the status in any case so we detect if a battery came online
-    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery1Status);
-    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery2Status);
+    // battery1
+    if (m_battery1Available) {
+        m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery1Status);
+    } else {
+        // Reading the battery registers tells us if the battery is available or not. If the battery is not available, check the registers
+        // less often. But we do need to check, because this is how we detect if the battery is available.
+        if (m_battery1timer >= MAX_BATTERY_TIMER) {
+            m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery1Status);
+            m_battery1timer = 0;
+        } else {
+            m_battery1timer++;
+        }
+    }
 
-    if (m_battery1Available)
-        m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery1Soc);
+    // meterStuff
+    m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterMeterGridVoltageAphase);
 
-    if (m_battery2Available)
+    // battery2
+    if (m_battery2Available) {
         m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery2Soc);
+    } else {
+        // Reading the battery registers tells us if the battery is available or not. If the battery is not available, check the registers
+        // less often. But we do need to check, because this is how we detect if the battery is available.
+        if (m_battery2timer >= MAX_BATTERY_TIMER) {
+            m_registersQueue.enqueue(HuaweiFusionModbusTcpConnection::RegisterLunaBattery2Soc);
+            m_battery2timer = 0;
+        } else {
+            m_battery2timer++;
+        }
+    }
 
     // Note: since huawei can only process one request at the time, we need to queue the requests and have some time between requests...
 
     m_currentRegisterRequest = -1;
     readNextRegister();
     return true;
+}
+
+quint16 HuaweiFusionSolar::slaveId() const
+{
+    return m_slaveId;
 }
 
 void HuaweiFusionSolar::readNextRegister()
@@ -138,22 +127,24 @@ void HuaweiFusionSolar::readNextRegister()
     if (m_registersQueue.isEmpty())
         return;
 
-    m_currentRegisterRequest = m_registersQueue.dequeue();
+    // Registers are removed from the head of the queue if the request was sucessful. If a request failed, try the same
+    // register again until the request is sucessful or MAX_REQUEST_RETRY_COUNT is reached.
+    m_currentRegisterRequest = m_registersQueue.head();
 
     switch (m_currentRegisterRequest) {
-    case HuaweiFusionModbusTcpConnection::RegisterInverterActivePower: {
-        // Update registers from Inverter active power
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Inverter active power\" register:" << 32080 << "size:" << 2;
-        QModbusReply *reply = readInverterActivePower();
+    case HuaweiFusionModbusTcpConnection::RegisterModel: {
+        // Update register block "identifyer"
+        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"identifyer\" registers from:" << 30000 << "size:" << 35;
+        QModbusReply *reply = readBlockIdentifyer();
         if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Inverter active power\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
+            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading block \"identifyer\" registers";
+            finishRequestRetryIs(false);
             return;
         }
 
         if (reply->isFinished()) {
             reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
+            finishRequestRetryIs(false);
             return;
         }
 
@@ -162,43 +153,50 @@ void HuaweiFusionSolar::readNextRegister()
             handleModbusError(reply->error());
             if (reply->error() == QModbusDevice::NoError) {
                 const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Inverter active power\" register" << 32080 << "size:" << 2 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 2)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 2 << "but received" << unit.values();
+                const QVector<quint16> blockValues = unit.values();
+                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"identifyer\" register" << 30000 << "size:" << 35 << blockValues;
+                if (!valuesAreVaild(unit.values(), 35)) {
+                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 35 << "but received" << unit.values();
+                    finishRequestRetryIs(true);
                 } else {
-                    processInverterActivePowerRegisterValues(unit.values());
-                }
-            }
+                    processModelRegisterValues(blockValues.mid(0, 15));
+                    processSerialNumberRegisterValues(blockValues.mid(15, 10));
+                    processProductNumberRegisterValues(blockValues.mid(25, 10));
 
-            finishRequest();
+                    emit initializationFinished(true);
+                    finishRequestRetryIs(false);
+                }
+            } else {
+                finishRequestRetryIs(true);
+            }
         });
 
         connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
             if (reply->error() == QModbusDevice::ProtocolError) {
                 QModbusResponse response = reply->rawResult();
                 if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Inverter active power\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"identifyer\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
                 }
             } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Inverter active power\" registers from" << hostAddress().toString() << error << reply->errorString();
+                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"identifyer\" registers from" << hostAddress().toString() << error << reply->errorString();
             }
         });
 
         break;
     }
-    case HuaweiFusionModbusTcpConnection::RegisterInverterDeviceStatus: {
-        // Update registers from Inverter device status
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Inverter device status\" register:" << 32089 << "size:" << 1;
-        QModbusReply *reply = readInverterDeviceStatus();
+    case HuaweiFusionModbusTcpConnection::RegisterInverterInputPower: {
+        // Update register block "inverterStuff"
+        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"inverterStuff\" registers from:" << 32064 << "size:" << 44;
+        QModbusReply *reply = readBlockInverterStuff();
         if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Inverter device status\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
+            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading block \"inverterStuff\" registers";
+            finishRequestRetryIs(false);
             return;
         }
 
         if (reply->isFinished()) {
             reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
+            finishRequestRetryIs(false);
             return;
         }
 
@@ -207,129 +205,54 @@ void HuaweiFusionSolar::readNextRegister()
             handleModbusError(reply->error());
             if (reply->error() == QModbusDevice::NoError) {
                 const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Inverter device status\" register" << 32089 << "size:" << 1 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 1)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 1 << "but received" << unit.values();
+                const QVector<quint16> blockValues = unit.values();
+                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"inverterStuff\" register" << 32064 << "size:" << 44 << blockValues;
+                if (!valuesAreVaild(unit.values(), 44)) {
+                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 44 << "but received" << unit.values();
+                    finishRequestRetryIs(true);
                 } else {
-                    processInverterDeviceStatusRegisterValues(unit.values());
+                    processInverterInputPowerRegisterValues(blockValues.mid(0, 2));
+                    //processFillerRegister1RegisterValues(blockValues.mid(2, 14));
+                    processInverterActivePowerRegisterValues(blockValues.mid(16, 2));
+                    //processFillerRegister2RegisterValues(blockValues.mid(18, 7));
+                    processInverterDeviceStatusRegisterValues(blockValues.mid(25, 1));
+                    //processFillerRegister3RegisterValues(blockValues.mid(26, 16));
+                    processInverterEnergyProducedRegisterValues(blockValues.mid(42, 2));
+
+                    emit inverterValuesUpdated();
+                    finishRequestRetryIs(false);
                 }
+            } else {
+                finishRequestRetryIs(true);
             }
-            finishRequest();
         });
 
         connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
             if (reply->error() == QModbusDevice::ProtocolError) {
                 QModbusResponse response = reply->rawResult();
                 if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Inverter device status\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"inverterStuff\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
                 }
             } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Inverter device status\" registers from" << hostAddress().toString() << error << reply->errorString();
-            }
-        });
-
-        break;
-    }
-    case HuaweiFusionModbusTcpConnection::RegisterInverterEnergyProduced: {
-        // Update registers from Inverter energy produced
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Inverter energy produced\" register:" << 32106 << "size:" << 2;
-        QModbusReply *reply = readInverterEnergyProduced();
-        if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Inverter energy produced\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
-            return;
-        }
-
-        if (reply->isFinished()) {
-            reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
-            return;
-        }
-
-        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        connect(reply, &QModbusReply::finished, this, [this, reply](){
-            handleModbusError(reply->error());
-            if (reply->error() == QModbusDevice::NoError) {
-                const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Inverter energy produced\" register" << 32106 << "size:" << 2 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 2)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 2 << "but received" << unit.values();
-                } else {
-                    processInverterEnergyProducedRegisterValues(unit.values());
-                }
-            }
-            finishRequest();
-        });
-
-        connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-            if (reply->error() == QModbusDevice::ProtocolError) {
-                QModbusResponse response = reply->rawResult();
-                if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Inverter energy produced\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
-                }
-            } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Inverter energy produced\" registers from" << hostAddress().toString() << error << reply->errorString();
-            }
-        });
-        break;
-    }
-    case HuaweiFusionModbusTcpConnection::RegisterPowerMeterActivePower: {
-        // Update registers from Power meter active power
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Power meter active power\" register:" << 37113 << "size:" << 2;
-        QModbusReply *reply = readPowerMeterActivePower();
-        if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Power meter active power\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
-            return;
-        }
-
-        if (reply->isFinished()) {
-            reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
-            return;
-        }
-
-        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        connect(reply, &QModbusReply::finished, this, [this, reply](){
-            handleModbusError(reply->error());
-            if (reply->error() == QModbusDevice::NoError) {
-                const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Power meter active power\" register" << 37113 << "size:" << 2 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 2)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 2 << "but received" << unit.values();
-                } else {
-                    processPowerMeterActivePowerRegisterValues(unit.values());
-                }
-            }
-            finishRequest();
-        });
-
-        connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-            if (reply->error() == QModbusDevice::ProtocolError) {
-                QModbusResponse response = reply->rawResult();
-                if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Power meter active power\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
-                }
-            } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Power meter active power\" registers from" << hostAddress().toString() << error << reply->errorString();
+                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"inverterStuff\" registers from" << hostAddress().toString() << error << reply->errorString();
             }
         });
 
         break;
     }
     case HuaweiFusionModbusTcpConnection::RegisterLunaBattery1Status: {
-        // Update registers from Luna 2000 Battery 1 status
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Luna 2000 Battery 1 status\" register:" << 37000 << "size:" << 1;
-        QModbusReply *reply = readLunaBattery1Status();
+        // Update register block "battery1"
+        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"battery1\" registers from:" << 37000 << "size:" << 5;
+        QModbusReply *reply = readBlockBattery1();
         if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Luna 2000 Battery 1 status\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
+            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading block \"battery1\" registers";
+            finishRequestRetryIs(false);
             return;
         }
 
         if (reply->isFinished()) {
             reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
+            finishRequestRetryIs(false);
             return;
         }
 
@@ -338,41 +261,66 @@ void HuaweiFusionSolar::readNextRegister()
             handleModbusError(reply->error());
             if (reply->error() == QModbusDevice::NoError) {
                 const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Luna 2000 Battery 1 status\" register" << 37000 << "size:" << 1 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 1)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 1 << "but received" << unit.values();
+                const QVector<quint16> blockValues = unit.values();
+                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"battery1\" register" << 37000 << "size:" << 5 << blockValues;
+                if (!valuesAreVaild(unit.values(), 5)) {
+                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 5 << "but received" << unit.values();
+                    finishRequestRetryIs(true);
                 } else {
-                    processLunaBattery1StatusRegisterValues(unit.values());
+                    processLunaBattery1StatusRegisterValues(blockValues.mid(0, 1));
+                    switch (m_lunaBattery1Status) {
+                    case HuaweiFusionSolar::BatteryDeviceStatusFault:
+                    case HuaweiFusionSolar::BatteryDeviceStatusStandby:
+                    case HuaweiFusionSolar::BatteryDeviceStatusOffline:
+                    case HuaweiFusionSolar::BatteryDeviceStatusSleepMode:
+                        m_battery1Available = false;
+                        m_lunaBattery1Power = 0;
+                        emit lunaBattery1PowerChanged(m_lunaBattery1Power);
+                        break;
+                    case HuaweiFusionSolar::BatteryDeviceStatusRunning:
+                        m_battery1Available = true;
+                        break;
+                    }
+                    if (m_battery1Available) {
+                        processLunaBattery1PowerRegisterValues(blockValues.mid(1, 2));
+                        //processFillerRegister4RegisterValues(blockValues.mid(3, 1));
+                    }
+                    processLunaBattery1SocRegisterValues(blockValues.mid(4, 1));
+
+                    emit battery1ValuesUpdated();
+                    finishRequestRetryIs(false);
                 }
+            } else {
+                finishRequestRetryIs(true);
             }
-            finishRequest();
         });
 
         connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
             if (reply->error() == QModbusDevice::ProtocolError) {
                 QModbusResponse response = reply->rawResult();
                 if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 1 status\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"battery1\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
                 }
             } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 1 status\" registers from" << hostAddress().toString() << error << reply->errorString();
+                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"battery1\" registers from" << hostAddress().toString() << error << reply->errorString();
             }
         });
+
         break;
     }
-    case HuaweiFusionModbusTcpConnection::RegisterLunaBattery1Power: {
-        // Update registers from Luna 2000 Battery 1 power
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Luna 2000 Battery 1 power\" register:" << 37001 << "size:" << 2;
-        QModbusReply *reply = readLunaBattery1Power();
+    case HuaweiFusionModbusTcpConnection::RegisterMeterGridVoltageAphase: {
+        // Update register block "meterStuff"
+        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"meterStuff\" registers from:" << 37101 << "size:" << 37;
+        QModbusReply *reply = readBlockMeterStuff();
         if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Luna 2000 Battery 1 power\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
+            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"meterStuff\" registers from" << hostAddress().toString() << errorString();
+            finishRequestRetryIs(false);
             return;
         }
 
         if (reply->isFinished()) {
             reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
+            finishRequestRetryIs(false);
             return;
         }
 
@@ -381,171 +329,63 @@ void HuaweiFusionSolar::readNextRegister()
             handleModbusError(reply->error());
             if (reply->error() == QModbusDevice::NoError) {
                 const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Luna 2000 Battery 1 power\" register" << 37001 << "size:" << 2 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 2)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 2 << "but received" << unit.values();
+                const QVector<quint16> blockValues = unit.values();
+                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"meterStuff\" register" << 37101 << "size:" << 37 << blockValues;
+                if (!valuesAreVaild(unit.values(), 37)) {
+                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 37 << "but received" << unit.values();
+                    finishRequestRetryIs(true);
                 } else {
-                    processLunaBattery1PowerRegisterValues(unit.values());
+                    processMeterGridVoltageAphaseRegisterValues(blockValues.mid(0, 2));
+                    processMeterGridVoltageBphaseRegisterValues(blockValues.mid(2, 2));
+                    processMeterGridVoltageCphaseRegisterValues(blockValues.mid(4, 2));
+                    processMeterGridCurrentAphaseRegisterValues(blockValues.mid(6, 2));
+                    processMeterGridCurrentBphaseRegisterValues(blockValues.mid(8, 2));
+                    processMeterGridCurrentCphaseRegisterValues(blockValues.mid(10, 2));
+                    processPowerMeterActivePowerRegisterValues(blockValues.mid(12, 2));
+                    processMeterReactivePowerRegisterValues(blockValues.mid(14, 2));
+                    processMeterPowerFactorRegisterValues(blockValues.mid(16, 1));
+                    processMeterGridFrequencyRegisterValues(blockValues.mid(17, 1));
+                    processPowerMeterEnergyReturnedRegisterValues(blockValues.mid(18, 2));
+                    processPowerMeterEnergyAquiredRegisterValues(blockValues.mid(20, 2));
+                    //processFillerRegister5RegisterValues(blockValues.mid(22, 9));
+                    processMeterAphaseActivePowerRegisterValues(blockValues.mid(31, 2));
+                    processMeterBphaseActivePowerRegisterValues(blockValues.mid(33, 2));
+                    processMeterCphaseActivePowerRegisterValues(blockValues.mid(35, 2));
+
+                    emit meterValuesUpdated();
+                    finishRequestRetryIs(false);
                 }
+            } else {
+                finishRequestRetryIs(true);
             }
-            finishRequest();
         });
 
         connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
             if (reply->error() == QModbusDevice::ProtocolError) {
                 QModbusResponse response = reply->rawResult();
                 if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 1 power\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"meterStuff\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
                 }
             } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 1 power\" registers from" << hostAddress().toString() << error << reply->errorString();
+                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"meterStuff\" registers from" << hostAddress().toString() << error << reply->errorString();
             }
         });
-        break;
-    }
-    case HuaweiFusionModbusTcpConnection::RegisterLunaBattery1Soc: {
-        // Update registers from Luna 2000 Battery 1 state of charge
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Luna 2000 Battery 1 state of charge\" register:" << 37004 << "size:" << 1;
-        QModbusReply *reply = readLunaBattery1Soc();
-        if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Luna 2000 Battery 1 state of charge\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
-            return;
-        }
 
-        if (reply->isFinished()) {
-            reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
-            return;
-        }
-
-        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        connect(reply, &QModbusReply::finished, this, [this, reply](){
-            handleModbusError(reply->error());
-            if (reply->error() == QModbusDevice::NoError) {
-                const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Luna 2000 Battery 1 state of charge\" register" << 37004 << "size:" << 1 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 1)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 1 << "but received" << unit.values();
-                } else {
-                    processLunaBattery1SocRegisterValues(unit.values());
-                }
-            }
-            finishRequest();
-        });
-
-        connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-            if (reply->error() == QModbusDevice::ProtocolError) {
-                QModbusResponse response = reply->rawResult();
-                if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 1 state of charge\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
-                }
-            } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 1 state of charge\" registers from" << hostAddress().toString() << error << reply->errorString();
-            }
-        });
-        break;
-    }
-
-    case HuaweiFusionModbusTcpConnection::RegisterLunaBattery2Status: {
-        // Update registers from Luna 2000 Battery 2 status
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Luna 2000 Battery 2 status\" register:" << 37741 << "size:" << 1;
-        QModbusReply *reply = readLunaBattery2Status();
-        if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Luna 2000 Battery 2 status\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
-            return;
-        }
-
-        if (reply->isFinished()) {
-            reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
-            return;
-        }
-
-        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        connect(reply, &QModbusReply::finished, this, [this, reply](){
-            handleModbusError(reply->error());
-            if (reply->error() == QModbusDevice::NoError) {
-                const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Luna 2000 Battery 2 status\" register" << 37741 << "size:" << 1 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 1)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values count. Requested" << 1 << "but received" << unit.values();
-                } else {
-                    processLunaBattery2StatusRegisterValues(unit.values());
-                }
-            }
-            finishRequest();
-        });
-
-        connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-            if (reply->error() == QModbusDevice::ProtocolError) {
-                QModbusResponse response = reply->rawResult();
-                if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 2 status\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
-                }
-            } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 2 status\" registers from" << hostAddress().toString() << error << reply->errorString();
-            }
-        });
-        break;
-    }
-    case HuaweiFusionModbusTcpConnection::RegisterLunaBattery2Power: {
-        // Update registers from Luna 2000 Battery 2 power
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Luna 2000 Battery 2 power\" register:" << 37743 << "size:" << 2;
-        QModbusReply *reply = readLunaBattery2Power();
-        if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Luna 2000 Battery 2 power\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
-            return;
-        }
-
-        if (reply->isFinished()) {
-            reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
-            return;
-        }
-
-        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-        connect(reply, &QModbusReply::finished, this, [this, reply](){
-            handleModbusError(reply->error());
-            if (reply->error() == QModbusDevice::NoError) {
-                const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Luna 2000 Battery 2 power\" register" << 37743 << "size:" << 2 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 2)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values count. Requested" << 2 << "but received" << unit.values();
-                } else {
-                    processLunaBattery2PowerRegisterValues(unit.values());
-                }
-            }
-            finishRequest();
-        });
-
-        connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-            if (reply->error() == QModbusDevice::ProtocolError) {
-                QModbusResponse response = reply->rawResult();
-                if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 2 power\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
-                }
-            } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 2 power\" registers from" << hostAddress().toString() << error << reply->errorString();
-            }
-        });
         break;
     }
     case HuaweiFusionModbusTcpConnection::RegisterLunaBattery2Soc: {
-        // Update registers from Luna 2000 Battery 2 state of charge
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read \"Luna 2000 Battery 2 state of charge\" register:" << 37738 << "size:" << 1;
-        QModbusReply *reply = readLunaBattery2Soc();
+    // Update register block "battery2"1"
+        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"battery2\" registers from:" << 37738 << "size:" << 7;
+        QModbusReply *reply = readBlockBattery2();
         if (!reply) {
-            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading \"Luna 2000 Battery 2 state of charge\" registers from" << hostAddress().toString() << errorString();
-            finishRequest();
+            qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading block \"battery2\" registers";
+            finishRequestRetryIs(false);
             return;
         }
 
         if (reply->isFinished()) {
             reply->deleteLater(); // Broadcast reply returns immediatly
-            finishRequest();
+            finishRequestRetryIs(false);
             return;
         }
 
@@ -554,28 +394,58 @@ void HuaweiFusionSolar::readNextRegister()
             handleModbusError(reply->error());
             if (reply->error() == QModbusDevice::NoError) {
                 const QModbusDataUnit unit = reply->result();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from \"Luna 2000 Battery 2 state of charge\" register" << 37738 << "size:" << 1 << "valueCount:" << unit.valueCount() << unit.values() << unit.values().count();
-                if (!valuesAreVaild(unit.values(), 1)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 1 << "but received" << unit.values();
+                const QVector<quint16> blockValues = unit.values();
+                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"battery2\" register" << 37738 << "size:" << 7 << blockValues;
+                if (!valuesAreVaild(unit.values(), 7)) {
+                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 7 << "but received" << unit.values();
+                    finishRequestRetryIs(true);
                 } else {
-                    processLunaBattery2SocRegisterValues(unit.values());
+                    processLunaBattery2SocRegisterValues(blockValues.mid(0, 1));
+                    //processFillerRegister6RegisterValues(blockValues.mid(1, 2));
+                    processLunaBattery2StatusRegisterValues(blockValues.mid(3, 1));
+                    switch (m_lunaBattery2Status) {
+                    case HuaweiFusionSolar::BatteryDeviceStatusFault:
+                    case HuaweiFusionSolar::BatteryDeviceStatusStandby:
+                    case HuaweiFusionSolar::BatteryDeviceStatusOffline:
+                    case HuaweiFusionSolar::BatteryDeviceStatusSleepMode:
+                        m_battery2Available = false;
+                        m_lunaBattery2Power = 0;
+                        emit lunaBattery2PowerChanged(m_lunaBattery2Power);
+                        break;
+                    case HuaweiFusionSolar::BatteryDeviceStatusRunning:
+                        m_battery2Available = true;
+                        break;
+                    }
+                    if (m_battery2Available) {
+                        //processFillerRegister7RegisterValues(blockValues.mid(4, 1));
+                        processLunaBattery2PowerRegisterValues(blockValues.mid(5, 2));
+                    }
+
+                    emit battery2ValuesUpdated();
+                    finishRequestRetryIs(false);
                 }
+            } else {
+                finishRequestRetryIs(true);
             }
-            finishRequest();
         });
 
         connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
             if (reply->error() == QModbusDevice::ProtocolError) {
                 QModbusResponse response = reply->rawResult();
                 if (response.isException()) {
-                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 2 state of charge\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                    qCDebug(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"battery2\" registers from" << hostAddress().toString() << exceptionToString(response.exceptionCode());
                 }
             } else {
-                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"Luna 2000 Battery 2 state of charge\" registers from" << hostAddress().toString() << error << reply->errorString();
+                qCWarning(dcHuaweiFusionSolar()) << "Modbus reply error occurred while updating \"battery2\" registers from" << hostAddress().toString() << error << reply->errorString();
             }
         });
+
         break;
     }
+    default:
+        // If this ever triggers, there is an error in the code.
+        qCWarning(dcHuaweiFusionSolar()) << "Code error detected - an unknown register was in the queue:" << m_currentRegisterRequest;
+        finishRequestRetryIs(false);
     }
 }
 
@@ -609,8 +479,19 @@ bool HuaweiFusionSolar::valuesAreVaild(const QVector<quint16> &values, int readS
     return true;
 }
 
-void HuaweiFusionSolar::finishRequest()
+void HuaweiFusionSolar::finishRequestRetryIs(bool retryRequest)
 {
+    if (retryRequest) {
+        // Leave the register in the queue to try again.
+        m_requestRetryCounter++;
+        if (m_requestRetryCounter > MAX_REQUEST_RETRY_COUNT) {
+            m_registersQueue.dequeue(); // No point trying again. Move on to next item.
+            m_requestRetryCounter = 0;
+        }
+    } else {
+        m_registersQueue.dequeue();
+        m_requestRetryCounter = 0;
+    }
     m_currentRegisterRequest = -1;
     QTimer::singleShot(1000, this, &HuaweiFusionSolar::readNextRegister);
 }

@@ -1,0 +1,14 @@
+{
+    "title": "foxess",
+    "tagline": "Integrates FoxESS 3rd Gen wallbox into nymea.",
+    "icon": "foxess.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network",
+        "modbus"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

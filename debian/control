@@ -423,3 +423,25 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Growatt inverter including meter and battery. 
   This Package contains the nymea integration for inverter, meter and battery made by
   Growatt New Energy GmbH.
+
+Package: nymea-plugin-solaxevc
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for Solax X3 EV Charger
+ This package contains the nymea integration plugin for the Solax X3 EV Charger.
+
+Package: nymea-plugin-foxesswbv3
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for FoxESS wallbox 3rd gen.
+ This package contains the nymea integration plugin for the FoxESS wallbox 3rd gen..
+
+Package: nymea-plugin-kostalmeter
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration to use Smart Meter P, SDM72 from Kostal with the Consolinno HEMS.
+ This package is an automatically generated copy of the bgetech integration.
