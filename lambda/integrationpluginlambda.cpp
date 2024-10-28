@@ -110,13 +110,15 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
         quint16 slaveId = thing->paramValue(lambdaTCPThingSlaveIdParamTypeId).toUInt();
 
         LambdaModbusTcpConnection *lambdaTCPTcpConnection = new LambdaModbusTcpConnection(hostAddress, port, slaveId, this);
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::connectionStateChanged, this, [thing, lambdaTCPTcpConnection](bool status){
+        connect(info, &ThingSetupInfo::aborted, lambdaTCPTcpConnection, &LambdaModbusTcpConnection::deleteLater);
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::reachableChanged, this, [thing, lambdaTCPTcpConnection](bool status){
             qCDebug(dcLambda()) << "Connected changed to" << status << "for" << thing;
             if (status) {
-                lambdaTCPTcpConnection->update();
+                lambdaTCPTcpConnection->initialize();
             }
 
             thing->setStateValue(lambdaTCPConnectedStateTypeId, status);
+            thing->setStateValue(lambdaTCPCurrentPowerStateTypeId, 0);
         });
 
         // Ambient module

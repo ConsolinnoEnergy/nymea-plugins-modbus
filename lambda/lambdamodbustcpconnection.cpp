@@ -755,7 +755,7 @@ void LambdaModbusTcpConnection::updateWrite()
     
     
     // JoOb: sendRawRequest is working successfull    
-    quint16 startAddress = 102, numberOfRegisters = 1;
+    quint16 startAddress = 102, numberOfRegisters = 1; // hard coded register to be changed
     quint8 payloadInBytes = 2;
     
     quint8 outputHigh = (m_demandPower>>8) & 0xFF;

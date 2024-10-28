@@ -13,11 +13,10 @@
                     "displayName": "Lambda heat pump (Modbus TCP)",
                     "id": "19306c25-9d5a-473f-9d6d-a34e81182387",
                     "createMethods": [
-                        "discovery",
-                        "user"
+                        "discovery"
                     ],
                     "interfaces": [
-                        "heatpump",
+                        "pvsurplusheatpump",
                         "connectable"
                     ],
                     "paramTypes": [
@@ -27,7 +26,8 @@
                             "displayName": "IP address",
                             "type": "QString",
                             "inputType": "IPv4Address",
-                            "defaultValue": "127.0.0.1"
+                            "defaultValue": "127.0.0.1",
+                            "readOnly": true
                         },
                         {
                             "id": "49715157-27b1-42d3-ae45-cf6190bea5db",
@@ -35,21 +35,24 @@
                             "displayName": "MAC address",
                             "type": "QString",
                             "inputType": "MacAddress",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "readOnly": true
                         },
                         {
                             "id": "8f7fa770-c843-44f3-96a0-b85354c6e672",
                             "name": "port",
                             "displayName": "Port",
                             "type": "int",
-                            "defaultValue": 502
+                            "defaultValue": 502,
+                            "readOnly": true
                         },
                         {
                             "id": "5d71de10-18f0-4c2b-95af-fd1f6473acb5",
                             "name": "slaveId",
                             "displayName": "Modbus slave ID",
                             "type": "int",
-                            "defaultValue": 1
+                            "defaultValue": 1,
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [

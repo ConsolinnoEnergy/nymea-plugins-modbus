@@ -6,7 +6,9 @@ MODBUS_CONNECTIONS += lambda-registers.json
 include(../modbus.pri)
 
 SOURCES += \
-    integrationpluginlambda.cpp
+    integrationpluginlambda.cpp \
+    lambdamodbustcpconnection.cpp
 
 HEADERS += \
-    integrationpluginlambda.h
+    integrationpluginlambda.h \
+    lambdamodbustcpconnection.h
