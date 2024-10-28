@@ -222,6 +222,16 @@ Description: nymea.io plugin for Kostal Solar inverters
  This package contains the nymea.io plugin for Kostal Solar inverters
 
 
+Package: nymea-plugin-lambda
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea.io plugin for Lambda heat pumps
+ This package contains the nymea.io plugin for Lambda heat pumps
+
+
 Package: nymea-plugin-mennekes
 Architecture: any
 Multi-Arch: same
@@ -302,14 +312,6 @@ Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: nymea integration plugin for SMA solar inverters and meters
  This package contains the nymea integration plugin for SMA solar inverters and meters.
-
-Package: nymea-plugin-sofarsolar
-Architecture: any
-Section: libs
-Depends: ${shlibs:Depends},
-         ${misc:Depends},
-Description: nymea integration plugin for SOFAR solar hybrid inverters
- This package contains the nymea integration plugin for SOFAR solar hybrid inverters.
 
 Package: nymea-plugin-solax
 Architecture: any

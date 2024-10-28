@@ -1,3 +1,10 @@
+nymea-plugins-modbus (1.7.010) jammy; urgency=medium
+
+  * Added Lambda heat pump plugin (Modbus TCP)
+
+ -- Johannes Obermeier <j.obermeier@consolinno.de> Mon, 28 Jul 2024 14:50:00 +0200
+
+
 nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
 
   * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
