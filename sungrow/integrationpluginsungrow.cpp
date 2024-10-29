@@ -177,7 +177,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 sungrowConnection->reconnectDevice();
             } else {
                 qCInfo(dcSungrow()) << "Connection initialized successfully for" << thing;
-                thing->setStateValue(sungrowInverterTcpNominalPowerStateTypeId, sungrowConnection->nominalOutputPower());
+                thing->setStateValue(sungrowInverterTcpNominalPowerStateTypeId, sungrowConnection->nominalOutputPower()*1000);
                 sungrowConnection->update();
             }
         });
@@ -293,7 +293,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
 
             Thing *batteryThing = getBatteryThing(thing);
             if (batteryThing) {
-                batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, (uint) level);
+                batteryThing->setStateValue(sungrowBatteryMinBatteryLevelStateTypeId, (uint) level);
             }
         });
 
