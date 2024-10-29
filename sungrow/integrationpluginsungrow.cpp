@@ -192,7 +192,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             }
 
             // Check if a battery is connected to this Sungrow inverter
-            if (sungrowConnection->batteryType() != SungrowModbusTcpConnection::BatteryTypeNoBattery &&
+            if (sungrowConnection->batteryTemperature() != 0 &&
                     myThings().filterByParentId(thing->id()).filterByThingClassId(sungrowBatteryThingClassId).isEmpty()) {
                 qCDebug(dcSungrow()) << "There is a battery connected but not set up yet. Creating a battery.";
                 ThingClass batteryThingClass = thingClass(sungrowBatteryThingClassId);
