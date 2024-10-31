@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH
+* Copyright 2013 - 2024, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,45 +28,49 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINKOSTALMETER_H
-#define INTEGRATIONPLUGINKOSTALMETER_H
-
-#include <integrations/integrationplugin.h>
-#include <hardware/modbus/modbusrtuhardwareresource.h>
-#include <plugintimer.h>
-
-#include "sdm630modbusrtuconnection.h"
-
-#include "extern-plugininfo.h"
+#ifndef SUNGROWDISCOVERY_H
+#define SUNGROWDISCOVERY_H
 
 #include <QObject>
 #include <QTimer>
 
-class IntegrationPluginBGETech: public IntegrationPlugin
+#include <network/networkdevicediscovery.h>
+
+#include "sungrowmodbustcpconnection.h"
+
+class SungrowDiscovery : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginkostalmeter.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginBGETech();
-    void init() override;
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
+    explicit SungrowDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 502, quint16 modbusAddress = 1, QObject *parent = nullptr);
+    typedef struct SungrowDiscoveryResult {
+        QString serialNumber;
+        NetworkDeviceInfo networkDeviceInfo;
+        float nominalOutputPower;
+        int deviceType;
+    } SungrowDiscoveryResult;
+
+    void startDiscovery();
+
+    QList<SungrowDiscoveryResult> discoveryResults() const;
+
+signals:
+    void discoveryFinished();
 
 private:
-    bool isOutlier(const QList<float>& list);
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+    quint16 m_port;
+    quint16 m_modbusAddress;
 
-    PluginTimer *m_refreshTimer = nullptr;
-    int m_windowLength{7};
+    QDateTime m_startDateTime;
 
-    QHash<Thing *, QList<float>> m_energyConsumedValues;
-    QHash<Thing *, QList<float>> m_energyProducedValues;
+    QList<SungrowModbusTcpConnection *> m_connections;
+    QList<SungrowDiscoveryResult> m_discoveryResults;
 
-    QHash<Thing *, Sdm630ModbusRtuConnection *> m_sdm630Connections;
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SungrowModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // INTEGRATIONPLUGINKOSTALMETER_H
+#endif // SUNGROWDISCOVERY_H

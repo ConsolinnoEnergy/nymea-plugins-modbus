@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2021, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,45 +28,50 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINKOSTALMETER_H
-#define INTEGRATIONPLUGINKOSTALMETER_H
-
-#include <integrations/integrationplugin.h>
-#include <hardware/modbus/modbusrtuhardwareresource.h>
-#include <plugintimer.h>
-
-#include "sdm630modbusrtuconnection.h"
-
-#include "extern-plugininfo.h"
+#ifndef DISCOVERYTCP_H
+#define DISCOVERYTCP_H
 
 #include <QObject>
 #include <QTimer>
 
-class IntegrationPluginBGETech: public IntegrationPlugin
+#include <network/networkdevicediscovery.h>
+
+#include "solaxmodbustcpconnection.h"
+
+class DiscoveryTcp : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginkostalmeter.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginBGETech();
-    void init() override;
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
+    explicit DiscoveryTcp(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    struct Result {
+        quint16 port;
+        quint16 modbusId;
+        QString productName;
+        QString manufacturerName;
+        quint16 powerRating;
+        NetworkDeviceInfo networkDeviceInfo;
+    };
+
+    void startDiscovery();
+
+    QList<Result> discoveryResults() const;
+
+signals:
+    void discoveryFinished();
 
 private:
-    bool isOutlier(const QList<float>& list);
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
 
-    PluginTimer *m_refreshTimer = nullptr;
-    int m_windowLength{7};
+    QDateTime m_startDateTime;
 
-    QHash<Thing *, QList<float>> m_energyConsumedValues;
-    QHash<Thing *, QList<float>> m_energyProducedValues;
+    QList<SolaxModbusTcpConnection *> m_connections;
 
-    QHash<Thing *, Sdm630ModbusRtuConnection *> m_sdm630Connections;
+    QList<Result> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SolaxModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // INTEGRATIONPLUGINKOSTALMETER_H
+#endif // DISCOVERYTCP_H

@@ -23,19 +23,24 @@
                     "discoveryParamTypes": [
                         {
                             "id": "6ab43559-53ec-47ba-b8a0-8d3b7f8d9053",
-                            "name": "slaveAddress",
-                            "displayName": "Slave address",
-                            "type": "int",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 247,
                             "defaultValue": 1
                         }
                     ],
                     "paramTypes": [
                         {
                             "id": "ac77ea98-b006-486e-a3e8-b30a483f2052",
-                            "name": "slaveAddress",
-                            "displayName": "Modbus slave address",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
                             "type": "uint",
-                            "defaultValue": 1
+                            "minValue": 1,
+                            "maxValue": 247,
+                            "defaultValue": 1,
+                            "readOnly": true
                         },
                         {
                             "id": "d90e9292-d03c-4f2a-957e-5d965018c060",
@@ -43,6 +48,22 @@
                             "displayName": "Modbus RTU master",
                             "type": "QUuid",
                             "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "b5729018-da7b-4874-ae8b-aab78a979343",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "b3c2f761-a1f9-4b96-b21a-5ddaa2361421",
+                            "name": "meterCode",
+                            "displayName": "Meter code",
+                            "type": "uint",
+                            "defaultValue": 0,
                             "readOnly": true
                         }
                     ],
@@ -163,7 +184,7 @@
                             "displayNameEvent": "Frequency changed",
                             "type": "double",
                             "unit": "Hertz",
-                            "defaultValue": 0.0,
+                            "defaultValue": 0.00,
                             "cached": false
                         },
                         {
@@ -173,7 +194,7 @@
                             "displayNameEvent": "Total energy consumed changed",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0.0,
+                            "defaultValue": 0.00,
                             "cached": true
                         },
                         {
@@ -183,7 +204,7 @@
                             "displayNameEvent": "Total energy produced changed",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0.0,
+                            "defaultValue": 0.00,
                             "cached": true
                         },
                         {
@@ -193,7 +214,7 @@
                             "displayNameEvent": "Energy consumed phase A changed",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0.0,
+                            "defaultValue": 0.00,
                             "cached": false
                         },
                         {
@@ -203,7 +224,7 @@
                             "displayNameEvent": "Energy consumed phase B changed",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0.0,
+                            "defaultValue": 0.00,
                             "cached": false
                         },
                         {
@@ -213,7 +234,7 @@
                             "displayNameEvent": "Energy consumed phase C changed",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0.0,
+                            "defaultValue": 0.00,
                             "cached": false
                         },
                         {
@@ -223,7 +244,7 @@
                             "displayNameEvent": "Energy produced phase A changed",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0.0,
+                            "defaultValue": 0.00,
                             "cached": false
                         },
                         {
@@ -233,7 +254,7 @@
                             "displayNameEvent": "Energy produced phase B changed",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0.0,
+                            "defaultValue": 0.00,
                             "cached": false
                         },
                         {
@@ -243,7 +264,7 @@
                             "displayNameEvent": "Energy produced phase C changed",
                             "type": "double",
                             "unit": "KiloWattHour",
-                            "defaultValue": 0.0,
+                            "defaultValue": 0.00,
                             "cached": false
                         }
                     ]

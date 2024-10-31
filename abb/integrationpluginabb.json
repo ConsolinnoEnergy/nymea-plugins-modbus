@@ -36,15 +36,6 @@
                     ],
                     "stateTypes": [
                         {
-                            "id": "4e52eaf5-945f-48c3-8bdb-ae269d68b58c",
-                            "displayName": "Firmware version",
-                            "displayNameEvent": "Firmware version changed",
-                            "name": "firmwareVersion",
-                            "type": "QString",
-                            "defaultValue": "",
-                            "cached": false
-                        },
-                        {
                             "id": "8fb3c9af-e6ac-4632-8dc4-37d0bb1ad874",
                             "name": "connected",
                             "displayName": "Connected",
@@ -88,6 +79,15 @@
                             "cached": false
                         },
                         {
+                            "id": "b20e21fd-8131-430c-9557-7d24d65f333a",
+                            "name": "sessionEnergy",
+                            "displayName": "Session energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "039deb9e-c0e6-484d-a2c8-154ac14825f4",
                             "name": "totalEnergyConsumed",
                             "displayName": "Total consumed energy",
@@ -120,21 +120,21 @@
                             "cached": true
                         },
                         {
-                            "id": "b20e21fd-8131-430c-9557-7d24d65f333a",
-                            "name": "sessionEnergy",
-                            "displayName": "Session energy",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
                             "id": "b11aa2be-5384-4ec9-861f-27e0930ce3f6",
                             "name": "settableMaxCurrent",
                             "displayName": "Settable Max Current",
                             "type": "uint",
                             "unit": "Ampere",
                             "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "d92c1062-3ffd-450c-bd1f-f8a2eb49151a",
+                            "displayName": "Firmware version",
+                            "displayNameEvent": "Firmware version changed",
+                            "name": "firmwareVersion",
+                            "type": "QString",
+                            "defaultValue": "",
                             "cached": false
                         },
                         {
@@ -164,15 +164,6 @@
                         }
                     ],
                     "stateTypes": [
-                        {
-                            "id": "d92c1062-3ffd-450c-bd1f-f8a2eb49151a",
-                            "displayName": "Firmware version",
-                            "displayNameEvent": "Firmware version changed",
-                            "name": "firmwareVersion",
-                            "type": "QString",
-                            "defaultValue": "",
-                            "cached": false
-                        },
                         {
                             "id": "839a2735-b7c4-4ff6-aa97-9a45f6782973",
                             "name": "connected",
@@ -217,6 +208,15 @@
                             "cached": false
                         },
                         {
+                            "id": "9eb04066-430a-44b7-b1a8-71246935a654",
+                            "name": "sessionEnergy",
+                            "displayName": "Session energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "ad4c7532-99b8-4e7f-b294-5e80ba76bebd",
                             "name": "totalEnergyConsumed",
                             "displayName": "Total consumed energy",
@@ -248,21 +248,21 @@
                             "writable": true
                         },
                         {
-                            "id": "9eb04066-430a-44b7-b1a8-71246935a654",
-                            "name": "sessionEnergy",
-                            "displayName": "Session energy",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
                             "id": "527ea63d-3a39-4af5-8a05-c182fdfaaa1d",
                             "name": "settableMaxCurrent",
                             "displayName": "Settable Max Current",
                             "type": "uint",
                             "unit": "Ampere",
                             "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "4e52eaf5-945f-48c3-8bdb-ae269d68b58c",
+                            "displayName": "Firmware version",
+                            "displayNameEvent": "Firmware version changed",
+                            "name": "firmwareVersion",
+                            "type": "QString",
+                            "defaultValue": "",
                             "cached": false
                         },
                         {
