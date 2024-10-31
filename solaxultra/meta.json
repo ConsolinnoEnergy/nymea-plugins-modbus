@@ -1,7 +1,7 @@
 {
-    "title": "Sungrow Inverter",
-    "tagline": "Connect to Sungrow inverters.",
-    "icon": "sungrow.png",
+    "title": "Solax Inverter",
+    "tagline": "Connect to Solax inverters.",
+    "icon": "solax.png",
     "stability": "consumer",
     "offline": true,
     "technologies": [

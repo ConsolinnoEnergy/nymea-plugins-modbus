@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2024, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,46 +28,50 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSUNGROW_H
-#define INTEGRATIONPLUGINSUNGROW_H
+#ifndef DISCOVERYTCP_H
+#define DISCOVERYTCP_H
 
-#include <plugintimer.h>
-#include <integrations/integrationplugin.h>
-#include <network/networkdevicemonitor.h>
+#include <QObject>
+#include <QTimer>
 
-#include "extern-plugininfo.h"
+#include <network/networkdevicediscovery.h>
 
-#include "sungrowmodbustcpconnection.h"
+#include "solaxmodbustcpconnection.h"
 
-class IntegrationPluginSungrow: public IntegrationPlugin
+class DiscoveryTcp : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginsungrow.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginSungrow();
+    explicit DiscoveryTcp(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    struct Result {
+        quint16 port;
+        quint16 modbusId;
+        QString productName;
+        QString manufacturerName;
+        quint16 powerRating;
+        NetworkDeviceInfo networkDeviceInfo;
+    };
 
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
+    void startDiscovery();
+
+    QList<Result> discoveryResults() const;
+
+signals:
+    void discoveryFinished();
 
 private:
-    const int m_modbusTcpPort = 502;
-    const quint16 m_modbusSlaveAddress = 1;
-    PluginTimer *m_refreshTimer = nullptr;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
 
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, SungrowModbusTcpConnection *> m_tcpConnections;
+    QDateTime m_startDateTime;
 
-    void setupSungrowTcpConnection(ThingSetupInfo *info);
+    QList<SolaxModbusTcpConnection *> m_connections;
 
-    Thing *getMeterThing(Thing *parentThing);
-    Thing *getBatteryThing(Thing *parentThing);
+    QList<Result> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SolaxModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // INTEGRATIONPLUGINSUNGROW_H
-
-
+#endif // DISCOVERYTCP_H

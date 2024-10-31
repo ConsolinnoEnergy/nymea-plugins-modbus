@@ -1,9 +1,9 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2022, nymea GmbH
+* Copyright 2013 - 2024, nymea GmbH
 * Contact: contact@nymea.io
 *
-* This fileDescriptor is part of nymea.
+* This file is part of nymea.
 * This project including source code and documentation is protected by
 * copyright law, and remains the property of nymea GmbH. All rights, including
 * reproduction, publication, editing and translation, are reserved. The use of
@@ -30,296 +30,356 @@
 
 #include "integrationpluginsungrow.h"
 #include "plugininfo.h"
+#include "sungrowdiscovery.h"
 
 #include <network/networkdevicediscovery.h>
-#include <types/param.h>
-
-#include <QDebug>
-#include <QStringList>
-#include <QJsonDocument>
-#include <QNetworkInterface>
+#include <hardwaremanager.h>
 
 IntegrationPluginSungrow::IntegrationPluginSungrow()
 {
 
 }
 
-void IntegrationPluginSungrow::init()
-{
-    connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=] (const QUuid &modbusUuid){
-        qCDebug(dcSungrow()) << "Modbus RTU master has been removed" << modbusUuid.toString();
-
-        foreach (Thing *thing, myThings()) {
-            if (thing->paramValue(sungrowInverterRTUThingModbusMasterUuidParamTypeId) == modbusUuid) {
-                qCWarning(dcSungrow()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
-                thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, false);
-                delete m_rtuConnections.take(thing);
-            }
-        }
-    });
-}
-
 void IntegrationPluginSungrow::discoverThings(ThingDiscoveryInfo *info)
 {
-    if (info->thingClassId() == sungrowInverterTCPThingClassId) {
-        if (!hardwareManager()->networkDeviceDiscovery()->available()) {
-            qCWarning(dcSungrow()) << "The network discovery is not available on this platform.";
-            info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
-            return;
-        }
-        ThingClass thingClass = supportedThings().findById(info->thingClassId()); // TODO can this be done easier?
-        qCDebug(dcSungrow()) << "Starting network discovery...";
-        NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, info, [=](){
-            qCDebug(dcSungrow()) << "Discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "devices";
-            foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
-                qCDebug(dcSungrow()) << networkDeviceInfo;
+    if (!hardwareManager()->networkDeviceDiscovery()->available()) {
+        qCWarning(dcSungrow()) << "The network discovery is not available on this platform.";
+        info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
+        return;
+    }
 
-                QString title;
-                if (networkDeviceInfo.hostName().isEmpty()) {
-                    title = networkDeviceInfo.address().toString();
-                } else {
-                    title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
-                }
+    // Create a discovery with the info as parent for auto deleting the object once the discovery info is done
+    SungrowDiscovery *discovery = new SungrowDiscovery(hardwareManager()->networkDeviceDiscovery(), m_modbusTcpPort, m_modbusSlaveAddress, info);
+    connect(discovery, &SungrowDiscovery::discoveryFinished, discovery, &SungrowDiscovery::deleteLater);
+    connect(discovery, &SungrowDiscovery::discoveryFinished, info, [=](){
+        foreach (const SungrowDiscovery::SungrowDiscoveryResult &result, discovery->discoveryResults()) {
+            QString title = "Sungrow " + QString::number(result.nominalOutputPower) + "kW Inverter";
 
-                QString description;
-                if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
-                    description = networkDeviceInfo.macAddress();
-                } else {
-                    description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
-                }
+            if (!result.serialNumber.isEmpty())
+                title.append(" " + result.serialNumber);
 
-                ThingDescriptor descriptor(info->thingClassId(), title, description);
-                ParamList params;
-                params << Param(sungrowInverterTCPThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
-                descriptor.setParams(params);
+            ThingDescriptor descriptor(sungrowInverterTcpThingClassId, title, result.networkDeviceInfo.address().toString() + " " + result.networkDeviceInfo.macAddress());
+            qCInfo(dcSungrow()) << "Discovered:" << descriptor.title() << descriptor.description();
 
-                // Check if we already have set up this device
-                Thing *existingThing = myThings().findByParams(descriptor.params());
-                if (existingThing) {
-                    qCDebug(dcSungrow()) << "Found already existing" << thingClass.name() << "inverter:" << existingThing->name() << networkDeviceInfo;
-                    descriptor.setThingId(existingThing->id());
-                } else {
-                    qCDebug(dcSungrow()) << "Found new" << thingClass.name() << "inverter";
-                }
-
-                info->addThingDescriptor(descriptor);
+            // Check if we already have set up this device
+            Things existingThings = myThings().filterByParam(sungrowInverterTcpThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+            if (existingThings.count() == 1) {
+                qCDebug(dcSungrow()) << "This Sungrow inverter already exists in the system:" << result.networkDeviceInfo;
+                descriptor.setThingId(existingThings.first()->id());
             }
-            info->finish(Thing::ThingErrorNoError);
-        });
 
-    } else if (info->thingClassId() == sungrowInverterRTUThingClassId) {
-        qCDebug(dcSungrow()) << "Discovering modbus RTU resources...";
-        if (hardwareManager()->modbusRtuResource()->modbusRtuMasters().isEmpty()) {
-            info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No Modbus RTU interface available. Please set up a Modbus RTU interface first."));
-            return;
-        }
-
-        uint slaveAddress = info->params().paramValue(sungrowInverterRTUDiscoverySlaveAddressParamTypeId).toUInt();
-        if (slaveAddress > 247 || slaveAddress == 0) {
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The Modbus slave address must be a value between 1 and 247."));
-            return;
-        }
-
-        foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
-            qCDebug(dcSungrow()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
-            if (!modbusMaster->connected())
-                continue;
-
-            ThingDescriptor descriptor(info->thingClassId(), "Sungrow Inverter", QString::number(slaveAddress) + " " + modbusMaster->serialPort());
             ParamList params;
-            params << Param(sungrowInverterRTUThingSlaveAddressParamTypeId, slaveAddress);
-            params << Param(sungrowInverterRTUThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
+            params << Param(sungrowInverterTcpThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
             descriptor.setParams(params);
             info->addThingDescriptor(descriptor);
         }
 
         info->finish(Thing::ThingErrorNoError);
-    }
+    });
+
+    // Start the discovery process
+    discovery->startDiscovery();
 }
 
 void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
-    qCDebug(dcSungrow()) << "Setup" << thing << thing->params();
+    qCInfo(dcSungrow()) << "Setup" << thing << thing->params();
 
-    if (thing->thingClassId() == sungrowInverterTCPThingClassId) {
+    if (thing->thingClassId() == sungrowInverterTcpThingClassId) {
 
-        // Handle reconfigure
+        // Handle reconfiguration
         if (m_tcpConnections.contains(thing)) {
-            qCDebug(dcSungrow()) << "Already have a Sungrow connection for this thing. Cleaning up old connection and initializing new one...";
-            delete m_tcpConnections.take(thing);
-        } else {
-            qCDebug(dcSungrow()) << "Setting up a new device:" << thing->params();
+            qCDebug(dcSungrow()) << "Reconfiguring existing thing" << thing->name();
+            m_tcpConnections.take(thing)->deleteLater();
+            if (m_monitors.contains(thing)) {
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
         }
 
-        if (m_monitors.contains(thing))
-            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-
-
-        // Make sure we have a valid mac address, otherwise no monitor and not auto searching is possible
-        MacAddress macAddress = MacAddress(thing->paramValue(sungrowInverterTCPThingMacAddressParamTypeId).toString());
-        if (macAddress.isNull()) {
-            qCWarning(dcSungrow()) << "Failed to set up Sungrow inverter because the MAC address is not valid:" << thing->paramValue(sungrowInverterTCPThingMacAddressParamTypeId).toString() << macAddress.toString();
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
+        MacAddress macAddress = MacAddress(thing->paramValue(sungrowInverterTcpThingMacAddressParamTypeId).toString());
+        if (!macAddress.isValid()) {
+            qCWarning(dcSungrow()) << "The configured MAC address is not valid" << thing->params();
+            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not known. Please reconfigure this inverter."));
             return;
         }
 
-        // Create a monitor so we always get the correct IP in the network and see if the device is reachable without polling on our own
+        // Create the monitor
         NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
-        connect(info, &ThingSetupInfo::aborted, monitor, [monitor, this](){
-            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
+        m_monitors.insert(thing, monitor);
+        connect(info, &ThingSetupInfo::aborted, monitor, [=](){
+            // Clean up in case the setup gets aborted
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcSungrow()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
         });
 
-        uint port = thing->paramValue(sungrowInverterTCPThingPortParamTypeId).toUInt();
-        quint16 slaveId = thing->paramValue(sungrowInverterTCPThingSlaveIdParamTypeId).toUInt();
+        QHostAddress address = m_monitors.value(thing)->networkDeviceInfo().address();
 
-        SungrowModbusTcpConnection *connection = new SungrowModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
-        connect(info, &ThingSetupInfo::aborted, connection, &SungrowModbusTcpConnection::deleteLater);
+        qCInfo(dcSungrow()) << "Setting up Sungrow on" << address.toString();
+        auto sungrowConnection = new SungrowModbusTcpConnection(address, m_modbusTcpPort , m_modbusSlaveAddress, this);
+        connect(info, &ThingSetupInfo::aborted, sungrowConnection, &SungrowModbusTcpConnection::deleteLater);
 
-        connect(connection, &SungrowModbusTcpConnection::reachableChanged, thing, [connection, thing](bool reachable){
-            qCDebug(dcSungrow()) << "Reachable state changed" << reachable;
+        // Reconnect on monitor reachable changed
+        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
+            qCDebug(dcSungrow()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+            if (!thing->setupComplete())
+                return;
+
+            if (reachable && !thing->stateValue("connected").toBool()) {
+                sungrowConnection->setHostAddress(monitor->networkDeviceInfo().address());
+                sungrowConnection->reconnectDevice();
+            } else if (!reachable) {
+                // Note: Auto reconnect is disabled explicitly and
+                // the device will be connected once the monitor says it is reachable again
+                sungrowConnection->disconnectDevice();
+            }
+        });
+
+        connect(sungrowConnection, &SungrowModbusTcpConnection::reachableChanged, thing, [this, thing, sungrowConnection](bool reachable){
+            qCInfo(dcSungrow()) << "Reachable changed to" << reachable << "for" << thing;
             if (reachable) {
-                connection->initialize();
+                // Connected true will be set after successfull init
+                sungrowConnection->initialize();
             } else {
-                thing->setStateValue(sungrowInverterTCPConnectedStateTypeId, false);
+                thing->setStateValue("connected", false);
+                thing->setStateValue(sungrowInverterTcpCurrentPowerStateTypeId, 0);
+
+                foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                    childThing->setStateValue("connected", false);
+                }
+
+                Thing *child = getMeterThing(thing);
+                if (child) {
+                    child->setStateValue(sungrowMeterCurrentPowerStateTypeId, 0);
+                    child->setStateValue(sungrowMeterCurrentPhaseAStateTypeId, 0);
+                    child->setStateValue(sungrowMeterCurrentPhaseBStateTypeId, 0);
+                    child->setStateValue(sungrowMeterCurrentPhaseCStateTypeId, 0);
+                }
+
+                child = getBatteryThing(thing);
+                if (child) {
+                    child->setStateValue(sungrowBatteryCurrentPowerStateTypeId, 0);
+                }
             }
         });
 
-        connect(connection, &SungrowModbusTcpConnection::initializationFinished, info, [this, thing, connection, monitor, info](bool success){
-            if (success) {
-                qCDebug(dcSungrow()) << "Sungrow inverter initialized.";
-                m_tcpConnections.insert(thing, connection);
-                m_monitors.insert(thing, monitor);
-                info->finish(Thing::ThingErrorNoError);
+        connect(sungrowConnection, &SungrowModbusTcpConnection::initializationFinished, thing, [=](bool success){
+            thing->setStateValue("connected", success);
+
+            foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                childThing->setStateValue("connected", success);
+            }
+
+            if (!success) {
+                // Try once to reconnect the device
+                sungrowConnection->reconnectDevice();
             } else {
-                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
-                connection->deleteLater();
-                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Could not initialize the communication with the inverter."));
+                qCInfo(dcSungrow()) << "Connection initialized successfully for" << thing;
+                sungrowConnection->update();
             }
         });
 
-        connect(connection, &SungrowModbusTcpConnection::initializationFinished, thing, [this, thing, connection](bool success){
-            if (success) {
-                thing->setStateValue(sungrowInverterTCPConnectedStateTypeId, true);
-                connection->update();
+        connect(sungrowConnection, &SungrowModbusTcpConnection::updateFinished, thing, [=](){
+            qCDebug(dcSungrow()) << "Updated" << sungrowConnection;
+
+            if (myThings().filterByParentId(thing->id()).filterByThingClassId(sungrowMeterThingClassId).isEmpty()) {
+                qCDebug(dcSungrow()) << "There is no meter set up for this inverter. Creating a meter for" << thing << sungrowConnection;
+                ThingClass meterThingClass = thingClass(sungrowMeterThingClassId);
+                ThingDescriptor descriptor(sungrowMeterThingClassId, meterThingClass.displayName() + " " + sungrowConnection->serialNumber(), QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+
+            // Check if a battery is connected to this Sungrow inverter
+            if (sungrowConnection->batteryTemperature() != 0 &&
+                    myThings().filterByParentId(thing->id()).filterByThingClassId(sungrowBatteryThingClassId).isEmpty()) {
+                qCDebug(dcSungrow()) << "There is a battery connected but not set up yet. Creating a battery.";
+                ThingClass batteryThingClass = thingClass(sungrowBatteryThingClassId);
+                ThingDescriptor descriptor(sungrowBatteryThingClassId, batteryThingClass.displayName() + " " + sungrowConnection->serialNumber(), QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+
+            // Update inverter states
+            thing->setStateValue(sungrowInverterTcpCurrentPowerStateTypeId, static_cast<double>(sungrowConnection->totalPVPower()) * -1);
+            thing->setStateValue(sungrowInverterTcpTemperatureStateTypeId, sungrowConnection->inverterTemperature());
+            thing->setStateValue(sungrowInverterTcpFrequencyStateTypeId, sungrowConnection->gridFrequency());
+            thing->setStateValue(sungrowInverterTcpTotalEnergyProducedStateTypeId, sungrowConnection->totalPVGeneration());
+
+            // Update the meter if available
+            Thing *meterThing = getMeterThing(thing);
+            if (meterThing) {
+                auto runningState = sungrowConnection->runningState();
+                qCDebug(dcSungrow()) << "Power generated from PV:" << (runningState & (0x1 << 0) ? "true" : "false");
+                qCDebug(dcSungrow()) << "Battery charging:" << (runningState & (0x1 << 1) ? "true" : "false");
+                qCDebug(dcSungrow()) << "Battery discharging:" << (runningState & (0x1 << 2) ? "true" : "false");
+                qCDebug(dcSungrow()) << "Positive load power:" << (runningState & (0x1 << 3) ? "true" : "false");
+                qCDebug(dcSungrow()) << "Feed-in power:" << (runningState & (0x1 << 4) ? "true" : "false");
+                qCDebug(dcSungrow()) << "Import power from grid:" << (runningState & (0x1 << 5) ? "true" : "false");
+                qCDebug(dcSungrow()) << "Negative load power:" << (runningState & (0x1 << 7) ? "true" : "false");
+                meterThing->setStateValue(sungrowMeterCurrentPowerStateTypeId, sungrowConnection->exportPower() * -1);
+                meterThing->setStateValue(sungrowMeterTotalEnergyConsumedStateTypeId, sungrowConnection->totalImportEnergy());
+                meterThing->setStateValue(sungrowMeterTotalEnergyProducedStateTypeId, sungrowConnection->totalExportEnergy());
+                meterThing->setStateValue(sungrowMeterCurrentPhaseAStateTypeId, sungrowConnection->phaseACurrent());
+                meterThing->setStateValue(sungrowMeterCurrentPhaseBStateTypeId, sungrowConnection->phaseBCurrent());
+                meterThing->setStateValue(sungrowMeterCurrentPhaseCStateTypeId, sungrowConnection->phaseCCurrent());
+                meterThing->setStateValue(sungrowMeterVoltagePhaseAStateTypeId, sungrowConnection->phaseAVoltage());
+                meterThing->setStateValue(sungrowMeterVoltagePhaseBStateTypeId, sungrowConnection->phaseBVoltage());
+                meterThing->setStateValue(sungrowMeterVoltagePhaseCStateTypeId, sungrowConnection->phaseCVoltage());
+                meterThing->setStateValue(sungrowMeterFrequencyStateTypeId, sungrowConnection->gridFrequency());
+            }
+
+            // Update the battery if available
+            Thing *batteryThing = getBatteryThing(thing);
+            if (batteryThing) {
+                batteryThing->setStateValue(sungrowBatteryVoltageStateTypeId, sungrowConnection->batteryVoltage());
+                batteryThing->setStateValue(sungrowBatteryTemperatureStateTypeId, sungrowConnection->batteryTemperature());
+                batteryThing->setStateValue(sungrowBatteryBatteryLevelStateTypeId, sungrowConnection->batteryLevel());
+                batteryThing->setStateValue(sungrowBatteryBatteryCriticalStateTypeId, sungrowConnection->batteryLevel() < 5);
+                batteryThing->setStateValue(sungrowBatteryCapacityStateTypeId, sungrowConnection->totalBatteryCapacity());
+
+                quint16 runningState = sungrowConnection->runningState();
+                double batteryPower = static_cast<double>(sungrowConnection->batteryPower());
+                if (runningState & (0x1 << 1)) { //Bit 1: Battery charging bit
+                    batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "charging");
+                    batteryPower = batteryPower;
+                } else if (runningState & (0x1 << 2)) { //Bit 2: Battery discharging bit
+                    batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "discharging");
+                    batteryPower = -1 * batteryPower;
+                } else {
+                    batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "idle");
+                }
+                batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, batteryPower);
             }
         });
 
-        // Handle property changed signals
-        connect(connection, &SungrowModbusTcpConnection::activePowerChanged, thing, [thing](quint32 activePower){
-            qCDebug(dcSungrow()) << "Inverter power changed" << -activePower << "W";
-            thing->setStateValue(sungrowInverterTCPCurrentPowerStateTypeId, -double(activePower));
-        });
+        m_tcpConnections.insert(thing, sungrowConnection);
 
-        connect(connection, &SungrowModbusTcpConnection::deviceTypeCodeChanged, thing, [thing](quint16 deviceTypeCode){
-            qCDebug(dcSungrow()) << "Inverter device type code recieved" << deviceTypeCode;
-            Q_UNUSED(thing)
-        });
+        if (monitor->reachable())
+            sungrowConnection->connectDevice();
 
-        connect(connection, &SungrowModbusTcpConnection::totalPowerYieldsChanged, thing, [thing](quint32 totalEnergyProduced){
-            qCDebug(dcSungrow()) << "Inverter total energy produced changed" << totalEnergyProduced << "kWh";
-            thing->setStateValue(sungrowInverterTCPTotalEnergyProducedStateTypeId, totalEnergyProduced);
-        });
-
-        connection->connectDevice();
-
+        info->finish(Thing::ThingErrorNoError);
         return;
     }
 
-    if (thing->thingClassId() == sungrowInverterRTUThingClassId) {
+    if (thing->thingClassId() == sungrowMeterThingClassId) {
 
-        uint address = thing->paramValue(sungrowInverterRTUThingSlaveAddressParamTypeId).toUInt();
-        if (address > 247 || address == 0) {
-            qCWarning(dcSungrow()) << "Setup failed, slave address is not valid" << address;
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
+        // Get the parent thing and the associated connection
+        Thing *connectionThing = myThings().findById(thing->parentId());
+        if (!connectionThing) {
+            qCWarning(dcSungrow()) << "Failed to set up Sungrow energy meter because the parent thing with ID" << thing->parentId().toString() << "could not be found.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
         }
 
-        QUuid uuid = thing->paramValue(sungrowInverterRTUThingModbusMasterUuidParamTypeId).toUuid();
-        if (!hardwareManager()->modbusRtuResource()->hasModbusRtuMaster(uuid)) {
-            qCWarning(dcSungrow()) << "Setup failed, hardware manager not available";
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus RTU resource is not available."));
+        auto sungrowConnection = m_tcpConnections.value(connectionThing);
+        if (!sungrowConnection) {
+            qCWarning(dcSungrow()) << "Failed to set up Sungrow energy meter because the connection for" << connectionThing << "does not exist.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
         }
 
-        if (m_rtuConnections.contains(thing)) {
-            qCDebug(dcSungrow()) << "Already have a Sungrow connection for this thing. Cleaning up old connection and initializing new one...";
-            m_rtuConnections.take(thing)->deleteLater();
-        }
-
-        SungrowModbusRtuConnection *connection = new SungrowModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
-        connect(connection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
-            if (connected) {
-                qCDebug(dcSungrow()) << "Modbus RTU resource connected" << thing << connection->modbusRtuMaster()->serialPort();
-            } else {
-                qCWarning(dcSungrow()) << "Modbus RTU resource disconnected" << thing << connection->modbusRtuMaster()->serialPort();
-            }
-        });
-
-        // Handle property changed signals
-        connect(connection, &SungrowModbusRtuConnection::activePowerChanged, thing, [thing](quint32 activePower){
-            qCDebug(dcSungrow()) << "Inverter power changed" << -activePower << "W";
-            thing->setStateValue(sungrowInverterRTUCurrentPowerStateTypeId, -double(activePower));
-            thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, true);
-        });
-
-        connect(connection, &SungrowModbusRtuConnection::deviceTypeCodeChanged, thing, [thing](quint16 deviceTypeCode){
-            qCDebug(dcSungrow()) << "Inverter device type code recieved" << deviceTypeCode;
-            Q_UNUSED(thing)
-        });
-
-        connect(connection, &SungrowModbusRtuConnection::totalPowerYieldsChanged, thing, [thing](quint32 totalEnergyProduced){
-            qCDebug(dcSungrow()) << "Inverter total energy produced changed" << totalEnergyProduced << "kWh";
-            thing->setStateValue(sungrowInverterRTUTotalEnergyProducedStateTypeId, totalEnergyProduced);
-        });
-
-        // FIXME: make async and check if this is really a sungrow
-        m_rtuConnections.insert(thing, connection);
+        // Note: The states will be handled in the parent inverter thing on updated
         info->finish(Thing::ThingErrorNoError);
+        return;
+    }
+
+    if (thing->thingClassId() == sungrowBatteryThingClassId) {
+        // Get the parent thing and the associated connection
+        Thing *connectionThing = myThings().findById(thing->parentId());
+        if (!connectionThing) {
+            qCWarning(dcSungrow()) << "Failed to set up Sungrow battery because the parent thing with ID" << thing->parentId().toString() << "could not be found.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        auto sungrowConnection = m_tcpConnections.value(connectionThing);
+        if (!sungrowConnection) {
+            qCWarning(dcSungrow()) << "Failed to set up Sungrow battery because the connection for" << connectionThing << "does not exist.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        // Note: The states will be handled in the parent inverter thing on updated
+        info->finish(Thing::ThingErrorNoError);
+        return;
     }
 }
 
 void IntegrationPluginSungrow::postSetupThing(Thing *thing)
 {
-    if (thing->thingClassId() == sungrowInverterTCPThingClassId || thing->thingClassId() == sungrowInverterRTUThingClassId) {
-        if (!m_pluginTimer) {
+
+    if (thing->thingClassId() == sungrowInverterTcpThingClassId) {
+
+        // Create the update timer if not already set up
+        if (!m_refreshTimer) {
             qCDebug(dcSungrow()) << "Starting plugin timer...";
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
-            connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
-                foreach(SungrowModbusTcpConnection *connection, m_tcpConnections) {
-                    if (connection->connected()) {
+            m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
+            connect(m_refreshTimer, &PluginTimer::timeout, this, [this] {
+                foreach(auto thing, myThings().filterByThingClassId(sungrowInverterTcpThingClassId)) {
+                    auto monitor = m_monitors.value(thing);
+                    if (!monitor->reachable()) {
+                        continue;
+                    }
+
+                    auto connection = m_tcpConnections.value(thing);
+
+                    if (connection->reachable()) {
+                        qCDebug(dcSungrow()) << "Updating connection" << connection->hostAddress().toString();
                         connection->update();
+                    } else {
+                        qCDebug(dcSungrow()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
+                        connection->reconnectDevice();
                     }
                 }
-
-                foreach(SungrowModbusRtuConnection *connection, m_rtuConnections) {
-                    connection->update();
-                }
             });
-
-            m_pluginTimer->start();
+            m_refreshTimer->start();
         }
+        return;
+    }
+
+    if (thing->thingClassId() == sungrowMeterThingClassId || thing->thingClassId() == sungrowBatteryThingClassId) {
+        Thing *connectionThing = myThings().findById(thing->parentId());
+        if (connectionThing) {
+            thing->setStateValue("connected", connectionThing->stateValue("connected"));
+        }
+        return;
     }
 }
 
 void IntegrationPluginSungrow::thingRemoved(Thing *thing)
 {
-    if (m_monitors.contains(thing)) {
+    if (thing->thingClassId() == sungrowInverterTcpThingClassId && m_tcpConnections.contains(thing)) {
+        auto connection = m_tcpConnections.take(thing);
+        connection->disconnectDevice();
+        delete connection;
+    }
+
+    // Unregister related hardware resources
+    if (m_monitors.contains(thing))
         hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-    }
 
-    if (m_tcpConnections.contains(thing)) {
-        m_tcpConnections.take(thing)->deleteLater();
+    if (myThings().isEmpty() && m_refreshTimer) {
+        qCDebug(dcSungrow()) << "Stopping refresh timer";
+        hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
+        m_refreshTimer = nullptr;
     }
+}
 
-    if (m_rtuConnections.contains(thing)) {
-        m_rtuConnections.take(thing)->deleteLater();
-    }
+Thing *IntegrationPluginSungrow::getMeterThing(Thing *parentThing)
+{
+    Things meterThings = myThings().filterByParentId(parentThing->id()).filterByThingClassId(sungrowMeterThingClassId);
+    if (meterThings.isEmpty())
+        return nullptr;
 
-    if (myThings().isEmpty() && m_pluginTimer) {
-        hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
-        m_pluginTimer = nullptr;
-    }
+    return meterThings.first();
+}
+
+Thing *IntegrationPluginSungrow::getBatteryThing(Thing *parentThing)
+{
+    Things batteryThings = myThings().filterByParentId(parentThing->id()).filterByThingClassId(sungrowBatteryThingClassId);
+    if (batteryThings.isEmpty())
+        return nullptr;
+
+    return batteryThings.first();
 }

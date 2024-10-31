@@ -1,12 +1,16 @@
 include(../plugins.pri)
 
 # Generate modbus connection
-# MODBUS_TOOLS_CONFIG += VERBOSE
 MODBUS_CONNECTIONS += sungrow-registers.json
+#MODBUS_TOOLS_CONFIG += VERBOSE
 include(../modbus.pri)
 
 HEADERS += \
-    integrationpluginsungrow.h
+    integrationpluginsungrow.h \
+    sungrowdiscovery.h \
+    sungrowmodbustcpconnection.h
 
 SOURCES += \
-    integrationpluginsungrow.cpp
+    integrationpluginsungrow.cpp \
+    sungrowdiscovery.cpp \
+    sungrowmodbustcpconnection.cpp
