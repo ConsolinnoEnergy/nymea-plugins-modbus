@@ -1,5 +1,8 @@
 nymea-plugins-modbus (1.7.010) jammy; urgency=medium
 
+  * Fixes for FoxESS WB Gen3: 
+    - Skip discovery for IPv6
+    - Start charging when state is paused
   * Updated sungrow integration to match nymea
   * Inital release of Solax X3 Ultra wit one battery.
   * Improve timing in Alfen plugin
