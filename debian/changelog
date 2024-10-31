@@ -1,5 +1,6 @@
 nymea-plugins-modbus (1.7.010) jammy; urgency=medium
 
+  * Inital release of QCells Gen 4 EV Charger.
   * Matched Kostalmeter integration to SDM630 integration
   * Added Kostalmeter as Consumer and Inverter
   * Fixes for FoxESS WB Gen3: 

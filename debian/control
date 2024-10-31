@@ -430,6 +430,13 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for FoxESS wallbox 3rd gen.
  This package contains the nymea integration plugin for the FoxESS wallbox 3rd gen..
 
+Package: nymea-plugin-qcellsg4wb
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for QCells Gen 4 wallbox.
+ This package contains the nymea integration plugin for the QCells Gen 4 wallbox.
+
 Package: nymea-plugin-kostalmeter
 Architecture: any
 Section: libs
