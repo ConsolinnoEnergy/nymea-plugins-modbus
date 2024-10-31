@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "dvModbusIR",
-                    "displayName": "DvModbusIR",
+                    "displayName": "Device DvModbusIR",
                     "id": "e4babb85-8679-40f0-b6e7-7fda422117b0",
                     "createMethods": ["discovery"],
                     "interfaces": ["smartmeterconsumer", "smartmeterproducer", "connectable"],
@@ -160,6 +160,26 @@
                             "type": "QString",
                             "defaultValue": 0,
                             "cached": true
+                        },
+                        {
+                            "id": "5495e00d-e5bb-4baf-af55-9513fe27b08d",
+                            "name": "currentPhaseA",
+                            "displayName": "Current phase A",
+                            "displayNameEvent": "Current phase A changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "96c7e3a8-b59f-47e8-a1a0-6c439f6406d8",
+                            "name": "voltagePhaseA",
+                            "displayName": "Voltage phase A",
+                            "displayNameEvent": "Voltage phase A changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
                         }
                     ]
                 }
