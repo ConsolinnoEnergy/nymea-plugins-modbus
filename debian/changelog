@@ -1,5 +1,7 @@
 nymea-plugins-modbus (1.7.010) jammy; urgency=medium
 
+  * DvModbusIR: Read more states more frequently
+    - Added as Meter, Consumer and Inverter
   * Inital release of QCells Gen 4 EV Charger.
   * Matched Kostalmeter integration to SDM630 integration
   * Added Kostalmeter as Consumer and Inverter
@@ -11,6 +13,7 @@ nymea-plugins-modbus (1.7.010) jammy; urgency=medium
   * Improve timing in Alfen plugin
   * ABB Terra: Fix for charge session energy
   * Fix for Mennekes: Set phaseCount to 1 when not charging.
+>>>>>>> debian/changelog
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
 
