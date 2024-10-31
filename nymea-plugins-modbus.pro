@@ -37,6 +37,7 @@ PLUGIN_DIRS = \
     sma                     \
     solaxevc                \
     solax                   \
+    solaxultra              \
     stiebeleltron           \
     sungrow                 \
     sunspec                 \
