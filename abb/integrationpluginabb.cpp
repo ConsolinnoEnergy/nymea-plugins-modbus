@@ -384,7 +384,16 @@ void IntegrationPluginABB::setupRtuConnection(ThingSetupInfo *info)
     // Session Energy
     connect(connection, &ABBModbusRtuConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
         qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
-        thing->setStateValue(TerraRTUSessionEnergyStateTypeId, sessionEnergy / 1000.0);
+        sessionEnergy = sessionEnergy / 1000.0;
+        float oldSessionEnergy = thing->stateValue(TerraRTUSessionEnergyStateTypeId).toFloat();
+        float diffSessionEnergy = sessionEnergy - oldSessionEnergy;
+        if (diffSessionEnergy > 0)
+        {
+            float totalEnergy = thing->stateValue(TerraRTUTotalEnergyConsumedStateTypeId).toFloat();
+            totalEnergy = totalEnergy + diffSessionEnergy;
+            thing->setStateValue(TerraRTUTotalEnergyConsumedStateTypeId, totalEnergy);
+        }
+        thing->setStateValue(TerraRTUSessionEnergyStateTypeId, sessionEnergy);
     });
 
     // The max current which can be set; Value configured in TerraConfig App
@@ -545,7 +554,16 @@ void IntegrationPluginABB::setupTcpConnection(ThingSetupInfo *info)
 
     connect(connection, &ABBModbusTcpConnection::sessionEnergyChanged, thing, [thing](float sessionEnergy){
         qCDebug(dcAbb()) << "Wallbox sessionEnergy changed" << sessionEnergy / 1000.0 << "kWh";
-        thing->setStateValue(TerraTCPSessionEnergyStateTypeId, sessionEnergy / 1000.0);
+        sessionEnergy = sessionEnergy / 1000.0;
+        float oldSessionEnergy = thing->stateValue(TerraTCPSessionEnergyStateTypeId).toFloat();
+        float diffSessionEnergy = sessionEnergy - oldSessionEnergy;
+        if (diffSessionEnergy > 0)
+        {
+            float totalEnergy = thing->stateValue(TerraTCPTotalEnergyConsumedStateTypeId).toFloat();
+            totalEnergy = totalEnergy + diffSessionEnergy;
+            thing->setStateValue(TerraTCPTotalEnergyConsumedStateTypeId, totalEnergy);
+        }
+        thing->setStateValue(TerraTCPSessionEnergyStateTypeId, sessionEnergy);
     });
 
     // Session Energy
