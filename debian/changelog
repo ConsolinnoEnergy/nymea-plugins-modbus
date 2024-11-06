@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.010) jammy; urgency=medium
+
+  * Added Broetje heat pump plugin.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Wed, 6 Nov 2024 15:36:00 +0100
+
 nymea-plugins-modbus (1.7.009) jammy; urgency=medium
 
   * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.

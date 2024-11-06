@@ -343,6 +343,11 @@ void IntegrationPluginBroetje::setupConnection(ThingSetupInfo *info) {
         thing->setStateValue(broetjeHotWaterTemperatureStateTypeId, hotWaterTemperature);
     });
 
+    connect(connection, &BroetjeModbusRtuConnection::calculatedCopChanged, thing, [thing](float calculatedCop){
+        qCDebug(dcBroetje()) << thing << "calculated COP changed" << calculatedCop;
+        thing->setStateValue(broetjeCalculatedCopStateTypeId, calculatedCop);
+    });
+
     connect(connection, &BroetjeModbusRtuConnection::systemStatusChanged, thing, [thing](uint16_t systemStatus){
         QString systemStatusString;
         switch (systemStatus) {

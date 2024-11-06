@@ -316,6 +316,18 @@
             "access": "RO"
         },
         {
+            "id": "calculatedCop",
+            "address": 462,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Calculated COP",
+            "staticScaleFactor": -3,
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
             "id": "sgReadyState",
             "address": 473,
             "size": 2,

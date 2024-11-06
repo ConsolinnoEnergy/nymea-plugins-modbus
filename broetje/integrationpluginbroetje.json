@@ -83,7 +83,16 @@
                             "type": "double",
                             "defaultValue": 0,
                             "suggestLogging": true
-                        }, 
+                        },
+                        {
+                            "id": "64dfff52-3903-4956-9ce2-da75f2b314f7",
+                            "name": "calculatedCop",
+                            "displayName": "Calculated COP",
+                            "displayNameEvent": "Calculated COP changed",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
                         {
                             "id": "6174feff-b215-4c62-a9a2-7209f0f5879d",
                             "name": "energyConsumedYear",
