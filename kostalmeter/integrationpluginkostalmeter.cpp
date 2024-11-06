@@ -33,6 +33,7 @@
 
 #include "integrationpluginkostalmeter.h"
 #include "plugininfo.h"
+#include "discoveryrtu.h"
 
 IntegrationPluginBGETech::IntegrationPluginBGETech()
 {
@@ -57,34 +58,58 @@ void IntegrationPluginBGETech::init()
 
 void IntegrationPluginBGETech::discoverThings(ThingDiscoveryInfo *info)
 {
-    qCDebug(dcBgeTech()) << "Discover modbus RTU resources...";
-    if (hardwareManager()->modbusRtuResource()->modbusRtuMasters().isEmpty()) {
-        info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No Modbus RTU interface available. Please set up the Modbus RTU interface first."));
-        return;
-    }
-
     if (info->thingClassId() == sdm630ThingClassId) {
-        uint slaveAddress = info->params().paramValue(sdm630DiscoverySlaveAddressParamTypeId).toUInt();
-        if (slaveAddress > 254 || slaveAddress == 0) {
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The Modbus slave address must be a value between 1 and 254."));
-            return;
-        }
+        uint modbusId = info->params().paramValue(sdm630DiscoveryModbusIdParamTypeId).toUInt();
+        DiscoveryRtu *discovery = new DiscoveryRtu(hardwareManager()->modbusRtuResource(), modbusId, info);
 
-        foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
-            qCDebug(dcBgeTech()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
-            if (!modbusMaster->connected())
-                continue;
+        connect(discovery, &DiscoveryRtu::discoveryFinished, info, [this, info, discovery, modbusId](bool modbusMasterAvailable){
+            if (!modbusMasterAvailable) {
+                info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master found. Please set up a modbus RTU master first."));
+                return;
+            }
 
-            QString name = supportedThings().findById(info->thingClassId()).displayName();
-            ThingDescriptor descriptor(info->thingClassId(), name, QString::number(slaveAddress) + " " + modbusMaster->serialPort());
-            ParamList params;
-            params << Param(sdm630ThingSlaveAddressParamTypeId, slaveAddress);
-            params << Param(sdm630ThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
-            descriptor.setParams(params);
-            info->addThingDescriptor(descriptor);
-        }
+            qCInfo(dcBgeTech()) << "Discovery results:" << discovery->discoveryResults().count();
 
-        info->finish(Thing::ThingErrorNoError);
+            foreach (const DiscoveryRtu::Result &result, discovery->discoveryResults()) {
+
+                // Use result.meterCode() to test if this is a SDM630.
+                if (result.meterCode != 112) {
+                    qCDebug(dcBgeTech()) << "Found a smartmeter, but it is not an SDM630. The meter code for an SDM630 is 112. Received meter code is" << result.meterCode;
+
+                    // Disable this line for now. Not sure if every SDM630 has meter code 112.
+                    //continue;
+                }
+
+                QString serialNumberString{QString::number(result.serialNumber)};
+                QString name = supportedThings().findById(info->thingClassId()).displayName();
+                ThingDescriptor descriptor(info->thingClassId(), name, QString::number(modbusId) + " " + result.serialPort);
+
+                ParamList params{
+                    {sdm630ThingModbusIdParamTypeId, modbusId},
+                    {sdm630ThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
+                    {sdm630ThingSerialNumberParamTypeId, serialNumberString},
+                    {sdm630ThingMeterCodeParamTypeId, result.meterCode}
+                };
+                descriptor.setParams(params);
+
+                // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+                // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+                // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
+                Things existingThings = myThings().filterByThingClassId(sdm630ThingClassId).filterByParam(sdm630ThingSerialNumberParamTypeId, serialNumberString);
+                if (!existingThings.isEmpty()) {
+                    descriptor.setThingId(existingThings.first()->id());
+                }
+
+                // Some remarks to the above code: This plugin gets copy-pasted to get the inverter and consumer SDM630. Since they are different plugins, myThings() won't contain the things
+                // from these plugins. So currently you can add the same device once in each plugin.
+
+                info->addThingDescriptor(descriptor);
+            }
+
+            info->finish(Thing::ThingErrorNoError);
+        });
+
+        discovery->startDiscovery();
         return;
     }
 }
@@ -95,10 +120,10 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
     qCDebug(dcBgeTech()) << "Setup thing" << thing << thing->params();
 
     if (thing->thingClassId() == sdm630ThingClassId) {
-        uint address = thing->paramValue(sdm630ThingSlaveAddressParamTypeId).toUInt();
-        if (address > 254 || address == 0) {
+        uint address = thing->paramValue(sdm630ThingModbusIdParamTypeId).toUInt();
+        if (address > 247 || address == 0) {
             qCWarning(dcBgeTech()) << "Setup failed, slave address is not valid" << address;
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 254."));
+            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
             return;
         }
 
@@ -114,12 +139,85 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
             m_sdm630Connections.take(thing)->deleteLater();
         }
 
-        Sdm630ModbusRtuConnection *sdmConnection = new Sdm630ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
-        connect(sdmConnection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
-            if (connected) {
-                qCDebug(dcBgeTech()) << "Modbus RTU resource connected" << thing << sdmConnection->modbusRtuMaster()->serialPort();
+        if (m_energyConsumedValues.contains(thing))
+            m_energyConsumedValues.remove(thing);
+
+        if (m_energyProducedValues.contains(thing))
+            m_energyProducedValues.remove(thing);
+
+        Sdm630ModbusRtuConnection *sdmConnection = new Sdm630ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, thing);
+        connect(info, &ThingSetupInfo::aborted, sdmConnection, [=](){
+            qCDebug(dcBgeTech()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
+            sdmConnection->deleteLater();
+        });
+
+        connect(sdmConnection, &Sdm630ModbusRtuConnection::reachableChanged, thing, [sdmConnection, thing](bool reachable){
+            thing->setStateValue(sdm630ConnectedStateTypeId, reachable);
+            if (reachable) {
+                qCDebug(dcBgeTech()) << "Modbus RTU device " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is sending data.";
+                sdmConnection->initialize();
             } else {
-                qCWarning(dcBgeTech()) << "Modbus RTU resource disconnected" << thing << sdmConnection->modbusRtuMaster()->serialPort();
+                qCDebug(dcBgeTech()) << "Modbus RTU device " << thing << "connected on" << sdmConnection->modbusRtuMaster()->serialPort() << "is not responding.";
+                thing->setStateValue(sdm630CurrentPowerStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPhaseAStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPhaseBStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPhaseCStateTypeId, 0);
+                thing->setStateValue(sdm630VoltagePhaseAStateTypeId, 0);
+                thing->setStateValue(sdm630VoltagePhaseBStateTypeId, 0);
+                thing->setStateValue(sdm630VoltagePhaseCStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPowerPhaseAStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPowerPhaseBStateTypeId, 0);
+                thing->setStateValue(sdm630CurrentPowerPhaseCStateTypeId, 0);
+                thing->setStateValue(sdm630FrequencyStateTypeId, 0);
+            }
+        });
+
+        connect(sdmConnection, &Sdm630ModbusRtuConnection::initializationFinished, thing, [sdmConnection, thing](bool success){
+            if (success) {
+                QString serialNumberRead{QString::number(sdmConnection->serialNumber())};
+                QString serialNumberConfig{thing->paramValue(sdm630ThingSerialNumberParamTypeId).toString()};
+                int stringsNotEqual = QString::compare(serialNumberRead, serialNumberConfig, Qt::CaseInsensitive);  // if strings are equal, stringsNotEqual should be 0.
+                if (stringsNotEqual) {
+                    // The SDM630 found is a different one than configured. We assume the SDM630 was replaced, and the new device should use this config.
+                    // Step 1: update the serial number.
+                    qCDebug(dcBgeTech()) << "The serial number of this device is" << serialNumberRead << ". It does not match the serial number in the config, which is"
+                                         << serialNumberConfig << ". Updating config with new serial number.";
+                    thing->setParamValue(sdm630ThingSerialNumberParamTypeId, serialNumberRead);
+
+                    // Todo: Step 2: search existing things if there is one with this serial number. If yes, that thing should be deleted. Otherwise there
+                    // will be undefined behaviour when using reconfigure.
+                }
+
+                // Tracking meter code is not needed longterm. This is done to gather data on the meter codes of installed devices. To see if there are only two meter codes
+                // (112 for SDM630 and 137 for SDM72) and these can be used to reliably identify the type of device, or if other meter codes exist as well.
+                uint meterCodeRead{sdmConnection->meterCode()};
+                uint meterCodeConfig{thing->paramValue(sdm630ThingMeterCodeParamTypeId).toUInt()};
+                if (meterCodeRead != meterCodeConfig) {
+                    qCDebug(dcBgeTech()) << "The meter code read from this device is" << meterCodeRead << ". It does not match the meter code in the config, which is"
+                                         << meterCodeConfig << ". Updating config with the new meter code.";
+                    thing->setParamValue(sdm630ThingMeterCodeParamTypeId, meterCodeRead);
+                }
+            }
+        });
+
+        connect(sdmConnection, &Sdm630ModbusRtuConnection::initializationFinished, info, [this, info, sdmConnection](bool success){
+            if (success) {
+                if (sdmConnection->meterCode() != 112) {
+                    qCWarning(dcBgeTech()) << "This does not seem to be a SDM630 smartmeter. The meter code for an SDM630 is 112. Received meter code is" << sdmConnection->meterCode();
+
+                    // Disable these lines for now. Not sure if every SDM630 has meter code 112.
+                    //info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("This does not seem to be a SDM630 smartmeter. This is the wrong thing for that device. You need to configure the device with the correct thing."));
+                    //return;
+                }
+                m_sdm630Connections.insert(info->thing(), sdmConnection);
+                QList<float> energyConsumedList{};
+                m_energyConsumedValues.insert(info->thing(), energyConsumedList);
+                QList<float> energyProducedList{};
+                m_energyProducedValues.insert(info->thing(), energyProducedList);
+                info->finish(Thing::ThingErrorNoError);
+                sdmConnection->update();
+            } else {
+                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The SDM630 smartmeter is not responding."));
             }
         });
 
@@ -137,7 +235,6 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
             thing->setStateValue(sdm630VoltagePhaseAStateTypeId, voltagePhaseA);
-            thing->setStateValue(sdm630ConnectedStateTypeId, true);
         });
 
         connect(sdmConnection, &Sdm630ModbusRtuConnection::voltagePhaseBChanged, this, [=](float voltagePhaseB){
@@ -168,22 +265,6 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
             thing->setStateValue(sdm630FrequencyStateTypeId, frequency);
         });
 
-        connect(sdmConnection, &Sdm630ModbusRtuConnection::totalEnergyConsumedChanged, this, [=](float totalEnergyConsumed){
-            if (totalEnergyConsumed < thing->stateValue(sdm630TotalEnergyConsumedStateTypeId).toFloat()) {
-                qCWarning(dcBgeTech()) << "Total energy consumed value is smaller than the previous value. Skipping value.";
-                return;
-            }
-        thing->setStateValue(sdm630TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
-        });
-
-        connect(sdmConnection, &Sdm630ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float totalEnergyProduced){
-            if (totalEnergyProduced < thing->stateValue(sdm630TotalEnergyProducedStateTypeId).toFloat()) {
-                qCWarning(dcBgeTech()) << "Total energy produced value is smaller than the previous value. Skipping value.";
-                return;
-            }
-        thing->setStateValue(sdm630TotalEnergyProducedStateTypeId, totalEnergyProduced);
-        });
-
         connect(sdmConnection, &Sdm630ModbusRtuConnection::energyProducedPhaseAChanged, this, [=](float energyProducedPhaseA){
             thing->setStateValue(sdm630EnergyProducedPhaseAStateTypeId, energyProducedPhaseA);
         });
@@ -208,10 +289,62 @@ void IntegrationPluginBGETech::setupThing(ThingSetupInfo *info)
             thing->setStateValue(sdm630EnergyConsumedPhaseCStateTypeId, energyConsumedPhaseC);
         });
 
-        // FIXME: try to read before setup success
-        m_sdm630Connections.insert(thing, sdmConnection);
-        info->finish(Thing::ThingErrorNoError);
+        connect(sdmConnection, &Sdm630ModbusRtuConnection::updateFinished, thing, [sdmConnection, thing, this](){
 
+            // Check for outliers. As a consequence of that, the value written to the state is not the most recent. It is several cycles old, depending on the window size.
+            if (m_energyConsumedValues.contains(thing)) {
+                QList<float>& valueList = m_energyConsumedValues.operator[](thing);
+                valueList.append(sdmConnection->totalEnergyConsumed());
+                if (valueList.length() > m_windowLength) {
+                    valueList.removeFirst();
+                    uint centerIndex;
+                    if (m_windowLength % 2 == 0) {
+                        centerIndex = m_windowLength / 2;
+                    } else {
+                        centerIndex = (m_windowLength - 1)/ 2;
+                    }
+                    float testValue{valueList.at(centerIndex)};
+                    if (isOutlier(valueList)) {
+                        qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                    } else {
+                        //qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is legit.";
+
+                        float currentValue{thing->stateValue(sdm630TotalEnergyConsumedStateTypeId).toFloat()};
+                        if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                            //qCDebug(dcBgeTech()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                            thing->setStateValue(sdm630TotalEnergyConsumedStateTypeId, testValue);
+                        }
+                    }
+                }
+            }
+
+            if (m_energyProducedValues.contains(thing)) {
+                QList<float>& valueList = m_energyProducedValues.operator[](thing);
+                valueList.append(sdmConnection->totalEnergyProduced());
+                if (valueList.length() > m_windowLength) {
+                    valueList.removeFirst();
+                    uint centerIndex;
+                    if (m_windowLength % 2 == 0) {
+                        centerIndex = m_windowLength / 2;
+                    } else {
+                        centerIndex = (m_windowLength - 1)/ 2;
+                    }
+                    float testValue{valueList.at(centerIndex)};
+                    if (isOutlier(valueList)) {
+                        qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                    } else {
+                        //qCDebug(dcBgeTech()) << "Outlier check: the value" << testValue << " is legit.";
+
+                        float currentValue{thing->stateValue(sdm630TotalEnergyProducedStateTypeId).toFloat()};
+                        if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                            //qCDebug(dcBgeTech()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                            thing->setStateValue(sdm630TotalEnergyProducedStateTypeId, testValue);
+                        }
+                    }
+                }
+            }
+
+        });
     }
 }
 
@@ -240,9 +373,62 @@ void IntegrationPluginBGETech::thingRemoved(Thing *thing)
     if (m_sdm630Connections.contains(thing))
         m_sdm630Connections.take(thing)->deleteLater();
 
+    if (m_energyConsumedValues.contains(thing))
+        m_energyConsumedValues.remove(thing);
+
+    if (m_energyProducedValues.contains(thing))
+        m_energyProducedValues.remove(thing);
+
     if (myThings().isEmpty() && m_refreshTimer) {
         qCDebug(dcBgeTech()) << "Stopping reconnect timer";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
         m_refreshTimer = nullptr;
     }
+}
+
+// This method uses the Hampel identifier (https://blogs.sas.com/content/iml/2021/06/01/hampel-filter-robust-outliers.html) to test if the value in the center of the window is an outlier or not.
+// The input is a list of floats that contains the window of values to look at. The method will return true if the center value of that list is an outlier according to the Hampel
+// identifier. If the value is not an outlier, the method will return false.
+// The center value of the list is the one at (length / 2) for even length and ((length - 1) / 2) for odd length.
+bool IntegrationPluginBGETech::isOutlier(const QList<float>& list)
+{
+    int const windowLength{list.length()};
+    if (windowLength < 3) {
+        qCWarning(dcBgeTech()) << "Outlier check not working. Not enough values in the list.";
+        return true;    // Unknown if the value is an outlier, but return true to not use the value because it can't be checked.
+    }
+
+    // This is the variable you can change to tweak outlier detection. It scales the size of the range in which values are deemed not an outlier. Increase the number to increase the
+    // range (less values classified as an outlier), lower the number to reduce the range (more values classified as an outlier).
+    uint const hampelH{3};
+
+    float const madNormalizeFactor{1.4826};
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the input list -" << list;
+    QList<float> sortedList{list};
+    std::sort(sortedList.begin(), sortedList.end());
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the sorted list -" << sortedList;
+    uint medianIndex;
+    if (windowLength % 2 == 0) {
+        medianIndex = windowLength / 2;
+    } else {
+        medianIndex = (windowLength - 1)/ 2;
+    }
+    float const median{sortedList.at(medianIndex)};
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the median -" << median;
+
+    QList<float> madList;
+    for (int i = 0; i < windowLength; ++i) {
+        madList.append(std::abs(median - sortedList.at(i)));
+    }
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the mad list -" << madList;
+
+    std::sort(madList.begin(), madList.end());
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the sorted mad list -" << madList;
+    float const hampelIdentifier{hampelH * madNormalizeFactor * madList.at(medianIndex)};
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the calculated Hampel identifier" << hampelIdentifier;
+
+    bool isOutlier{std::abs(list.at(medianIndex) - median) > hampelIdentifier};
+    //qCDebug(dcBgeTech()) << "Hampel identifier: the value" << list.at(medianIndex) << " is an outlier?" << isOutlier;
+
+    return isOutlier;
 }
