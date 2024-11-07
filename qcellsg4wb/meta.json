@@ -1,0 +1,14 @@
+{
+    "title": "qcells",
+    "tagline": "Integrates QCells wallbox into nymea.",
+    "icon": "qcells.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network",
+        "modbus"
+    ],
+    "categories": [
+        "energy"
+    ]
+}
