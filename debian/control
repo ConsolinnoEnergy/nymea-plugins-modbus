@@ -222,6 +222,16 @@ Description: nymea.io plugin for Kostal Solar inverters
  This package contains the nymea.io plugin for Kostal Solar inverters
 
 
+Package: nymea-plugin-lambda
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea.io plugin for Lambda heat pumps
+ This package contains the nymea.io plugin for Lambda heat pumps
+
+
 Package: nymea-plugin-mennekes
 Architecture: any
 Multi-Arch: same

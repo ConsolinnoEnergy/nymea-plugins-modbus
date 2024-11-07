@@ -1,5 +1,6 @@
 nymea-plugins-modbus (1.7.010) jammy; urgency=medium
 
+  * Added Lambda heat pump plugin (Modbus TCP)
   * Generate QCells G3 Wallbox Integration from Solax EVC
   * DvModbusIR: Read more states more frequently
     - Added as Meter, Consumer and Inverter

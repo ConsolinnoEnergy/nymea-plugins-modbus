@@ -24,6 +24,7 @@ PLUGIN_DIRS = \
     inepro                  \
     kacosunspec             \
     kostal                  \
+    lambda                  \
     mennekes                \
     modbuscommander         \
     mtec                    \
