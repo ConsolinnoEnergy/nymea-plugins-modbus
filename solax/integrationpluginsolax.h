@@ -83,6 +83,10 @@ private:
     void writePasswordToInverter(Thing *thing);
     void disableRemoteControl(Thing *thing);
     void setBatteryPower(Thing *thing, qint32 powerToSet, quint16 batteryTimeout);
+
+    void writeErrorLog();
+
+    quint16 m_energyCheck = 0;
 };
 
 #endif // INTEGRATIONPLUGINSOLAX_H

@@ -273,6 +273,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         connect(connection, &SolaxModbusRtuConnection::initializationFinished, thing, [=](bool success){
             if (success) {
                 qCDebug(dcSolax()) << "Solax inverter initialized.";
+                m_energyCheck = 500;
                 thing->setStateValue(solaxX3InverterRTUFirmwareVersionStateTypeId, connection->firmwareVersion());
                 thing->setStateValue(solaxX3InverterRTUNominalPowerStateTypeId, connection->inverterType());
                 writePasswordToInverter(thing);
@@ -333,16 +334,20 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             thing->setStateValue(solaxX3InverterRTUTemperatureStateTypeId, temperature);
         });
 
-        connect(connection, &SolaxModbusRtuConnection::solarEnergyTotalChanged, thing, [thing](double solarEnergyTotal){
+        connect(connection, &SolaxModbusRtuConnection::solarEnergyTotalChanged, thing, [this, thing](double solarEnergyTotal){
             qCDebug(dcSolax()) << "Inverter solar energy total changed" << solarEnergyTotal << "kWh";
             // New value should not be smaller than the old one.
             // Difference should not be greater than 10
             double oldEnergyValue = thing->stateValue(solaxX3InverterRTUTotalEnergyProducedStateTypeId).toDouble();
             double diffEnergy = solarEnergyTotal - oldEnergyValue;
             if (oldEnergyValue == 0 ||
-                (diffEnergy >= 0 && diffEnergy <= 10))
+                (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
             {
                 thing->setStateValue(solaxX3InverterRTUTotalEnergyProducedStateTypeId, solarEnergyTotal);
+            } else {
+                qCWarning(dcSolax()) << "RTU Inverter - Old Energy value is" << oldEnergyValue;
+                qCWarning(dcSolax()) << "RTU Inverter - New energy value is" << solarEnergyTotal;
+                writeErrorLog();
             }
         });
 
@@ -394,9 +399,13 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 double oldEnergyValue = meterThings.first()->stateValue(solaxMeterTotalEnergyProducedStateTypeId).toDouble();
                 double diffEnergy = feedinEnergyTotal - oldEnergyValue;
                 if (oldEnergyValue == 0 ||
-                    (diffEnergy >= 0 && diffEnergy <= 10))
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
                 {
                     meterThings.first()->setStateValue(solaxMeterTotalEnergyProducedStateTypeId, feedinEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "RTU Meter Produced - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "RTU Meter Produced - New energy value is" << feedinEnergyTotal;
+                    writeErrorLog();
                 }
             }
         });
@@ -410,9 +419,13 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 double oldEnergyValue = meterThings.first()->stateValue(solaxMeterTotalEnergyConsumedStateTypeId).toDouble();
                 double diffEnergy = consumEnergyTotal - oldEnergyValue;
                 if (oldEnergyValue == 0 ||
-                    (diffEnergy >= 0 && diffEnergy <= 10))
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
                 {
                     meterThings.first()->setStateValue(solaxMeterTotalEnergyConsumedStateTypeId, consumEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "RTU Meter Consumed - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "RTU Meter Consumed - New energy value is" << consumEnergyTotal;
+                    writeErrorLog();
                 }
             }
         });
@@ -559,6 +572,8 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             double currentPower = powerDc1+powerDc2+2*powerDifference;
             if (qFabs(currentPower) < nominalPowerInverter + 5000)
                 thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+
+            m_energyCheck = 10;
         });
 
         // Battery
@@ -773,6 +788,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::initializationFinished, thing, [=](bool success){
             thing->setStateValue(solaxX3InverterTCPConnectedStateTypeId, success);
+            m_energyCheck = 500;
             writePasswordToInverter(thing);
 
             // Set connected state for meter
@@ -860,7 +876,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(solaxX3InverterTCPTemperatureStateTypeId, temperature);
         });
 
-        connect(connection, &SolaxModbusTcpConnection::solarEnergyTotalChanged, thing, [thing](double solarEnergyTotal){
+        connect(connection, &SolaxModbusTcpConnection::solarEnergyTotalChanged, thing, [this, thing](double solarEnergyTotal){
             // New value should not be smaller than the old one.
             // Difference should not be greater than 10
             qCDebug(dcSolax()) << "Inverter solar energy total changed" << solarEnergyTotal << "kWh";
@@ -868,9 +884,13 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             double oldEnergyValue = thing->stateValue(solaxX3InverterTCPTotalEnergyProducedStateTypeId).toDouble();
             double diffEnergy = solarEnergyTotal - oldEnergyValue;
             if (oldEnergyValue == 0 ||
-                (diffEnergy >= 0 && diffEnergy <= 10))
+                (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
             {
                 thing->setStateValue(solaxX3InverterTCPTotalEnergyProducedStateTypeId, solarEnergyTotal);
+            } else {
+                qCWarning(dcSolax()) << "TCP Inverter - Old Energy value is" << oldEnergyValue;
+                qCWarning(dcSolax()) << "TCP Inverter - New energy value is" << solarEnergyTotal;
+                writeErrorLog();
             }
         });
 
@@ -942,6 +962,8 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             // TODO: abs(currentPower) < nominalPower - DONE
             if (qFabs(currentPower) < nominalPowerInverter + 5000)
                 thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+
+            m_energyCheck = 10;
         });
 
         // Meter
@@ -987,9 +1009,13 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 double oldEnergyValue = meterThings.first()->stateValue(solaxMeterTotalEnergyProducedStateTypeId).toDouble();
                 double diffEnergy = feedinEnergyTotal - oldEnergyValue;
                 if (oldEnergyValue == 0 ||
-                    (diffEnergy >= 0 && diffEnergy <= 10))
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
                 {
                     meterThings.first()->setStateValue(solaxMeterTotalEnergyProducedStateTypeId, feedinEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "TCP Meter Produced - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "TCP Meter Produced - New energy value is" << feedinEnergyTotal;
+                    writeErrorLog();
                 }
             }
         });
@@ -1003,9 +1029,13 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 double oldEnergyValue = meterThings.first()->stateValue(solaxMeterTotalEnergyConsumedStateTypeId).toDouble();
                 double diffEnergy = consumEnergyTotal - oldEnergyValue;
                 if (oldEnergyValue == 0 ||
-                    (diffEnergy >= 0 && diffEnergy <= 10))
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
                 {
                     meterThings.first()->setStateValue(solaxMeterTotalEnergyConsumedStateTypeId, consumEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "TCP Meter Consumed - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "TCP Meter Consumed - New energy value is" << consumEnergyTotal;
+                    writeErrorLog();
                 }
             }
         });
@@ -1639,4 +1669,39 @@ void IntegrationPluginSolax::setBatteryPower(Thing *thing, qint32 powerToSet, qu
     } else {
         qCWarning(dcSolax()) << "setBatteryPower - Received incorrect thing";
     }
+}
+
+void IntegrationPluginSolax::writeErrorLog()
+{
+    qCWarning(dcSolax()) << "WriteErrorLog called";
+    // Write to file /data/solax-counter.txt
+    QFile errorCounterFile("/data/solax-counter.txt");
+    if (!errorCounterFile.exists()) {
+        errorCounterFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        QByteArray counter("Init: 0\nCont: 0");
+        errorCounterFile.write(counter);
+        errorCounterFile.close();
+    }
+
+    int init = 0;
+    int cont = 0;
+    errorCounterFile.open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Text);
+    while (!errorCounterFile.atEnd()) {
+        QByteArray line = errorCounterFile.readLine();
+        if (line.startsWith("Init")) {
+            QList<QByteArray> list = line.split(' ');
+            init = list[1].toInt();
+        } else {
+            QList<QByteArray> list = line.split(' ');
+            cont = list[1].toInt();
+        }
+    }
+
+    if (m_energyCheck == 500) {
+        init += 1;
+    } else {
+        cont += 1;
+    }
+    errorCounterFile.write("Init: " + QByteArray::number(init) + QByteArray("\nCont: ") + QByteArray::number(cont));
+    errorCounterFile.close();
 }
