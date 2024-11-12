@@ -277,25 +277,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &SolaxModbusRtuConnection::inverterPowerChanged, thing, [thing, this](double inverterPower){
-            qCDebug(dcSolax()) << "Inverter power changed" << inverterPower << "W";
-            // https://consolinno.atlassian.net/wiki/spaces/~62f39a8532850ea2a3268713/pages/462848121/Bugfixing+Solax+EX3
-            
-            double batteryPower = 0;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                batteryPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toDouble();
-            }
-           
-            if (batteryPower < 0)
-            {
-                // Battery is discharging
-                batteryPower = 0;
-            }
-            qCDebug(dcSolax()) << "Subtract from InverterPower";
-            thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -inverterPower-batteryPower);
-        });
-
         connect(connection, &SolaxModbusRtuConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
             qCDebug(dcSolax()) << "Inverter voltage changed" << inverterVoltage << "V";
             thing->setStateValue(solaxX3InverterRTUInverterVoltageStateTypeId, inverterVoltage);
@@ -488,6 +469,12 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
         });
 
+        connect(connection, &SolaxModbusRtuConnection::updateFinished, thing, [thing, connection](){
+            qCDebug(dcSolax()) << "Solax X3 - Update finished.";
+            quint16 powerDc1 = connection->powerDc1();
+            quint16 powerDc2 = connection->powerDc2();
+            thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2));
+        });
 
         // Battery
         connect(connection, &SolaxModbusRtuConnection::bmsConnectStateChanged, thing, [this, thing](quint16 bmsConnect){
@@ -718,27 +705,6 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             } 
         });
 
-
-        // Handle property changed signals for inverter
-        connect(connection, &SolaxModbusTcpConnection::inverterPowerChanged, thing, [thing, this](double inverterPower){
-            qCDebug(dcSolax()) << "Inverter power changed" << inverterPower << "W";
-            // https://consolinno.atlassian.net/wiki/spaces/~62f39a8532850ea2a3268713/pages/462848121/Bugfixing+Solax+EX3
-           
-            double batteryPower = 0;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                batteryPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toDouble();
-            }
-           
-            if (batteryPower < 0)
-            {
-                // Battery is discharging
-                batteryPower = 0;
-            }
-            qCDebug(dcSolax()) << "Subtract from InverterPower";
-            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -inverterPower-batteryPower);
-        });
-
         connect(connection, &SolaxModbusTcpConnection::inverterVoltageChanged, thing, [thing](double inverterVoltage){
             qCDebug(dcSolax()) << "Inverter voltage changed" << inverterVoltage << "V";
             thing->setStateValue(solaxX3InverterTCPInverterVoltageStateTypeId, inverterVoltage);
@@ -810,6 +776,12 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             setErrorMessage(thing, inverterFaultBits);
         });
 
+        connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [thing, connection](){
+            qCDebug(dcSolax()) << "Solax X3 - Update finished.";
+            quint16 powerDc1 = connection->powerDc1();
+            quint16 powerDc2 = connection->powerDc2();
+            thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2));
+        });
 
         // Meter
         connect(connection, &SolaxModbusTcpConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){

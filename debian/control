@@ -222,6 +222,16 @@ Description: nymea.io plugin for Kostal Solar inverters
  This package contains the nymea.io plugin for Kostal Solar inverters
 
 
+Package: nymea-plugin-lambda
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea.io plugin for Lambda heat pumps
+ This package contains the nymea.io plugin for Lambda heat pumps
+
+
 Package: nymea-plugin-mennekes
 Architecture: any
 Multi-Arch: same
@@ -423,3 +433,39 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Growatt inverter including meter and battery. 
   This Package contains the nymea integration for inverter, meter and battery made by
   Growatt New Energy GmbH.
+
+Package: nymea-plugin-solaxevc
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for Solax X3 EV Charger
+ This package contains the nymea integration plugin for the Solax X3 EV Charger.
+
+Package: nymea-plugin-foxesswbv3
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for FoxESS wallbox 3rd gen.
+ This package contains the nymea integration plugin for the FoxESS wallbox 3rd gen..
+
+Package: nymea-plugin-qcellsg4wb
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for QCells Gen 4 wallbox.
+ This package contains the nymea integration plugin for the QCells Gen 4 wallbox.
+
+Package: nymea-plugin-kostalmeter
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration to use Smart Meter P, SDM72 from Kostal with the Consolinno HEMS.
+ This package is an automatically generated copy of the bgetech integration.
+
+Package: nymea-plugin-solaxultra
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for Solax X3 Ultra solar inverters and meters
+ This package contains the nymea integration plugin for Solax X3 Ultra solar inverters and meters.

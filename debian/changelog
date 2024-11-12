@@ -1,8 +1,39 @@
-nymea-plugins-modbus (1.7.009) jammy; urgency=medium
+nymea-plugins-modbus (1.7.010) jammy; urgency=medium
 
-  * Added plugin for Sofarsolar hybrid inverter.
+  * Added Sofarsolar hybrid inverter (Modbus RTU)
+  * Added Lambda heat pump plugin (Modbus TCP)
+  * Generate QCells G3 Wallbox Integration from Solax EVC
+  * DvModbusIR: Read more states more frequently
+    - Added as Meter, Consumer and Inverter
+  * Inital release of QCells Gen 4 EV Charger.
+  * Matched Kostalmeter integration to SDM630 integration
+  * Added Kostalmeter as Consumer and Inverter
+  * Fixes for FoxESS WB Gen3: 
+    - Skip discovery for IPv6
+    - Start charging when state is paused
+  * Updated sungrow integration to match nymea
+  * Inital release of Solax X3 Ultra wit one battery.
+  * Improve timing in Alfen plugin
+  * ABB Terra: Fix for charge session energy
+  * Fix for Mennekes: Set phaseCount to 1 when not charging.
 
- -- Luis Reber <l.reber@consolinno.de> Tue, 04 Jun 2024 10:29:00 +0200
+ -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
+
+nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
+
+  * Inital release of Solax X3 EV Charger. Needs to be used with X3 Inverter.
+  * Added kostalmeter plugin (copy of bgetech, does not include sdm72)
+  * Add generator to duplicate existing integrations with different names
+  * Added integration for FoxESS WB 3rd Gen
+  * Fix for Solax X3 Inverter: Wrong warning message; Updated inverter power
+    calculation
+  * Stiebel Eltron: Expanded plugin to also work with LWZ type heat pumps.
+  * Fix for Huawei integration
+  * Updated sunspec integration to match nymea
+  * Webasto Next: fixed reconfigure functionality.
+  * Webasto Unite: fixed reconfigure functionality.
+
+ -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
 
 nymea-plugins-modbus (1.7.008) jammy; urgency=medium
 
@@ -36,6 +67,12 @@ nymea-plugins-modbus (1.7.005-1) buster focal jammy; urgency=medium
   * Nymea Interface: Use old interface for evcharger - Hotfix 1.1.1 build
 
  -- Florian Knab <f.knab@consolinno.de> Mon, 8 Jan 2024 13:44:53 +0100
+
+nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
+
+* SDM630 & SDM72: improved discovery, improved outlier detection, fixed SDM630 generator scripts & other code improvements.
+
+ -- Sebastian Ringer <s.ringer@consolinno.de> Fri, 3 May 2024 18:12:53 +0200
 
 nymea-plugins-modbus (1.7.005) buster focal jammy; urgency=medium
 

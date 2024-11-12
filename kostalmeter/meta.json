@@ -1,0 +1,13 @@
+{
+    "title": "Kostal",
+    "tagline": "Connect Kostal energy meters.",
+    "icon": "kostal.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "modbus"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

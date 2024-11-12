@@ -1,0 +1,210 @@
+{
+    "name": "solaxEvc",
+    "displayName": "Solax",
+    "id": "cd3707ed-d79f-4aba-a5cc-bff1f2d90329",
+    "vendors": [
+        {
+            "name": "solaxEvc",
+            "displayName": "Solax",
+            "id": "b0115ec5-8ffa-40ab-98ab-bfc97ae5449d",
+            "thingClasses": [
+                {
+                    "name": "solaxEvc",
+                    "displayName": "Solax X3 EVC",
+                    "id": "2ed6595f-f3b9-47e8-ad0e-41b404aa1a36",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
+                    "paramTypes": [
+                        {
+                            "id": "45a120be-443e-42ee-a97f-dea0b6fbd4d9",
+                            "name": "ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "inputType": "IPv4Address",
+                            "defaultValue": "127.0.0.1",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "1b10e0b6-715d-483a-9a87-cd7a97a525a4",
+                            "name": "macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "c5f97cb4-6859-4a3a-b715-eeea81c72fa1",
+                            "name": "port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502,
+                            "readOnly": true
+                        }, 
+                        {
+                            "id": "6e2de5d1-a187-408d-a276-78576ed5fec7",
+                            "name":"modbusId",
+                            "displayName": "Modbus ID",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 247,
+                            "defaultValue": 70,
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "5055c7a8-9b34-4289-b313-8c78c935263d",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "819b19e9-3395-472d-95f0-d5c28897eccd",
+                            "name": "pluggedIn",
+                            "displayName": "Plugged in",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "d4c499dc-f0fd-463d-acdd-b7151f3baf91",
+                            "name": "charging",
+                            "displayName": "Charging",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "29f2f2e5-3b47-4737-9324-c852c6377037",
+                            "name": "phaseCount",
+                            "displayName": "Connected phases",
+                            "type": "uint",
+                            "minValue": 0,
+                            "maxValue": 3,
+                            "defaultValue": 1,
+                            "cached": false
+                        },
+                        {
+                            "id": "b060adab-02b8-4892-aa51-18e5eaab852f",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "e9d9e623-0ba0-4418-9271-747e31989438",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total consumed energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        },
+                        {
+                            "id": "c81ca9b1-e9fa-4307-89d9-e3bbfb5262e9",
+                            "name": "sessionEnergy",
+                            "displayName": "Session energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "0ca25649-053c-40a8-9353-fd4afa0f9a98",
+                            "name": "chargingTime",
+                            "displayName": "Charging time",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "32bfd377-24d8-4b34-b16a-d13f69c288de",
+                            "name": "power",
+                            "displayName": "Charging enabled",
+                            "displayNameAction": "Set charging enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
+                        },
+                        {
+                            "id": "2eed9fdc-6ca3-4895-866d-76f503beb75a",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Maximum charging current",
+                            "displayNameAction": "Set maximum charging current",
+                            "type": "uint",
+                            "unit": "Ampere",
+                            "minValue": 6,
+                            "maxValue": 16,
+                            "defaultValue": 6,
+                            "writable": true
+                        },
+                        {
+                            "id": "ce31d3da-5d1a-401a-9fb1-2a93cd9aa7b9",
+                            "name": "state",
+                            "displayName": "State",
+                            "type": "QString",
+                            "defaultValue": "Available",
+                            "cached": false
+                        },
+                        {
+                            "id": "38d022d5-c25c-41d4-bec0-d3701e66418f",
+                            "name": "faultCode",
+                            "displayName": "Fault code",
+                            "type": "QString",
+                            "defaultValue": "No Error",
+                            "cached": false
+                        },
+                        {
+                            "id": "c94d9040-f240-4fc0-90fa-46dae726f42f",
+                            "name": "firmwareVersion",
+                            "displayName": "Firmware version",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "44feb2a5-3510-4bdc-a3d1-5d4fba38cee0",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "7234b907-0c10-437e-9824-a8ab706bd3b3",
+                            "name": "currentPhaseA",
+                            "displayName": "Current Phase A",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "3dd1efb6-92d7-4a34-856f-c6a20581af56",
+                            "name": "currentPhaseB",
+                            "displayName": "Current Phase B",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "23a369af-7fb5-4e51-bfdd-c0cae2bee841",
+                            "name": "currentPhaseC",
+                            "displayName": "Current Phase C",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
