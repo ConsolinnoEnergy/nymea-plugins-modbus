@@ -387,6 +387,16 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             qCDebug(dcLambda()) << thing << "Accumulated thermal energy output of compressor unit since last statistic reset" << compressorTotalHeatOutput << "Wh";
             thing->setStateValue(lambdaTCPCompressorTotalHeatOutputStateTypeId, compressorTotalHeatOutput);
         });
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::updateFinished, thing, [thing, lambdaTCPTcpConnection](){
+            qCDebug(dcLambda()) << "Lambda heat pump - Update finished.";
+            qint32 energyInput = lambdaTCPTcpConnection->totalEnergyConsumed();
+            qint32 energyOutput = lambdaTCPTcpConnection->compressorTotalHeatOutput();
+            double averageCOP = (double)energyOutput / (double)energyInput;
+            qCDebug(dcLambda()) << thing << "Average coefficient of performance" << averageCOP;
+            if (energyInput > 0) {
+                thing->setStateValue(lambdaTCPAverageCoefficientOfPerformanceStateTypeId, averageCOP);
+            }
+        });        
         // 1-0-50 not connected
 
         // Boiler module
@@ -521,10 +531,6 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::flowTemperatureChanged, thing, [thing](float flowTemperature){
             qCDebug(dcLambda()) << thing << "heating circuit flow temperature changed" << flowTemperature << "°C";
             thing->setStateValue(lambdaTCPFlowTemperatureStateTypeId, flowTemperature);
-        });
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::returnTemperatureChanged, thing, [thing](float returnTemperature){
-            qCDebug(dcLambda()) << thing << "heating circuit return temperature changed" << returnTemperature << "°C";
-            thing->setStateValue(lambdaTCPReturnTemperatureStateTypeId, returnTemperature);
         });
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::roomTemperatureChanged, thing, [thing](float roomTemperature){
             qCDebug(dcLambda()) << thing << "Actual temperature room device sensor changed" << roomTemperature << "°C";

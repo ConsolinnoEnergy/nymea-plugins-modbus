@@ -14,6 +14,7 @@ PLUGIN_DIRS = \
     azzurro                 \
     amperfied               \
     bgetech                 \
+    broetje                 \
     kostalmeter             \
     drexelundweiss          \
     foxesswbv3              \
