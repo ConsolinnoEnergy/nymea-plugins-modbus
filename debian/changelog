@@ -1,3 +1,11 @@
+nymea-plugins-modbus (1.7.011) jammy; urgency=medium
+
+  * Fixes for lambda: 
+    - added smartmeterconsumer interface
+    - fix of review and test findings
+
+ -- Luis Reber <l.reber@consolinno.de> Wed, 12 Nov 2024 10:14:00 +0200
+
 nymea-plugins-modbus (1.7.010) jammy; urgency=medium
 
   * Added Lambda heat pump plugin (Modbus TCP)
