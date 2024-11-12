@@ -1,0 +1,14 @@
+{
+    "title": "lambda",
+    "tagline": "Integrate lambda heat pumps into nymea.",
+    "icon": "lambda.png",
+    "stability": "community",
+    "offline": true,
+    "technologies": [
+        "network",
+        "modbus"
+    ],
+    "categories": [
+        "heating"
+    ]
+}
