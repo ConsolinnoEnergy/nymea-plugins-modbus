@@ -5,6 +5,7 @@ nymea-plugins-modbus (1.7.010) jammy; urgency=medium
   * DvModbusIR: Read more states more frequently
     - Added as Meter, Consumer and Inverter
   * Inital release of QCells Gen 4 EV Charger.
+  * Added Broetje heat pump plugin.
   * Matched Kostalmeter integration to SDM630 integration
   * Added Kostalmeter as Consumer and Inverter
   * Fixes for FoxESS WB Gen3: 
