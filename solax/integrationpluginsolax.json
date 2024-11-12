@@ -14,7 +14,7 @@
                     "id": "b1cb3137-b293-4df2-ae4f-b662c6835653",
                     "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": ["solarinverter", "energymeter", "energystorage"],
+                    "providedInterfaces": ["solarinverter", "energymeter", "controllablebattery"],
                     "paramTypes": [
                         {
                             "id": "f2089b5c-407b-47d1-a250-cd201292c769",
@@ -252,7 +252,7 @@
                     "id": "4190fc56-3804-43c4-bcd3-c5f86638513e",
                     "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": ["solarinverter", "energymeter", "energystorage"],
+                    "providedInterfaces": ["solarinverter", "energymeter", "controllablebattery"],
                     "paramTypes": [
                         {
                             "id": "186dc796-e2ef-4034-9693-8561cd44c2ac",
@@ -662,7 +662,7 @@
                     "displayName": "Solax Battery",
                     "id": "fb017a49-0a2e-4ae6-8277-3da0142cbbd2",
                     "createMethods": ["auto"],
-                    "interfaces": ["energystorage", "connectable"],
+                    "interfaces": ["controllablebattery", "connectable"],
                     "paramTypes": [ ],
                     "stateTypes": [
                         {
@@ -802,7 +802,7 @@
                             "displayName": "Battery force power (+:charge, -:discharge)",
                             "displayNameEvent": "Battery force power changed",
                             "displayNameAction": "Battery force power enabled",
-                            "type": "int",
+                            "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.0,
                             "writable": true,
