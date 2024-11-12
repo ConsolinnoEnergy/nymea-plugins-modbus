@@ -17,7 +17,8 @@
                     ],
                     "interfaces": [
                         "pvsurplusheatpump",
-                        "connectable"
+                        "connectable",
+                        "smartmeterconsumer"
                     ],
                     "paramTypes": [
                         {
@@ -187,8 +188,8 @@
                         {
                             "id": "bf3b6231-8990-49c9-95d5-7799e20bc2ec",
                             "name": "powerSetpoint",
-                            "displayName": "heatpump power setpoint",
-                            "displayNameEvent": "heatpump power setpoint changed",
+                            "displayName": "heatpump internal power setpoint",
+                            "displayNameEvent": "heatpump internal power setpoint changed",
                             "unit": "Watt",
                             "type": "double",
                             "defaultValue": 0,
@@ -253,24 +254,24 @@
                             "type": "QString",
                             "possibleValues": [
                                 "Stby",
-                                "Ch",
-                                "Dhw",
-                                "Cc",
+                                "Central Heating",
+                                "Domestic Hot Water",
+                                "Central Cooling",
                                 "Circulate",
                                 "Defrost",
                                 "Off",
                                 "Frost",
-                                "StbyFrost",
-                                "NotUsed",
+                                "Standby Frost",
+                                "Not Used",
                                 "Summer",
                                 "Holiday",
                                 "Error",
                                 "Warning",
-                                "InfoMessage",
-                                "TimeBlock",
-                                "ReleaseBlock",
-                                "MinTempBlock",
-                                "FirmwareDownload"
+                                "Info Message",
+                                "Time Block",
+                                "Release Block",
+                                "MinTemp Block",
+                                "Firmware Download"
                             ],
                             "defaultValue": "Stby",
                             "suggestLogging": true
@@ -298,7 +299,7 @@
                         {
                             "id": "d4881230-cdc0-4324-8e73-82a7d3f3d214",
                             "name": "volumeFlowSink",
-                            "displayName": "Volume flow heat sink",
+                            "displayName": "Volume flow heat sink in l/min",
                             "displayNameEvent": "Volume flow heat sink changed",
                             "unit": "None",
                             "type": "double",
@@ -328,7 +329,7 @@
                         {
                             "id": "66513fcc-779e-4d88-95a1-2b83fe5b6fa4",
                             "name": "volumeFlowSource",
-                            "displayName": "Volume flow energy source",
+                            "displayName": "Volume flow energy source in l/min",
                             "displayNameEvent": "Volume flow energy source changed",
                             "unit": "None",
                             "type": "double",
@@ -370,7 +371,7 @@
                             "name": "coefficientOfPerformance",
                             "displayName": "Coefficient of performance",
                             "displayNameEvent": "Coefficient of performance changed",
-                            "unit": "Percentage",
+                            "unit": "None",
                             "type": "double",
                             "defaultValue": 0.00,
                             "suggestLogging": true
@@ -393,6 +394,15 @@
                             "unit": "KiloWattHour",
                             "type": "int",
                             "defaultValue": 0,
+                            "suggestLogging": true
+                        },                        {
+                            "id": "353c341c-6772-4d4f-b59f-5176b8d4151b",
+                            "name": "averageCoefficientOfPerformance",
+                            "displayName": "average coefficient of performance",
+                            "displayNameEvent": "average coefficient of performance changed",
+                            "unit": "None",
+                            "type": "double",
+                            "defaultValue": 0.00,
                             "suggestLogging": true
                         },
                         {
@@ -501,16 +511,6 @@
                             "name": "flowTemperature",
                             "displayName": "Actual flow line temperature",
                             "displayNameEvent": "Actual flow line temperature changed",
-                            "unit": "DegreeCelsius",
-                            "type": "double",
-                            "defaultValue": 0.00,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "e6a8416b-52b3-41b8-9007-fc51386c67b4",
-                            "name": "returnTemperature",
-                            "displayName": "Actual return line temperature",
-                            "displayNameEvent": "Actual return line temperature changed",
                             "unit": "DegreeCelsius",
                             "type": "double",
                             "defaultValue": 0.00,
