@@ -358,65 +358,65 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
             });
 
     // connect current state of evcharger
-    connect(connection, &SolaxEvcModbusTcpConnection::stateChanged, thing, [thing](quint16 state) {
-        qCDebug(dcSolaxEvc()) << "State changed" << state;
-        // thing->setStateValue(solaxEvcStateStateTypeId, state);
+    // connect(connection, &SolaxEvcModbusTcpConnection::stateChanged, thing, [thing](quint16 state) {
+    //     qCDebug(dcSolaxEvc()) << "State changed" << state;
+    //     // thing->setStateValue(solaxEvcStateStateTypeId, state);
 
-        switch (state) {
-        case SolaxEvcModbusTcpConnection::StateAvailable:
-            thing->setStateValue(solaxEvcStateStateTypeId, "Available");
-            thing->setStateValue(solaxEvcChargingStateTypeId, false);
-            thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
-            break;
-        case SolaxEvcModbusTcpConnection::StatePreparing:
-            thing->setStateValue(solaxEvcStateStateTypeId, "Preparing");
-            thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-            thing->setStateValue(solaxEvcChargingStateTypeId, false);
-            break;
-        case SolaxEvcModbusTcpConnection::StateCharging:
-            thing->setStateValue(solaxEvcStateStateTypeId, "Charging");
-            thing->setStateValue(solaxEvcChargingStateTypeId, true);
-            thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-            break;
-        case SolaxEvcModbusTcpConnection::StateFinishing:
-            thing->setStateValue(solaxEvcStateStateTypeId, "Plugged In");
-            thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-            thing->setStateValue(solaxEvcChargingStateTypeId, false);
-            break;
-        case SolaxEvcModbusTcpConnection::StateFaulted:
-            thing->setStateValue(solaxEvcStateStateTypeId, "Faulted");
-            thing->setStateValue(solaxEvcChargingStateTypeId, false);
-            // thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
-            break;
-        case SolaxEvcModbusTcpConnection::StateUnavailable:
-            thing->setStateValue(solaxEvcStateStateTypeId, "Unavailable");
-            thing->setStateValue(solaxEvcChargingStateTypeId, false);
-            break;
-        case SolaxEvcModbusTcpConnection::StateReserved:
-            thing->setStateValue(solaxEvcStateStateTypeId, "Reserved");
-            thing->setStateValue(solaxEvcChargingStateTypeId, false);
-            break;
-        case SolaxEvcModbusTcpConnection::StateSuspendedEV:
-            thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEV");
-            thing->setStateValue(solaxEvcChargingStateTypeId, false);
-            break;
-        case SolaxEvcModbusTcpConnection::StateSuspendedEVSE:
-            thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEVSE");
-            thing->setStateValue(solaxEvcChargingStateTypeId, false);
-            break;
-        case SolaxEvcModbusTcpConnection::StateUpdate:
-            thing->setStateValue(solaxEvcStateStateTypeId, "Update");
-            thing->setStateValue(solaxEvcChargingStateTypeId, false);
-            break;
-        case SolaxEvcModbusTcpConnection::StateCardActivation:
-            thing->setStateValue(solaxEvcStateStateTypeId, "Card Activation");
-            break;
-        default:
-            qCWarning(dcSolaxEvc()) << "State changed to unknown value";
-            // thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
-            break;
-        }
-    });
+    //     switch (state) {
+    //     case SolaxEvcModbusTcpConnection::StateAvailable:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "Available");
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
+    //         thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StatePreparing:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "Preparing");
+    //         thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StateCharging:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "Charging");
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, true);
+    //         thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StateFinishing:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "Plugged In");
+    //         thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StateFaulted:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "Faulted");
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
+    //         // thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StateUnavailable:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "Unavailable");
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StateReserved:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "Reserved");
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StateSuspendedEV:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEV");
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StateSuspendedEVSE:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEVSE");
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StateUpdate:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "Update");
+    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
+    //         break;
+    //     case SolaxEvcModbusTcpConnection::StateCardActivation:
+    //         thing->setStateValue(solaxEvcStateStateTypeId, "Card Activation");
+    //         break;
+    //     default:
+    //         qCWarning(dcSolaxEvc()) << "State changed to unknown value";
+    //         // thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
+    //         break;
+    //     }
+    // });
 
     // connect fault code
     connect(connection, &SolaxEvcModbusTcpConnection::faultCodeChanged, thing,
@@ -443,6 +443,66 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
     connect(connection, &SolaxEvcModbusTcpConnection::updateFinished, thing,
             [this, thing, connection]() {
                 qCDebug(dcSolaxEvc()) << "Updated finished.";
+
+                quint16 state = connection->state();
+                if (m_lastState == 255 || m_lastState == state) {
+                    switch (state) {
+                    case SolaxEvcModbusTcpConnection::StateAvailable:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "Available");
+                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                        thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StatePreparing:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "Preparing");
+                        thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StateCharging:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "Charging");
+                        thing->setStateValue(solaxEvcChargingStateTypeId, true);
+                        thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StateFinishing:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "Plugged In");
+                        thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StateFaulted:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "Faulted");
+                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                        // thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StateUnavailable:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "Unavailable");
+                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StateReserved:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "Reserved");
+                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StateSuspendedEV:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEV");
+                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StateSuspendedEVSE:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEVSE");
+                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StateUpdate:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "Update");
+                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                        break;
+                    case SolaxEvcModbusTcpConnection::StateCardActivation:
+                        thing->setStateValue(solaxEvcStateStateTypeId, "Card Activation");
+                        break;
+                    default:
+                        qCWarning(dcSolaxEvc()) << "State changed to unknown value";
+                        // thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
+                        break;
+                    }
+                }
+                m_lastState = state;
+
                 double currentPhaseA =
                         thing->stateValue(solaxEvcCurrentPhaseAStateTypeId).toDouble();
                 double currentPhaseB =
@@ -459,8 +519,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 if (currentPhaseC > 0)
                     phaseCount++;
 
-                thing->setStateValue(solaxEvcPhaseCountStateTypeId,
-                                     phaseCount > 0 ? phaseCount : 1);
+                thing->setStateValue(solaxEvcPhaseCountStateTypeId, qMax(phaseCount, 1));
 
                 if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
                     if (thing->stateValue(solaxEvcPowerStateTypeId).toBool() == false) {
@@ -496,7 +555,7 @@ void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
 
     if (!m_pluginTimer) {
         qCDebug(dcSolaxEvc()) << "Starting plugin timer..";
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(3);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcSolaxEvc()) << "Updating Solax EVC..";
             foreach (SolaxEvcModbusTcpConnection *connection, m_tcpConnections) {

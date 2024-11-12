@@ -63,6 +63,8 @@ private:
 
     void toggleCharging(SolaxEvcModbusTcpConnection *connection, bool power);
     void setupTcpConnection(ThingSetupInfo *info);
+
+    quint16 m_lastState = 255;
 };
 
 #endif // INTEGRATIONPLUGINSOLAXEVC_H
