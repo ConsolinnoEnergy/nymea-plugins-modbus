@@ -65,6 +65,15 @@ void IntegrationPluginSolax::init()
             }
         }
     });
+
+    // Create error logging file
+    QFile errorCounterFile("/data/solax-counter.txt");
+    if (!errorCounterFile.exists()) {
+        errorCounterFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        QByteArray counter("Init: 0\nCont: 0");
+        errorCounterFile.write(counter);
+    }
+    errorCounterFile.close();
 }
 
 void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
@@ -1676,12 +1685,6 @@ void IntegrationPluginSolax::writeErrorLog()
     qCWarning(dcSolax()) << "WriteErrorLog called";
     // Write to file /data/solax-counter.txt
     QFile errorCounterFile("/data/solax-counter.txt");
-    if (!errorCounterFile.exists()) {
-        errorCounterFile.open(QIODevice::WriteOnly | QIODevice::Text);
-        QByteArray counter("Init: 0\nCont: 0");
-        errorCounterFile.write(counter);
-        errorCounterFile.close();
-    }
 
     int init = 0;
     int cont = 0;
