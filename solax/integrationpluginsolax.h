@@ -47,6 +47,7 @@ public:
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
+    void executeAction(ThingActionInfo *info) override;
 
 private:
     PluginTimer *m_pluginTimer = nullptr;
@@ -70,12 +71,22 @@ private:
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, SolaxModbusTcpConnection *> m_tcpConnections;
     QHash<Thing *, SolaxModbusRtuConnection *> m_rtuConnections;
+    
+    QTimer *m_batteryPowerTimer = nullptr;
 
     void setRunMode(Thing *thing, quint16 runModeAsInt);
     void setErrorMessage(Thing *thing, quint32 errorBits);
     void setBmsWarningMessage(Thing *thing);
 
     void setupTcpConnection(ThingSetupInfo *info);
+    
+    void writePasswordToInverter(Thing *thing);
+    void disableRemoteControl(Thing *thing);
+    void setBatteryPower(Thing *thing, qint32 powerToSet, quint16 batteryTimeout);
+
+    void writeErrorLog();
+
+    quint16 m_energyCheck = 0;
 };
 
 #endif // INTEGRATIONPLUGINSOLAX_H

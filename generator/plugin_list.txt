@@ -1,3 +1,4 @@
 kostalmeter
+solax
 solaxevc
 dvmodbusir
