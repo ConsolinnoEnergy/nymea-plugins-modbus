@@ -20,7 +20,7 @@ nymea-plugins-modbus (1.7.010) jammy; urgency=medium
   * ABB Terra: Fix for charge session energy
   * Fix for Mennekes: Set phaseCount to 1 when not charging.
 
- -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
+ -- Luis Reber <l.reber@consolinno.de> Thu, 14 Nov 2024 13:49:00 +0100
 
 nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
 
