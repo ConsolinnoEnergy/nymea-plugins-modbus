@@ -716,7 +716,7 @@
             "type": "uint16",
             "registerType": "holdingRegister",
             "description": "Battery nominal power",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "unit": "W",
             "defaultValue": "0",
             "staticScaleFactor": 1,
