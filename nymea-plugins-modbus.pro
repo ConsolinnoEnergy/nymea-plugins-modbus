@@ -31,13 +31,14 @@ PLUGIN_DIRS = \
     mtec                    \
     mypv                    \
     phoenixconnect          \
-    qcellsg4wb                \
+    qcellsg4wb              \
     sax                     \
     schneider               \
     schneiderIEM            \
     schrack                 \
     senseair                \
     sma                     \
+    sofarsolar              \
     solaxevc                \
     solax                   \
     solaxultra              \
