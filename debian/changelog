@@ -19,6 +19,7 @@ nymea-plugins-modbus (1.7.010) jammy; urgency=medium
   * Improve timing in Alfen plugin
   * ABB Terra: Fix for charge session energy
   * Fix for Mennekes: Set phaseCount to 1 when not charging.
+  * Solax X3 EVC: PluggedIn state more robust
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
 
