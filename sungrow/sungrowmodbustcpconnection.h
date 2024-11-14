@@ -396,7 +396,6 @@ public:
     */
     void updateBatteryControlBlock();
 
-    void updateBatteryNominalPower();
     void updateExportLimit();
     void updateExportLimitMode();
     void updateBatteryMinLevel();
@@ -588,13 +587,13 @@ public:
     virtual bool initialize();
     virtual void initialize2();
     virtual void initialize3();
+    virtual void initialize4();
     virtual bool update();
     virtual void update2();
     virtual void update3();
     virtual void update4();
     virtual void update5();
     virtual void update6();
-    virtual void update7();
 
 signals:
     void reachableChanged(bool reachable);

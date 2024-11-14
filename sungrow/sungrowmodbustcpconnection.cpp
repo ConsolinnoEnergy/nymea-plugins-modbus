@@ -565,11 +565,50 @@ void SungrowModbusTcpConnection::initialize3()
         processBatteryTypeRegisterValues(blockValues.mid(0, 1));
         processBatteryNominalVoltageRegisterValues(blockValues.mid(1, 1));
         processBatteryCapacityRegisterValues(blockValues.mid(2, 1));
-        verifyInitFinished();
+        initialize4();
     });
 
     connect(reply, &QModbusReply::errorOccurred, m_initObject, [reply] (QModbusDevice::Error error){
         qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating block \"batteryInformation\" registers" << error << reply->errorString();
+    });
+}
+
+void SungrowModbusTcpConnection::initialize4()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read Battery nominal power
+    qCDebug(dcSungrowModbusTcpConnection()) << "--> Read init \"Battery nominal power\" register:" << 33046 << "size:" << 1;
+    reply = readBatteryNominalPower();
+    if (!reply) {
+        qCWarning(dcSungrowModbusTcpConnection()) << "Error occurred while reading \"Battery nominal power\" registers from" << hostAddress().toString() << errorString();
+        finishInitialization(false);
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingInitReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, m_initObject, [this, reply](){
+        handleModbusError(reply->error());
+        m_pendingInitReplies.removeAll(reply);
+        if (reply->error() != QModbusDevice::NoError) {
+            finishInitialization(false);
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcSungrowModbusTcpConnection()) << "<-- Response from init \"Battery nominal power\" register" << 33046 << "size:" << 1 << unit.values();
+        processBatteryNominalPowerRegisterValues(unit.values());
+        verifyInitFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, m_initObject, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while reading \"Battery nominal power\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -842,79 +881,11 @@ void SungrowModbusTcpConnection::update6()
         processEmsModeSelectionRegisterValues(blockValues.mid(0, 1));
         processChargeCommandRegisterValues(blockValues.mid(1, 1));
         processChargePowerRegisterValues(blockValues.mid(2, 1));
-        update7();
+        verifyUpdateFinished();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating block \"batteryControl\" registers" << error << reply->errorString();
-    });
-}
-
-void SungrowModbusTcpConnection::update7()
-{
-    QModbusReply *reply = nullptr;
-
-    // Read Battery min SOC
-    qCDebug(dcSungrowModbusTcpConnection()) << "--> Read \"Battery min SOC\" register:" << 13058 << "size:" << 1;
-    reply = readBatteryMinLevel();
-    if (!reply) {
-        qCWarning(dcSungrowModbusTcpConnection()) << "Error occurred while reading \"Battery min SOC\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    m_pendingUpdateReplies.append(reply);
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        m_pendingUpdateReplies.removeAll(reply);
-        handleModbusError(reply->error());
-        if (reply->error() != QModbusDevice::NoError) {
-            verifyUpdateFinished();
-            return;
-        }
-
-        const QModbusDataUnit unit = reply->result();
-        qCDebug(dcSungrowModbusTcpConnection()) << "<-- Response from \"Battery min SOC\" register" << 13058 << "size:" << 1 << unit.values();
-        processBatteryMinLevelRegisterValues(unit.values());
-        verifyUpdateFinished();
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while reading \"Battery min SOC\" registers from" << hostAddress().toString() << error << reply->errorString();
-    });
-}
-
-void SungrowModbusTcpConnection::updateBatteryNominalPower()
-{
-    // Update registers from Battery nominal power
-    qCDebug(dcSungrowModbusTcpConnection()) << "--> Read \"Battery nominal power\" register:" << 33046 << "size:" << 1;
-    QModbusReply *reply = readBatteryNominalPower();
-    if (!reply) {
-        qCWarning(dcSungrowModbusTcpConnection()) << "Error occurred while reading \"Battery nominal power\" registers from" << hostAddress().toString() << errorString();
-        return;
-    }
-
-    if (reply->isFinished()) {
-        reply->deleteLater(); // Broadcast reply returns immediatly
-        return;
-    }
-
-    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        handleModbusError(reply->error());
-        if (reply->error() == QModbusDevice::NoError) {
-            const QModbusDataUnit unit = reply->result();
-            qCDebug(dcSungrowModbusTcpConnection()) << "<-- Response from \"Battery nominal power\" register" << 33046 << "size:" << 1 << unit.values();
-            processBatteryNominalPowerRegisterValues(unit.values());
-        }
-    });
-
-    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcSungrowModbusTcpConnection()) << "Modbus reply error occurred while updating \"Battery nominal power\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
