@@ -1,2 +1,4 @@
 kostalmeter
 solax
+solaxevc
+dvmodbusir

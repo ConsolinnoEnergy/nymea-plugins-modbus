@@ -1,0 +1,19 @@
+{
+  "Device": {
+    "DvModbusIR Meter": {
+      "filename": "dvmodbusirmeter",
+      "interfaces": "energymeter connectable",
+      "uuid_offset": 2
+    },
+    "DvModbusIR Consumer": {
+      "filename": "dvmodbusirconsumer",
+      "interfaces": "smartmeterconsumer connectable",
+      "uuid_offset": 3
+    },
+    "DvModbusIR Inverter": {
+      "filename": "dvmodbusirinverter",
+      "interfaces": "solarinverter connectable",
+      "uuid_offset": 5
+    }
+  }
+}
