@@ -178,6 +178,11 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             } else {
                 qCInfo(dcSungrow()) << "Connection initialized successfully for" << thing;
                 thing->setStateValue(sungrowInverterTcpNominalPowerStateTypeId, sungrowConnection->nominalOutputPower()*1000);
+
+                Thing *child = getBatteryThing(thing);
+                if (child) {
+                    child->setStateValue
+                }
                 sungrowConnection->update();
             }
         });
