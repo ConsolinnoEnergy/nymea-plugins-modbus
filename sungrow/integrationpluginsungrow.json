@@ -15,7 +15,7 @@
                     "createMethods": ["discovery"],
                     "discoveryType": "weak",
                     "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": [ "energymeter", "energystorage"],
+                    "providedInterfaces": [ "energymeter", "controllablebattery"],
                     "paramTypes": [
                         {
                             "id": "62137142-da07-11ee-9522-2f74f3b1fc5d",
@@ -223,7 +223,7 @@
                     "displayName": "Sungrow Battery",
                     "id": "0aea1b90-da08-11ee-9195-afc9f857a324",
                     "createMethods": ["auto"],
-                    "interfaces": ["energystorage", "connectable"],
+                    "interfaces": ["controllablebattery", "connectable"],
                     "stateTypes": [
                         {
                             "id": "0ff3c834-da08-11ee-bac7-0f1044f86ea3",
@@ -328,7 +328,7 @@
                             "displayName": "Battery force power (+:charge, -:discharge)",
                             "displayNameEvent": "Battery force power changed",
                             "displayNameAction": "Battery force power enabled",
-                            "type": "int",
+                            "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0.0,
                             "writable": true,
