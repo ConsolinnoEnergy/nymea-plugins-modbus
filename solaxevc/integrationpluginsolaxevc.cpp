@@ -228,6 +228,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                                          connection->firmwareVersion());
                     thing->setStateValue(solaxEvcSerialNumberStateTypeId,
                                          connection->serialNumber());
+                    m_lastState = 255;
                 } else {
                     qCDebug(dcSolaxEvc()) << "Solax wallbox initialization failed.";
                     // Try to reconnect to device
