@@ -134,6 +134,16 @@ Description: nymea integration plugin for B+G E-Tech Modbus based energy meters
  made by B+G E-Tech.
 
 
+Package: nymea-plugin-broetje
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Brötje heat pump models BLW Eco.1 and BLW Mono.1 based on Modbus
+ This package contains the nymea integration plugin for Brötje heat pump models BLW Eco.1 and BLW Mono.1 based on Modbus.
+
+
 Package: nymea-plugin-drexelundweiss
 Architecture: any
 Section: libs
@@ -220,6 +230,16 @@ Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: nymea.io plugin for Kostal Solar inverters
  This package contains the nymea.io plugin for Kostal Solar inverters
+
+
+Package: nymea-plugin-lambda
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea.io plugin for Lambda heat pumps
+ This package contains the nymea.io plugin for Lambda heat pumps
 
 
 Package: nymea-plugin-mennekes
@@ -430,6 +450,13 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for FoxESS wallbox 3rd gen.
  This package contains the nymea integration plugin for the FoxESS wallbox 3rd gen..
 
+Package: nymea-plugin-qcellsg4wb
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for QCells Gen 4 wallbox.
+ This package contains the nymea integration plugin for the QCells Gen 4 wallbox.
+
 Package: nymea-plugin-kostalmeter
 Architecture: any
 Section: libs
@@ -437,3 +464,10 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
 Description: nymea integration to use Smart Meter P, SDM72 from Kostal with the Consolinno HEMS.
  This package is an automatically generated copy of the bgetech integration.
+
+Package: nymea-plugin-solaxultra
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for Solax X3 Ultra solar inverters and meters
+ This package contains the nymea integration plugin for Solax X3 Ultra solar inverters and meters.

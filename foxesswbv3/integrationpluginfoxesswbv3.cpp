@@ -61,6 +61,10 @@ void IntegrationPluginFoxEss::discoverThings(ThingDiscoveryInfo *info)
                     NetworkDeviceInfo foxESSWallbox = discoveryReply->networkDeviceInfos().get(service.hostAddress());
                     qCDebug(dcFoxEss()) << "MacAddress of WB:" << foxESSWallbox.macAddress();
 
+                    if (service.protocol() != QAbstractSocket::NetworkLayerProtocol::IPv4Protocol) {
+                        continue;
+                    }
+
                     if (foxESSWallbox.macAddress().isNull()) {
                         info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The wallbox was found, but the MAC address is invalid. Try searching again."));
                     }
@@ -415,6 +419,7 @@ void IntegrationPluginFoxEss::setupTcpConnection(ThingSetupInfo *info)
         if ((power == true) && ((state == "Available") ||
                                 (state == "Connected") ||
                                 (state == "Starting")  ||
+                                (state == "Paused")    ||
                                 (state == "Finished")))
         {
             toggleCharging(connection, true);

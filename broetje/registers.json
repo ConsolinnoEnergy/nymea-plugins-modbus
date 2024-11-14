@@ -1,0 +1,379 @@
+{
+    "className": "Broetje",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 10,
+    "checkReachableRegister": "flowTemperature",
+    "enums": [
+        {
+            "name": "SmartGridState",
+            "values": [
+                {
+                    "key": "ModeOne",
+                    "value": 65536,
+                    "comment": "0x00010000"
+                },
+                {
+                    "key": "ModeTwo",
+                    "value": 0,
+                    "comment": "0x00000000"
+                },
+                {
+                    "key": "ModeThree",
+                    "value": 1,
+                    "comment": "0x00000001"
+                },
+                {
+                    "key": "ModeFour",
+                    "value": 65537,
+                    "comment": "0x00010001"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "typeDevice1",
+            "address": 129,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "typeDevice1",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "versionDevice1",
+            "address": 130,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "versionDevice1",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "typeDevice2",
+            "address": 135,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "typeDevice2",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "versionDevice2",
+            "address": 136,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "versionDevice2",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "typeDevice3",
+            "address": 141,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "typeDevice3",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "versionDevice3",
+            "address": 142,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "versionDevice3",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "typeDevice4",
+            "address": 147,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "typeDevice4",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "versionDevice4",
+            "address": 148,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "versionDevice4",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "typeDevice5",
+            "address": 153,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "typeDevice5",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "versionDevice5",
+            "address": 154,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "versionDevice5",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "typeDevice6",
+            "address": 159,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "typeDevice6",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "versionDevice6",
+            "address": 160,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "versionDevice6",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "typeDevice7",
+            "address": 165,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "typeDevice7",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "versionDevice7",
+            "address": 166,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "versionDevice7",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "typeDevice8",
+            "address": 171,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "typeDevice8",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "versionDevice8",
+            "address": 172,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "versionDevice8",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "typeDevice9",
+            "address": 183,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "typeDevice9",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "versionDevice9",
+            "address": 184,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "versionDevice9",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "returnTemperature",
+            "address": 274,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Return temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "error",
+            "address": 277,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Error",
+            "defaultValue": 65535,
+            "access": "RO"
+        },
+        {
+            "id": "outdoorTemperature",
+            "address": 384,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Outdoor temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "flowTemperature",
+            "address": 400,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Flow temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "systemStatus",
+            "address": 411,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "System status",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "subsystemStatus",
+            "address": 412,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Subsystem status",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "energyConsumedYear",
+            "address": 439,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Energy consumed year",
+            "staticScaleFactor": -2,
+            "defaultValue": "0",
+            "unit": "kWh",
+            "access": "RO"
+        },
+        {
+            "id": "calculatedCop",
+            "address": 462,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Calculated COP",
+            "staticScaleFactor": -3,
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "sgReadyState",
+            "address": 473,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "enum": "SmartGridState",
+            "readSchedule": "update",
+            "description": "SG Ready mode",
+            "defaultValue": "SmartGridStateModeTwo",
+            "access": "RW"
+        },
+        {
+            "id": "function1",
+            "address": 475,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Function 1",
+            "defaultValue": 0,
+            "access": "RW"
+        },
+        {
+            "id": "function2",
+            "address": 476,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Function 2",
+            "defaultValue": 0,
+            "access": "RW"
+        },
+        {
+            "id": "hotWaterTemperature",
+            "address": 1632,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Hot water temperature",
+            "staticScaleFactor": -2,
+            "defaultValue": "0",
+            "unit": "°C",
+            "access": "RO"
+        }
+    ],
+    "blocks": [ ]
+}

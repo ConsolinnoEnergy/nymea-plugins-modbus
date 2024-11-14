@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "foxEss",
-                    "displayName": "FoxESS Wallbox 3rd Gen",
+                    "displayName": "FoxESS Wallbox (Modbus TCP)",
                     "id": "2e77930f-bd60-44ff-96b0-05914a352fd1",
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],

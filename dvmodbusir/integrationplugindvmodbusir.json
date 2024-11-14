@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "dvModbusIR",
-                    "displayName": "DvModbusIR",
+                    "displayName": "Device DvModbusIR",
                     "id": "e4babb85-8679-40f0-b6e7-7fda422117b0",
                     "createMethods": ["discovery"],
                     "interfaces": ["smartmeterconsumer", "smartmeterproducer", "connectable"],
@@ -24,6 +24,14 @@
                         }
                     ],
                     "paramTypes": [
+                        {
+                            "id": "16f21e05-5a8d-4ad9-9999-74d43fb7ef63",
+                            "name": "serialNumber",
+                            "displayName": "Serial Number",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "readOnly": true
+                        },
                         {
                             "id": "74ab93ec-3e22-4768-be5b-4cb3b71f5af9",
                             "name": "modbusMasterUuid",
@@ -52,55 +60,17 @@
                             "cached": false
                         },
                         {
-                            "id": "f2754bbe-ff10-40e2-9eb4-1524bfdef8c6",
-                            "name": "totalEnergyConsumed",
-                            "displayName": "Total consumed energy",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": "0"
-                        },
-                        {
-                            "id": "4f15b4ae-0ddb-4ffd-8901-2e22a94b7f39",
-                            "name": "totalEnergyConsumedExponent",
-                            "displayName": "Total consumed energy exponent",
-                            "type": "int",
-                            "defaultValue": "0"
-                        },
-                        {
-                            "id": "c8d066c9-ca46-468a-aea7-a37a6464cc6b",
-                            "name": "totalEnergyProduced",
-                            "displayName": "Total produced energy",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": "0"
-                        },
-                        {
-                            "id": "0aa0914c-53d0-407a-a8de-60de296a3da9",
-                            "name": "totalEnergyProducedExponent",
-                            "displayName": "Total produced energy exponent",
-                            "type": "int",
-                            "defaultValue": "0"
-                        },
-                        {
-                            "id": "66a87bb9-1e6e-451f-9c94-a1a10589d72d",
-                            "name": "currentPower",
-                            "displayName": "Current power",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": "0"
-                        },
-                        {
-                            "id": "b36ed4a0-9271-433f-98a1-1fcd3c004915",
-                            "name": "meterId",
-                            "displayName": "Meter ID",
+                            "id": "36b7d4d8-27aa-48f1-9050-c12847d52b91",
+                            "name": "serialNumber",
+                            "displayName": "Serial Number",
                             "type": "uint",
                             "defaultValue": 0,
                             "cached": true
                         },
                         {
-                            "id": "36b7d4d8-27aa-48f1-9050-c12847d52b91",
-                            "name": "serialNumber",
-                            "displayName": "Serial Number",
+                            "id": "b36ed4a0-9271-433f-98a1-1fcd3c004915",
+                            "name": "meterId",
+                            "displayName": "Meter ID",
                             "type": "uint",
                             "defaultValue": 0,
                             "cached": true
@@ -112,6 +82,104 @@
                             "type": "uint",
                             "defaultValue": 0,
                             "cached": true
+                        },
+                        {
+                            "id": "66a87bb9-1e6e-451f-9c94-a1a10589d72d",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": "0",
+                            "cached": false
+
+                        },
+                        {
+                            "id": "f2754bbe-ff10-40e2-9eb4-1524bfdef8c6",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total consumed energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0",
+                            "cached": false
+
+                        },
+                        {
+                            "id": "c8d066c9-ca46-468a-aea7-a37a6464cc6b",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total produced energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0",
+                            "cached": false
+
+                        },
+                        {
+                            "id": "92a2f22d-373a-4589-a642-a0ef38b3992f",
+                            "name": "totalEnergyConsumedTarif1",
+                            "displayName": "Total consumed energy Tarif 1",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0",
+                            "cached": false
+
+                        },
+                        {
+                            "id": "02e5bc2c-fe75-4f00-a998-498b37ecd360",
+                            "name": "totalEnergyProducedTarif1",
+                            "displayName": "Total produced energy Tarif 1",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0",
+                            "cached": false
+
+                        },
+                        {
+                            "id": "89cfe5fa-44ac-482c-a255-4b639721a0f9",
+                            "name": "totalEnergyConsumedTarif2",
+                            "displayName": "Total consumed energy Tarif 2",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0",
+                            "cached": false
+
+                        },
+                        {
+                            "id": "f648cf30-a75c-430a-9e76-f95c9cb32f2f",
+                            "name": "totalEnergyProducedTarif2",
+                            "displayName": "Total produced energy Tarif 2",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": "0",
+                            "cached": false
+
+                        },
+                        {
+                            "id": "e4aefeb7-82b5-4f17-b4b5-aeb262d61f9d",
+                            "name": "meterData",
+                            "displayName": "Available data from meter",
+                            "type": "QString",
+                            "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "5495e00d-e5bb-4baf-af55-9513fe27b08d",
+                            "name": "currentPhaseA",
+                            "displayName": "Current phase A",
+                            "displayNameEvent": "Current phase A changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "96c7e3a8-b59f-47e8-a1a0-6c439f6406d8",
+                            "name": "voltagePhaseA",
+                            "displayName": "Voltage phase A",
+                            "displayNameEvent": "Voltage phase A changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
                         }
                     ]
                 }
