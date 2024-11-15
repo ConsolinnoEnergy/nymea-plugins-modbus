@@ -181,7 +181,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
 
                 Thing *child = getBatteryThing(thing);
                 if (child) {
-                    child->setStateValue
+                    child->setStateValue(sungrowBatteryNominalPowerBatteryStateTypeId, sungrowConnection->batteryNominalPower());
                 }
                 sungrowConnection->update();
             }
