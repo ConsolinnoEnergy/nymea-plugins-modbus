@@ -39,13 +39,6 @@
 
 #include "sungrowmodbustcpconnection.h"
 
-#define INVERTER_EXPORT_LIMITED 0xAA
-#define INVERTER_EXPORT_UNLIMITED 0x55
-
-#define BATTERY_FORCE_CHARGE 0xAA
-#define BATTERY_FORCE_STOP 0xBB
-#define BATTERY_FORCE_DISCHARGE 0xCC
-
 class IntegrationPluginSungrow: public IntegrationPlugin
 {
     Q_OBJECT
@@ -63,6 +56,17 @@ public:
     void executeAction(ThingActionInfo *info) override;
 
 private:
+
+    enum InverterLimitation {
+        LIMITED = 85,   // 0x55
+        UNLIMITED = 170 // 0xAA
+    };
+    enum BatteryControl {
+        FORCE_CHARGE = 170,     // 0xAA
+        FORCE_DISCHARGE = 187,  // 0xBB
+        FORCE_STOP = 204        // 0xCC
+    };
+
     const int m_modbusTcpPort = 502;
     const quint16 m_modbusSlaveAddress = 1;
     PluginTimer *m_refreshTimer = nullptr;

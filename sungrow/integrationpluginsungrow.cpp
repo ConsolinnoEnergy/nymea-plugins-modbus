@@ -261,8 +261,8 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             // Mode: 170 - ON | Export will be limited to chosen value
             //       85 - OFF | Export not limited, max export
             // Check if mode is 85. If yes, set to 170
-            if (sungrowConnection->exportLimitMode() == 85) {
-                QModbusReply *reply = sungrowConnection->setExportLimitMode(170);
+            if (sungrowConnection->exportLimitMode() == InverterLimitation::UNLIMITED) {
+                QModbusReply *reply = sungrowConnection->setExportLimitMode(InverterLimitation::LIMITED);
                 connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
                 connect(reply, &QModbusReply::finished, thing, [reply]() {
                     qCDebug(dcSungrow()) << "Set export mode finished";
@@ -273,6 +273,15 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                     }
                 });
             }
+
+            // quint16 batteryCommand = sungrowConnection->chargeCommand();
+            // if (batteryThing) {
+            //     if (batteryCommand == BatteryControl::FORCE_STOP) {
+            //         batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, false);
+            //     } else {
+            //         batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, true);
+            //     }
+            // }
         });
 
         connect(sungrowConnection, &SungrowModbusTcpConnection::exportLimitChanged, thing, [thing](quint16 exportLimit) {
@@ -285,7 +294,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
 
             Thing *batteryThing = getBatteryThing(thing);
             if (batteryThing) {
-                if (command == BATTERY_FORCE_STOP) {
+                if (command == BatteryControl::FORCE_STOP) {
                     batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, false);
                 } else {
                     batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, true);
@@ -503,12 +512,12 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
                 } else {
                     double targetPower = thing->stateValue(sungrowBatteryForcePowerStateTypeId).toDouble();
                     if (power == false) {
-                        forceBatteryState(connection, BATTERY_FORCE_STOP);
+                        forceBatteryState(connection, BatteryControl::FORCE_STOP);
                     } else {
                         if (targetPower > 0) {
-                            forceBatteryState(connection, BATTERY_FORCE_CHARGE);
+                            forceBatteryState(connection, BatteryControl::FORCE_CHARGE);
                         } else if (targetPower < 0) {
-                            forceBatteryState(connection, BATTERY_FORCE_DISCHARGE);
+                            forceBatteryState(connection, BatteryControl::FORCE_DISCHARGE);
                         }
                     }
                     thing->setStateValue(sungrowBatteryEnableForcePowerStateTypeId, power);
@@ -538,9 +547,9 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
                     bool power = thing->stateValue(sungrowBatteryEnableForcePowerStateTypeId).toBool();
                     if (power == true) {
                         if (targetPower > 0) {
-                            forceBatteryState(connection, BATTERY_FORCE_CHARGE);
+                            forceBatteryState(connection, BatteryControl::FORCE_CHARGE);
                         } else if (targetPower < 0) {
-                            forceBatteryState(connection, BATTERY_FORCE_DISCHARGE);
+                            forceBatteryState(connection, BatteryControl::FORCE_DISCHARGE);
                         }
                     }
 
