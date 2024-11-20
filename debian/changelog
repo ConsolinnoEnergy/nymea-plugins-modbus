@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.010) jammy; urgency=medium
+nymea-plugins-modbus (1.7.010-1) jammy; urgency=medium
 
   * Added inverter and battery control for Solax X3
   * Generate QCells entry from Solax
