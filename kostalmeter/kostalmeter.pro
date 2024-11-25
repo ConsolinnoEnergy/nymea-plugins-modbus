@@ -6,8 +6,10 @@ MODBUS_CONNECTIONS += sdm630-registers.json
 include(../modbus.pri)
 
 HEADERS += \
+    discoveryrtu.h \
     integrationpluginkostalmeter.h
 
 SOURCES += \
+    discoveryrtu.cpp \
     integrationpluginkostalmeter.cpp
 
