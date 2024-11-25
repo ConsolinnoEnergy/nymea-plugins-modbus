@@ -279,53 +279,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             return;
         }
 
-<<<<<<< HEAD
-        if (m_rtuConnections.contains(thing)) {
-            qCDebug(dcSungrow()) << "Already have a Sungrow connection for this thing. Cleaning up old connection and initializing new one...";
-            m_rtuConnections.take(thing)->deleteLater();
-        }
-
-        SungrowModbusRtuConnection *connection = new SungrowModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
-        connect(connection->modbusRtuMaster(), &ModbusRtuMaster::connectedChanged, this, [=](bool connected){
-            if (connected) {
-                qCDebug(dcSungrow()) << "Modbus RTU resource connected" << thing << connection->modbusRtuMaster()->serialPort();
-            } else {
-                qCWarning(dcSungrow()) << "Modbus RTU resource disconnected" << thing << connection->modbusRtuMaster()->serialPort();
-            }
-        });
-
-        connect(connection, &SungrowModbusRtuConnection::reachableChanged, thing, [connection, thing](bool reachable){
-            qCDebug(dcSungrow()) << "Reachable state changed" << reachable;
-            if (reachable) {
-                connection->initialize();
-            } else {
-                thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, false);
-                thing->setStateValue(sungrowInverterRTUCurrentPowerStateTypeId, 0);
-            }
-        });
-
-        // Handle property changed signals
-        connect(connection, &SungrowModbusRtuConnection::activePowerChanged, thing, [thing](quint32 activePower){
-            qCDebug(dcSungrow()) << "Inverter power changed" << -activePower << "W";
-            thing->setStateValue(sungrowInverterRTUCurrentPowerStateTypeId, -double(activePower));
-            thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, true);
-        });
-
-        connect(connection, &SungrowModbusRtuConnection::deviceTypeCodeChanged, thing, [thing](quint16 deviceTypeCode){
-            qCDebug(dcSungrow()) << "Inverter device type code recieved" << deviceTypeCode;
-            Q_UNUSED(thing)
-        });
-
-        connect(connection, &SungrowModbusRtuConnection::totalPowerYieldsChanged, thing, [thing](quint32 totalEnergyProduced){
-            qCDebug(dcSungrow()) << "Inverter total energy produced changed" << totalEnergyProduced << "kWh";
-            thing->setStateValue(sungrowInverterRTUTotalEnergyProducedStateTypeId, totalEnergyProduced);
-        });
-
-        // FIXME: make async and check if this is really a sungrow
-        m_rtuConnections.insert(thing, connection);
-=======
         // Note: The states will be handled in the parent inverter thing on updated
->>>>>>> main
         info->finish(Thing::ThingErrorNoError);
         return;
     }
