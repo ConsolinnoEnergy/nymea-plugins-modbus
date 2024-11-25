@@ -1427,8 +1427,8 @@ void SpeedwireInverter::setState(State state)
                 connect(reply, &SpeedwireInverterReply::finished, this, [=](){
                     if (reply->error() != SpeedwireInverterReply::ErrorNoError) {
                         qCWarning(dcSma()) << "Inverter: Failed to query data from inverter:" << reply->request().command() << reply->error();
-                        setState(StateDisconnected);
-                        return;
+                        // setState(StateDisconnected); JoOb: commented out
+                        // return; JoOb: commented out
                     }
 
                     qCDebug(dcSma()) << "Inverter: Query request finished successfully" << reply->request().command();
@@ -1441,8 +1441,8 @@ void SpeedwireInverter::setState(State state)
                     connect(reply, &SpeedwireInverterReply::finished, this, [=](){
                         if (reply->error() != SpeedwireInverterReply::ErrorNoError) {
                             qCWarning(dcSma()) << "Inverter: Failed to query data from inverter:" << reply->request().command() << reply->error();
-                            setState(StateDisconnected);
-                            return;
+                            // setState(StateDisconnected); JoOb: commented out
+                            // return; JoOb: commented out
                         }
 
                         qCDebug(dcSma()) << "Inverter: Query request finished successfully" << reply->request().command();
@@ -1455,8 +1455,8 @@ void SpeedwireInverter::setState(State state)
                         connect(reply, &SpeedwireInverterReply::finished, this, [=](){
                             if (reply->error() != SpeedwireInverterReply::ErrorNoError) {
                                 qCWarning(dcSma()) << "Inverter: Failed to query data from inverter:" << reply->request().command() << reply->error();
-                                setState(StateDisconnected);
-                                return;
+                                // setState(StateDisconnected); JoOb: commented out
+                                // return; JoOb: commented out
                             }
 
                             qCDebug(dcSma()) << "Inverter: Query request finished successfully" << reply->request().command();
@@ -1469,8 +1469,8 @@ void SpeedwireInverter::setState(State state)
                             connect(reply, &SpeedwireInverterReply::finished, this, [=](){
                                 if (reply->error() != SpeedwireInverterReply::ErrorNoError) {
                                     qCWarning(dcSma()) << "Inverter: Failed to query data from inverter:" << reply->request().command() << reply->error();
-                                    setState(StateDisconnected);
-                                    return;
+                                    // setState(StateDisconnected); JoOb: commented out
+                                    // return; JoOb: commented out
                                 }
 
                                 qCDebug(dcSma()) << "Inverter: Query request finished successfully" << reply->request().command();
@@ -1483,8 +1483,8 @@ void SpeedwireInverter::setState(State state)
                                 connect(reply, &SpeedwireInverterReply::finished, this, [=](){
                                     if (reply->error() != SpeedwireInverterReply::ErrorNoError) {
                                         qCWarning(dcSma()) << "Inverter: Failed to query data from inverter:" << reply->request().command() << reply->error();
-                                        setState(StateDisconnected);
-                                        return;
+                                        // setState(StateDisconnected); JoOb: commented out
+                                        // return; JoOb: commented out
                                     }
 
                                     qCDebug(dcSma()) << "Inverter: Query request finished successfully" << reply->request().command();

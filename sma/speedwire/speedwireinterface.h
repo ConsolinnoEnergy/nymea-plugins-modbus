@@ -48,8 +48,6 @@ public:
 
     bool available() const;
 
-    static bool isOwnInterface(const QHostAddress &hostAddress);
-
     quint32 sourceSerialNumber() const;
 
     bool initialize();
@@ -70,7 +68,6 @@ private:
     quint32 m_sourceSerialNumber = 0;
     bool m_available = false;
     QTimer m_multicastReconfigureationTimer;
-    uint m_multicastWarningPrintCount = 0;
 };
 
 

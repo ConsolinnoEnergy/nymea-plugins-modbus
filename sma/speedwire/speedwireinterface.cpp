@@ -72,10 +72,6 @@ SpeedwireInterface::SpeedwireInterface(quint32 sourceSerialNumber, QObject *pare
             datagram.resize(m_multicast->pendingDatagramSize());
             m_multicast->readDatagram(datagram.data(), datagram.size(), &senderAddress, &senderPort);
 
-            // Filter our own requests on the multicast
-            if (isOwnInterface(senderAddress))
-                return;
-
             qCDebug(dcSma()).noquote() << "SpeedwireInterface: Multicast socket received data from" << QString("%1:%2").arg(senderAddress.toString()).arg(senderPort);
             //qCDebug(dcSma()) << "SpeedwireInterface: " << datagram.toHex();
             emit dataReceived(senderAddress, senderPort, datagram, true);
@@ -115,53 +111,15 @@ bool SpeedwireInterface::available() const
     return m_available;
 }
 
-bool SpeedwireInterface::isOwnInterface(const QHostAddress &hostAddress)
-{
-    foreach (const QNetworkInterface &networkInterface, QNetworkInterface::allInterfaces()) {
-        if (networkInterface.flags().testFlag(QNetworkInterface::IsLoopBack))
-            continue;
-
-        if (!networkInterface.flags().testFlag(QNetworkInterface::IsUp))
-            continue;
-
-        if (!networkInterface.flags().testFlag(QNetworkInterface::IsRunning))
-            continue;
-
-        foreach (const QNetworkAddressEntry &entry, networkInterface.addressEntries()) {
-
-            // Only IPv4
-            if (entry.ip().protocol() != QAbstractSocket::IPv4Protocol)
-                continue;
-
-            if (entry.ip() == hostAddress) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
 void SpeedwireInterface::reconfigureMulticastGroup()
 {
     qCDebug(dcSma()) << "Reconfigure multicast interfaces";
     if (m_multicast->joinMulticastGroup(Speedwire::multicastAddress())) {
         qCDebug(dcSma()) << "SpeedwireInterface: Joined successfully multicast group" << Speedwire::multicastAddress().toString();
-        m_multicastWarningPrintCount = 0;
     } else {
+        qCWarning(dcSma()) << "SpeedwireInterface: Failed to join multicast group" << Speedwire::multicastAddress().toString() << m_multicast->errorString() << "Retrying in 5 seconds...";
         // FIXME: It would probably be better to monitor the network interfaces and re-join if necessary
-        uint mod = m_multicastWarningPrintCount % 120;
-
-        if (m_multicastWarningPrintCount < 12) {
-            qCWarning(dcSma()) << "SpeedwireInterface: Failed to join multicast group" << Speedwire::multicastAddress().toString() << m_multicast->errorString() << "Retrying in 5 seconds...";
-        }
-
-        if (m_multicastWarningPrintCount >= 12 && mod == 0) {
-            qCWarning(dcSma()) << "SpeedwireInterface: Failed to join multicast group" << Speedwire::multicastAddress().toString() << m_multicast->errorString() << "Retrying in 10 minutes...";
-        }
-
         QTimer::singleShot(5000, this, &SpeedwireInterface::reconfigureMulticastGroup);
-        m_multicastWarningPrintCount++;
     }
 
     //    foreach (const QNetworkInterface &interface, QNetworkInterface::allInterfaces()) {

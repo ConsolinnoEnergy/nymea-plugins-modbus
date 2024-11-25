@@ -751,7 +751,7 @@ void IntegrationPluginSma::setupRefreshTimer()
     if (m_refreshTimer)
         return;
 
-    m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
+    m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);    //JoOb: changed from 5 to 10
     connect(m_refreshTimer, &PluginTimer::timeout, this, [=](){
         foreach (SunnyWebBox *webbox, m_sunnyWebBoxes) {
             // Max refresh rate according to docs should be 30 seconds, will be handled in the webbox class
@@ -794,7 +794,7 @@ void IntegrationPluginSma::setupModbusSolarInverterConnection(ThingSetupInfo *in
             return;
 
         if (reachable && !thing->stateValue("connected").toBool()) {
-            connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->setHostAddress(monitor->networkDeviceInfo().address());
             connection->connectDevice();
         } else if (!reachable) {
             // Note: We disable autoreconnect explicitly and we will
@@ -836,7 +836,7 @@ void IntegrationPluginSma::setupModbusSolarInverterConnection(ThingSetupInfo *in
 
     connect(connection, &SmaSolarInverterModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcSma()) << "Connection init finished with errors" << thing->name() << connection->modbusTcpMaster()->hostAddress().toString();
+            qCWarning(dcSma()) << "Connection init finished with errors" << thing->name() << connection->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             connection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Could not initialize the communication with the inverter."));
@@ -928,7 +928,7 @@ void IntegrationPluginSma::setupModbusBatteryInverterConnection(ThingSetupInfo *
             return;
 
         if (reachable && !thing->stateValue("connected").toBool()) {
-            connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->setHostAddress(monitor->networkDeviceInfo().address());
             connection->connectDevice();
         } else if (!reachable) {
             // Note: We disable autoreconnect explicitly and we will
@@ -967,7 +967,7 @@ void IntegrationPluginSma::setupModbusBatteryInverterConnection(ThingSetupInfo *
 
     connect(connection, &SmaBatteryInverterModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcSma()) << "Connection init finished with errors" << thing->name() << connection->modbusTcpMaster()->hostAddress().toString();
+            qCWarning(dcSma()) << "Connection init finished with errors" << thing->name() << connection->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             connection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Could not initialize the communication with the battery inverter."));
