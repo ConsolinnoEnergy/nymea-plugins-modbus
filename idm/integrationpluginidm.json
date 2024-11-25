@@ -53,6 +53,18 @@
                             "writable": true
                         },
                         {
+                            "id": "e0d92d65-2f4e-45f3-86bf-876e7574f210",
+                            "name": "actualPvSurplus",
+                            "displayName": "actual PV surplus",
+                            "displayNameEvent": "PV surplus changed",
+                            "displayNameAction": "Set PV surplus",
+                            "unit": "Watt",
+                            "type": "double",
+                            "writable": true,
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
                             "id": "fcf8e97f-a672-407f-94ae-30df15b310f4",
                             "name": "waterTemperature",
                             "displayName": "Water temperature",
