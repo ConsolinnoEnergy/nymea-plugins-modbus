@@ -43,6 +43,18 @@ void IntegrationPluginDvModbusIR::init()
 {
     // Initialisation can be done here.
     qCDebug(dcDvModbusIR()) << "Initialize plugin.";
+    connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=] (const QUuid &modbusUuid) {
+        qCDebug(dcDvModbusIR()) << "Modbus RTU master has been removed" << modbusUuid.toString();
+        foreach (Thing *thing, myThings()) {
+            if (thing->thingClassId() == dvModbusIRThingClassId) {
+                if (thing->paramValue(dvModbusIRThingModbusMasterUuidParamTypeId) == modbusUuid) {
+                    qCWarning(dcDvModbusIR()) << "Modbus RTU hardware resource removed for" << thing <<". The thing will not be functional anymore.";
+                    thing->setStateValue(dvModbusIRConnectedStateTypeId, false);
+                    delete m_rtuConnections.take(thing);
+                }
+            }
+        }
+    });
 }
 
 /**
@@ -83,14 +95,39 @@ void IntegrationPluginDvModbusIR::discoverThings(ThingDiscoveryInfo *info)
             if (!modbusMaster->connected())
                 continue;
 
-            ThingDescriptor descriptor(info->thingClassId(), "dvModbusIR", QString::number(modbusAddress) + " " + modbusMaster->serialPort());
-            ParamList params;
-            params << Param(dvModbusIRThingModbusIdParamTypeId, modbusAddress);
-            params << Param(dvModbusIRThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
-            descriptor.setParams(params);
-            info->addThingDescriptor(descriptor);
+            ModbusRtuReply *reply = modbusMaster->readHoldingRegister(modbusAddress, 0, 1);
+            connect(reply, &ModbusRtuReply::finished, this, [=]() {
+                qCDebug(dcDvModbusIR()) << "Test reply finished!" << reply->error() << reply->result();
+                if (reply->error() == ModbusRtuReply::NoError && reply->result().length() > 0) {
+                    quint16 serialNumber = reply->result().first();
+                    qCDebug(dcDvModbusIR()) << "Read serialNumber is" << serialNumber;
+                    
+                    if (serialNumber != 0) {
+                        qCDebug(dcDvModbusIR()) << "Add discovered thing!";
+                        ThingDescriptor descriptor(info->thingClassId(), "dvModbusIR", QString::number(modbusAddress) + " " + modbusMaster->serialPort());
+                        ParamList params;
+                        params << Param(dvModbusIRThingModbusIdParamTypeId, modbusAddress);
+                        params << Param(dvModbusIRThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
+                        params << Param(dvModbusIRThingSerialNumberParamTypeId, serialNumber);
+                        descriptor.setParams(params);
+
+                        // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+                        // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+                        // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
+                        Things existingThings = myThings().filterByThingClassId(dvModbusIRThingClassId).filterByParam(dvModbusIRThingSerialNumberParamTypeId, serialNumber);
+                        if (!existingThings.isEmpty()) {
+                            qCDebug(dcDvModbusIR()) << "Thing already exists, reconfigure.";
+                            descriptor.setThingId(existingThings.first()->id());
+                        }
+
+                        info->addThingDescriptor(descriptor);
+                        info->finish(Thing::ThingErrorNoError);
+                    } else {
+                        qCWarning(dcDvModbusIR()) << "Could not read serialNumber.";
+                    }
+                }
+            });
         }
-        info->finish(Thing::ThingErrorNoError);
     }
 }
 
@@ -146,6 +183,7 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
                 qCDebug(dcDvModbusIR()) << "Device " << thing << "is reachable via Modbus RTU on" << connection->modbusRtuMaster()->serialPort();
             } else {
                 qCWarning(dcDvModbusIR()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
+                thing->setStateValue(dvModbusIRCurrentPowerStateTypeId, 0);
             }
         });
 
@@ -157,6 +195,8 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(dvModbusIRSerialNumberStateTypeId, connection->serialNumber());
                 thing->setStateValue(dvModbusIRDeviceStatusStateTypeId, connection->deviceStatus());
                 thing->setStateValue(dvModbusIRMeterIdStateTypeId, connection->meterId());
+                uint meterDataValue = connection->meterData();
+                thing->setStateValue(dvModbusIRMeterDataStateTypeId, QString::number(meterDataValue,2));
                 // Set the name of the thing to "DvIR-<meter number>"
                 thing->setName("DvIR-"+thing->stateValue(dvModbusIRMeterIdStateTypeId).toString());
             } else {
@@ -165,27 +205,50 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &DvModbusIRModbusRtuConnection::producedEnergyExponentChanged, this, [=](qint16 producedEnergyExponent) {
-            qCDebug(dcDvModbusIR()) << "Total produced energy exponent changed.";
-            thing->setStateValue(dvModbusIRTotalEnergyProducedExponentStateTypeId, producedEnergyExponent);
-        });
+        connect(connection, &DvModbusIRModbusRtuConnection::updateFinished, this, [thing, connection]() {
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Update finished";
 
-        // Connect and calculate the total produced energy
-        connect(connection, &DvModbusIRModbusRtuConnection::totalProducedEnergyChanged, this, [=](quint64 totalProducedEnergy) {
-            qCDebug(dcDvModbusIR()) << "Total produced energy change.";
-            qint16 producedEnergyExponent = thing->stateValue(dvModbusIRTotalEnergyProducedExponentStateTypeId).toInt();
-            thing->setStateValue(dvModbusIRTotalEnergyProducedStateTypeId, totalProducedEnergy*qPow(10, producedEnergyExponent-3));
-        });
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set produced energy";
+            qint16 prodEnergyExpReg = connection->producedEnergyExponent();
+            quint64 prodEngReg = connection->totalProducedEnergy();
+            double producedEnergy = prodEngReg*qPow(10, prodEnergyExpReg-3);
+            thing->setStateValue(dvModbusIRTotalEnergyProducedStateTypeId, producedEnergy);
 
-        connect(connection, &DvModbusIRModbusRtuConnection::consumedEnergyExponentChanged, this, [=](qint16 consumedEnergyExponent) {
-            qCDebug(dcDvModbusIR()) << "Total consumed energy exponent changed.";
-            thing->setStateValue(dvModbusIRTotalEnergyConsumedExponentStateTypeId, consumedEnergyExponent);
-        });
-        // Connect and calculate the total consumed energy
-        connect(connection, &DvModbusIRModbusRtuConnection::totalConsumedEnergyChanged, this, [=](quint64 totalConsumedEnergy) {
-            qCDebug(dcDvModbusIR()) << "Total consumed energy change.";
-            qint16 consumedEnergyExponent = thing->stateValue(dvModbusIRTotalEnergyConsumedExponentStateTypeId).toInt();
-            thing->setStateValue(dvModbusIRTotalEnergyConsumedStateTypeId, totalConsumedEnergy*qPow(10, consumedEnergyExponent-3));
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set produced energy Tarif 1";
+            qint16 prodEnergyExpRegTarif1 = connection->producedEnergyExponentTarif1();
+            quint64 prodEngRegTarif1 = connection->totalProducedEnergyTarif1();
+            double producedEnergyTarif1 = prodEngRegTarif1*qPow(10, prodEnergyExpRegTarif1-3);
+            thing->setStateValue(dvModbusIRTotalEnergyProducedTarif1StateTypeId, producedEnergyTarif1);
+
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set produced energy Tarif 2";
+            qint16 prodEnergyExpRegTarif2 = connection->producedEnergyExponentTarif2();
+            quint64 prodEngRegTarif2 = connection->totalProducedEnergyTarif2();
+            double producedEnergyTarif2 = prodEngRegTarif2*qPow(10, prodEnergyExpRegTarif2-3);
+            thing->setStateValue(dvModbusIRTotalEnergyProducedTarif2StateTypeId, producedEnergyTarif2);
+
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set consumed energy";
+            qint16 consEnergyExpReg = connection->consumedEnergyExponent();
+            quint64 consEngReg = connection->totalConsumedEnergy();
+            double consumedEnergy = consEngReg*qPow(10, consEnergyExpReg-3);
+            thing->setStateValue(dvModbusIRTotalEnergyConsumedStateTypeId, consumedEnergy);
+
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set consumed energy Tarif 1";
+            qint16 consEnergyExpRegTarif1 = connection->consumedEnergyExponentTarif1();
+            quint64 consEngRegTarif1 = connection->totalConsumedEnergyTarif1();
+            double consumedEnergyTarif1 = consEngRegTarif1*qPow(10, consEnergyExpRegTarif1-3);
+            thing->setStateValue(dvModbusIRTotalEnergyConsumedTarif1StateTypeId, consumedEnergyTarif1);
+
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set consumed energy Tarif 2";
+            qint16 consEnergyExpRegTarif2 = connection->consumedEnergyExponentTarif2();
+            quint64 consEngRegTarif2 = connection->totalConsumedEnergyTarif2();
+            double consumedEnergyTarif2 = consEngRegTarif2*qPow(10, consEnergyExpRegTarif2-3);
+            thing->setStateValue(dvModbusIRTotalEnergyConsumedTarif2StateTypeId, consumedEnergyTarif2);
+
+            qCDebug(dcDvModbusIR()) << "dvModbusIR - Set current power";
+            qint16 currentPowerExpReg = connection->currentPowerExponent();
+            quint32 currentPowerReg = connection->currentPower();
+            double currentPower = currentPowerReg*qPow(10, currentPowerExpReg);
+            thing->setStateValue(dvModbusIRCurrentPowerStateTypeId, currentPower);
         });
         m_rtuConnections.insert(thing, connection);
     }
@@ -206,7 +269,7 @@ void IntegrationPluginDvModbusIR::postSetupThing(Thing *thing)
 
     if (!m_pluginTimer)
     {
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10*60);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcDvModbusIR()) << "Update dvModbusIR";
             foreach(Thing *thing, myThings()) {
