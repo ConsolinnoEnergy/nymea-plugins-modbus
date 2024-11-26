@@ -449,16 +449,6 @@ void IntegrationPluginTemplate::setupInverter(ThingSetupInfo *info){
     // we create an e3dcInverter Object, where we "save" the attributes/values we want to read from the Gateway
     e3dcInverter* inverter = new e3dcInverter();
 
-    // connection and current power set depending on reachableChanged
-    connect(TCPconnection, &TCP_ModbusConnection::reachableChanged, thing, [TCPconnection, thing](bool reachable){
-        qCDebug(dcE3dc()) << "Reachable state changed" << reachable;
-        thing->setStateValue(e3dcTCPconnectionConnectedStateTypeId, reachable);
-        if (reachable) {
-            TCPconnection->initialize();
-        } else {
-            thing->setStateValue(e3dcTCPconnectionCurrentPowerStateTypeId, 0);
-        }
-    });
 
     // everytime the Inverter gets updated, also update the thing
     connect(inverter, &e3dcInverter::currentPowerChanged, this, [thing](float currentPower){
