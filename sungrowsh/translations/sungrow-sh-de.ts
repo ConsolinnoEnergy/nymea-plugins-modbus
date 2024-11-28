@@ -4,12 +4,12 @@
 <context>
     <name>IntegrationPluginSungrow</name>
     <message>
-        <location filename="../integrationpluginsungrow.cpp" line="47"/>
+        <location filename="../integrationpluginsungrowsh.cpp" line="47"/>
         <source>The network device discovery is not available.</source>
         <translation>Die Netzwerkerkennung ist nicht verfügbar.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsungrow.cpp" line="103"/>
+        <location filename="../integrationpluginsungrowsh.cpp" line="103"/>
         <source>The MAC address is not known. Please reconfigure this inverter.</source>
         <translation>The MAC Adresse ist nicht bekannt. Bitte konfigurieren Sie den Wechselrichter neu.</translation>
     </message>
