@@ -6,11 +6,11 @@ MODBUS_CONNECTIONS += sungrow-registers.json
 include(../modbus.pri)
 
 HEADERS += \
-    integrationpluginsungrow.h \
+    integrationpluginsungrowsh.h \
     sungrowdiscovery.h \
     sungrowmodbustcpconnection.h
 
 SOURCES += \
-    integrationpluginsungrow.cpp \
+    integrationpluginsungrowsh.cpp \
     sungrowdiscovery.cpp \
     sungrowmodbustcpconnection.cpp

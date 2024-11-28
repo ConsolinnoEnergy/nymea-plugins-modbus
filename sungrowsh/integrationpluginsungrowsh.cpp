@@ -28,7 +28,7 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "integrationpluginsungrow.h"
+#include "integrationpluginsungrowsh.h"
 #include "plugininfo.h"
 #include "sungrowdiscovery.h"
 
