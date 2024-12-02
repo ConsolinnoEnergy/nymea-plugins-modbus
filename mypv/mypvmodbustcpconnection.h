@@ -56,9 +56,11 @@ public:
         RegisterElwaStatus = 1003,
         RegisterPowerTimeout = 1004,
         RegisterBoostMode = 1005,
+        RegisterBackTemperature = 1006,
         RegisterManualStart = 1012,
         RegisterDeviceNumber = 1013,
         RegisterMaxPower = 1014,
+        RegisterExternalTemperature = 1030,
         RegisterMeterPower = 1069,
         RegisterDummy0 = 1070,
         RegisterImmHeaterPower = 1074,
@@ -97,6 +99,9 @@ public:
     /* Current power [W] - Address: 1000, Size: 1 */
     quint16 currentPower() const;
     QModbusReply *setCurrentPower(quint16 currentPower);
+
+    /* External temperature sensor [°C] - Address: 1030, Size: 1 */
+    float externalTemperature() const;
 
     /* Actual water temperature [°C] - Address: 1001, Size: 1 */
     float waterTemperature() const;
@@ -139,6 +144,10 @@ public:
     quint16 boostMode() const;
     QModbusReply *setBoostMode(quint16 boostMode);
 
+    /* Backup target temperature [°C] - Address: 1006, Size: 1 */
+    float backTemperature() const;
+    QModbusReply *setBackTemperature(float backTemperature);
+
     /* Read block from start addess 1001 with size of 3 registers containing following 3 properties:
       - Actual water temperature [°C] - Address: 1001, Size: 1
       - Target water temperature [°C] - Address: 1002, Size: 1
@@ -161,13 +170,15 @@ public:
     */
     void updatePowerValuesBlock();
 
-    /* Read block from start addess 1004 with size of 2 registers containing following 2 properties:
+    /* Read block from start addess 1004 with size of 3 registers containing following 3 properties:
       - Timeout of set power - Address: 1004, Size: 1
       - Boost mode - Address: 1005, Size: 1
+      - Backup target temperature [°C] - Address: 1006, Size: 1
     */
     void updateTimeoutAndBoostBlock();
 
     void updateCurrentPower();
+    void updateExternalTemperature();
 
     void updateWaterTemperature();
     void updateTargetWaterTemperature();
@@ -181,8 +192,10 @@ public:
     void updateAuxRelayPower();
     void updatePowerTimeout();
     void updateBoostMode();
+    void updateBackTemperature();
 
     QModbusReply *readCurrentPower();
+    QModbusReply *readExternalTemperature();
     QModbusReply *readWaterTemperature();
     QModbusReply *readTargetWaterTemperature();
     QModbusReply *readElwaStatus();
@@ -195,6 +208,7 @@ public:
     QModbusReply *readAuxRelayPower();
     QModbusReply *readPowerTimeout();
     QModbusReply *readBoostMode();
+    QModbusReply *readBackTemperature();
 
     /* Read block from start addess 1001 with size of 3 registers containing following 3 properties:
      - Actual water temperature [°C] - Address: 1001, Size: 1
@@ -218,9 +232,10 @@ public:
     */
     QModbusReply *readBlockPowerValues();
 
-    /* Read block from start addess 1004 with size of 2 registers containing following 2 properties:
+    /* Read block from start addess 1004 with size of 3 registers containing following 3 properties:
      - Timeout of set power - Address: 1004, Size: 1
      - Boost mode - Address: 1005, Size: 1
+     - Backup target temperature [°C] - Address: 1006, Size: 1
     */
     QModbusReply *readBlockTimeoutAndBoost();
 
@@ -231,6 +246,7 @@ public:
     virtual void update3();
     virtual void update4();
     virtual void update5();
+    virtual void update6();
 
 signals:
     void reachableChanged(bool reachable);
@@ -244,6 +260,8 @@ signals:
 
     void currentPowerChanged(quint16 currentPower);
     void currentPowerReadFinished(quint16 currentPower);
+    void externalTemperatureChanged(float externalTemperature);
+    void externalTemperatureReadFinished(float externalTemperature);
 
     void waterTemperatureChanged(float waterTemperature);
     void waterTemperatureReadFinished(float waterTemperature);
@@ -269,9 +287,12 @@ signals:
     void powerTimeoutReadFinished(quint16 powerTimeout);
     void boostModeChanged(quint16 boostMode);
     void boostModeReadFinished(quint16 boostMode);
+    void backTemperatureChanged(float backTemperature);
+    void backTemperatureReadFinished(float backTemperature);
 
 protected:
     quint16 m_currentPower = 0;
+    float m_externalTemperature = 0;
     float m_waterTemperature = 0;
     float m_targetWaterTemperature = 0;
     ElwaStatus m_elwaStatus = ElwaStatusStandby;
@@ -284,8 +305,10 @@ protected:
     qint16 m_auxRelayPower = 0;
     quint16 m_powerTimeout = 0;
     quint16 m_boostMode = 0;
+    float m_backTemperature = 0;
 
     void processCurrentPowerRegisterValues(const QVector<quint16> values);
+    void processExternalTemperatureRegisterValues(const QVector<quint16> values);
 
     void processWaterTemperatureRegisterValues(const QVector<quint16> values);
     void processTargetWaterTemperatureRegisterValues(const QVector<quint16> values);
@@ -302,6 +325,7 @@ protected:
 
     void processPowerTimeoutRegisterValues(const QVector<quint16> values);
     void processBoostModeRegisterValues(const QVector<quint16> values);
+    void processBackTemperatureRegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();
