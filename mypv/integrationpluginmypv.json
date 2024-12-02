@@ -59,16 +59,6 @@
                             "writable": true
                         },
                         {
-                            "id": "97caea3f-2cb0-430f-a143-9d2dd15d0399",
-                            "name": "currentPower",
-                            "displayName": "Current power",
-                            "displayNameEvent": "Power consumption changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
                             "id": "c6cac0e7-ca01-4f26-951c-e5a7636707b4",
                             "name": "heatingPower",
                             "displayName": "Power consumption",
@@ -222,16 +212,6 @@
                             "writable": true
                         },
                         {
-                            "id": "fda30e5a-2a61-421e-b4d9-ae0e8fd41684",
-                            "name": "currentPower",
-                            "displayName": "Current power",
-                            "displayNameEvent": "Power consumption changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
                             "id": "3a745987-d583-4db4-9fa9-409d2fd29fed",
                             "name": "heatingPower",
                             "displayName": "Power consumption",
@@ -383,16 +363,6 @@
                             "type": "bool",
                             "defaultValue": 0,
                             "writable": true
-                        },
-                        {
-                            "id": "d428f4a4-1b8f-4b29-9dd1-beb277abc734",
-                            "name": "currentPower",
-                            "displayName": "Current power",
-                            "displayNameEvent": "Power consumption changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
                         },
                         {
                             "id": "f16dfecc-893d-479f-99a4-ceb68a2dda4a",
