@@ -49,3 +49,5 @@ vendor
 *.swp
 
 .crossbuilder
+
+upload.sh

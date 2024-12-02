@@ -1,0 +1,791 @@
+{
+    "className": "Solax",
+    "protocol": "RTU",
+    "endianness": "LittleEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "inverterType",
+    "enums": [
+        {
+            "name": "RunMode",
+            "values": [
+                {
+                    "key": "WaitMode",
+                    "value": 0
+                },
+                {
+                    "key": "CheckMode",
+                    "value": 1
+                },
+                {
+                    "key": "NormalMode",
+                    "value": 2
+                },
+                {
+                    "key": "FaultMode",
+                    "value": 3
+                },
+                {
+                    "key": "PermanentFaultMode",
+                    "value": 4
+                },
+                {
+                    "key": "UpdateMode",
+                    "value": 5
+                },
+                {
+                    "key": "EpsCheckMode",
+                    "value": 6
+                },
+                {
+                    "key": "EpsMode",
+                    "value": 7
+                },
+                {
+                    "key": "SelfTest",
+                    "value": 8
+                },
+                {
+                    "key": "IdleMode",
+                    "value": 9
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "identification",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "serialNumber",
+                    "address": 0,
+                    "size": 7,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Serial number (0x00)",
+                    "access": "RO"
+                },
+                {
+                    "id": "factoryName",
+                    "address": 7,
+                    "size": 7,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Factory name (0x07)",
+                    "access": "RO"
+                },
+                {
+                    "id": "moduleName",
+                    "address": 14,
+                    "size": 7,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Module name (0x0E)",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "pvVoltageAndCurrent",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "inverterVoltage",
+                    "address": 0,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Inverter voltage (0x00)",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrent",
+                    "address": 1,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "description": "Inverter current (0x01)",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPower",
+                    "address": 2,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "description": "Inverter power (0x02)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pvVoltage1",
+                    "address": 3,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "PV voltage 1 (0x03)",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pvVoltage2",
+                    "address": 4,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "PV voltage 2 (0x04)",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pvCurrent1",
+                    "address": 5,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "PV current 1 (0x05)",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pvCurrent2",
+                    "address": 6,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "PV current 2 (0x06)",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterFrequency",
+                    "address": 7,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Inverter frequenxy (0x07)",
+                    "unit": "Hz",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "temperature",
+                    "address": 8,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "description": "Radiator temperature (0x08)",
+                    "unit": "°C",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "runMode",
+                    "address": 9,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "RunMode",
+                    "registerType": "inputRegister",
+                    "description": "Run mode (0x09)",
+                    "defaultValue": "RunModeWaitMode",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerDc1",
+                    "address": 10,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power DC 1 (0x0A)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerDc2",
+                    "address": 11,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power DC 2 (0x0B)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "batPowerAndState",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "batVoltageCharge1",
+                    "address": 20,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "description": "Battery voltage charge 1 (0x14)",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentCharge1",
+                    "address": 21,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "description": "Battery current charge 1 (0x15)",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batPowerCharge1",
+                    "address": 22,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Battery power charge1 (0x16)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bmsConnectState",
+                    "address": 23,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "BMS connected state (0x17)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "temperatureBat",
+                    "address": 24,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "description": "Battery temperature",
+                    "unit": "°C",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "meterData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "feedinPower",
+                    "address": 70,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Power to grid (0x46). Positive means exported power, negative means consumed power.",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "feedinEnergyTotal",
+                    "address": 72,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Exported energy, total (0x48)",
+                    "unit": "kWh",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "consumEnergyTotal",
+                    "address": 74,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Consumed energy, total (0x4A)",
+                    "unit": "kWh",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "phasesData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "gridVoltageR",
+                    "address": 106,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Phase R voltage (0x6A)",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridCurrentR",
+                    "address": 107,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Phase R current (0x6B)",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridPowerR",
+                    "address": 108,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Phase R power (0x6C)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridFrequencyR",
+                    "address": 109,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Phase R frequency (0x6D)",
+                    "unit": "Hz",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridVoltageS",
+                    "address": 110,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Phase S voltage (0x6E)",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridCurrentS",
+                    "address": 111,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Phase S current (0x6F)",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridPowerS",
+                    "address": 112,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Phase S power (0x70)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridFrequencyS",
+                    "address": 113,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Phase S frequency (0x71)",
+                    "unit": "Hz",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridVoltageT",
+                    "address": 114,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Phase T voltage (0x72)",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridCurrentT",
+                    "address": 115,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Phase T current (0x73)",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridPowerT",
+                    "address": 116,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Phase T power (0x74)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridFrequencyT",
+                    "address": 117,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Phase T frequency (0x75)",
+                    "unit": "Hz",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "solarEnergy",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "solarEnergyTotal",
+                    "address": 148,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Solar energy produced total (0x94)",
+                    "unit": "kWh",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "solarEnergyToday",
+                    "address": 150,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Solar energy produced today (0x96)",
+                    "unit": "kWh",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "pv3andbms3",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "pvVoltage3",
+                    "address": 290,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "PV voltage 3 (0x0122)",
+                    "staticScaleFactor": -1,
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pvCurrent3",
+                    "address": 291,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "PV current 3 (0x0123)",
+                    "staticScaleFactor": -1,
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerDc3",
+                    "address": 292,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power DC 3 (0x0124)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3VoltFaultValue",
+                    "address": 293,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "wPv3VoltFaultValue (0x0125)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "pv3VoltFaultValue2",
+                    "address": 294,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "wPv3VoltFaultValue2 (0x0126)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batVoltageCharge2",
+                    "address": 295,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery voltage charge 3 (0x0127)",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentCharge2",
+                    "address": 296,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery current charge 3 (0x0128)",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batPowerCharge2",
+                    "address": 297,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "description": "Battery power charge 1 (0x0129)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bms2FaultLsb",
+                    "address": 298,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery Fault Message LSB (0x012A)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "bms2FaulMLsb",
+                    "address": 299,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery Fault Message MSB (0x012B)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batDataReference2",
+                    "address": 300,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery Data Reference (0x012C)",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryCapacity2",
+                    "address": 301,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery2 state of charge (0x012D)",
+                    "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "totalBatteryCapacity2",
+                    "address": 302,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Battery2 state of charge (0x012E)",
+                    "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "EoutPowerTotal",
+                    "address": 303,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "inputRegister",
+                    "description": "Inv Total AC Power (0x012F)",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "temperatureBat2",
+                    "address": 305,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "inputRegister",
+                    "description": "Battery temperature 2 (0x0131)",
+                    "unit": "°C",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "batteryCapacity",
+            "address": 28,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Battery state of charge (0x1C)",
+            "unit": "%",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "bmsWarningLsb",
+            "address": 68,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "BMS warning bits lsb (0x44)",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "bmsWarningMsb",
+            "address": 69,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "BMS warning bits msb (0x45)",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "inverterFaultBits",
+            "address": 64,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Inverter fault bits (0x40)",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "meter1CommunicationState",
+            "address": 184,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Meter 1 communication status (0xB8)",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "activePowerLimit",
+            "address": 37,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Active power limit (0x25)",
+            "unit": "%",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "firmwareVersion",
+            "address": 125,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "Firmware version (0x7D)",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "inverterType",
+            "address": 186,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "Inverter rated power (0xBA)",
+            "unit": "W",
+            "defaultValue": "0",
+            "access": "RO"
+        }
+    ]
+}
+

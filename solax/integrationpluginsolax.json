@@ -1,8 +1,8 @@
 {
     "name": "Solax",
-        "displayName": "Solax",
-        "id": "2212cb5d-a8fa-4c00-8684-0e46625287c7",
-        "vendors": [
+    "displayName": "Solax",
+    "id": "2212cb5d-a8fa-4c00-8684-0e46625287c7",
+    "vendors": [
         {
             "name": "solax",
             "displayName": "Solax",
@@ -14,7 +14,7 @@
                     "id": "b1cb3137-b293-4df2-ae4f-b662c6835653",
                     "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": ["solarinverter", "energymeter", "energystorage"],
+                    "providedInterfaces": ["solarinverter", "energymeter", "controllablebattery"],
                     "paramTypes": [
                         {
                             "id": "f2089b5c-407b-47d1-a250-cd201292c769",
@@ -127,18 +127,8 @@
                             "cached": false
                         },
                         {
-                            "id": "259c7479-8fb3-44ac-84bb-74cfe4a90336",
-                            "name": "errorMessage",
-                            "displayName": "Error message",
-                            "displayNameEvent": "Error message changed",
-                            "type": "QString",
-                            "defaultValue": "No error, everything ok.",
-                            "suggestLogging": true,
-                            "cached": false
-                        },
-                        {
                             "id": "e2c14c76-7d93-4dee-bb4e-5b6f18b20633",
-                            "name": "ratedPower",
+                            "name": "nominalPower",
                             "displayName": "Rated power",
                             "displayNameEvent": "Rated power changed",
                             "type": "double",
@@ -226,18 +216,35 @@
                             "cached": false
                         },
                         {
-                            "id": "253cbe80-73d5-492a-98fb-22439697bd67",
-                            "name": "activePowerLimit",
-                            "displayName": "Active power limit",
-                            "displayNameEvent": "Active power limit changed",
-                            "type": "uint",
-                            "unit": "Percentage",
-                            "defaultValue": 0,
-                            "cached": false
+                            "id": "ff0f093a-5be6-4086-8c82-9b12ec902213",
+                            "name": "exportLimit",
+                            "displayName": "Export power limit",
+                            "displayNameEvent": "Export power limit changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0
                         }
 
                     ],
-                    "actionTypes": [ ]
+                    "actionTypes": [ 
+                        {
+                            "id": "4142896c-da53-4ba8-b0de-14f0dd24ae5c",
+                            "name": "setExportLimit",
+                            "displayName": "Set Grid export limit",
+                            "paramTypes": [
+                                {
+                                    "id": "bb8548d9-d318-49f8-92a1-2c947faf8836",
+                                    "name": "exportLimit",
+                                    "displayName": "Grid Export Limit (percent of inverter nominal power)",
+                                    "type": "int",
+                                    "unit": "Percentage",
+                                    "defaultValue": 100,
+                                    "minValue": 0,
+                                    "maxValue": 100
+                                }
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "solaxX3InverterRTU",
@@ -245,7 +252,7 @@
                     "id": "4190fc56-3804-43c4-bcd3-c5f86638513e",
                     "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": ["solarinverter", "energymeter", "energystorage"],
+                    "providedInterfaces": ["solarinverter", "energymeter", "controllablebattery"],
                     "paramTypes": [
                         {
                             "id": "186dc796-e2ef-4034-9693-8561cd44c2ac",
@@ -341,18 +348,8 @@
                             "cached": false
                         },
                         {
-                            "id": "ec84a765-6c18-4ffe-9372-93d20853d300",
-                            "name": "errorMessage",
-                            "displayName": "Error message",
-                            "displayNameEvent": "Error message changed",
-                            "type": "QString",
-                            "defaultValue": "No error, everything ok.",
-                            "suggestLogging": true,
-                            "cached": false
-                        },
-                        {
                             "id": "03cb0b85-f466-4d2d-aafd-92acc8f716f3",
-                            "name": "ratedPower",
+                            "name": "nominalPower",
                             "displayName": "Rated power",
                             "displayNameEvent": "Rated power changed",
                             "type": "double",
@@ -448,10 +445,37 @@
                             "unit": "Percentage",
                             "defaultValue": 0,
                             "cached": false
+                        },
+                        {
+                            "id": "69560779-c196-4a09-bda4-56ea66f33fb1",
+                            "name": "exportLimit",
+                            "displayName": "Export power limit",
+                            "displayNameEvent": "Export power limit changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0
                         }
 
                     ],
-                    "actionTypes": [ ]
+                    "actionTypes": [ 
+                        {
+                            "id": "c92ee09c-40ee-4eac-9ce4-7f2399ddb714",
+                            "name": "setExportLimit",
+                            "displayName": "Set Grid export limit",
+                            "paramTypes": [
+                                {
+                                    "id": "56517915-3bd5-47da-85c2-950dae05cdd7",
+                                    "name": "exportLimit",
+                                    "displayName": "Grid Export Limit (percent of inverter nominal power)",
+                                    "type": "int",
+                                    "unit": "Percentage",
+                                    "defaultValue": 100,
+                                    "minValue": 0,
+                                    "maxValue": 100
+                                }
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "solaxMeter",
@@ -638,7 +662,7 @@
                     "displayName": "Solax Battery",
                     "id": "fb017a49-0a2e-4ae6-8277-3da0142cbbd2",
                     "createMethods": ["auto"],
-                    "interfaces": ["energystorage", "connectable"],
+                    "interfaces": ["controllablebattery", "connectable"],
                     "paramTypes": [ ],
                     "stateTypes": [
                         {
@@ -651,16 +675,6 @@
                             "cached": false
                         },
                         {
-                            "id": "2f16aef5-9459-4205-8e81-d444354b7c2a",
-                            "name": "warningMessage",
-                            "displayName": "Warning message",
-                            "displayNameEvent": "Warning message changed",
-                            "type": "QString",
-                            "defaultValue": "No warning, everything ok.",
-                            "suggestLogging": true,
-                            "cached": false
-                        },
-                        {
                             "id": "0a380479-c472-4645-9d89-68dd73ee5439",
                             "name": "batteryLevel",
                             "displayName": "Battery charge percent",
@@ -670,6 +684,20 @@
                             "minValue": 0,
                             "maxValue": 100,
                             "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "28235635-d544-42b4-8376-c2bda6a00123",
+                            "name": "minBatteryLevel",
+                            "displayName": "min. Battery level",
+                            "displayNameEvent": "min Battery level changed",
+                            "displayNameAction": "min Battery level set",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 5,
+                            "maxValue": 100,
+                            "defaultValue": 5,
+                            "writable": true,
                             "cached": true
                         },
                         {
@@ -740,6 +768,67 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": false
+                        },
+                        {
+                            "id": "d10df429-b0ce-4078-b7e6-843a8e798d9f",
+                            "name": "nominalPowerBattery",
+                            "displayName": "Nominal Power for control",
+                            "displayNameEvent": "Nominal power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 10000
+                        },
+                        {
+                            "id": "8806455a-280a-4063-aa6c-5b1acb59b897",
+                            "name": "enableForcePower",
+                            "displayName": "Battery manual mode",
+                            "displayNameEvent": "Battery manual mode",
+                            "displayNameAction": "Battery manual mode enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
+                        },
+                        {
+                            "id": "4cd7a11a-3cf1-4254-9a36-fd836b19fba7",
+                            "name": "enableForcePowerState",
+                            "displayName": "Battery manual mode enabled",
+                            "displayNameEvent": "Battery manual mode state changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "868ba45f-1f1d-4444-bd19-a258db509a23",
+                            "name": "forcePower",
+                            "displayName": "Battery force power (+:charge, -:discharge)",
+                            "displayNameEvent": "Battery force power changed",
+                            "displayNameAction": "Battery force power enabled",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "9523ae17-1919-4e18-9c50-534dd0ea9ff2",
+                            "name": "forcePowerTimeout",
+                            "displayName": "Battery force power timeout",
+                            "displayNameEvent": "Battery force power timeout changed",
+                            "displayNameAction": "Battery force power timeout enabled",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "defaultValue": 500,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "5cdace8a-a034-4b83-af85-2060d165d056",
+                            "name": "forcePowerTimeoutCountdown",
+                            "displayName": "Timeout countdown",
+                            "displayNameEvent": "timeout countdown changed",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "defaultValue": 500,
+                            "cached": true
                         }
                     ],
                     "actionTypes": [ ]
