@@ -283,7 +283,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     // Read the current power consumed by the device
     connect(connection, &MyPvModbusTcpConnection::currentPowerChanged, thing, [thing](quint16 power) {
         qCDebug(dcMypv()) << "Current power changed" << power << "W";
-        thing->setStateValue("currentPower", power);
+        thing->setStateValue("heatingPower", power);
     });
 
     // Read the currently measured water temperature
