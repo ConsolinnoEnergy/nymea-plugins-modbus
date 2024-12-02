@@ -1,8 +1,41 @@
-nymea-plugins-modbus (1.7.010) jammy; urgency=medium
+nymea-plugins-modbus (1.7.012) jammy; urgency=medium
 
   * Updated mypv integration
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 17 Jul 2024 10:14:00 +0200
+
+nymea-plugins-modbus (1.7.011) jammy; urgency=medium
+
+  * Restore Sungrow SG
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 28 Nov 2024 13:49:00 +0100
+
+nymea-plugins-modbus (1.7.010-1) jammy; urgency=medium
+
+  * Added inverter and battery control for Solax X3
+  * Generate QCells entry from Solax
+    - Updated name
+  * Added Sofarsolar hybrid inverter (Modbus RTU)
+  * Added Lambda heat pump (Modbus TCP)
+  * Generate QCells G3 Wallbox Integration from Solax EVC
+    - Updated name
+  * DvModbusIR: Read more states more frequently
+    - Added as Meter, Consumer and Inverter
+  * Inital release of QCells Gen 4 EV Charger.
+  * Added Broetje heat pump plugin.
+  * Matched Kostalmeter integration to SDM630 integration
+  * Added Kostalmeter as Consumer and Inverter
+  * Fixes for FoxESS WB Gen3: 
+    - Skip discovery for IPv6
+    - Start charging when state is paused
+  * Updated sungrow integration to match nymea
+  * Inital release of Solax X3 Ultra wit one battery.
+  * Improve timing in Alfen plugin
+  * ABB Terra: Fix for charge session energy
+  * Fix for Mennekes: Set phaseCount to 1 when not charging.
+  * Solax X3 EVC: PluggedIn state more robust
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 14 Nov 2024 13:49:00 +0100
 
 nymea-plugins-modbus (1.7.009-1) jammy; urgency=medium
 
