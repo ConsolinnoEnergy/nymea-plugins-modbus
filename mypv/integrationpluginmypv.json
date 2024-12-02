@@ -92,6 +92,26 @@
                             "defaultValue": 0
                         },
                         {
+                            "id": "6aaabfd8-82e4-4f54-bd84-fee30e5a5cc5",
+                            "name": "backTemperature",
+                            "displayName": "Backup temperature",
+                            "displayNameEvent": "Backup temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "a0b74c06-994a-4274-b88d-36c65fb303dc",
+                            "name": "externalTemperature",
+                            "displayName": "External temperature",
+                            "displayNameEvent": "External temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "fe6c7f4b-a231-484a-b2b7-8756784edc5f",
                             "name": "immersionHeaterPower",
                             "displayName": "Immersion Heater power",
@@ -245,6 +265,26 @@
                             "defaultValue": 0
                         },
                         {
+                            "id": "8dab39ac-ebe1-4ed6-ba89-5f52e1b78e8d",
+                            "name": "backTemperature",
+                            "displayName": "Backup temperature",
+                            "displayNameEvent": "Backup temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "bb2d3a4e-14cd-487a-978f-634a0d84b062",
+                            "name": "externalTemperature",
+                            "displayName": "External temperature",
+                            "displayNameEvent": "External temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "0ca2d93a-1fc2-4151-840f-af6ea6893e26",
                             "name": "immersionHeaterPower",
                             "displayName": "Immersion Heater power",
@@ -396,6 +436,26 @@
                             "unit": "DegreeCelsius",
                             "cached": false,
                             "defaultValue": 0
+                        },
+                        {
+                            "id": "05b3bfa9-d7c7-4cba-8f12-74f2f541bedc",
+                            "name": "backTemperature",
+                            "displayName": "Backup temperature",
+                            "displayNameEvent": "Backup temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "fbe47355-e0ea-44fe-b5e7-7ac407802601",
+                            "name": "externalTemperature",
+                            "displayName": "External temperature",
+                            "displayNameEvent": "External temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "7215c979-f982-4d67-8614-f1b05ed38ec8",
