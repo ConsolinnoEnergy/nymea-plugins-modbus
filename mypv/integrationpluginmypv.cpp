@@ -298,6 +298,16 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue("targetWaterTemperature", temp);
     });
 
+    connect(connection, &MyPvModbusTcpConnection::externalTemperatureChanged, thing, [thing](double temp) {
+        qCDebug(dcMypv()) << "External water temperature changed" << temp << "°C";
+        thing->setStateValue("externalTemperature", temp);
+    });
+
+    connect(connection, &MyPvModbusTcpConnection::backTemperatureChanged, thing, [thing](double temp) {
+        qCDebug(dcMypv()) << "Backup water temperature changed" << temp << "°C";
+        thing->setStateValue("backTemperature", temp);
+    });
+
     connect(connection, &MyPvModbusTcpConnection::maxPowerChanged, thing, [thing](quint16 power) {
         qCDebug(dcMypv()) << "Max power changed to" << power;
         thing->setStateValue("maxPower", power);
