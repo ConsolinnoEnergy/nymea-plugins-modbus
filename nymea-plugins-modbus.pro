@@ -43,7 +43,8 @@ PLUGIN_DIRS = \
     solax                   \
     solaxultra              \
     stiebeleltron           \
-    sungrow                 \
+    sungrowsg               \
+    sungrowsh               \
     sunspec                 \
     technivolt              \
     unipi                   \

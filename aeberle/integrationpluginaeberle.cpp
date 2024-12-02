@@ -185,7 +185,6 @@ void IntegrationPluginAEberle::setupThing(ThingSetupInfo *info)
             thing->setStateValue(pqidaConnectedStateTypeId, reachable);
             if (reachable) {
                 qCDebug(dcAEberle()) << "Modbus RTU device " << thing << "connected on" << pqidaConnection->modbusRtuMaster()->serialPort() << "is sending data.";
-                pqidaConnection->initialize();
             } else {
                 qCDebug(dcAEberle()) << "Modbus RTU device " << thing << "connected on" << pqidaConnection->modbusRtuMaster()->serialPort() << "is not responding.";
                 thing->setStateValue(pqidaCurrentPowerStateTypeId, 0);
