@@ -824,6 +824,13 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
                 batteryThings.first()->setStateValue(huaweiBatteryBatteryLevelStateTypeId, batterySoc);
                 batteryThings.first()->setStateValue(huaweiBatteryBatteryCriticalStateTypeId, batterySoc < 10);
 
+                // get rated battery capacity 
+                //qCDebug(dcHuawei()) << "Battery capacity" << connection->lunaBattery2Capacity() << "kWh";         
+                float batteryCapacity = connection->lunaBattery2Capacity();
+                if (batteryCapacity > 0) {
+                    batteryThings.first()->setStateValue(huaweiBatteryCapacityStateTypeId, batteryCapacity);
+                }                
+
                 if (batteryStatus == HuaweiFusionSolar::BatteryDeviceStatusOffline) {
                     qCDebug(dcHuawei()) << "Autoremove Huawei energy storage 1 for" << thing << "because the battery is offline" << batteryThings.first();
                     emit autoThingDisappeared(batteryThings.first()->id());
@@ -868,6 +875,13 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
                 float batterySoc = connection->lunaBattery2Soc();
                 batteryThings.first()->setStateValue(huaweiBatteryBatteryLevelStateTypeId, batterySoc);
                 batteryThings.first()->setStateValue(huaweiBatteryBatteryCriticalStateTypeId, batterySoc < 10);
+
+                // get rated battery capacity 
+                //qCDebug(dcHuawei()) << "Battery capacity" << connection->lunaBattery2Capacity() << "kWh";         
+                float batteryCapacity = connection->lunaBattery2Capacity();
+                if (batteryCapacity > 0) {
+                    batteryThings.first()->setStateValue(huaweiBatteryCapacityStateTypeId, batteryCapacity);
+                }     
 
                 if (batteryStatus == HuaweiFusionSolar::BatteryDeviceStatusOffline) {
                     qCDebug(dcHuawei()) << "Autoremove Huawei energy storage 2 for" << thing << "because the battery is offline" << batteryThings.first();

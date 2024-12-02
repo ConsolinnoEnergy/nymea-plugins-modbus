@@ -375,7 +375,7 @@ void HuaweiFusionSolar::readNextRegister()
     }
     case HuaweiFusionModbusTcpConnection::RegisterLunaBattery2Soc: {
     // Update register block "battery2"1"
-        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"battery2\" registers from:" << 37738 << "size:" << 7;
+        qCDebug(dcHuaweiFusionSolar()) << "--> Read block \"battery2\" registers from:" << 37738 << "size:" << 22;
         QModbusReply *reply = readBlockBattery2();
         if (!reply) {
             qCWarning(dcHuaweiFusionSolar()) << "Error occurred while reading block \"battery2\" registers";
@@ -395,9 +395,9 @@ void HuaweiFusionSolar::readNextRegister()
             if (reply->error() == QModbusDevice::NoError) {
                 const QModbusDataUnit unit = reply->result();
                 const QVector<quint16> blockValues = unit.values();
-                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"battery2\" register" << 37738 << "size:" << 7 << blockValues;
-                if (!valuesAreVaild(unit.values(), 7)) {
-                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 7 << "but received" << unit.values();
+                qCDebug(dcHuaweiFusionSolar()) << "<-- Response from reading block \"battery2\" register" << 37738 << "size:" << 22 << blockValues;
+                if (!valuesAreVaild(unit.values(), 22)) {
+                    qCWarning(dcHuaweiFusionSolar()) << "<-- Received invalid values. Requested" << 22 << "but received" << unit.values();
                     finishRequestRetryIs(true);
                 } else {
                     processLunaBattery2SocRegisterValues(blockValues.mid(0, 1));
@@ -420,7 +420,10 @@ void HuaweiFusionSolar::readNextRegister()
                         //processFillerRegister7RegisterValues(blockValues.mid(4, 1));
                         processLunaBattery2PowerRegisterValues(blockValues.mid(5, 2));
                     }
-
+                    
+                    //processFillerRegister8RegisterValues(blockValues.mid(7, 13));
+                    processLunaBattery2CapacityRegisterValues(blockValues.mid(20, 2));
+                    
                     emit battery2ValuesUpdated();
                     finishRequestRetryIs(false);
                 }
