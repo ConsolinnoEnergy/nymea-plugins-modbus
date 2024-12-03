@@ -63,6 +63,7 @@ void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
         // AC ELWA 2    - a4d93f16
         // AC THOR      - cb7a4e84
         // AC THOR 9s   - 84db4f4c
+        // POWER METER  - 401e4e8e
         discoveryString.resize(19);
         discoveryString.fill(0);
         discoveryString.insert(0, QByteArray::fromHex("86d93efc"));
@@ -271,8 +272,8 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue("connected", success);
         if (success) {
             qCDebug(dcMypv()) << "my-PV Heating Rod intialized.";
-            qCDebug(dcMypv()) << "### Current device is" << m_myDevice;
-            qCDebug(dcMypv()) << "### Max Power should be set to" << m_devicePower[m_myDevice];
+            qCDebug(dcMypv()) << "Current device is" << m_myDevice;
+            qCDebug(dcMypv()) << "Max Power should be set to" << m_devicePower[m_myDevice];
             thing->setStateMaxValue("heatingPower", m_devicePower[m_myDevice]);
         } else {
             qCDebug(dcMypv()) << "my-PV Heating Rod initialization failed.";
