@@ -13,7 +13,7 @@
                     "displayName": "Navigator 2.0",
                     "id": "1c95ac91-4eca-4cbf-b0f4-d60d35d069ed",
                     "createMethods": ["user", "discovery"],
-                    "interfaces": ["thermostat", "smartmeterconsumer", "connectable" ],
+                    "interfaces": ["thermostat", "smartmeterconsumer", "connectable", "pvsurplusheatpump"],
                     "paramTypes": [
                         {
                             "id": "d178ca29-41a1-4f56-82ec-76a833c1de50",
