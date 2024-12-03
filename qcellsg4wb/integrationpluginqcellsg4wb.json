@@ -1,16 +1,16 @@
 {
     "name": "qcells",
-    "displayName": "QCells",
+    "displayName": "Qcells",
     "id": "32f5d13d-c372-466c-b166-3379682c51b6",
     "vendors": [
         {
             "name": "qCells",
-            "displayName": "QCells",
+            "displayName": "Qcells",
             "id": "f6e8922c-89ce-4971-b5e2-c3385fe0494f",
             "thingClasses": [
                 {
                     "name": "qCells",
-                    "displayName": "QCells Gen4 Wallbox",
+                    "displayName": "Qcells Q.HOME Wallbox",
                     "id": "12137d3d-45de-4594-b046-9e7dd46a0dcb",
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
