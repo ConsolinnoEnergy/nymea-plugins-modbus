@@ -341,6 +341,7 @@ void IntegrationPluginIdm::setupConnection(ThingSetupInfo *info)
             thing->setStateValue(navigator2EnergyProducedHeatingStateTypeId, connection->energyHeating());
             thing->setStateValue(navigator2EnergyProducedCoolingStateTypeId, connection->energyCooling());
             thing->setStateValue(navigator2EnergyProducedHotWaterStateTypeId, connection->energyHotWater());
+            thing->setStateValue(navigator2ActualPvSurplusStateTypeId, connection->currentPvSurplus());
 
             switch (connection->heatPumpOperatingMode()) {
             case IdmModbusTcpConnection::HeatPumpOperationModeOff:
