@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "e3dcConnection",
-                    "displayName": "e3dc gateway",
+                    "displayName": "E3DC S10",
                     "id": "c05722ec-442f-4feb-8889-39ae3769d068",
                     "createMethods": ["user", "discovery"],
                     "interfaces": ["gateway"],
