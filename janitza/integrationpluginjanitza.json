@@ -11,7 +11,7 @@
             "thingClasses": [
                 {
                     "name": "umg604",
-                    "displayName": "UMG604 Pro",
+                    "displayName": "Janitza UMG604 Pro",
                     "id": "bf54933c-3693-464f-9d80-5a61ea9b1ff1",
                     "createMethods": ["discovery"],
                     "interfaces": ["energymeter", "connectable"],
