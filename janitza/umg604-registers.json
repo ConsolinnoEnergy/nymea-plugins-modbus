@@ -6,6 +6,29 @@
     "checkReachableRegister": "voltagePhaseA",
     "registers": [
         {
+            "id": "serialNumber",
+            "address": 10176,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Serial number",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "frequency",
+            "address": 19050,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Frequency",
+            "unit": "Hz",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
             "id": "totalEnergyConsumed",
             "address": 19068,
             "size": 2,
@@ -26,18 +49,6 @@
             "readSchedule": "update",
             "description": "Total energy produced",
             "unit": "kWh",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "frequency",
-            "address": 19050,
-            "size": 2,
-            "type": "float",
-            "registerType": "inputRegister",
-            "readSchedule": "update",
-            "description": "Frequency",
-            "unit": "Hz",
             "defaultValue": "0",
             "access": "RO"
         }

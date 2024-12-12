@@ -45,7 +45,6 @@ public:
     struct Result {
         QUuid modbusRtuMasterId;
         quint32 serialNumber;
-        quint16 meterCode;
         QString serialPort;
     };
 

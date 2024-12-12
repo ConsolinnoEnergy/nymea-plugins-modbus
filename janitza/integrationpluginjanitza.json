@@ -44,6 +44,14 @@
                             "type": "QUuid",
                             "defaultValue": "",
                             "readOnly": true
+                        },
+                        {
+                            "id": "ef0761c8-987c-4cdd-9a5d-1f9ee65c78e7",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [
