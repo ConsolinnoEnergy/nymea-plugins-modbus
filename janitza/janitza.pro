@@ -1,7 +1,7 @@
 include(../plugins.pri)
 
 # Generate modbus connection
-MODBUS_CONNECTIONS += janitza-registers.json
+MODBUS_CONNECTIONS += umg604-registers.json
 #MODBUS_TOOLS_CONFIG += VERBOSE
 include(../modbus.pri)
 
