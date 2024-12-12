@@ -213,8 +213,12 @@ void IntegrationPluginJanitza::setupThing(ThingSetupInfo *info)
             thing->setStateValue(umg604FrequencyStateTypeId, frequency);
         });
 
-        connect(umg604Connection, &umg604ModbusRtuConnection::updateFinished, thing, [umg604Connection, thing, this](){
-                // whatever
+        connect(umg604Connection, &umg604ModbusRtuConnection::totalEnergyConsumedChanged, this, [=](float consumedEnergy){
+            thing->setStateValue(umg604TotalEnergyConsumedStateTypeId, consumedEnergy);
+        });
+
+        connect(umg604Connection, &umg604ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float producedEnergy){
+            thing->setStateValue(umg604TotalEnergyProducedStateTypeId, producedEnergy);
         });
     }
 }
