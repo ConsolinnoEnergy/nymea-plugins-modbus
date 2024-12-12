@@ -5,7 +5,146 @@
     "errorLimitUntilNotReachable": 3,
     "checkReachableRegister": "",
     "registers": [
+        {
+            "id": "totalEnergyConsumed",
+            "address": 19068,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Total energy consumed",
+            "unit": "kWh",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "totalEnergyProduced",
+            "address": 19076,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Total energy produced",
+            "unit": "kWh",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "frequency",
+            "address": 19050,
+            "size": 2,
+            "type": "float",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Frequency",
+            "unit": "Hz",
+            "defaultValue": "0",
+            "access": "RO"
+        }
     ],
     "blocks": [
+        {
+            "id": "VoltageCurrentPower",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "voltagePhaseA",
+                    "address": 19000,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Voltage phase L1",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseB",
+                    "address": 19002,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Voltage phase L2",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "voltagePhaseC",
+                    "address": 19004,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Voltage phase L3",
+                    "unit": "V",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy0",
+                    "address": 19006,
+                    "size": 6,
+                    "type": "raw",
+                    "registerType": "inputRegister",
+                    "description": "Dummy0",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseA",
+                    "address": 19012,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Current phase L1",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseB",
+                    "address": 19014,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Current phase L2",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseC",
+                    "address": 19016,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Current phase L3",
+                    "unit": "A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 19018,
+                    "size": 8,
+                    "type": "raw",
+                    "registerType": "inputRegister",
+                    "description": "Dummy1",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "totalCurrentPower",
+                    "address": 19026,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Total system power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
     ]
 }
