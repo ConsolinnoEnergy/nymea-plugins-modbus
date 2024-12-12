@@ -3,3 +3,4 @@ solax
 solaxevc
 dvmodbusir
 technivolt
+janitza
