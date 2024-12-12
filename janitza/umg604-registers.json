@@ -1,0 +1,11 @@
+{
+    "className": "umg604",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 3,
+    "checkReachableRegister": "",
+    "registers": [
+    ],
+    "blocks": [
+    ]
+}
