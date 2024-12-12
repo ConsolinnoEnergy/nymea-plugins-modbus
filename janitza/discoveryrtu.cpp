@@ -86,7 +86,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
         m_openReplies--;
         qCDebug(dcJanitza()) << "Test reply finished!" << reply->error() << reply->result();
         if (reply->error() != ModbusRtuReply::NoError || reply->result().length() < 2) {
-            qCDebug(dcJanitza()) << "Error reading input register 70 (grid frequency). This is not a smartmeter.";
+            qCDebug(dcJanitza()) << "Error reading input register 19050 (grid frequency). This is not a smartmeter.";
             if (m_openReplies <= 0) {
                 emit repliesFinished();
             }
