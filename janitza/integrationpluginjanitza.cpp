@@ -155,8 +155,8 @@ void IntegrationPluginJanitza::setupThing(ThingSetupInfo *info)
 
         connect(umg604Connection, &umg604ModbusRtuConnection::initializationFinished, thing, [umg604Connection, thing](bool success){
             if (success) {
-                QString serialNumberRead{QString::number(umg604Connection->serialNumber())};
-                QString serialNumberConfig{thing->paramValue(umg604ThingSerialNumberParamTypeId).toString()};
+                QString serialNumberRead = QString::number(umg604Connection->serialNumber());
+                QString serialNumberConfig = thing->paramValue(umg604ThingSerialNumberParamTypeId).toString();
                 int stringsNotEqual = QString::compare(serialNumberRead, serialNumberConfig, Qt::CaseInsensitive);  // if strings are equal, stringsNotEqual should be 0.
                 if (stringsNotEqual) {
                     // The umg604 found is a different one than configured. We assume the umg604 was replaced, and the new device should use this config.
@@ -164,9 +164,6 @@ void IntegrationPluginJanitza::setupThing(ThingSetupInfo *info)
                     qCDebug(dcJanitza()) << "The serial number of this device is" << serialNumberRead << ". It does not match the serial number in the config, which is"
                                          << serialNumberConfig << ". Updating config with new serial number.";
                     thing->setParamValue(umg604ThingSerialNumberParamTypeId, serialNumberRead);
-
-                    // Todo: Step 2: search existing things if there is one with this serial number. If yes, that thing should be deleted. Otherwise there
-                    // will be undefined behaviour when using reconfigure.
                 }
             }
         });
