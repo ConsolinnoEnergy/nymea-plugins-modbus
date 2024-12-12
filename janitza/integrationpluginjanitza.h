@@ -35,6 +35,7 @@
 #include <hardware/modbus/modbusrtuhardwareresource.h>
 #include <plugintimer.h>
 
+#include "umg604modbusrtuconnection.h"
 #include "extern-plugininfo.h"
 
 #include <QObject>
@@ -57,6 +58,8 @@ public:
 
 private:
     PluginTimer *m_refreshTimer = nullptr;
+
+    QHash<Thing *, umg604ModbusRtuConnection *> m_umg604Connections;
 };
 
 #endif // INTEGRATIONPLUGINJANITZA_H

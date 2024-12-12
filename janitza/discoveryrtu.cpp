@@ -41,10 +41,10 @@ DiscoveryRtu::DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, uint mo
 
 void DiscoveryRtu::startDiscovery()
 {
-    qCInfo(dcBgeTech()) << "Discovery: Searching for smartmeter on modbus RTU...";
+    qCInfo(dcJanitza()) << "Discovery: Searching for smartmeter on modbus RTU...";
 
     if (m_modbusRtuResource->modbusRtuMasters().isEmpty()) {
-        qCWarning(dcBgeTech()) << "No usable modbus RTU master found.";
+        qCWarning(dcJanitza()) << "No usable modbus RTU master found.";
         emit discoveryFinished(false);
     }
 
@@ -53,7 +53,7 @@ void DiscoveryRtu::startDiscovery()
         if (master->connected()) {
             tryConnect(master, m_modbusId);
         } else {
-            qCWarning(dcBgeTech()) << "Modbus RTU master" << master->modbusUuid().toString() << "is not connected.";
+            qCWarning(dcJanitza()) << "Modbus RTU master" << master->modbusUuid().toString() << "is not connected.";
         }
     }
 
@@ -61,7 +61,7 @@ void DiscoveryRtu::startDiscovery()
         m_openReplies = 0;
     }
     if (m_openReplies) {
-        qCDebug(dcBgeTech()) << "Waiting for modbus RTU replies.";
+        qCDebug(dcJanitza()) << "Waiting for modbus RTU replies.";
         connect(this, &DiscoveryRtu::repliesFinished, this, [this](){
             emit discoveryFinished(true);
         });
@@ -77,16 +77,16 @@ QList<DiscoveryRtu::Result> DiscoveryRtu::discoveryResults() const
 
 void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
 {
-    qCDebug(dcBgeTech()) << "Scanning modbus RTU master" << master->modbusUuid() << "Modbus ID:" << modbusId;
-    qCDebug(dcBgeTech()) << "Trying to read register 70 (grid frequency) to test the connection.";
+    qCDebug(dcJanitza()) << "Scanning modbus RTU master" << master->modbusUuid() << "Modbus ID:" << modbusId;
+    qCDebug(dcJanitza()) << "Trying to read register 19050 (grid frequency) to test the connection.";
 
     m_openReplies++;
-    ModbusRtuReply *reply = master->readInputRegister(modbusId, 70, 2);
+    ModbusRtuReply *reply = master->readInputRegister(modbusId, 19050, 2);
     connect(reply, &ModbusRtuReply::finished, this, [=](){
         m_openReplies--;
-        qCDebug(dcBgeTech()) << "Test reply finished!" << reply->error() << reply->result();
+        qCDebug(dcJanitza()) << "Test reply finished!" << reply->error() << reply->result();
         if (reply->error() != ModbusRtuReply::NoError || reply->result().length() < 2) {
-            qCDebug(dcBgeTech()) << "Error reading input register 70 (grid frequency). This is not a smartmeter.";
+            qCDebug(dcJanitza()) << "Error reading input register 70 (grid frequency). This is not a smartmeter.";
             if (m_openReplies <= 0) {
                 emit repliesFinished();
             }
@@ -96,21 +96,21 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
         // Test frequency value.
         float gridFrequency = ModbusDataUtils::convertToFloat32(reply->result(), m_endianness);
         if (gridFrequency < 49.0 || gridFrequency > 51.0) {
-            qCDebug(dcBgeTech()) << "Recieved value for grid frequency is" << gridFrequency << "Hz. This does not seem to be the correct value. This is not a smartmeter.";
+            qCDebug(dcJanitza()) << "Recieved value for grid frequency is" << gridFrequency << "Hz. This does not seem to be the correct value. This is not a smartmeter.";
             if (m_openReplies <= 0) {
                 emit repliesFinished();
             }
             return;
         }
-        qCDebug(dcBgeTech()) << "Recieved value for grid frequency is" << gridFrequency << "Hz. Value seems ok.";
+        qCDebug(dcJanitza()) << "Recieved value for grid frequency is" << gridFrequency << "Hz. Value seems ok.";
 
         m_openReplies++;
-        ModbusRtuReply *reply2 = master->readHoldingRegister(modbusId, 64512, 3);
+        ModbusRtuReply *reply2 = master->readHoldingRegister(modbusId, 10176, 2);
         connect(reply2, &ModbusRtuReply::finished, this, [=](){
             m_openReplies--;
-            qCDebug(dcBgeTech()) << "Reading next test value" << reply2->error() << reply2->result();
-            if (reply2->error() != ModbusRtuReply::NoError || reply2->result().length() < 3) {
-                qCDebug(dcBgeTech()) << "Error reading input register 64512 (serial number). This is not a smartmeter.";
+            qCDebug(dcJanitza()) << "Reading next test value" << reply2->error() << reply2->result();
+            if (reply2->error() != ModbusRtuReply::NoError || reply2->result().length() < 2) {
+                qCDebug(dcJanitza()) << "Error reading input register 10176 (serial number). This is not a smartmeter.";
                 if (m_openReplies <= 0) {
                     emit repliesFinished();
                 }
@@ -118,13 +118,9 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
             }
 
             quint32 serialNumber = ModbusDataUtils::convertToUInt32(reply2->result().mid(0, 2), m_endianness);
-            quint16 meterCode = ModbusDataUtils::convertToUInt32(reply2->result().mid(2, 1));
 
-            // Add test to check if values are valid. meterCode supposedly can identify what type of device it is (SDM630 or SDM72).
+            Result result {master->modbusUuid(), serialNumber, master->serialPort()};
 
-            Result result {master->modbusUuid(), serialNumber, meterCode, master->serialPort()};
-
-            qCDebug(dcBgeTech()) << "Found a smartmeter with serial number" << serialNumber << "and meter code" << meterCode << ". Adding it to the list.";
             m_discoveryResults.append(result);
 
             if (m_openReplies <= 0) {
