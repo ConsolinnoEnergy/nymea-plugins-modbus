@@ -3,7 +3,7 @@
     "protocol": "RTU",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 3,
-    "checkReachableRegister": "",
+    "checkReachableRegister": "voltagePhaseA",
     "registers": [
         {
             "id": "totalEnergyConsumed",
@@ -87,7 +87,6 @@
                     "type": "raw",
                     "registerType": "inputRegister",
                     "description": "Dummy0",
-                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
@@ -130,7 +129,6 @@
                     "type": "raw",
                     "registerType": "inputRegister",
                     "description": "Dummy1",
-                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
