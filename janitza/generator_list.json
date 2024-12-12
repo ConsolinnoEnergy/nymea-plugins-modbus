@@ -1,12 +1,12 @@
 {
   "Janitza": {
     "UMG 604 Pro Inverter": {
-      "filename": "umg604inverter",
+      "filename": "janitzaumg604inverter",
       "interfaces": "solarinverter connectable",
       "uuid_offset": 7
     },
     "UMG 604 Pro Consumer": {
-      "filename": "umg604consumer",
+      "filename": "janitzaumg604consumer",
       "interfaces": "smartmeterconsumer connectable",
       "uuid_offset": 9
     }
