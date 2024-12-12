@@ -1,5 +1,6 @@
 {
   "Janitza": {
+    "uuid": "6998a72d-0b97-4458-a6b5-0d856ae67e46",
     "UMG 604 Pro Inverter": {
       "filename": "janitzainverter",
       "interfaces": "solarinverter connectable",
