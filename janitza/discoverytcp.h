@@ -28,25 +28,27 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef DISCOVERYRTU_H
-#define DISCOVERYRTU_H
+#ifndef DISCOVERYTCP_H
+#define DISCOVERYTCP_H
 
 #include <QObject>
 #include <QTimer>
 
-#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <network/networkdevicediscovery.h>
 #include <modbusdatautils.h>
 
-class DiscoveryRtu : public QObject
+#include "umg604modbustcpconnection.h"
+
+class DiscoveryTcp : public QObject
 {
     Q_OBJECT
 public:
-    explicit DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, uint modbusId, QObject *parent = nullptr);
+    explicit DiscoveryTcp(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
     struct Result {
-        QUuid modbusRtuMasterId;
+        quint16 port;
         QString firmwareVersion;
-        QString serialPort;
         quint32 serialNumber;
+        NetworkDeviceInfo networkDeviceInfo;
     };
 
     void startDiscovery();
@@ -54,19 +56,21 @@ public:
     QList<Result> discoveryResults() const;
 
 signals:
-    void discoveryFinished(bool modbusRtuMasterAvailable);
-    void repliesFinished();
-
-private slots:
-    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
+    void discoveryFinished();
 
 private:
-    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
-    uint m_modbusId;
-    qint16 m_openReplies;
-    ModbusDataUtils::ByteOrder m_endianness;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+
+    QDateTime m_startDateTime;
+
+    QList<umg604ModbusTcpConnection *> m_connections;
 
     QList<Result> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(umg604ModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // DISCOVERYRTU_H
+#endif // DISCOVERYTCP_H

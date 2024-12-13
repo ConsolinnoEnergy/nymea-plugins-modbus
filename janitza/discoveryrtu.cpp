@@ -105,21 +105,43 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
         qCDebug(dcJanitza()) << "Recieved value for grid frequency is" << gridFrequency << "Hz. Value seems ok.";
 
         m_openReplies++;
-        ModbusRtuReply *reply2 = master->readHoldingRegister(modbusId, 10176, 2);
+        ModbusRtuReply *reply2 = master->readHoldingRegister(modbusId, 13437, 16);
         connect(reply2, &ModbusRtuReply::finished, this, [=](){
             m_openReplies--;
             qCDebug(dcJanitza()) << "Reading next test value" << reply2->error() << reply2->result();
-            if (reply2->error() != ModbusRtuReply::NoError || reply2->result().length() < 2) {
-                qCDebug(dcJanitza()) << "Error reading input register 10176 (serial number). This is not a smartmeter.";
+            if (reply2->error() != ModbusRtuReply::NoError || reply2->result().length() < 16) {
+                qCDebug(dcJanitza()) << "Error reading input register 13437 (firmware version). This is not a smartmeter.";
                 if (m_openReplies <= 0) {
                     emit repliesFinished();
                 }
                 return;
             }
 
-            quint32 serialNumber = ModbusDataUtils::convertToUInt32(reply2->result().mid(0, 2), m_endianness);
+            QString firmwareVersion = ModbusDataUtils::convertToString(reply2->result().mid(0, 16));
+            if (firmwareVersion != "5.029") {
+                qCDebug(dcJanitza()) << "Received incorrect firmware version" << firmwareVersion;
+                if (m_openReplies <= 0) {
+                    emit repliesFinished();
+                }
+                return;
+            }
 
-            Result result {master->modbusUuid(), serialNumber, master->serialPort()};
+            m_openReplies++;
+            ModbusRtuReply *reply3 = master->readHoldingRegister(modbusId, 10176, 2);
+            connect(reply3, &ModbusRtuReply::finished, this, [=](){
+                m_openReplies--;
+                if (reply3->error() != ModbusRtuReply::NoError || reply2->result().length() < 2) {
+                    qCDebug(dcJanitza()) << "Error reading input register 10176 (serial number).";
+                    if (m_openReplies <= 0) {
+                        emit repliesFinished();
+                    }
+                    return;
+                }
+            });
+
+            quint32 serialNumber = ModbusDataUtils::convertToUInt32(reply3->result(), m_endianness);
+
+            Result result {master->modbusUuid(), firmwareVersion, master->serialPort(), serialNumber};
 
             m_discoveryResults.append(result);
 

@@ -46,11 +46,11 @@
                             "readOnly": true
                         },
                         {
-                            "id": "ef0761c8-987c-4cdd-9a5d-1f9ee65c78e7",
+                            "id": "b368dc6a-b933-4c66-8857-658a08a3de56",
                             "name": "serialNumber",
-                            "displayName": "Serial number",
-                            "type": "QString",
-                            "defaultValue": "",
+                            "displayName": "Serial Number",
+                            "type": "uint",
+                            "defaultValue": "0",
                             "readOnly": true
                         }
                     ],
@@ -163,6 +163,14 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": true
+                        },
+                        {
+                            "id": "3ca4c195-ceb8-48bc-84b6-0fc64723c7e3",
+                            "name": "firmwareVersion",
+                            "displayName": "Firmware Version",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": true
                         }
                     ]
                 },
@@ -202,21 +210,11 @@
                             "readOnly": true
                         },
                         {
-                            "id": "0782c674-3769-40ee-b8ef-ccb514f8fa90",
-                            "name": "modbusId",
-                            "displayName": "Modbus ID",
-                            "type": "uint",
-                            "minValue": 1,
-                            "maxValue": 247,
-                            "defaultValue": 1,
-                            "readOnly": true
-                        },
-                        {
-                            "id": "445cce27-f329-473f-8380-b6556ba85c48",
+                            "id": "da8f2425-2f36-432a-b446-44ec6c35129f",
                             "name": "serialNumber",
-                            "displayName": "Serial number",
-                            "type": "QString",
-                            "defaultValue": "",
+                            "displayName": "Serial Number",
+                            "type": "uint",
+                            "defaultValue": "0",
                             "readOnly": true
                         }
                     ],
@@ -328,6 +326,14 @@
                             "type": "double",
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "445cce27-f329-473f-8380-b6556ba85c48",
+                            "name": "firmwareVersion",
+                            "displayName": "Firmware Version",
+                            "type": "QString",
+                            "defaultValue": "",
                             "cached": true
                         }
                     ]
