@@ -34,6 +34,7 @@
 #include "integrationpluginjanitza.h"
 #include "plugininfo.h"
 #include "discoveryrtu.h"
+#include "discoverytcp.h"
 
 IntegrationPluginJanitza::IntegrationPluginJanitza()
 {
@@ -93,6 +94,41 @@ void IntegrationPluginJanitza::discoverThings(ThingDiscoveryInfo *info)
                 // Some remarks to the above code: This plugin gets copy-pasted to get the inverter and consumer umg604. Since they are different plugins, myThings() won't contain the things
                 // from these plugins. So currently you can add the same device once in each plugin.
 
+                info->addThingDescriptor(descriptor);
+            }
+
+            info->finish(Thing::ThingErrorNoError);
+        });
+
+        discovery->startDiscovery();
+        return;
+    } else {
+        if (!hardwareManager()->networkDeviceDiscovery()->available()) {
+            qCWarning(dcJanitza()) << "The network discovery is not available on this platform.";
+            info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
+            return;
+        }
+
+        DiscoveryTcp *discovery = new DiscoveryTcp(hardwareManager()->networkDeviceDiscovery(), info);
+
+        connect(discovery, &DiscoveryTcp::discoveryFinished, info, [=](){
+            foreach (const DiscoveryTcp::Result &result, discovery->discoveryResults()) {
+
+                QString name = supportedThings().findById(info->thingClassId()).displayName();
+                ThingDescriptor descriptor(umg604TCPThingClassId, name);
+                qCInfo(dcJanitza()) << "Discovered:" << descriptor.title() << descriptor.description();
+
+                // Check if we already have set up this device
+                Things existingThings = myThings().filterByParam(umg604TCPThingClassId, result.networkDeviceInfo.macAddress());
+                if (existingThings.count() >= 1) {
+                    qCDebug(dcJanitza()) << "This Janitza energy meter already exists in the system:" << result.networkDeviceInfo;
+                    descriptor.setThingId(existingThings.first()->id());
+                }
+
+                ParamList params;
+                params << Param(umg604TCPThingIpAddressParamTypeId, result.networkDeviceInfo.address().toString());
+                params << Param(umg604TCPThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
                 info->addThingDescriptor(descriptor);
             }
 
@@ -217,7 +253,109 @@ void IntegrationPluginJanitza::setupThing(ThingSetupInfo *info)
         connect(umg604Connection, &umg604ModbusRtuConnection::totalEnergyProducedChanged, this, [=](float producedEnergy){
             thing->setStateValue(umg604TotalEnergyProducedStateTypeId, producedEnergy);
         });
+    } else {
+        MacAddress macAddress = MacAddress(thing->paramValue(umg604TCPThingMacAddressParamTypeId).toString());
+        if (macAddress.isNull()) {
+            qCWarning(dcJanitza())
+                    << "Failed to set up Janitza energy meter because the MAC address is not valid:"
+                    << thing->paramValue(umg604TCPThingMacAddressParamTypeId).toString()
+                    << macAddress.toString();
+            info->finish(Thing::ThingErrorInvalidParameter,
+                         QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device "
+                                    "to fix this."));
+            return;
+        }
+
+        // Create a monitor so we always get the correct IP in the network and see if the device is
+        // reachable without polling on our own. In this call, nymea is checking a list for known
+        // mac addresses and associated ip addresses
+        NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        // If the mac address is not known, nymea is starting a internal network discovery.
+        // 'monitor' is returned while the discovery is still running -> monitor does not include ip
+        // address and is set to not reachable
+        m_monitors.insert(thing, monitor);
+        qCDebug(dcJanitza()) << "Monitor reachable" << monitor->reachable() << thing->paramValue(umg604TCPThingMacAddressParamTypeId).toString();
+        m_setupTcpConnectionRunning = false;
+        if (monitor->reachable()) {
+            setupTcpConnection(info);
+        } else {
+            connect(hardwareManager()->networkDeviceDiscovery(),
+                &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
+                    if (!m_setupTcpConnectionRunning) {
+                        m_setupTcpConnectionRunning = true;
+                        setupTcpConnection(info);
+                    }
+            });
+        }
     }
+}
+
+void IntegrationPluginJanitza::setupTcpConnection(ThingSetupInfo *info)
+{
+    qCDebug(dcJanitza()) << "Setup TCP connection.";
+    Thing *thing = info->thing();
+    NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
+    uint port = thing->paramValue(umg604TCPThingPortParamTypeId).toUInt();
+    quint16 modbusId = thing->paramValue(umg604TCPThingModbusIdParamTypeId).toUInt();
+    umg604ModbusTcpConnection *connection = new umg604ModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
+
+    connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
+        // Is this needed? How can setup be aborted at this point?
+
+        // Clean up in case the setup gets aborted.
+        if (m_monitors.contains(thing)) {
+            qCDebug(dcJanitza()) << "Unregister monitor because the setup has been aborted.";
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+        }
+    });
+
+    // Reconnect on monitor reachable changed
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
+        qCDebug(dcJanitza()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+        if (reachable && !thing->stateValue(umg604TCPConnectedStateTypeId).toBool()) {
+            connection->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->reconnectDevice();
+        } else {
+            // Note: We disable autoreconnect explicitly and we will
+            // connect the device once the monitor says it is reachable again
+            connection->disconnectDevice();
+        }
+    });
+
+    // Initialize if device is reachable again, otherwise set connected state to false
+    // and power to 0
+    connect(connection, &umg604ModbusTcpConnection::reachableChanged, thing,
+            [this, connection, thing](bool reachable) {
+                qCDebug(dcJanitza()) << "Reachable state changed to" << reachable;
+                if (reachable) {
+                    // Connected true will be set after successfull init.
+                    connection->initialize();
+                } else {
+                    // Set power to 0
+                }
+    });
+
+    // Initialization has finished
+    connect(connection, &umg604ModbusTcpConnection::initializationFinished, thing,
+       [this, connection, thing](bool success) {
+           thing->setStateValue(umg604TCPConnectedStateTypeId, success);
+
+           if (success) {
+                // Set basic info about device
+               qCDebug(dcJanitza()) << "Janitza energy meter initialized.";
+
+           } else {
+               qCDebug(dcJanitza()) << "Janitza energy meter initialization failed.";
+               // Try to reconnect to device
+               connection->reconnectDevice();
+           }
+    });
+
+    
+    if (monitor->reachable())
+        connection->connectDevice();
+
+    info->finish(Thing::ThingErrorNoError);
 }
 
 void IntegrationPluginJanitza::postSetupThing(Thing *thing)
@@ -229,6 +367,8 @@ void IntegrationPluginJanitza::postSetupThing(Thing *thing)
             foreach (Thing *thing, myThings()) {
                 if (thing->thingClassId() == umg604ThingClassId) {
                     m_umg604Connections.value(thing)->update();
+                } else {
+                    m_umg604TcpConnections.value(thing)->update();
                 }
             }
         });
@@ -244,6 +384,9 @@ void IntegrationPluginJanitza::thingRemoved(Thing *thing)
 
     if (m_umg604Connections.contains(thing))
         m_umg604Connections.take(thing)->deleteLater();
+
+    if (m_umg604TcpConnections.contains(thing))
+        m_umg604TcpConnections.take(thing)->deleteLater();
 
     if (myThings().isEmpty() && m_refreshTimer) {
         qCDebug(dcJanitza()) << "Stopping reconnect timer";
