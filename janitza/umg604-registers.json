@@ -1,6 +1,6 @@
 {
     "className": "umg604",
-    "protocol": "RTU",
+    "protocol": "TCP",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 3,
     "checkReachableRegister": "voltagePhaseA",
