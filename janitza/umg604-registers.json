@@ -1,6 +1,6 @@
 {
     "className": "umg604",
-    "protocol": "TCP",
+    "protocol": "BOTH",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 3,
     "checkReachableRegister": "voltagePhaseA",
@@ -14,6 +14,16 @@
             "readSchedule": "init",
             "description": "Serial number",
             "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "firmwareVersion",
+            "address": 13437,
+            "size": 16,
+            "type": "string",
+            "registerType": "inputRegister",
+            "readSchedule": "init",
+            "description": "Firmware Version",
             "access": "RO"
         },
         {
