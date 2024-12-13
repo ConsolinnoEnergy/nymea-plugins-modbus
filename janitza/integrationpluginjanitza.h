@@ -33,12 +33,15 @@
 
 #include <integrations/integrationplugin.h>
 #include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <network/networkdevicemonitor.h>
 #include <plugintimer.h>
 
 #include "umg604modbusrtuconnection.h"
+#include "umg604modbustcpconnection.h"
 #include "extern-plugininfo.h"
 
 #include <QObject>
+#include <QHostAddress>
 #include <QTimer>
 
 class IntegrationPluginJanitza: public IntegrationPlugin
@@ -57,9 +60,15 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
+
+    bool m_setupTcpConnectionRunning = false;
+    void setupTcpConnection(ThingSetupInfo *info);
+
     PluginTimer *m_refreshTimer = nullptr;
 
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, umg604ModbusRtuConnection *> m_umg604Connections;
+    QHash<Thing *, umg604ModbusTcpConnection *> m_umg604TcpConnections;
 };
 
 #endif // INTEGRATIONPLUGINJANITZA_H
