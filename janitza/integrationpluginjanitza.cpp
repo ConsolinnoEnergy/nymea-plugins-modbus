@@ -26,9 +26,6 @@
 * contact@nymea.io or see our FAQ/Licensing Information on
 * https://nymea.io/license/faq
 *
-*
-* SDM72 added by Consolinno Energy GmbH
-*
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "integrationpluginjanitza.h"
@@ -73,10 +70,10 @@ void IntegrationPluginJanitza::discoverThings(ThingDiscoveryInfo *info)
 
             foreach (const DiscoveryRtu::Result &result, discovery->discoveryResults()) {
 
-                QString serialNumberString = QString::number(result.serialNumber);
                 QString name = supportedThings().findById(info->thingClassId()).displayName();
                 ThingDescriptor descriptor(info->thingClassId(), name, QString::number(modbusId) + " " + result.serialPort);
 
+                QString serialNumberString = QString::number(result.serialNumber);
                 ParamList params{
                     {umg604ThingModbusIdParamTypeId, modbusId},
                     {umg604ThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
@@ -125,9 +122,11 @@ void IntegrationPluginJanitza::discoverThings(ThingDiscoveryInfo *info)
                     descriptor.setThingId(existingThings.first()->id());
                 }
 
+                QString serialNumberString = QString::number(result.serialNumber);
                 ParamList params;
                 params << Param(umg604TCPThingIpAddressParamTypeId, result.networkDeviceInfo.address().toString());
                 params << Param(umg604TCPThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                params << Param(umg604TCPThingSerialNumberParamTypeId, serialNumberString);
                 descriptor.setParams(params);
                 info->addThingDescriptor(descriptor);
             }
@@ -201,6 +200,7 @@ void IntegrationPluginJanitza::setupThing(ThingSetupInfo *info)
                                          << serialNumberConfig << ". Updating config with new serial number.";
                     thing->setParamValue(umg604ThingSerialNumberParamTypeId, serialNumberRead);
                 }
+                thing->setStateValue(umg604FirmwareVersionStateTypeId, umg604Connection->firmwareVersion());
             }
         });
 
@@ -322,26 +322,44 @@ void IntegrationPluginJanitza::setupTcpConnection(ThingSetupInfo *info)
 
     // Initialize if device is reachable again, otherwise set connected state to false
     // and power to 0
-    connect(connection, &umg604ModbusTcpConnection::reachableChanged, thing,
-            [this, connection, thing](bool reachable) {
+    connect(connection, &umg604ModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable) {
                 qCDebug(dcJanitza()) << "Reachable state changed to" << reachable;
                 if (reachable) {
                     // Connected true will be set after successfull init.
                     connection->initialize();
                 } else {
-                    // Set power to 0
+                    thing->setStateValue(umg604TCPCurrentPowerStateTypeId, 0);
+                    thing->setStateValue(umg604TCPCurrentPhaseAStateTypeId, 0);
+                    thing->setStateValue(umg604TCPCurrentPhaseBStateTypeId, 0);
+                    thing->setStateValue(umg604TCPCurrentPhaseCStateTypeId, 0);
+                    thing->setStateValue(umg604TCPVoltagePhaseAStateTypeId, 0);
+                    thing->setStateValue(umg604TCPVoltagePhaseBStateTypeId, 0);
+                    thing->setStateValue(umg604TCPVoltagePhaseCStateTypeId, 0);
+                    thing->setStateValue(umg604TCPFrequencyStateTypeId, 0);
                 }
     });
 
     // Initialization has finished
-    connect(connection, &umg604ModbusTcpConnection::initializationFinished, thing,
-       [this, connection, thing](bool success) {
+    connect(connection, &umg604ModbusTcpConnection::initializationFinished, thing, [info, this, connection, thing](bool success) {
            thing->setStateValue(umg604TCPConnectedStateTypeId, success);
 
            if (success) {
                 // Set basic info about device
-               qCDebug(dcJanitza()) << "Janitza energy meter initialized.";
-
+                qCDebug(dcJanitza()) << "Janitza energy meter initialized.";
+                QString serialNumberRead = QString::number(connection->serialNumber());
+                QString serialNumberConfig = thing->paramValue(umg604TCPThingSerialNumberParamTypeId).toString();
+                int stringsNotEqual = QString::compare(serialNumberRead, serialNumberConfig, Qt::CaseInsensitive);  // if strings are equal, stringsNotEqual should be 0.
+                if (stringsNotEqual) {
+                    // The umg604 found is a different one than configured. We assume the umg604 was replaced, and the new device should use this config.
+                    // Step 1: update the serial number.
+                    qCDebug(dcJanitza()) << "The serial number of this device is" << serialNumberRead << ". It does not match the serial number in the config, which is"
+                                         << serialNumberConfig << ". Updating config with new serial number.";
+                    thing->setParamValue(umg604TCPThingSerialNumberParamTypeId, serialNumberRead);
+                }
+                qCDebug(dcJanitza()) << "Setting Firmware state.";
+                thing->setStateValue(umg604TCPFirmwareVersionStateTypeId, connection->firmwareVersion());
+                qCDebug(dcJanitza()) << "Saving TCP connection.";
+                m_umg604TcpConnections.insert(info->thing(), connection);
            } else {
                qCDebug(dcJanitza()) << "Janitza energy meter initialization failed.";
                // Try to reconnect to device
@@ -349,6 +367,36 @@ void IntegrationPluginJanitza::setupTcpConnection(ThingSetupInfo *info)
            }
     });
 
+    connect(connection, &umg604ModbusTcpConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
+        thing->setStateValue(umg604TCPCurrentPhaseAStateTypeId, currentPhaseA);
+    });
+    connect(connection, &umg604ModbusTcpConnection::currentPhaseBChanged, this, [=](float currentPhaseB){
+        thing->setStateValue(umg604TCPCurrentPhaseBStateTypeId, currentPhaseB);
+    });
+    connect(connection, &umg604ModbusTcpConnection::currentPhaseCChanged, this, [=](float currentPhaseC){
+        thing->setStateValue(umg604TCPCurrentPhaseCStateTypeId, currentPhaseC);
+    });
+    connect(connection, &umg604ModbusTcpConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
+        thing->setStateValue(umg604TCPVoltagePhaseAStateTypeId, voltagePhaseA);
+    });
+    connect(connection, &umg604ModbusTcpConnection::voltagePhaseBChanged, this, [=](float voltagePhaseB){
+        thing->setStateValue(umg604TCPVoltagePhaseBStateTypeId, voltagePhaseB);
+    });
+    connect(connection, &umg604ModbusTcpConnection::voltagePhaseCChanged, this, [=](float voltagePhaseC){
+        thing->setStateValue(umg604TCPVoltagePhaseCStateTypeId, voltagePhaseC);
+    });
+    connect(connection, &umg604ModbusTcpConnection::totalCurrentPowerChanged, this, [=](float currentPower){
+        thing->setStateValue(umg604TCPCurrentPowerStateTypeId, currentPower);
+    });
+    connect(connection, &umg604ModbusTcpConnection::frequencyChanged, this, [=](float frequency){
+        thing->setStateValue(umg604TCPFrequencyStateTypeId, frequency);
+    });
+    connect(connection, &umg604ModbusTcpConnection::totalEnergyConsumedChanged, this, [=](float consumedEnergy){
+        thing->setStateValue(umg604TCPTotalEnergyConsumedStateTypeId, consumedEnergy);
+    });
+    connect(connection, &umg604ModbusTcpConnection::totalEnergyProducedChanged, this, [=](float producedEnergy){
+        thing->setStateValue(umg604TCPTotalEnergyProducedStateTypeId, producedEnergy);
+    });
     
     if (monitor->reachable())
         connection->connectDevice();

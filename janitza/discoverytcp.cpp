@@ -85,13 +85,6 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
                 return;
             }
 
-            quint16 frequency = connection->frequency();
-            bool frequencyIsInRange = false;
-            if (frequency > 49.0 || frequency < 51.0) {
-                qCDebug(dcJanitza()) << "Recieved value for grid frequency is" << frequency << "Hz.";
-                frequencyIsInRange = true;
-            }
-
             bool firmwareIsCorrect = false;
             QString firmware = connection->firmwareVersion();
             if (firmware == "5.029") {
@@ -99,9 +92,8 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
                 firmwareIsCorrect = true;
             }
 
-            if (frequencyIsInRange && firmwareIsCorrect) {
+            if (firmwareIsCorrect) {
                 Result result;
-                result.firmwareVersion = firmware;
                 result.serialNumber = connection->serialNumber();
                 result.networkDeviceInfo = networkDeviceInfo;
                 m_discoveryResults.append(result);
