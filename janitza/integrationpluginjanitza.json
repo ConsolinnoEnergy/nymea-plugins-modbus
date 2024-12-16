@@ -185,16 +185,6 @@
                     ],
                     "paramTypes": [
                         {
-                            "id": "98bfef24-13b9-41e9-b100-2696939151de",
-                            "name": "modbusId",
-                            "displayName": "Modbus ID",
-                            "type": "uint",
-                            "minValue": 1,
-                            "maxValue": 247,
-                            "defaultValue": 1,
-                            "readOnly": true
-                        },
-                        {
                             "id": "5ee36391-ec42-4874-8db7-f2b2ce649185",
                             "name": "ipAddress",
                             "displayName": "IP address",
@@ -208,15 +198,7 @@
                             "name": "macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
-                            "defaultValue": "",
-                            "readOnly": true
-                        },
-                        {
-                            "id": "1e5a14f3-2362-44f7-8c09-4e2d51a8ee13",
-                            "name": "port",
-                            "displayName": "Port",
-                            "type": "int",
-                            "defaultValue": 502,
+                            "defaultValue": "00:00:00:00:00:00",
                             "readOnly": true
                         },
                         {

@@ -62,7 +62,7 @@ QList<DiscoveryTcp::Result> DiscoveryTcp::discoveryResults() const
 void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo)
 {
     int port = 502;     // Default modbus port.
-    int modbusId = 1;    // The solax responds to any modbus ID on modbus TCP. So the ID does not matter.
+    int modbusId = 1;    // The meter responds to any modbus ID on modbus TCP. So the ID does not matter.
     qCDebug(dcJanitza()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << modbusId;
 
     // This can be improved by first checking if port 502 is open. If that port is not open, it is not a modbus device.
@@ -86,7 +86,6 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
             }
 
             quint16 frequency = connection->frequency();
-
             bool frequencyIsInRange = false;
             if (frequency > 49.0 || frequency < 51.0) {
                 qCDebug(dcJanitza()) << "Recieved value for grid frequency is" << frequency << "Hz.";
@@ -100,10 +99,8 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
                 firmwareIsCorrect = true;
             }
 
-
             if (frequencyIsInRange && firmwareIsCorrect) {
                 Result result;
-                result.port = port;
                 result.firmwareVersion = firmware;
                 result.serialNumber = connection->serialNumber();
                 result.networkDeviceInfo = networkDeviceInfo;
