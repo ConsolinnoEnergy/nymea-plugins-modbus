@@ -141,7 +141,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
 
             quint32 serialNumber = ModbusDataUtils::convertToUInt32(reply3->result(), m_endianness);
 
-            Result result {master->modbusUuid(), firmwareVersion, master->serialPort(), serialNumber};
+            Result result {master->modbusUuid(), master->serialPort(), serialNumber};
 
             m_discoveryResults.append(result);
 

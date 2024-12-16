@@ -45,7 +45,6 @@ class DiscoveryTcp : public QObject
 public:
     explicit DiscoveryTcp(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
     struct Result {
-        QString firmwareVersion;
         quint32 serialNumber;
         NetworkDeviceInfo networkDeviceInfo;
     };
