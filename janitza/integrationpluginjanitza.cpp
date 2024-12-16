@@ -295,9 +295,7 @@ void IntegrationPluginJanitza::setupTcpConnection(ThingSetupInfo *info)
     qCDebug(dcJanitza()) << "Setup TCP connection.";
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
-    uint port = thing->paramValue(umg604TCPThingPortParamTypeId).toUInt();
-    quint16 modbusId = thing->paramValue(umg604TCPThingModbusIdParamTypeId).toUInt();
-    umg604ModbusTcpConnection *connection = new umg604ModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
+    umg604ModbusTcpConnection *connection = new umg604ModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, this);
 
     connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
         // Is this needed? How can setup be aborted at this point?

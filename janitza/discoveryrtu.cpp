@@ -96,13 +96,13 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
         // Test frequency value.
         float gridFrequency = ModbusDataUtils::convertToFloat32(reply->result(), m_endianness);
         if (gridFrequency < 49.0 || gridFrequency > 51.0) {
-            qCDebug(dcJanitza()) << "Recieved value for grid frequency is" << gridFrequency << "Hz. This does not seem to be the correct value. This is not a smartmeter.";
+            qCDebug(dcJanitza()) << "Received value for grid frequency is" << gridFrequency << "Hz. This does not seem to be the correct value. This is not a smartmeter.";
             if (m_openReplies <= 0) {
                 emit repliesFinished();
             }
             return;
         }
-        qCDebug(dcJanitza()) << "Recieved value for grid frequency is" << gridFrequency << "Hz. Value seems ok.";
+        qCDebug(dcJanitza()) << "Received value for grid frequency is" << gridFrequency << "Hz. Value seems ok.";
 
         m_openReplies++;
         ModbusRtuReply *reply2 = master->readHoldingRegister(modbusId, 13437, 16);
