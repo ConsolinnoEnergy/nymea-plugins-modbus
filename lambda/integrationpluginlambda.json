@@ -253,7 +253,7 @@
                             "displayNameEvent": "Heat pump operating state changed",
                             "type": "QString",
                             "possibleValues": [
-                                "Stby",
+                                "Standby",
                                 "Central Heating",
                                 "Domestic Hot Water",
                                 "Central Cooling",
@@ -273,7 +273,7 @@
                                 "MinTemp Block",
                                 "Firmware Download"
                             ],
-                            "defaultValue": "Stby",
+                            "defaultValue": "Standby",
                             "suggestLogging": true
                         },
                         {
