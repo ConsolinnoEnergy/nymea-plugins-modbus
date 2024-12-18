@@ -2,3 +2,5 @@ kostalmeter
 solax
 solaxevc
 dvmodbusir
+bgetech
+
