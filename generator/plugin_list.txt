@@ -2,3 +2,4 @@ kostalmeter
 solax
 solaxevc
 dvmodbusir
+technivolt
