@@ -41,7 +41,7 @@ if __name__ == "__main__":
         "--uuid_offset", type=int, help="Offset of uuids of new plugin ", default=1
     )
     parser.add_argument(
-        "--vendor_uuid", type=int, help="Vendor UUID ", required=True
+        "--vendor_uuid", help="Vendor UUID ", required=True
     )
     args = parser.parse_args()
     with open(args.JSON, "r") as f:
