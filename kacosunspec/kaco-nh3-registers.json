@@ -1,9 +1,9 @@
 {
-    "className": "KacoSunSpec",
-    "protocol": "BOTH",
+    "className": "KacoNH3",
+    "protocol": "TCP",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 15,
-    "checkReachableRegister": "activePower",
+    "checkReachableRegister": "serialnumber",
     "enums": [
         {
             "name": "OperatingState",
@@ -164,291 +164,185 @@
     ],
     "blocks": [
         {
-            "id": "powerAndEnergy",
-            "readSchedule": "update",
+            "id": "commonInfo",
+            "readSchedule": "init",
             "registers": [
                 {
-                    "id": "activePower",
-                    "address": 40084,
-                    "size": 1,
-                    "type": "int16",
+                    "id": "manufacturer",
+                    "address": 50004,
+                    "size": 16,
+                    "type": "string",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Active power",
-                    "defaultValue": "0",
-                    "unit": "W",
+                    "description": "Device Manufacturer",
                     "access": "RO"
                 },
                 {
-                    "id": "activePowerSf",
-                    "address": 40085,
+                    "id": "deviceModel",
+                    "address": 50020,
+                    "size": 16,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Device Model",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy0",
+                    "address": 50036,
+                    "size": 8,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy0",
+                    "access": "RO"
+                },
+                {
+                    "id": "firmware",
+                    "address": 50044,
+                    "size": 8,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Firmwareversion",
+                    "access": "RO"
+                },
+                {
+                    "id": "serialnumber",
+                    "address": 50052,
+                    "size": 16,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Serialnumber",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "inverterData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "inverterCurrent",
+                    "address": 50072,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentSf",
+                    "address": 50073,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Active power scale factor",
-                    "defaultValue": "1",
+                    "description": "Inverter Current Scalefactor",
+                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
                     "id": "dummy1",
-                    "address": 40086,
-                    "size": 1,
-                    "type": "int16",
+                    "address": 50074,
+                    "size": 6,
+                    "type": "raw",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
+                    "description": "Dummy1",
                     "access": "RO"
                 },
                 {
-                    "id": "dummy2",
-                    "address": 40087,
+                    "id": "inverterVoltageL1",
+                    "address": 50080,
                     "size": 1,
-                    "type": "int16",
+                    "type": "uint16",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy3",
-                    "address": 40088,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy4",
-                    "address": 40089,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy5",
-                    "address": 40090,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy6",
-                    "address": 40091,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy7",
-                    "address": 40092,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy8",
-                    "address": 40093,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "totalEnergyProduced",
-                    "address": 40094,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Total energy produced",
+                    "description": "Inverter Voltage L1",
                     "defaultValue": "0",
-                    "unit": "Wh",
                     "access": "RO"
                 },
                 {
-                    "id": "totalEnergyProducedSf",
-                    "address": 40096,
+                    "id": "inverterVoltageL2",
+                    "address": 50081,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Voltage L2",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterVoltageL2",
+                    "address": 50082,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Voltage L2",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterVoltageSf",
+                    "address": 50083,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Total energy produced scale factor",
-                    "defaultValue": "1",
+                    "description": "Inverter Voltage Scalefactor",
+                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
-                    "id": "dummy9",
-                    "address": 40097,
+                    "id": "inverterCurrentPower",
+                    "address": 50084,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Power",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPowerSf",
+                    "address": 50085,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
+                    "description": "Inverter Power Scalefactor",
+                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
-                    "id": "dummy10",
-                    "address": 40098,
+                    "id": "inverterProducedEnergy",
+                    "address": 50094,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Produced Energy",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterProducedEnergySf",
+                    "address": 50095,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
+                    "description": "Inverter Energy Scalefactor",
+                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
-                    "id": "dummy11",
-                    "address": 40099,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy12",
-                    "address": 40100,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy13",
-                    "address": 40101,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy14",
-                    "address": 40102,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy15",
-                    "address": 40103,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy16",
-                    "address": 40104,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy17",
-                    "address": 40105,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy18",
-                    "address": 40106,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy19",
-                    "address": 40107,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "filler register",
-                    "defaultValue": "1",
-                    "access": "RO"
-                },
-                {
-                    "id": "operatingState",
-                    "address": 40108,
+                    "id": "inverterStatus",
+                    "address": 50108,
                     "size": 1,
                     "type": "uint16",
                     "enum": "OperatingState",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Operating state",
                     "defaultValue": "OperatingStateOff",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Energy Scalefactor",
                     "access": "RO"
                 }
             ]
         }
     ],
     "registers": [
-        {
-            "id": "SunspecModel103",
-            "address": 40070,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "init",
-            "description": "Sunspec model 103",
-            "defaultValue": "0",
-            "access": "RO"
-        }
+
     ]
 }
 
