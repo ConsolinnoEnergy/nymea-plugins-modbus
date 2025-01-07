@@ -268,12 +268,12 @@
                     "access": "RO"
                 },
                 {
-                    "id": "inverterVoltageL2",
+                    "id": "inverterVoltageL3",
                     "address": 50082,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "description": "Inverter Voltage L2",
+                    "description": "Inverter Voltage L3",
                     "defaultValue": "0",
                     "access": "RO"
                 },
@@ -308,6 +308,15 @@
                     "access": "RO"
                 },
                 {
+                    "id": "dummy2",
+                    "address": 50086,
+                    "size": 8,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy2",
+                    "access": "RO"
+                },
+                {
                     "id": "inverterProducedEnergy",
                     "address": 50094,
                     "size": 1,
@@ -325,6 +334,15 @@
                     "registerType": "holdingRegister",
                     "description": "Inverter Energy Scalefactor",
                     "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy3",
+                    "address": 50096,
+                    "size": 12,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy3",
                     "access": "RO"
                 },
                 {
