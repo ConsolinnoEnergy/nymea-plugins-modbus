@@ -353,7 +353,177 @@
                     "enum": "OperatingState",
                     "defaultValue": "OperatingStateOff",
                     "registerType": "holdingRegister",
-                    "description": "Inverter Energy Scalefactor",
+                    "description": "Inverter Status",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "meterData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "meterCurrent",
+                    "address": 50420,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy4",
+                    "address": 50421,
+                    "size": 3,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy4",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentSf",
+                    "address": 50424,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterVoltage",
+                    "address": 50425,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy5",
+                    "address": 50426,
+                    "size": 7,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy5",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterVoltageSf",
+                    "address": 50433,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterFrequency",
+                    "address": 50434,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Frequency",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterFrequencySf",
+                    "address": 50435,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Frequency Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentPower",
+                    "address": 50436,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Power",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy6",
+                    "address": 50437,
+                    "size": 3,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy6",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentPowerSf",
+                    "address": 50440,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Power Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy7",
+                    "address": 50441,
+                    "size": 15,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy7",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterProducedEnergy",
+                    "address": 50456,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Produced Energy",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy8",
+                    "address": 50458,
+                    "size": 6,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy8",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterConsumedEnergy",
+                    "address": 50464,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Consumed Energy",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy9",
+                    "address": 50466,
+                    "size": 6,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy9",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterEnergySf",
+                    "address": 50472,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Energy Scalefactor",
+                    "defaultValue": "0",
                     "access": "RO"
                 }
             ]
