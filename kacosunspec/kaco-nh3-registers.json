@@ -527,6 +527,357 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "batteryData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "batMaxCapacity",
+                    "address": 51096,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Capacity",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy10",
+                    "address": 51097,
+                    "size": 1,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy10",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxDischarge",
+                    "address": 51098,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Discharge Rate",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxCharge",
+                    "address": 51099,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Charge Rate",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSelfDischarge",
+                    "address": 51100,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Self Discharge",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSocMax",
+                    "address": 51101,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max SoC",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSocMin",
+                    "address": 51102,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Min SoC",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy11",
+                    "address": 51103,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy11",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentSoc",
+                    "address": 51105,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current SoC",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy12",
+                    "address": 51106,
+                    "size": 4,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy12",
+                    "access": "RO"
+                },
+                {
+                    "id": "batChargeStatus",
+                    "address": 51110,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "ChargeStatus",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current SoC",
+                    "defaultValue": "ChargeStatusOff",
+                    "access": "RO"
+                },
+                {
+                    "id": "batLocRemCtl",
+                    "address": 51111,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Local Remote Ctl",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batHeartbeat",
+                    "address": 51112,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Heartbeat",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCtlHeartbeat",
+                    "address": 51113,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Contoller Heartbeat",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batAlmRst",
+                    "address": 51114,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Alarm Reset",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batType",
+                    "address": 51115,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "BatteryType",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Type",
+                    "defaultValue": "BatteryTypeNoBattery",
+                    "access": "RO"
+                },
+                {
+                    "id": "batState",
+                    "address": 51116,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "BatteryStatus",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Status",
+                    "defaultValue": "BatteryStatusDisconnected",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy13",
+                    "address": 51117,
+                    "size": 11,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy13",
+                    "access": "RO"
+                },
+                {
+                    "id": "batVoltage",
+                    "address": 51128,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Voltage",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy14",
+                    "address": 51129,
+                    "size": 9,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy14",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrent",
+                    "address": 51138,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy15",
+                    "address": 51139,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy15",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentPower",
+                    "address": 51141,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy16",
+                    "address": 51142,
+                    "size": 4,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy16",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxCapacitySf",
+                    "address": 51146,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Capacity Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxEnergySf",
+                    "address": 51147,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Energy Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batDisChargeSf",
+                    "address": 51148,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Charge / Discharge Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSelfDischargeSf",
+                    "address": 51149,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Self Discharge Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSoCSf",
+                    "address": 51150,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Self Discharge Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy17",
+                    "address": 51151,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy17",
+                    "access": "RO"
+                },
+                {
+                    "id": "batVoltageSf",
+                    "address": 51153,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Voltage Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCellVoltageSf",
+                    "address": 51154,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Cell Voltage Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentSf",
+                    "address": 51155,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxCurrentSf",
+                    "address": 51156,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Current Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentPowerSf",
+                    "address": 51157,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current Power Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         }
     ],
     "registers": [
