@@ -229,8 +229,38 @@
                     "access": "RO"
                 },
                 {
-                    "id": "inverterCurrentSf",
+                    "id": "inverterCurrentPhA",
                     "address": 50073,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Phase A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPhB",
+                    "address": 50074,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Phase B",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPhC",
+                    "address": 50075,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Phase C",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentSf",
+                    "address": 50076,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -240,8 +270,8 @@
                 },
                 {
                     "id": "dummy1",
-                    "address": 50074,
-                    "size": 6,
+                    "address": 50077,
+                    "size": 3,
                     "type": "raw",
                     "registerType": "holdingRegister",
                     "description": "Dummy1",
