@@ -376,7 +376,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "inverterStatus",
+                    "id": "operatingState",
                     "address": 50108,
                     "size": 1,
                     "type": "uint16",
@@ -403,12 +403,33 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy4",
+                    "id": "meterCurrentPhaseA",
                     "address": 50421,
-                    "size": 3,
-                    "type": "raw",
+                    "size": 1,
+                    "type": "int16",
                     "registerType": "holdingRegister",
-                    "description": "Dummy4",
+                    "description": "Meter Current Phase A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentPhaseB",
+                    "address": 50422,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Phase B",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentPhaseC",
+                    "address": 50423,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Phase C",
+                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
@@ -432,9 +453,39 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy5",
+                    "id": "meterVoltagePhaseA",
                     "address": 50426,
-                    "size": 7,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage Phase A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterVoltagePhaseB",
+                    "address": 50427,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage Phase B",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterVoltagePhaseC",
+                    "address": 50428,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage Phase C",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy5",
+                    "address": 50429,
+                    "size": 4,
                     "type": "raw",
                     "registerType": "holdingRegister",
                     "description": "Dummy5",
