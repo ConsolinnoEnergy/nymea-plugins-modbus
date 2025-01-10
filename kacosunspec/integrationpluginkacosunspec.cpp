@@ -295,9 +295,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
         connection->connectDevice();
 
         return;
-    }
-
-    if (thing->thingClassId() == kacosunspecInverterRTUThingClassId) {
+    } else if (thing->thingClassId() == kacosunspecInverterRTUThingClassId) {
 
         uint address = thing->paramValue(kacosunspecInverterRTUThingSlaveAddressParamTypeId).toUInt();
         if (address > 247 || address < 3) {
@@ -373,17 +371,130 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
     } else if (thing->thingClassId() == kaconh3ThingClassId) {
         qCDebug(dcKacoSunSpec()) << "Setting up NH3";
 
+        // Handle reconfigure
+        if (m_nh3Connections.contains(thing)) {
+            qCDebug(dcKacoSunSpec()) << "Already have a Kaco SunSpec connection for this thing. Cleaning up old connection and initializing new one...";
+            delete m_nh3Connections.take(thing);
+        } else {
+            qCDebug(dcKacoSunSpec()) << "Setting up a new device:" << thing->params();
+        }
+
+        if (m_monitors.contains(thing))
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+
+        // Make sure we have a valid mac address, otherwise no monitor and not auto searching is possible
+        MacAddress macAddress = MacAddress(thing->paramValue(kaconh3ThingMacAddressParamTypeId).toString());
+        if (macAddress.isNull()) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco SunSpec inverter because the MAC address is not valid:" << thing->paramValue(kaconh3ThingMacAddressParamTypeId).toString() << macAddress.toString();
+            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
+            return;
+        }
+
+        // Create the monitor
+        NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        m_monitors.insert(thing, monitor);
+        connect(info, &ThingSetupInfo::aborted, monitor, [=](){
+            // Clean up in case the setup gets aborted
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcKacoSunSpec()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
+        });
+
+        uint port = thing->paramValue(kaconh3ThingPortParamTypeId).toUInt();
+        quint16 slaveId = thing->paramValue(kaconh3ThingSlaveIdParamTypeId).toUInt();
+
+        KacoNH3ModbusTcpConnection *connection = new KacoNH3ModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
+        connection->setTimeout(4500);
+        connect(info, &ThingSetupInfo::aborted, connection, &KacoNH3ModbusTcpConnection::deleteLater);
+
+        connect(connection, &KacoNH3ModbusTcpConnection::initializationFinished, thing, [=](bool success){
+            thing->setStateValue("connected", success);
+
+            thing->setStateValue("deviceModel", connection->deviceModel());
+            thing->setStateValue("firmwareVersion", connection->firmware());
+            thing->setStateValue("serialNumber", connection->serialnumber());
+
+            foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                childThing->setStateValue("connected", success);
+            }
+
+            if (!success) {
+                // Try once to reconnect the device
+                connection->reconnectDevice();
+            } else {
+                qCInfo(dcKacoSunSpec()) << "Connection initialized successfully for" << thing;
+                connection->update();
+            }
+        });
+
+        // Reconnect on monitor reachable changed
+        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
+            qCDebug(dcKacoSunSpec()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+            if (!thing->setupComplete())
+                return;
+
+            if (reachable && !thing->stateValue("connected").toBool()) {
+                connection->setHostAddress(monitor->networkDeviceInfo().address());
+                connection->reconnectDevice();
+            } else if (!reachable) {
+                // Note: Auto reconnect is disabled explicitly and
+                // the device will be connected once the monitor says it is reachable again
+                connection->disconnectDevice();
+            }
+        });
+
+        connect(connection, &KacoNH3ModbusTcpConnection::reachableChanged, thing, [this, thing, connection](bool reachable){
+            qCInfo(dcKacoSunSpec()) << "Reachable changed to" << reachable << "for" << thing;
+            if (reachable) {
+                // Connected true will be set after successfull init
+                connection->initialize();
+            } else {
+                thing->setStateValue("connected", false);
+                thing->setStateValue(kaconh3CurrentPowerStateTypeId, 0);
+
+                foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                    childThing->setStateValue("connected", false);
+                }
+
+                Thing *child = getMeterThing(thing);
+                if (child) {
+                    child->setStateValue(kacoNh3MeterCurrentPowerStateTypeId, 0);
+                }
+
+                child = getBatteryThing(thing);
+                if (child) {
+                    child->setStateValue(kacoNh3BatteryCurrentPowerStateTypeId, 0);
+                }
+            }
+        });
+
+        m_nh3Connections.insert(thing, connection);
+
+        if (monitor->reachable())
+            connection->connectDevice();
+
+        info->finish(Thing::ThingErrorNoError);
+        return;
     }
 }
 
 void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
 {
-    if (thing->thingClassId() == kacosunspecInverterTCPThingClassId || thing->thingClassId() == kacosunspecInverterRTUThingClassId) {
+    if (thing->thingClassId() == kacosunspecInverterTCPThingClassId || 
+        thing->thingClassId() == kacosunspecInverterRTUThingClassId ||
+        thing->thingClassId() == kaconh3ThingClassId) {
         if (!m_pluginTimer) {
             qCDebug(dcKacoSunSpec()) << "Starting plugin timer...";
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(KacoSunSpecModbusTcpConnection *connection, m_tcpConnections) {
+                    if (connection->connected()) {
+                        connection->update();
+                    }
+                }
+
+                foreach(KacoNH3ModbusTcpConnection *connection, m_nh3Connections) {
                     if (connection->connected()) {
                         connection->update();
                     }
@@ -395,6 +506,15 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
             });
 
             m_pluginTimer->start();
+        }
+    }
+
+    if (thing->thingClassId() == kacoNh3MeterThingClassId ||
+        thing->thingClassId() == kacoNh3BatteryThingClassId) {
+        
+        Thing *connectionThing = myThings().findById(thing->parentId());
+        if (connectionThing) {
+            thing->setStateValue("connected", connectionThing->stateValue("connected"));
         }
     }
 }
@@ -569,4 +689,22 @@ void IntegrationPluginKacoSunSpec::setBatteryState(Thing *thing, KacoNH3ModbusTc
             thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Fault");
             break;
     }
+}
+
+Thing *IntegrationPluginKacoSunSpec::getMeterThing(Thing *parentThing)
+{
+    Things meterThings = myThings().filterByParentId(parentThing->id()).filterByThingClassId(kacoNh3MeterThingClassId);
+    if (meterThings.isEmpty())
+        return nullptr;
+
+    return meterThings.first();
+}
+
+Thing *IntegrationPluginKacoSunSpec::getBatteryThing(Thing *parentThing)
+{
+    Things batteryThings = myThings().filterByParentId(parentThing->id()).filterByThingClassId(kacoNh3BatteryThingClassId);
+    if (batteryThings.isEmpty())
+        return nullptr;
+
+    return batteryThings.first();
 }

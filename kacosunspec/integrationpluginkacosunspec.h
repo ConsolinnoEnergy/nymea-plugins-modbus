@@ -63,6 +63,9 @@ private:
     QHash<Thing *, KacoSunSpecModbusRtuConnection *> m_rtuConnections;
     QHash<Thing *, ScaleFactors> m_scalefactors;
 
+    Thing *getMeterThing(Thing *parentThing);
+    Thing *getBatteryThing(Thing *parentThing);
+
     void setOperatingState(Thing *thing, KacoSunSpecModbusTcpConnection::OperatingState state);
     void setOperatingState(Thing *thing, KacoSunSpecModbusRtuConnection::OperatingState state);
     void setOperatingState(Thing *thing, KacoNH3ModbusTcpConnection::OperatingState state);
