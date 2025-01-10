@@ -29,6 +29,8 @@
 
 #include <QtMath>
 
+#include "kaconh3discovery.h"
+
 IntegrationPluginKacoSunSpec::IntegrationPluginKacoSunSpec()
 {
 
@@ -149,6 +151,40 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
         qCDebug(dcKacoSunSpec()) << "Found" << info->thingDescriptors().count() << " Kaco SunSpec inverters";
         
         info->finish(Thing::ThingErrorNoError);
+    } else if (info->thingClassId() == kaconh3ThingClassId) {
+        if (!hardwareManager()->networkDeviceDiscovery()->available()) {
+            qCWarning(dcKacoSunSpec()) << "The network discovery is not available on this platform.";
+            info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
+            return;
+        }
+        ThingClass thingClass = supportedThings().findById(info->thingClassId());
+        qCDebug(dcKacoSunSpec()) << "Starting network discovery...";
+        KacoNH3Discovery *discovery = new KacoNH3Discovery(hardwareManager()->networkDeviceDiscovery(), 502, 3, info);
+        connect(discovery, &KacoNH3Discovery::discoveryFinished, discovery, &KacoNH3Discovery::deleteLater);
+        connect(discovery, &KacoNH3Discovery::discoveryFinished, info, [=](){
+            qCDebug(dcKacoSunSpec()) << "Discovery finished. Found Kaco device.";
+            foreach (const KacoNH3Discovery::KacoNH3DiscoveryResult &result, discovery->discoveryResults()) {
+                QString description = result.networkDeviceInfo.macAddress() + " - " + result.networkDeviceInfo.address().toString();
+
+                ThingDescriptor descriptor(info->thingClassId(), "Kaco NH3", description);
+                ParamList params;
+                params << Param(kaconh3ThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
+
+                // Check if we already have set up this device
+                Thing *existingThing = myThings().findByParams(descriptor.params());
+                if (existingThing) {
+                    qCDebug(dcKacoSunSpec()) << "Found already existing" << thingClass.name() << "inverter:" << existingThing->name() << result.networkDeviceInfo;
+                    descriptor.setThingId(existingThing->id());
+                } else {
+                    qCDebug(dcKacoSunSpec()) << "Found new" << thingClass.name() << "inverter";
+                }
+
+                info->addThingDescriptor(descriptor);
+            }
+            info->finish(Thing::ThingErrorNoError);
+        });
+        discovery->startDiscovery();
     }
 }
 

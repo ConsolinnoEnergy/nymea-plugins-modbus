@@ -179,7 +179,7 @@
                 },
                 {
                     "name": "kaconh3",
-                    "displayName": "Kaco NH 3",
+                    "displayName": "Kaco NH3",
                     "id": "ec4e0f1b-e5db-42f3-9486-06bd61459daa",
                     "createMethods": ["discovery", "user"],
                     "interfaces": ["solarinverter", "connectable"],
