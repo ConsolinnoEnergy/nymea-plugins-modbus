@@ -485,7 +485,7 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
         thing->thingClassId() == kacosunspecInverterRTUThingClassId ||
         thing->thingClassId() == kaconh3ThingClassId) {
         if (!m_pluginTimer) {
-            qCDebug(dcKacoSunSpec()) << "Starting plugin timer...";
+            qCWarning(dcKacoSunSpec()) << "Starting plugin timer...";
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(KacoSunSpecModbusTcpConnection *connection, m_tcpConnections) {
@@ -495,7 +495,9 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
                 }
 
                 foreach(KacoNH3ModbusTcpConnection *connection, m_nh3Connections) {
+                    qCWarning(dcKacoSunSpec()) << "NH3 connected for upate?";
                     if (connection->connected()) {
+                        qCWarning(dcKacoSunSpec()) << "Updating NH3";
                         connection->update();
                     }
                 }
@@ -521,28 +523,42 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
 
 void IntegrationPluginKacoSunSpec::thingRemoved(Thing *thing)
 {
-    if (m_monitors.contains(thing)) {
-        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+    if (thing->thingClassId() == kacosunspecInverterTCPThingClassId && m_tcpConnections.contains(thing)) {
+        qCWarning(dcKacoSunSpec()) << "Removing tcp connection";
+        auto connection = m_tcpConnections.take(thing);
+        connection->disconnectDevice();
+        delete connection;
     }
 
-    if (m_tcpConnections.contains(thing)) {
-        m_tcpConnections.take(thing)->deleteLater();
+    if (thing->thingClassId() == kaconh3ThingClassId &&m_nh3Connections.contains(thing)) {
+        qCWarning(dcKacoSunSpec()) << "Removing nh3 connection";
+        auto connection = m_nh3Connections.take(thing);
+        connection->disconnectDevice();
+        delete connection;
     }
 
-    if (m_nh3Connections.contains(thing)) {
-        m_nh3Connections.take(thing)->deleteLater();
-    }
-
-    if (m_scalefactors.contains(thing))
+    if ((thing->thingClassId() == kacosunspecInverterTCPThingClassId ||
+         thing->thingClassId() == kacosunspecInverterRTUThingClassId) && m_scalefactors.contains(thing)) {
+        qCWarning(dcKacoSunSpec()) << "Removing scale factors";
         m_scalefactors.remove(thing);
+    }
 
-    if (m_rtuConnections.contains(thing)) {
+    if (thing->thingClassId() == kacosunspecInverterRTUThingClassId && m_rtuConnections.contains(thing)) {
+        qCWarning(dcKacoSunSpec()) << "Removing rtu connetion";
         m_rtuConnections.take(thing)->deleteLater();
     }
 
+    if (m_monitors.contains(thing)) {
+        qCWarning(dcKacoSunSpec()) << "Removing monitor";
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+    }
+
     if (myThings().isEmpty() && m_pluginTimer) {
+        qCWarning(dcKacoSunSpec()) << "Deleting plugin timer";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
+        qCWarning(dcKacoSunSpec()) << "Deleting plugin timer";
         m_pluginTimer = nullptr;
+        qCWarning(dcKacoSunSpec()) << "Deleting plugin timer";
     }
 }
 
