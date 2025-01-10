@@ -66,6 +66,8 @@ private:
     void setOperatingState(Thing *thing, KacoSunSpecModbusTcpConnection::OperatingState state);
     void setOperatingState(Thing *thing, KacoSunSpecModbusRtuConnection::OperatingState state);
     void setOperatingState(Thing *thing, KacoNH3ModbusTcpConnection::OperatingState state);
+    void setChargingState(Thing *thing, KacoNH3ModbusTcpConnection::ChargeStatus state);
+    void setBatteryState(Thing *thing, KacoNH3ModbusTcpConnection::BatteryStatus state);
 };
 
 #endif // INTEGRATIONPLUGINKACOSUNSPEC_H

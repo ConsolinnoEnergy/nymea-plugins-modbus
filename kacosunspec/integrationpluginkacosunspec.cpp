@@ -370,6 +370,9 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
         m_scalefactors.insert(thing, scalefactors);
 
         info->finish(Thing::ThingErrorNoError);
+    } else if (thing->thingClassId() == kaconh3ThingClassId) {
+        qCDebug(dcKacoSunSpec()) << "Setting up NH3";
+
     }
 }
 
@@ -404,6 +407,10 @@ void IntegrationPluginKacoSunSpec::thingRemoved(Thing *thing)
 
     if (m_tcpConnections.contains(thing)) {
         m_tcpConnections.take(thing)->deleteLater();
+    }
+
+    if (m_nh3Connections.contains(thing)) {
+        m_nh3Connections.take(thing)->deleteLater();
     }
 
     if (m_scalefactors.contains(thing))
@@ -476,6 +483,90 @@ void IntegrationPluginKacoSunSpec::setOperatingState(Thing *thing, KacoSunSpecMo
             break;
         case KacoSunSpecModbusRtuConnection::OperatingStateStandby:
             thing->setStateValue(kacosunspecInverterRTUOperatingStateStateTypeId, "Standby");
+            break;
+    }
+}
+
+void IntegrationPluginKacoSunSpec::setOperatingState(Thing *thing, KacoNH3ModbusTcpConnection::OperatingState state)
+{
+    switch (state) {
+        case KacoNH3ModbusTcpConnection::OperatingStateOff:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Off");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateSleeping:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Sleeping");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateStarting:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Starting");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateMppt:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "MPPT");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateThrottled:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Throttled");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateShuttingDown:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "ShuttingDown");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateFault:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Fault");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateStandby:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Standby");
+            break;
+    }
+}
+
+void IntegrationPluginKacoSunSpec::setChargingState(Thing *thing, KacoNH3ModbusTcpConnection::ChargeStatus state)
+{
+    switch (state) {
+        case KacoNH3ModbusTcpConnection::ChargeStatusOff:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusEmpty:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusDischarging:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "charging");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusCharging:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "charging");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusFull:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusHolding:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusTesting:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+    }
+}
+
+void IntegrationPluginKacoSunSpec::setBatteryState(Thing *thing, KacoNH3ModbusTcpConnection::BatteryStatus state)
+{
+    switch (state) {
+        case KacoNH3ModbusTcpConnection::BatteryStatusDisconnected:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Disconnected");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusInitializing:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Initializing");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusConnected:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Connected");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusStandby:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Standby");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusSocProtection:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "SoC Protection");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusSuspending:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Suspending");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusFault:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Fault");
             break;
     }
 }
