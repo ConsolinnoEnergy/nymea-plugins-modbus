@@ -191,21 +191,24 @@
                             "displayName": "MAC address",
                             "type": "QString",
                             "inputType": "MacAddress",
-                            "defaultValue": ""
+                            "defaultValue": "",
+                            "readOnly": true
                         },
                         {
                             "id": "4b2c4e60-24b1-431e-83be-357013db00d8",
                             "name":"port",
                             "displayName": "Port",
                             "type": "int",
-                            "defaultValue": 502
+                            "defaultValue": 502,
+                            "readOnly": true
                         },
                         {
                             "id": "fd176c9f-9bcb-4413-871f-611010f70237",
                             "name":"slaveId",
                             "displayName": "Slave ID",
                             "type": "int",
-                            "defaultValue": 3
+                            "defaultValue": 3,
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [
