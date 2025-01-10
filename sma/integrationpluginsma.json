@@ -86,7 +86,7 @@
                 {
                     "id": "0c5097af-e136-4430-9fb4-0ccbb30c3e1c",
                     "name": "speedwireMeter",
-                    "displayName": "SMA Energy Meter",
+                    "displayName": "SMA Energy Meter (Speedwire)",
                     "createMethods": ["discovery", "user"],
                     "interfaces": [ "energymeter", "connectable"],
                     "paramTypes": [
@@ -283,7 +283,7 @@
                 {
                     "id": "b63a0669-f2ac-4769-abea-e14cafb2309a",
                     "name": "speedwireInverter",
-                    "displayName": "SMA Inverter",
+                    "displayName": "SMA Inverter (Speedwire)",
                     "createMethods": ["discovery", "user"],
                     "setupMethod": "EnterPin",
                     "interfaces": [ "solarinverter", "connectable"],
@@ -450,7 +450,7 @@
                 {
                     "id": "b459dad2-f78b-4a87-a7f3-22f3147b83d8",
                     "name": "speedwireBattery",
-                    "displayName": "SMA Battery",
+                    "displayName": "SMA Battery (Speedwire)",
                     "createMethods": ["auto"],
                     "setupMethod": "JustAdd",
                     "interfaces": [ "energystorage", "connectable"],
