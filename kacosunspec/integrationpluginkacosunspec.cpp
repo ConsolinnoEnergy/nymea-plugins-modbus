@@ -415,6 +415,15 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             thing->setStateValue("firmwareVersion", connection->firmware());
             thing->setStateValue("serialNumber", connection->serialnumber());
 
+            // If no meter is setup, add one.
+            if (myThings().filterByParentId(thing->id()).filterByThingClassId(kacoNh3MeterThingClassId).isEmpty())
+            {
+                qCDebug(dcKacoSunSpec()) << "There is no meter set up for this inverter. Creating a meter for" << thing << connection;
+                ThingClass meterThingClass = thingClass(kacoNh3MeterThingClassId);
+                ThingDescriptor descriptor(kacoNh3MeterThingClassId, meterThingClass.displayName(), QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+
             foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
                 childThing->setStateValue("connected", success);
             }
@@ -469,6 +478,20 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             }
         });
 
+        connect(connection, &KacoNH3ModbusTcpConnection::updateFinished, thing, [=](){
+            qCDebug(dcKacoSunSpec()) << "Updating Kaco NH3" << thing;
+
+            // Check if a battery thing is setup and a battery is connected
+            if (myThings().filterByParentId(thing->id()).filterByThingClassId(kacoNh3BatteryThingClassId).isEmpty() && 
+                connection->batType() != KacoNH3ModbusTcpConnection::BatteryTypeNoBattery)
+            {
+                qCDebug(dcKacoSunSpec()) << "There is no battery set up for this inverter. Creating a battery for" << thing << connection;
+                ThingClass batteryThingClass = thingClass(kacoNh3BatteryThingClassId);
+                ThingDescriptor descriptor(kacoNh3BatteryThingClassId, batteryThingClass.displayName(), QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+        });
+
         m_nh3Connections.insert(thing, connection);
 
         if (monitor->reachable())
@@ -519,7 +542,7 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
         thing->thingClassId() == kacosunspecInverterRTUThingClassId ||
         thing->thingClassId() == kaconh3ThingClassId) {
         if (!m_pluginTimer) {
-            qCWarning(dcKacoSunSpec()) << "Starting plugin timer...";
+            qCDebug(dcKacoSunSpec()) << "Starting plugin timer...";
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(KacoSunSpecModbusTcpConnection *connection, m_tcpConnections) {
@@ -529,9 +552,9 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
                 }
 
                 foreach(KacoNH3ModbusTcpConnection *connection, m_nh3Connections) {
-                    qCWarning(dcKacoSunSpec()) << "NH3 connected for upate?";
+                    qCDebug(dcKacoSunSpec()) << "NH3 connected for upate?";
                     if (connection->connected()) {
-                        qCWarning(dcKacoSunSpec()) << "Updating NH3";
+                        qCDebug(dcKacoSunSpec()) << "Updating NH3";
                         connection->update();
                     }
                 }
@@ -558,14 +581,14 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
 void IntegrationPluginKacoSunSpec::thingRemoved(Thing *thing)
 {
     if (thing->thingClassId() == kacosunspecInverterTCPThingClassId && m_tcpConnections.contains(thing)) {
-        qCWarning(dcKacoSunSpec()) << "Removing tcp connection";
+        qCDebug(dcKacoSunSpec()) << "Removing tcp connection";
         auto connection = m_tcpConnections.take(thing);
         connection->disconnectDevice();
         delete connection;
     }
 
     if (thing->thingClassId() == kaconh3ThingClassId &&m_nh3Connections.contains(thing)) {
-        qCWarning(dcKacoSunSpec()) << "Removing nh3 connection";
+        qCDebug(dcKacoSunSpec()) << "Removing nh3 connection";
         auto connection = m_nh3Connections.take(thing);
         connection->disconnectDevice();
         delete connection;
@@ -573,26 +596,24 @@ void IntegrationPluginKacoSunSpec::thingRemoved(Thing *thing)
 
     if ((thing->thingClassId() == kacosunspecInverterTCPThingClassId ||
          thing->thingClassId() == kacosunspecInverterRTUThingClassId) && m_scalefactors.contains(thing)) {
-        qCWarning(dcKacoSunSpec()) << "Removing scale factors";
+        qCDebug(dcKacoSunSpec()) << "Removing scale factors";
         m_scalefactors.remove(thing);
     }
 
     if (thing->thingClassId() == kacosunspecInverterRTUThingClassId && m_rtuConnections.contains(thing)) {
-        qCWarning(dcKacoSunSpec()) << "Removing rtu connection";
+        qCDebug(dcKacoSunSpec()) << "Removing rtu connection";
         m_rtuConnections.take(thing)->deleteLater();
     }
 
     if (m_monitors.contains(thing)) {
-        qCWarning(dcKacoSunSpec()) << "Removing monitor";
+        qCDebug(dcKacoSunSpec()) << "Removing monitor";
         hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
     }
 
     if (myThings().isEmpty() && m_pluginTimer) {
-        qCWarning(dcKacoSunSpec()) << "Deleting plugin timer";
+        qCDebug(dcKacoSunSpec()) << "Deleting plugin timer";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
-        qCWarning(dcKacoSunSpec()) << "Deleting plugin timer";
         m_pluginTimer = nullptr;
-        qCWarning(dcKacoSunSpec()) << "Deleting plugin timer";
     }
 }
 
