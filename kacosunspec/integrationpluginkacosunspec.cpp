@@ -475,7 +475,41 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             connection->connectDevice();
 
         info->finish(Thing::ThingErrorNoError);
-        return;
+    } else if (thing->thingClassId() == kacoNh3MeterThingClassId) {
+        Thing *connectionThing = myThings().findById(thing->parentId());
+        if (!connectionThing) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco energy meter because the parent thing with ID" << thing->parentId().toString() << "could not be found.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        auto connection = m_nh3Connections.value(connectionThing);
+        if (!connection) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco energy meter because the connection for" << connectionThing << "does not exist.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        // Note: The states will be handled in the parent inverter thing on updated
+        info->finish(Thing::ThingErrorNoError);
+    } else if (thing->thingClassId() == kacoNh3BatteryThingClassId) {
+        // Get the parent thing and the associated connection
+        Thing *connectionThing = myThings().findById(thing->parentId());
+        if (!connectionThing) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco battery because the parent thing with ID" << thing->parentId().toString() << "could not be found.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        auto connection = m_nh3Connections.value(connectionThing);
+        if (!connection) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco battery because the connection for" << connectionThing << "does not exist.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        // Note: The states will be handled in the parent inverter thing on updated
+        info->finish(Thing::ThingErrorNoError);
     }
 }
 
@@ -544,7 +578,7 @@ void IntegrationPluginKacoSunSpec::thingRemoved(Thing *thing)
     }
 
     if (thing->thingClassId() == kacosunspecInverterRTUThingClassId && m_rtuConnections.contains(thing)) {
-        qCWarning(dcKacoSunSpec()) << "Removing rtu connetion";
+        qCWarning(dcKacoSunSpec()) << "Removing rtu connection";
         m_rtuConnections.take(thing)->deleteLater();
     }
 
