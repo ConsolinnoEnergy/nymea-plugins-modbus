@@ -494,16 +494,60 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             // Set inverter states
             qint16 currentPowerSf = connection->inverterCurrentPowerSf();
             qint16 currentPower = connection->inverterCurrentPower();
-            double calculatedPower = currentPower * qPow(10, currentPowerSf);
+            double calculatedPower = -1 * currentPower * qPow(10, currentPowerSf);
             thing->setStateValue("currentPower", calculatedPower);
 
             quint16 producedEnergySf = connection->inverterProducedEnergySf();
-            qint16 producedEnergy = connection->inverterProducedEnergy();
+            quint32 producedEnergy = connection->inverterProducedEnergy();
             double calculatedEnergy = (producedEnergy * qPow(10, producedEnergySf)) / 1000;
             thing->setStateValue("totalEnergyProduced", calculatedEnergy);
 
-
             setOperatingState(thing, connection->operatingState());
+
+
+            // Update the meter (should always be setup)
+            Thing *meterThing = getMeterThing(thing);
+            if (meterThing) {
+                qint16 meterFrequencySf = connection->meterFrequencySf();
+                qint16 meterFrequency = connection->meterFrequency();
+                double calculatedFrequency = meterFrequency * qPow(10, meterFrequencySf);
+                meterThing->setStateValue("frequency", calculatedFrequency);
+
+                qint16 meterPowerSf = connection->meterCurrentPowerSf();
+                qint16 meterPower = connection->meterCurrentPower();
+                double calculatedMeterPower = meterPower * qPow(10, meterPowerSf);
+                meterThing->setStateValue("currentPower", calculatedMeterPower);
+
+                quint16 meterEnergySf = connection->meterEnergySf();
+                quint32 meterProducedEnergy = connection->meterProducedEnergy();
+                quint32 meterConsumedEnergy = connection->meterConsumedEnergy();
+                double calculatedProducedEnergy = (meterProducedEnergy * qPow(10, meterEnergySf)) / 1000;
+                double calculatedConsumedEnergy = (meterConsumedEnergy * qPow(10, meterEnergySf)) / 1000;
+                meterThing->setStateValue("totalEnergyProduced", calculatedProducedEnergy);
+                meterThing->setStateValue("totalEnergyConsumed", calculatedConsumedEnergy);
+
+                qint16 meterCurrentSf = connection->meterCurrentSf();
+                qint16 meterCurrentA = connection->meterCurrentPhaseA();
+                qint16 meterCurrentB = connection->meterCurrentPhaseB();
+                qint16 meterCurrentC = connection->meterCurrentPhaseC();
+                double calculatedMeterCurrentA = meterCurrentA * qPow(10, meterCurrentSf);
+                double calculatedMeterCurrentB = meterCurrentB * qPow(10, meterCurrentSf);
+                double calculatedMeterCurrentC = meterCurrentC * qPow(10, meterCurrentSf);
+                meterThing->setStateValue("meterCurrentPhaseA", calculatedMeterCurrentA);
+                meterThing->setStateValue("meterCurrentPhaseB", calculatedMeterCurrentB);
+                meterThing->setStateValue("meterCurrentPhaseC", calculatedMeterCurrentC);
+
+                qint16 meterVoltageSf = connection->meterVoltageSf();
+                qint16 meterVoltageA = connection->meterVoltagePhaseA();
+                qint16 meterVoltageB = connection->meterVoltagePhaseB();
+                qint16 meterVoltageC = connection->meterVoltagePhaseC();
+                double calculatedMeterVoltageA = meterVoltageA * qPow(10, meterVoltageSf);
+                double calculatedMeterVoltageB = meterVoltageB * qPow(10, meterVoltageSf);
+                double calculatedMeterVoltageC = meterVoltageC * qPow(10, meterVoltageSf);
+                meterThing->setStateValue("meterVoltagePhaseA", calculatedMeterVoltageA);
+                meterThing->setStateValue("meterVoltagePhaseB", calculatedMeterVoltageB);
+                meterThing->setStateValue("meterVoltagePhaseC", calculatedMeterVoltageC);
+            }
         });
 
         m_nh3Connections.insert(thing, connection);
