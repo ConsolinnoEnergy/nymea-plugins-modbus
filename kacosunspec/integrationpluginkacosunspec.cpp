@@ -490,6 +490,20 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 ThingDescriptor descriptor(kacoNh3BatteryThingClassId, batteryThingClass.displayName(), QString(), thing->id());
                 emit autoThingsAppeared(ThingDescriptors() << descriptor);
             }
+
+            // Set inverter states
+            qint16 currentPowerSf = connection->inverterCurrentPowerSf();
+            qint16 currentPower = connection->inverterCurrentPower();
+            double calculatedPower = currentPower * qPow(10, currentPowerSf);
+            thing->setStateValue("currentPower", calculatedPower);
+
+            quint16 producedEnergySf = connection->inverterProducedEnergySf();
+            qint16 producedEnergy = connection->inverterProducedEnergy();
+            double calculatedEnergy = (producedEnergy * qPow(10, producedEnergySf)) / 1000;
+            thing->setStateValue("totalEnergyProduced", calculatedEnergy);
+
+
+            setOperatingState(thing, connection->operatingState());
         });
 
         m_nh3Connections.insert(thing, connection);
