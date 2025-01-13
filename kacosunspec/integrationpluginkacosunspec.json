@@ -449,26 +449,6 @@
                             "cached": false
                         },
                         {
-                            "id": "8275a43f-f255-4ae5-be67-8e85f54b0c7e",
-                            "name": "voltage",
-                            "displayName": "Voltage",
-                            "type": "double",
-                            "unit": "Volt",
-                            "defaultValue": 0.00,
-                            "displayNameEvent": "Battery voltage changed",
-                            "cached": false
-                        },
-                        {
-                            "id": "ea2b6d95-b20c-47f1-aeea-3f657bad24c8",
-                            "name": "current",
-                            "displayName": "Current",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0.00,
-                            "displayNameEvent": "Battery current changed",
-                            "cached": false
-                        },
-                        {
                             "id": "6b47f8bd-e1e7-4b46-9fc2-73b80a567627",
                             "name": "capacity",
                             "displayName": "Capacity",

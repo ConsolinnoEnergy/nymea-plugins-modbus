@@ -548,6 +548,40 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 meterThing->setStateValue("meterVoltagePhaseB", calculatedMeterVoltageB);
                 meterThing->setStateValue("meterVoltagePhaseC", calculatedMeterVoltageC);
             }
+
+            Thing *batteryThing = getBatteryThing(thing);
+            if (batteryThing) {
+                setBatteryState(batteryThing, connection->batState());
+                setChargingState(batteryThing, connection->batChargeStatus());
+
+                quint16 maxCapacity = connection->batMaxCapacity();
+                qint16 maxCapacitySf = connection->batMaxCapacitySf();
+                double calculatedMaxCapacity = (maxCapacity * qPow(10, maxCapacitySf)) / 1000;
+                batteryThing->setStateValue("capacity", calculatedMaxCapacity);
+
+                quint16 maxChargeRate = connection->batMaxDischarge();
+                qint16 maxChargeRateSf = connection->batDisChargeSf();
+                double calculatedMaxRate = maxChargeRate * qPow(10, maxChargeRateSf);
+                batteryThing->setStateValue("maxDisChargeRate", calculatedMaxRate);
+
+                quint16 maxSoC = connection->batSocMax();
+                quint16 minSoC = connection->batSocMin();
+                qint16 socSf = connection->batSoCSf();
+                double calculatedSocMax = maxSoC * qPow(10, socSf);
+                double calculatedSocMin = minSoC * qPow(10, socSf);
+                batteryThing->setStateValue("minSoC", calculatedSocMin);
+                batteryThing->setStateValue("maxSoC", calculatedSocMax);
+
+                quint16 currentSoc = connection->batCurrentSoc();
+                double calculatedSocCurrent = currentSoc * qPow(10, socSf);
+                batteryThing->setStateValue("batteryLevel", calculatedSocCurrent);
+                batteryThing->setStateValue("batteryCritical", calculatedSocCurrent < calculatedSocMin);
+
+                qint16 batCurrentPower = connection->batCurrentPower();
+                qint16 batCurrentPowerSf = connection->batCurrentPowerSf();
+                double calculatedBatPower = batCurrentPower * qPow(10, batCurrentPowerSf);
+                batteryThing->setStateValue("currentPower", calculatedBatPower);
+            }
         });
 
         m_nh3Connections.insert(thing, connection);
