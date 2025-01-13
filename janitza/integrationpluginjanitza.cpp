@@ -431,8 +431,11 @@ void IntegrationPluginJanitza::thingRemoved(Thing *thing)
     if (m_umg604Connections.contains(thing))
         m_umg604Connections.take(thing)->deleteLater();
 
-    if (m_umg604TcpConnections.contains(thing))
-        m_umg604TcpConnections.take(thing)->deleteLater();
+    if (m_umg604TcpConnections.contains(thing)) {
+        auto connection = m_umg604TcpConnections.take(thing);
+        connection->disconnectDevice();
+        delete connection;
+    }
 
     if (myThings().isEmpty() && m_refreshTimer) {
         qCDebug(dcJanitza()) << "Stopping reconnect timer";
