@@ -99,7 +99,7 @@ void IntegrationPluginJanitza::discoverThings(ThingDiscoveryInfo *info)
 
         discovery->startDiscovery();
         return;
-    } else {
+    } else if (info->thingClassId() == umg604TCPThingClassId) {
         if (!hardwareManager()->networkDeviceDiscovery()->available()) {
             qCWarning(dcJanitza()) << "The network discovery is not available on this platform.";
             info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
@@ -414,7 +414,16 @@ void IntegrationPluginJanitza::postSetupThing(Thing *thing)
                 if (thing->thingClassId() == umg604ThingClassId) {
                     m_umg604Connections.value(thing)->update();
                 } else {
-                    m_umg604TcpConnections.value(thing)->update();
+                    auto monitor = m_monitors.value(thing);
+                    if (!monitor->reachable()) {
+                        continue;
+                    }
+                    auto connection = m_umg604TcpConnections.value(thing);
+                    if (connection->reachable()) {
+                        connection->update();
+                    } else {
+                        connection->reconnectDevice();
+                    }
                 }
             }
         });
@@ -436,6 +445,9 @@ void IntegrationPluginJanitza::thingRemoved(Thing *thing)
         connection->disconnectDevice();
         delete connection;
     }
+
+    if (m_monitors.contains(thing))
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
 
     if (myThings().isEmpty() && m_refreshTimer) {
         qCDebug(dcJanitza()) << "Stopping reconnect timer";
