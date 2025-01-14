@@ -555,7 +555,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 setChargingState(batteryThing, connection->batChargeStatus());
 
                 quint16 maxCapacity = connection->batMaxCapacity();
-                qint16 maxCapacitySf = connection->batMaxCapacitySf();
+                qint16 maxCapacitySf = connection->batMaxEnergySf();
                 double calculatedMaxCapacity = (maxCapacity * qPow(10, maxCapacitySf)) / 1000;
                 batteryThing->setStateValue("capacity", calculatedMaxCapacity);
 

@@ -615,21 +615,12 @@
             "registers": [
                 {
                     "id": "batMaxCapacity",
-                    "address": 51096,
+                    "address": 51097,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
                     "description": "Battery Max Capacity",
                     "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy10",
-                    "address": 51097,
-                    "size": 1,
-                    "type": "raw",
-                    "registerType": "holdingRegister",
-                    "description": "Dummy10",
                     "access": "RO"
                 },
                 {
