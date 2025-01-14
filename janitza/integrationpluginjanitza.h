@@ -60,7 +60,6 @@ public:
 private:
 
     bool m_setupTcpConnectionRunning = false;
-    void setupTcpConnection(ThingSetupInfo *info);
 
     PluginTimer *m_refreshTimer = nullptr;
 
