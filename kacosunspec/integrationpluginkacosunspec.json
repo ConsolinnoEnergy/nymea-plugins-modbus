@@ -478,30 +478,6 @@
                             "cached": false
                         },
                         {
-                            "id": "cc3d3a71-586e-4f90-ac18-637e39532d45",
-                            "name": "minSoC",
-                            "displayName": "Minimum SoC",
-                            "type": "int",
-                            "unit": "Percentage",
-                            "minValue": 0,
-                            "maxValue": 100,
-                            "defaultValue": 0,
-                            "displayNameEvent": "Min SoC changed",
-                            "cached": false
-                        },
-                        {
-                            "id": "dbadf3c0-c1b6-49d9-bd51-45a692477718",
-                            "name": "maxSoC",
-                            "displayName": "Maximum SoC",
-                            "type": "int",
-                            "unit": "Percentage",
-                            "minValue": 0,
-                            "maxValue": 100,
-                            "defaultValue": 0,
-                            "displayNameEvent": "Max SoC changed",
-                            "cached": false
-                        },
-                        {
                             "id": "e37edd3e-9696-4f79-9566-36b793566e30",
                             "name": "batteryState",
                             "displayName": "Battery State",

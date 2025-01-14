@@ -564,13 +564,13 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 double calculatedMaxRate = maxChargeRate * qPow(10, maxChargeRateSf);
                 batteryThing->setStateValue("maxDisChargeRate", calculatedMaxRate);
 
-                quint16 maxSoC = connection->batSocMax();
-                quint16 minSoC = connection->batSocMin();
-                qint16 socSf = connection->batSoCSf();
-                double calculatedSocMax = maxSoC * qPow(10, socSf);
-                double calculatedSocMin = minSoC * qPow(10, socSf);
-                batteryThing->setStateValue("minSoC", calculatedSocMin);
-                batteryThing->setStateValue("maxSoC", calculatedSocMax);
+                // quint16 maxSoC = connection->batSocMax();
+                // quint16 minSoC = connection->batSocMin();
+                // qint16 socSf = connection->batSoCSf();
+                // double calculatedSocMax = maxSoC * qPow(10, socSf);
+                // double calculatedSocMin = minSoC * qPow(10, socSf);
+                // batteryThing->setStateValue("minSoC", calculatedSocMin);
+                // batteryThing->setStateValue("maxSoC", calculatedSocMax);
 
                 quint16 currentSoc = connection->batCurrentSoc();
                 double calculatedSocCurrent = currentSoc * qPow(10, socSf);
