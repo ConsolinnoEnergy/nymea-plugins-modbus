@@ -6,12 +6,10 @@ MODBUS_CONNECTIONS += umg604-registers.json
 include(../modbus.pri)
 
 HEADERS += \
-    discoveryrtu.h \
     discoverytcp.h \
     integrationpluginjanitza.h
 
 SOURCES += \
-    discoveryrtu.cpp \
     discoverytcp.cpp \
     integrationpluginjanitza.cpp
 

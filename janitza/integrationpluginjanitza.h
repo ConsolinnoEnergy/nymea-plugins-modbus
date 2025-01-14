@@ -32,11 +32,9 @@
 #define INTEGRATIONPLUGINJANITZA_H
 
 #include <integrations/integrationplugin.h>
-#include <hardware/modbus/modbusrtuhardwareresource.h>
 #include <network/networkdevicemonitor.h>
 #include <plugintimer.h>
 
-#include "umg604modbusrtuconnection.h"
 #include "umg604modbustcpconnection.h"
 #include "extern-plugininfo.h"
 
@@ -67,7 +65,6 @@ private:
     PluginTimer *m_refreshTimer = nullptr;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, umg604ModbusRtuConnection *> m_umg604Connections;
     QHash<Thing *, umg604ModbusTcpConnection *> m_umg604TcpConnections;
 };
 

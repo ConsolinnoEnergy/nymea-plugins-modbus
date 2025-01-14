@@ -1,6 +1,6 @@
 {
     "className": "umg604",
-    "protocol": "BOTH",
+    "protocol": "TCP",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 3,
     "checkReachableRegister": "voltagePhaseA",
