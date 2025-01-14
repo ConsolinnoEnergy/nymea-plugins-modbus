@@ -575,7 +575,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 quint16 currentSoc = connection->batCurrentSoc();
                 double calculatedSocCurrent = currentSoc * qPow(10, socSf);
                 batteryThing->setStateValue("batteryLevel", calculatedSocCurrent);
-                batteryThing->setStateValue("batteryCritical", calculatedSocCurrent < calculatedSocMin);
+                batteryThing->setStateValue("batteryCritical", calculatedSocCurrent < 10);
 
                 qint16 batCurrentPower = connection->batCurrentPower();
                 qint16 batCurrentPowerSf = connection->batCurrentPowerSf();
