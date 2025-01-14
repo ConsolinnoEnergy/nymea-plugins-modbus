@@ -533,9 +533,9 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 double calculatedMeterCurrentA = meterCurrentA * qPow(10, meterCurrentSf);
                 double calculatedMeterCurrentB = meterCurrentB * qPow(10, meterCurrentSf);
                 double calculatedMeterCurrentC = meterCurrentC * qPow(10, meterCurrentSf);
-                meterThing->setStateValue("meterCurrentPhaseA", calculatedMeterCurrentA);
-                meterThing->setStateValue("meterCurrentPhaseB", calculatedMeterCurrentB);
-                meterThing->setStateValue("meterCurrentPhaseC", calculatedMeterCurrentC);
+                meterThing->setStateValue("currentPhaseA", calculatedMeterCurrentA);
+                meterThing->setStateValue("currentPhaseB", calculatedMeterCurrentB);
+                meterThing->setStateValue("currentPhaseC", calculatedMeterCurrentC);
 
                 qint16 meterVoltageSf = connection->meterVoltageSf();
                 qint16 meterVoltageA = connection->meterVoltagePhaseA();
@@ -544,9 +544,9 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 double calculatedMeterVoltageA = meterVoltageA * qPow(10, meterVoltageSf);
                 double calculatedMeterVoltageB = meterVoltageB * qPow(10, meterVoltageSf);
                 double calculatedMeterVoltageC = meterVoltageC * qPow(10, meterVoltageSf);
-                meterThing->setStateValue("meterVoltagePhaseA", calculatedMeterVoltageA);
-                meterThing->setStateValue("meterVoltagePhaseB", calculatedMeterVoltageB);
-                meterThing->setStateValue("meterVoltagePhaseC", calculatedMeterVoltageC);
+                meterThing->setStateValue("voltagePhaseA", calculatedMeterVoltageA);
+                meterThing->setStateValue("voltagePhaseB", calculatedMeterVoltageB);
+                meterThing->setStateValue("voltagePhaseC", calculatedMeterVoltageC);
             }
 
             Thing *batteryThing = getBatteryThing(thing);
