@@ -558,7 +558,7 @@
             "thingClasses": [
                 {
                     "name": "eonDrive",
-                    "displayName": "E.ON Drive vBox smart",
+                    "displayName": "EON Drive vBox smart",
                     "id": "fd57d275-c62c-487b-a662-dd7c666f756a",
                     "createMethods": ["discovery"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
