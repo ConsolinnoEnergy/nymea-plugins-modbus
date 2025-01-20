@@ -135,9 +135,11 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
         return;
     }
 
-    if (info->thingClassId() == webastoUniteThingClassId) {
+    if (info->thingClassId() == webastoUniteThingClassId ||
+        info->thingClassId() == vestelEVC04ThingClassId ||
+        info->thingClassId() == eonDriveThingClassId) {
 
-        qCInfo(dcWebasto()) << "Start discovering Webasto Unite in the local network...";
+        qCInfo(dcWebasto()) << "Start discovering Webasto Unite | Vestel EVC04 | EON Drive in the local network...";
         m_uniteDiscoveryRunning = true;
         foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
             // Reconfigure won't work without this. The device will not answer modbus calls (discovery will skip it) if there already is another active connection.
@@ -158,11 +160,17 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
                 }
                 QString title = result.brand + " " + result.model;
                 QString description = result.chargepointId;
-                ThingDescriptor descriptor(webastoUniteThingClassId, title, description);
+                ThingDescriptor descriptor(info->thingClassId(), title, description);
                 qCDebug(dcWebasto()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 ParamList params;
-                params << Param(webastoUniteThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                if (info->thingClassId() == webastoUniteThingClassId) {
+                    params << Param(webastoUniteThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                } else if (info->thingClassId() == vestelEVC04ThingClassId) {
+                    params << Param(vestelEVC04ThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                } else if (info->thingClassId() == eonDriveThingClassId) {
+                    params << Param(eonDriveThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                }
                 descriptor.setParams(params);
 
                 // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
@@ -259,7 +267,9 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
         return;
     }
 
-    if (thing->thingClassId() == webastoUniteThingClassId) {
+    if (thing->thingClassId() == webastoUniteThingClassId ||
+        thing->thingClassId() == vestelEVC04ThingClassId ||
+        thing->thingClassId() == eonDriveThingClassId) {
         m_uniteSetupRunning = false;
 
         if (m_evc04Connections.contains(thing)) {
@@ -270,7 +280,7 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         }
 
-        MacAddress macAddress = MacAddress(thing->paramValue(webastoUniteThingMacAddressParamTypeId).toString());
+        MacAddress macAddress = MacAddress(thing->paramValue("macAddress").toString());
         if (macAddress.isNull()) {
             qCWarning(dcWebasto()) << "The configured mac address is not valid" << thing->params();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not known. Please reconfigure the thing."));
@@ -369,7 +379,11 @@ void IntegrationPluginWebasto::thingRemoved(Thing *thing)
         connection->deleteLater();
     }
 
-    if (thing->thingClassId() == webastoUniteThingClassId && m_evc04Connections.contains(thing)) {
+    if ((thing->thingClassId() == webastoUniteThingClassId ||
+         thing->thingClassId() == vestelEVC04ThingClassId ||
+         thing->thingClassId() == eonDriveThingClassId) && 
+         m_evc04Connections.contains(thing)) {
+
         EVC04ModbusTcpConnection *connection = m_evc04Connections.take(thing);
         connection->disconnectDevice();
         connection->deleteLater();
@@ -878,7 +892,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         if (m_evc04Connections.contains(thing)) {
             // The monitor is not very reliable. Sometimes it says monitor is not reachable, even when the connection ist still working.
             // So we need to test if the connection is actually not working before triggering a reconnect. Don't reconnect when the connection is actually working.
-            if (!thing->stateValue(webastoUniteConnectedStateTypeId).toBool()) {
+            if (!thing->stateValue("connected").toBool()) {
                 // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
                 if (monitorReachable) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
@@ -905,8 +919,8 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         if (reachable) {
             evc04Connection->initialize();
         } else {
-            thing->setStateValue(webastoUniteConnectedStateTypeId, false);
-            thing->setStateValue(webastoUniteCurrentPowerStateTypeId, 0);
+            thing->setStateValue("connected", false);
+            thing->setStateValue("currentPower", 0);
 
             // Check the monitor. If the monitor is reachable, get the current IP (maybe it changed) and reconnect.
             if (monitor->reachable()) {
@@ -939,7 +953,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         if (m_evc04Connections.contains(thing)) {
             // The monitor is not very reliable. Sometimes it says monitor is not reachable, even when the connection ist still working.
             // So we need to test if the connection is actually not working before triggering a reconnect. Don't reconnect when the connection is actually working.
-            if (!thing->stateValue(webastoUniteConnectedStateTypeId).toBool()) {
+            if (!thing->stateValue("connected").toBool()) {
                 // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
                 if (monitor->reachable()) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
@@ -960,11 +974,11 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
             return;
 
         if (success) {
-            thing->setStateValue(webastoUniteConnectedStateTypeId, true);
+            thing->setStateValue("connected", true);
         } else {
             qCDebug(dcWebasto()) << "Initialization failed";
-            thing->setStateValue(webastoUniteConnectedStateTypeId, false);
-            thing->setStateValue(webastoUniteCurrentPowerStateTypeId, 0);
+            thing->setStateValue("connected", false);
+            thing->setStateValue("currentPower", 0);
 
             // Try once to reconnect the device
             if (monitor->reachable()) {
@@ -992,8 +1006,8 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         m_evc04Connections.insert(thing, evc04Connection);
         info->finish(Thing::ThingErrorNoError);
 
-        thing->setStateValue(webastoUniteConnectedStateTypeId, true);
-        thing->setStateValue(webastoUniteVersionStateTypeId, QString(QString::fromUtf16(evc04Connection->firmwareVersion().data(), evc04Connection->firmwareVersion().length()).toUtf8()).trimmed());
+        thing->setStateValue("connected", true);
+        thing->setStateValue("version", QString(QString::fromUtf16(evc04Connection->firmwareVersion().data(), evc04Connection->firmwareVersion().length()).toUtf8()).trimmed());
 
         m_timeoutCount[thing] = 0;
         evc04Connection->update();
@@ -1018,9 +1032,9 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         double currentPhaseA = evc04Connection->currentL1() / 1000.0;
         double currentPhaseB = evc04Connection->currentL2() / 1000.0;
         double currentPhaseC = evc04Connection->currentL3() / 1000.0;
-        thing->setStateValue(webastoUniteCurrentPhaseAStateTypeId, currentPhaseA);
-        thing->setStateValue(webastoUniteCurrentPhaseBStateTypeId, currentPhaseB);
-        thing->setStateValue(webastoUniteCurrentPhaseCStateTypeId, currentPhaseC);
+        thing->setStateValue("currentPhaseA", currentPhaseA);
+        thing->setStateValue("currentPhaseB", currentPhaseB);
+        thing->setStateValue("currentPhaseC", currentPhaseC);
 
         quint16 phaseCount{0};
         if (currentPhaseA > 1) {
@@ -1037,18 +1051,18 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         if (phaseCount < 1) {
             phaseCount = 1;
         }
-        thing->setStateValue(webastoUnitePhaseCountStateTypeId, phaseCount);
+        thing->setStateValue("phaseCount", phaseCount);
 
         quint32 evseFaultCode = evc04Connection->evseFaultCode();
         if (evseFaultCode == 0) {
-            thing->setStateValue(webastoUniteEvseFaultCodeStateTypeId, "No error");
+            thing->setStateValue("evseFaultCode", "No error");
         } else {
-            thing->setStateValue(webastoUniteEvseFaultCodeStateTypeId, evseFaultCode);
+            thing->setStateValue("evseFaultCode", evseFaultCode);
         }
 
         // The wallbox starts charging as soon as you plug in the car. We don't want that. We want it to only charge when Nymea says so.
         quint16 chargingCurrent = evc04Connection->chargingCurrent();
-        bool power = thing->stateValue(webastoUnitePowerStateTypeId).toBool();
+        bool power = thing->stateValue("power").toBool();
         if (chargingCurrent > 1 && !power) {
             evc04Connection->setChargingCurrent(0);
         }
@@ -1090,20 +1104,20 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::chargingStateChanged, thing, [thing](EVC04ModbusTcpConnection::ChargingState chargingState) {
         qCDebug(dcWebasto()) << "Charging state changed:" << chargingState;
-        thing->setStateValue(webastoUniteChargingStateTypeId, chargingState == EVC04ModbusTcpConnection::ChargingStateCharging);
+        thing->setStateValue("charging", chargingState == EVC04ModbusTcpConnection::ChargingStateCharging);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::activePowerTotalChanged, thing, [thing](quint16 activePowerTotal) {
         qCDebug(dcWebasto()) << "Total active power:" << activePowerTotal;
         // The wallbox reports some 5-6W even when there's nothing connected. Let's hide that if we're not charging
-        if (thing->stateValue(webastoUniteChargingStateTypeId).toBool() == true) {
-            thing->setStateValue(webastoUniteCurrentPowerStateTypeId, activePowerTotal);
+        if (thing->stateValue("charging").toBool() == true) {
+            thing->setStateValue("currentPower", activePowerTotal);
         } else {
-            thing->setStateValue(webastoUniteCurrentPowerStateTypeId, 0);
+            thing->setStateValue("currentPower", 0);
         }
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::meterReadingChanged, thing, [thing](quint32 meterReading) {
         qCDebug(dcWebasto()) << "Meter reading changed:" << meterReading;
-        thing->setStateValue(webastoUniteTotalEnergyConsumedStateTypeId, meterReading / 10.0);
+        thing->setStateValue("totalEnergyConsumed", meterReading / 10.0);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::sessionMaxCurrentChanged, thing, [](quint16 sessionMaxCurrent) {
         // This mostly just reflects what we've been writing to cargingCurrent, so not of much use...
@@ -1115,7 +1129,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::evseMinCurrentChanged, thing, [thing](quint16 evseMinCurrent) {
         qCDebug(dcWebasto()) << "EVSE min current changed:" << evseMinCurrent;
-        thing->setStateMinValue(webastoUniteMaxChargingCurrentStateTypeId, evseMinCurrent);
+        thing->setStateMinValue("maxChargingCurrent", evseMinCurrent);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::evseMaxCurrentChanged, thing, [this, evc04Connection, thing](quint16 evseMaxCurrent) {
         qCDebug(dcWebasto()) << "EVSE max current changed:" << evseMaxCurrent;
@@ -1123,25 +1137,25 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::sessionEnergyChanged, thing, [thing](quint32 sessionEnergy) {
         qCDebug(dcWebasto()) << "Session energy changed:" << sessionEnergy;
-        thing->setStateValue(webastoUniteSessionEnergyStateTypeId, sessionEnergy / 1000.0);
+        thing->setStateValue("sessionEnergy", sessionEnergy / 1000.0);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::chargingCurrentChanged, thing, [thing](quint16 chargingCurrent) {
         qCDebug(dcWebasto()) << "Charging current changed:" << chargingCurrent;
 
         // This wallbox is turned off by setting the charging current to 0. Only set the value when it is not zero, otherwise turning the wallbox off will change this value.
         if (chargingCurrent > 1) {
-            thing->setStateValue(webastoUniteMaxChargingCurrentStateTypeId, chargingCurrent);
+            thing->setStateValue("maxChargingCurrent", chargingCurrent);
         }
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::cableStateChanged, thing, [evc04Connection, thing](EVC04ModbusTcpConnection::CableState cableState) {
         switch (cableState) {
         case EVC04ModbusTcpConnection::CableStateNotConnected:
         case EVC04ModbusTcpConnection::CableStateCableConnectedVehicleNotConnected:
-            thing->setStateValue(webastoUnitePluggedInStateTypeId, false);
+            thing->setStateValue("pluggedIn", false);
             break;
         case EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnected:
         case EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnectedCableLocked:
-            thing->setStateValue(webastoUnitePluggedInStateTypeId, true);
+            thing->setStateValue("pluggedIn", true);
             break;
         }
     });
@@ -1158,5 +1172,5 @@ void IntegrationPluginWebasto::updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTc
 
     quint8 overallMax = qMin(qMin(wallboxMax, evseMax), cableMax);
     qCDebug(dcWebasto()) << "Adjusting max current: Wallbox max:" << wallboxMax << "EVSE max:" << evseMax << "cable max:" << cableMax << "Overall:" << overallMax;
-    thing->setStateMinMaxValues(webastoUniteMaxChargingCurrentStateTypeId, 6, overallMax);
+    thing->setStateMinMaxValues("maxChargingCurrent", 6, overallMax);
 }

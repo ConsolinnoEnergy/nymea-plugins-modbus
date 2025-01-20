@@ -396,6 +396,314 @@
                     ]
                 }
             ]
+        },
+        {
+            "id": "b14fa72a-80d2-47eb-98a5-eb7572b5540d",
+            "name": "vestel",
+            "displayName": "Vestel A.S.",
+            "thingClasses": [
+                {
+                    "name": "vestelEVC04",
+                    "displayName": "Vestel EVC04",
+                    "id": "b0d33281-4254-4cfa-bbb6-877c9402f16c",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
+                    "paramTypes": [
+                        {
+                            "id": "97a5c1a6-35dd-476a-9cba-e003adcae8a1",
+                            "name":"macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "inputType": "MacAddress",
+                            "defaultValue": "",
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "90d5372b-4a83-4829-b646-abaefdef5682",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "8074ea3d-e2e5-4e21-a957-f8fd47d729ce",
+                            "name": "power",
+                            "displayName": "Charging enabled",
+                            "displayNameAction": "Set charging enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "a0b6937c-9095-4d01-a0a6-637a69292063",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Maximum charging current",
+                            "displayNameAction": "Set maximum charging current",
+                            "type": "uint",
+                            "unit": "Ampere",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 6,
+                            "writable": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "62ba1aaa-d792-450d-a177-9a5ba4692c0a",
+                            "name": "pluggedIn",
+                            "displayName": "Plugged in",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "0c7b0d46-63ca-4984-a34a-026022d62a4f",
+                            "name": "charging",
+                            "displayName": "Charging",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "ce8fa2db-a959-49d3-a1b4-d730c7265e08",
+                            "name": "phaseCount",
+                            "displayName": "Connected phases",
+                            "type": "uint",
+                            "minValue": 0,
+                            "maxValue": 3,
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "6a8302f8-c962-4480-8223-2ba3df6b85ff",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "24249a53-ad55-4fed-a3b9-53ecde9ca100",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total consumed energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        },
+                        {
+                            "id": "01913eea-9a9b-4d01-a414-dc2295020d0b",
+                            "name": "sessionEnergy",
+                            "displayName": "Session energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "6e0b7b32-9c0c-46bc-acd1-d35300443dc8",
+                            "name": "currentPhaseA",
+                            "displayName": "Current phase A",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "226cb4d4-e3f0-4a01-9a92-6658d32563ac",
+                            "name": "currentPhaseB",
+                            "displayName": "Current phase B",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "fe971178-b525-470e-8f92-7ae1d8edd9b9",
+                            "name": "currentPhaseC",
+                            "displayName": "Current phase C",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "e7c1749b-0a98-48eb-8600-4e813ee7a184",
+                            "name": "version",
+                            "displayName": "Firmware version",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "a2ee32b5-967f-40d5-a6e1-c226dcf45fdd",
+                            "name": "evseFaultCode",
+                            "displayName": "EVSE fault code",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "fe0403a5-1890-431f-b624-9f8125a05537",
+            "name": "eon",
+            "displayName": "E.ON Energie",
+            "thingClasses": [
+                {
+                    "name": "eonDrive",
+                    "displayName": "E.ON Drive vBox smart",
+                    "id": "fd57d275-c62c-487b-a662-dd7c666f756a",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
+                    "paramTypes": [
+                        {
+                            "id": "53badded-7656-438f-9e16-1b61b073ff50",
+                            "name":"macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "inputType": "MacAddress",
+                            "defaultValue": "",
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "17e19d87-8e46-4c0f-9997-fbeae17e9a72",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "b2f8a282-9be6-4b61-bd03-09a64bc466a1",
+                            "name": "power",
+                            "displayName": "Charging enabled",
+                            "displayNameAction": "Set charging enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "82f2ca19-fcb4-47e2-b74f-558ce957c6b1",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Maximum charging current",
+                            "displayNameAction": "Set maximum charging current",
+                            "type": "uint",
+                            "unit": "Ampere",
+                            "minValue": 6,
+                            "maxValue": 32,
+                            "defaultValue": 6,
+                            "writable": true,
+                            "cached": false
+                        },
+                        {
+                            "id": "c6bdddc4-7299-45a9-bc31-90476defe3c7",
+                            "name": "pluggedIn",
+                            "displayName": "Plugged in",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "aabc411d-347b-4966-be47-ba51db753487",
+                            "name": "charging",
+                            "displayName": "Charging",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "92409f47-3679-45b9-9375-fd1093b692a1",
+                            "name": "phaseCount",
+                            "displayName": "Connected phases",
+                            "type": "uint",
+                            "minValue": 0,
+                            "maxValue": 3,
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "42ffe8a3-af58-4674-9eae-99309e2f7b4b",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "dcd0761d-f808-491c-a3c5-74cd4a9b7a05",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total consumed energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        },
+                        {
+                            "id": "518ef2f2-4b88-40bb-bd73-5d57dbce3e34",
+                            "name": "sessionEnergy",
+                            "displayName": "Session energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "1dd07e65-cfa9-4ba1-bef4-4812d51e6257",
+                            "name": "currentPhaseA",
+                            "displayName": "Current phase A",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "011376d5-de60-485b-8a51-4b7c7c7d2a68",
+                            "name": "currentPhaseB",
+                            "displayName": "Current phase B",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "fe067c04-7822-4b58-94a8-a5b1b6a28a65",
+                            "name": "currentPhaseC",
+                            "displayName": "Current phase C",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "b9606211-3487-4c4a-b10a-8fb7b9bd2e61",
+                            "name": "version",
+                            "displayName": "Firmware version",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "a7ed8328-b46e-4459-b0ed-7819dd9f9a05",
+                            "name": "evseFaultCode",
+                            "displayName": "EVSE fault code",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
