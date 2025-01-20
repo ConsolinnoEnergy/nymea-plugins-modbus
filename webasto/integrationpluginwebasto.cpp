@@ -530,6 +530,120 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
         return;
     }
 
+    if (info->thing()->thingClassId() == vestelEVC04ThingClassId) {
+        EVC04ModbusTcpConnection *evc04Connection = m_evc04Connections.value(info->thing());
+
+        if (info->action().actionTypeId() == vestelEVC04PowerActionTypeId) {
+            bool power = info->action().paramValue(vestelEVC04PowerActionPowerParamTypeId).toBool();
+
+            // If the car is *not* connected, writing a 0 to the charging current register will cause it to go to 6 A instead of 0
+            // Because of this, we we're not connected, we'll do nothing, but once it get's connected, we'll sync the state over (see below in cableStateChanged)
+            if (!power && evc04Connection->cableState() < EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnected) {
+                info->thing()->setStateValue("power", false);
+                info->finish(Thing::ThingErrorNoError);
+                return;
+            }
+
+            QModbusReply *reply = evc04Connection->setChargingCurrent(power ? info->thing()->stateValue("maxChargingCurrent").toUInt() : 0);
+            connect(reply, &QModbusReply::finished, info, [info, reply, power](){
+                if (reply->error() == QModbusDevice::NoError) {
+                    if (!power) {
+                        qCDebug(dcWebasto()) << "Turning off wallbox by setting maxChargingCurrent to 0 finished successfully.";
+                    } else {
+                        qCDebug(dcWebasto()) << "Turning on wallbox by setting maxChargingCurrent to" << info->thing()->stateValue("maxChargingCurrent").toUInt() << "finished successfully.";
+                    }
+                    info->thing()->setStateValue("power", power);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
+        if (info->action().actionTypeId() == vestelEVC04MaxChargingCurrentActionTypeId) {
+
+            // Setting a charge current will turn on the wallbox. So only send a charge current when the wallbox should be on. Otherwise, just write the charge current
+            // to the state. The current will be set when the power action is triggered.
+            bool power = info->thing()->stateValue("power").toBool();
+            int maxChargingCurrent = info->action().paramValue(vestelEVC04MaxChargingCurrentActionMaxChargingCurrentParamTypeId).toInt();
+            if (power) {
+                QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
+                connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
+                    if (reply->error() == QModbusDevice::NoError) {
+                        qCDebug(dcWebasto()) << "Setting max charging current finished successfully.";
+                        info->thing()->setStateValue("maxChargingCurrent", maxChargingCurrent);
+                        info->finish(Thing::ThingErrorNoError);
+                    } else {
+                        qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                    }
+                });
+            } else {
+                qCDebug(dcWebasto()) << "Setting max charging current registered, but not sending modbus call because the wallbox should be off.";
+                info->thing()->setStateValue("maxChargingCurrent", maxChargingCurrent);
+                info->finish(Thing::ThingErrorNoError);
+            }
+        }
+        return;
+    }
+
+    if (info->thing()->thingClassId() == eonDriveThingClassId) {
+        EVC04ModbusTcpConnection *evc04Connection = m_evc04Connections.value(info->thing());
+
+        if (info->action().actionTypeId() == eonDrivePowerActionTypeId) {
+            bool power = info->action().paramValue(eonDrivePowerActionPowerParamTypeId).toBool();
+
+            // If the car is *not* connected, writing a 0 to the charging current register will cause it to go to 6 A instead of 0
+            // Because of this, we we're not connected, we'll do nothing, but once it get's connected, we'll sync the state over (see below in cableStateChanged)
+            if (!power && evc04Connection->cableState() < EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnected) {
+                info->thing()->setStateValue("power", false);
+                info->finish(Thing::ThingErrorNoError);
+                return;
+            }
+
+            QModbusReply *reply = evc04Connection->setChargingCurrent(power ? info->thing()->stateValue("maxChargingCurrent").toUInt() : 0);
+            connect(reply, &QModbusReply::finished, info, [info, reply, power](){
+                if (reply->error() == QModbusDevice::NoError) {
+                    if (!power) {
+                        qCDebug(dcWebasto()) << "Turning off wallbox by setting maxChargingCurrent to 0 finished successfully.";
+                    } else {
+                        qCDebug(dcWebasto()) << "Turning on wallbox by setting maxChargingCurrent to" << info->thing()->stateValue("maxChargingCurrent").toUInt() << "finished successfully.";
+                    }
+                    info->thing()->setStateValue("power", power);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
+        if (info->action().actionTypeId() == eonDriveMaxChargingCurrentActionTypeId) {
+
+            // Setting a charge current will turn on the wallbox. So only send a charge current when the wallbox should be on. Otherwise, just write the charge current
+            // to the state. The current will be set when the power action is triggered.
+            bool power = info->thing()->stateValue("power").toBool();
+            int maxChargingCurrent = info->action().paramValue(eonDriveMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toInt();
+            if (power) {
+                QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
+                connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
+                    if (reply->error() == QModbusDevice::NoError) {
+                        qCDebug(dcWebasto()) << "Setting max charging current finished successfully.";
+                        info->thing()->setStateValue("maxChargingCurrent", maxChargingCurrent);
+                        info->finish(Thing::ThingErrorNoError);
+                    } else {
+                        qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                    }
+                });
+            } else {
+                qCDebug(dcWebasto()) << "Setting max charging current registered, but not sending modbus call because the wallbox should be off.";
+                info->thing()->setStateValue("maxChargingCurrent", maxChargingCurrent);
+                info->finish(Thing::ThingErrorNoError);
+            }
+        }
+        return;
+    }
+
     Q_ASSERT_X(false, "executeAction", QString("Unhandled thingClassId: %1").arg(thing->thingClassId().toString()).toUtf8());
 }
 
