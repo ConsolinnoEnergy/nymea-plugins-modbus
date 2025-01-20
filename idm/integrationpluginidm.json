@@ -65,6 +65,16 @@
                             "suggestLogging": true
                         },
                         {
+                            "id": "76da0892-3a67-4ca4-ba30-1ce27a67e86d",
+                            "name": "coefficientOfPerformance",
+                            "displayName": "Coefficient of performance",
+                            "displayNameEvent": "Coefficient of performance changed",
+                            "unit": "None",
+                            "type": "double",
+                            "defaultValue": 0.00,
+                            "suggestLogging": true
+                        },
+                        {
                             "id": "fcf8e97f-a672-407f-94ae-30df15b310f4",
                             "name": "waterTemperature",
                             "displayName": "Water temperature",

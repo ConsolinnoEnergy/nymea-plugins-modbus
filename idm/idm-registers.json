@@ -60,7 +60,28 @@
         {
             "id": "status",
             "readSchedule": "update",
-            "registers": [
+            "registers": [                
+                {
+                    "id": "outdoorTemperature",
+                    "address": 1000,
+                    "size": 2,
+                    "type": "float",
+                    "readSchedule": "update",
+                    "registerType": "holdingRegister",
+                    "description": "Outdoor temperature",
+                    "unit": "°C",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy0",
+                    "address": 1002,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
                 {
                     "id": "currentFaultNumber",
                     "address": 1004,
@@ -90,6 +111,27 @@
                     "registerType": "holdingRegister",
                     "description": "Smart grid status",
                     "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 1007,
+                    "size": 1,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "heatStorageTemperature",
+                    "address": 1008,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Heat storage temperature",
+                    "defaultValue": "0",
+                    "unit": "°C",
                     "access": "RO"
                 }
             ]
@@ -160,30 +202,6 @@
             "access": "RW"
         },
         {
-            "id": "outdoorTemperature",
-            "address": 1000,
-            "size": 2,
-            "type": "float",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Outdoor temperature",
-            "unit": "°C",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "heatStorageTemperature",
-            "address": 1008,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Heat storage temperature",
-            "defaultValue": "0",
-            "unit": "°C",
-            "access": "RO"
-        },
-        {
             "id": "targetHotWaterTemperature",
             "address": 1032,
             "size": 1,
@@ -193,6 +211,18 @@
             "description": "Target hot water temperature",
             "defaultValue": "0",
             "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "heatPumpOperatingMode",
+            "address": 1090,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Heat pump operation mode",
+            "enum": "HeatPumpOperationMode",
+            "defaultValue": "HeatPumpOperationModeOff",
             "access": "RO"
         },
         {
@@ -220,18 +250,6 @@
             "access": "RW"
         },
         {
-            "id": "heatPumpOperatingMode",
-            "address": 1090,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Heat pump operation mode",
-            "enum": "HeatPumpOperationMode",
-            "defaultValue": "HeatPumpOperationModeOff",
-            "access": "RO"
-        },
-        {
             "id": "currentPowerConsumption",
             "address": 4122,
             "size": 2,
@@ -239,6 +257,18 @@
             "readSchedule": "update",
             "registerType": "holdingRegister",
             "description": "Current power consumption",
+            "unit": "kW",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "currentThermalPower",
+            "address": 4126,
+            "size": 2,
+            "type": "float",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Current thermal power",
             "unit": "kW",
             "defaultValue": "0",
             "access": "RO"

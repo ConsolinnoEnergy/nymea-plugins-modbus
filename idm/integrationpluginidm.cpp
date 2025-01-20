@@ -384,6 +384,10 @@ void IntegrationPluginIdm::setupConnection(ThingSetupInfo *info)
 
             thing->setStateValue(navigator2ErrorStateTypeId, connection->currentFaultNumber());
 
+            if (connection->currentPowerConsumption()>0){
+                thing->setStateValue(navigator2CoefficientOfPerformanceStateTypeId, connection->currentThermalPower()/connection->currentPowerConsumption());
+            }            
+
         });
 
         // Update registers
