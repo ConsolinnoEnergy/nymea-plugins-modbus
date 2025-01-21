@@ -62,27 +62,6 @@
             "readSchedule": "update",
             "registers": [                
                 {
-                    "id": "outdoorTemperature",
-                    "address": 1000,
-                    "size": 2,
-                    "type": "float",
-                    "readSchedule": "update",
-                    "registerType": "holdingRegister",
-                    "description": "Outdoor temperature",
-                    "unit": "°C",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy0",
-                    "address": 1002,
-                    "size": 2,
-                    "type": "raw",
-                    "registerType": "holdingRegister",
-                    "description": "none",
-                    "access": "RO"
-                },
-                {
                     "id": "currentFaultNumber",
                     "address": 1004,
                     "size": 1,
@@ -111,27 +90,6 @@
                     "registerType": "holdingRegister",
                     "description": "Smart grid status",
                     "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy1",
-                    "address": 1007,
-                    "size": 1,
-                    "type": "raw",
-                    "registerType": "holdingRegister",
-                    "description": "none",
-                    "access": "RO"
-                },
-                {
-                    "id": "heatStorageTemperature",
-                    "address": 1008,
-                    "size": 2,
-                    "type": "float",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "description": "Heat storage temperature",
-                    "defaultValue": "0",
-                    "unit": "°C",
                     "access": "RO"
                 }
             ]
@@ -201,6 +159,30 @@
             "defaultValue": "0",
             "access": "RW"
         },
+        {
+            "id": "outdoorTemperature",
+            "address": 1000,
+            "size": 2,
+            "type": "float",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Outdoor temperature",
+            "unit": "°C",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "heatStorageTemperature",
+            "address": 1008,
+            "size": 2,
+            "type": "float",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Heat storage temperature",
+            "defaultValue": "0",
+            "unit": "°C",
+            "access": "RO"
+        },        
         {
             "id": "targetHotWaterTemperature",
             "address": 1032,
