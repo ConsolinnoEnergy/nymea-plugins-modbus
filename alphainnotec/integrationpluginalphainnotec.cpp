@@ -360,6 +360,12 @@ void IntegrationPluginAlphaInnotec::postSetupThing(Thing *thing)
                         connection->update();
                     }
                 }
+
+                foreach (aitShiModbusTcpConnection *connection, m_aitShiConnections) {
+                    if (connection->connected()) {
+                        connection->update();
+                    }
+                }
             });
 
             m_pluginTimer->start();
@@ -371,6 +377,13 @@ void IntegrationPluginAlphaInnotec::thingRemoved(Thing *thing)
 {
     if (thing->thingClassId() == alphaConnectThingClassId && m_connections.contains(thing)) {
         AlphaInnotecModbusTcpConnection *connection = m_connections.take(thing);
+        connection->disconnectDevice();
+        delete connection;
+    }
+
+    if (thing->thingClassId() == aitSmartHomeThingClassId && m_aitShiConnections.contains(thing)) {
+        aitShiModbusTcpConnection *connection = m_aitShiConnections.take(thing);
+        connection->disconnectDevice();
         delete connection;
     }
 
