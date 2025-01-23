@@ -289,6 +289,115 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "modeControlBlock",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "heatingMode",
+                    "address": 10000,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Heating mode",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "heatingTargetTemp",
+                    "address": 10001,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Heating target temp",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                    "access": "RW"
+                },
+                {
+                    "id": "heatingOffsetTemp",
+                    "address": 10002,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Heating offset temp",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 10003,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy 2",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "warmWaterMode",
+                    "address": 10005,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Warm water mode",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "warmWaterTargetTemp",
+                    "address": 10006,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Warm water target temp",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                    "access": "RW"
+                },
+                {
+                    "id": "warmWaterOffsetTemp",
+                    "address": 10007,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Warm water offset temp",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RW"
+                }
+            ]
+        },
+        {
+            "id": "modeControlBlock",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "lpcMode",
+                    "address": 10040,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "LPC Mode",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "pcLimit",
+                    "address": 10041,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PC Limit",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RW"
+                }
+            ]
         }
     ]
 }
