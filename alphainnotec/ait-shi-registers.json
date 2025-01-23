@@ -50,6 +50,7 @@
             "size": 1,
             "type": "uint16",
             "registerType": "inputRegister",
+            "readSchedule": "update",
             "description": "Error Code",
             "defaultValue": "0",
             "access": "RO"
@@ -60,6 +61,7 @@
             "size": 1,
             "type": "uint16",
             "registerType": "inputRegister",
+            "readSchedule": "update",
             "description": "Total energy consumed",
             "defaultValue": "0",
             "staticScaleFactor": -1,
@@ -87,8 +89,7 @@
                     "size": 1,
                     "type": "raw",
                     "registerType": "inputRegister",
-                    "description": "Heatpump state",
-                    "defaultValue": "0",
+                    "description": "Dummy 0",
                     "access": "RO"
                 },
                 {
@@ -129,7 +130,6 @@
                     "type": "raw",
                     "registerType": "inputRegister",
                     "description": "Dummy 1",
-                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
@@ -209,13 +209,12 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy1",
+                    "id": "dummy6",
                     "address": 10107,
                     "size": 1,
                     "type": "raw",
                     "registerType": "inputRegister",
-                    "description": "Dummy 1",
-                    "defaultValue": "0",
+                    "description": "Dummy 6",
                     "access": "RO"
                 },
                 {
@@ -335,7 +334,7 @@
                     "id": "dummy2",
                     "address": 10003,
                     "size": 2,
-                    "type": "raw",
+                    "type": "uint32",
                     "registerType": "holdingRegister",
                     "description": "Dummy 2",
                     "defaultValue": "0",
