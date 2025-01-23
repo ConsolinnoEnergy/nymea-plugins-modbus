@@ -494,7 +494,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             // Set inverter states
             qint16 currentPowerSf = connection->inverterCurrentPowerSf();
             qint16 currentPower = connection->inverterCurrentPower();
-            double calculatedPower = -1 * currentPower * qPow(10, currentPowerSf);
+            double calculatedPower = currentPower * qPow(10, currentPowerSf);
             thing->setStateValue("currentPower", calculatedPower);
 
             quint16 producedEnergySf = connection->inverterProducedEnergySf();
@@ -810,7 +810,7 @@ void IntegrationPluginKacoSunSpec::setChargingState(Thing *thing, KacoNH3ModbusT
             thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
             break;
         case KacoNH3ModbusTcpConnection::ChargeStatusDischarging:
-            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "charging");
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "discharging");
             break;
         case KacoNH3ModbusTcpConnection::ChargeStatusCharging:
             thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "charging");
