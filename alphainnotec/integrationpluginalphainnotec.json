@@ -336,6 +336,181 @@
                         }
                     ],
                     "actionTypes": [ ]
+                },
+                {
+                    "name": "aitSmartHome",
+                    "displayName": "AlphaInnotec SHI",
+                    "id": "d3395111-de03-4361-aecb-d17a76b7b1a7",
+                    "createMethods": ["discovery", "user"],
+                    "interfaces": ["pvsurplusheatpump", "connectable"],
+                    "paramTypes": [
+                        {
+                            "id": "5b452fb6-7f3c-47df-bbc7-2d79cd35b2c7",
+                            "name": "ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "inputType": "IPv4Address",
+                            "defaultValue": "127.0.0.1"
+                        },
+                        {
+                            "id": "b1eeb237-4328-4fb3-8a1e-afdc7ea89896",
+                            "name":"macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "inputType": "MacAddress",
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "aa8cdf0d-341f-48af-99be-ae710d116b13",
+                            "name":"port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502
+                        },
+                        {
+                            "id": "6a7f5d6e-6214-43dc-b7fa-87ac9cd01a1e",
+                            "name":"slaveId",
+                            "displayName": "Modbus slave ID",
+                            "type": "int",
+                            "defaultValue": 1
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "ce470a50-cb47-4a52-8804-3eabac2cb569",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "cbaf845a-a161-4982-a03d-314993681a50",
+                            "name": "heatingOn",
+                            "displayName": "Heating on",
+                            "displayNameEvent": "Heating turned on/off",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "7ac3979d-d198-4ab6-9c2f-51d5022aae2f",
+                            "name": "coolingOn",
+                            "displayName": "Cooling on",
+                            "displayNameEvent": "Cooling turned on/off",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "4a10d0b3-3d1a-4bd5-82d6-1e683c8407d5",
+                            "name": "flowTemperature",
+                            "displayName": "Flow temperature",
+                            "displayNameEvent": "Flow temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "dcde18e6-5475-449c-abb6-226ae5d25bed",
+                            "name": "returnTemperature",
+                            "displayName": "Return temperature",
+                            "displayNameEvent": "Return temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "ca0263d7-ea16-41fb-a914-3e12217a62ab",
+                            "name": "roomTemperature",
+                            "displayName": "Room temperature",
+                            "displayNameEvent": "Room temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "ce7d213c-c5e6-4fb2-ba26-a7fbfd650828",
+                            "name": "systemStatus",
+                            "displayName": "System status",
+                            "displayNameEvent": "System status changed",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Heating mode",
+                                "Domestic hot water",
+                                "Swimming pool",
+                                "EUV off",
+                                "Defrost",
+                                "Off",
+                                "External energy source",
+                                "Cooling mode"
+                            ],
+                            "defaultValue": "Heating mode",
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "87b58468-01d6-4474-a4ea-199ecb0d9d03",
+                            "name": "outdoorTemperature",
+                            "displayName": "Outdoor temperature",
+                            "displayNameEvent": "Outdoor temperature changed",
+                            "displayNameAction": "Set outdoor temperature",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "98da2f50-b341-44b2-9edd-7c8929040f93",
+                            "name": "returnSetpointTemperature",
+                            "displayName": "Return temperature setpoint",
+                            "displayNameEvent": "Return temperature setpoint changed",
+                            "displayNameAction": "Set return temperature setpoint",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "writable": true,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "abfeb687-74b4-4883-bace-15577bf631c9",
+                            "name": "hotWaterSetpointTemperature",
+                            "displayName": "Hot water temperature setpoint",
+                            "displayNameEvent": "Hot water temperature setpoint changed",
+                            "displayNameAction": "Set hot water temperature setpoint",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "writable": true,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "189ee77f-5074-4622-ac7c-aaff3881e38d",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy",
+                            "displayNameEvent": "Total energy changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "305a29fb-c997-44c3-bd26-bf112a28b34c",
+                            "name": "actualPvSurplus",
+                            "displayName": "actual PV surplus",
+                            "displayNameEvent": "PV surplus changed",
+                            "displayNameAction": "Set PV surplus",
+                            "unit": "Watt",
+                            "type": "double",
+                            "writable": true,
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        }
+                    ],
+                    "actionTypes": [ ]
                 }
             ]
         }

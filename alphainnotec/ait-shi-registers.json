@@ -98,6 +98,7 @@
                     "type": "uint16",
                     "registerType": "inputRegister",
                     "enum": "SystemStatus",
+                    "description": "Operating state",
                     "defaultValue": "SystemStatusOff",
                     "access": "RO"
                 },
@@ -106,6 +107,7 @@
                     "address": 10003,
                     "size": 1,
                     "type": "uint16",
+                    "description": "Heating state",
                     "registerType": "inputRegister",
                     "defaultValue": "0",
                     "access": "RO"
@@ -115,6 +117,7 @@
                     "address": 10004,
                     "size": 1,
                     "type": "uint16",
+                    "description": "Warm water state",
                     "registerType": "inputRegister",
                     "defaultValue": "0",
                     "access": "RO"
@@ -125,6 +128,7 @@
                     "size": 1,
                     "type": "raw",
                     "registerType": "inputRegister",
+                    "description": "Dummy 1",
                     "defaultValue": "0",
                     "access": "RO"
                 },
@@ -210,6 +214,7 @@
                     "size": 1,
                     "type": "raw",
                     "registerType": "inputRegister",
+                    "description": "Dummy 1",
                     "defaultValue": "0",
                     "access": "RO"
                 },
@@ -313,7 +318,6 @@
                     "description": "Heating target temp",
                     "defaultValue": "0",
                     "staticScaleFactor": -1,
-                    "access": "RO"
                     "access": "RW"
                 },
                 {
@@ -356,7 +360,6 @@
                     "description": "Warm water target temp",
                     "defaultValue": "0",
                     "staticScaleFactor": -1,
-                    "access": "RO"
                     "access": "RW"
                 },
                 {
@@ -373,7 +376,7 @@
             ]
         },
         {
-            "id": "modeControlBlock",
+            "id": "powerControlBlock",
             "readSchedule": "update",
             "registers": [
                 {
