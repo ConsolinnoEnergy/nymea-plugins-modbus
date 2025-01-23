@@ -494,7 +494,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             // Set inverter states
             qint16 currentPowerSf = connection->inverterCurrentPowerSf();
             qint16 currentPower = connection->inverterCurrentPower();
-            double calculatedPower = currentPower * qPow(10, currentPowerSf);
+            double calculatedPower = -1 * qFabs(currentPower) * qPow(10, currentPowerSf);
             thing->setStateValue("currentPower", calculatedPower);
 
             quint16 producedEnergySf = connection->inverterProducedEnergySf();
