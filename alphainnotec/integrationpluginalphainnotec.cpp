@@ -47,46 +47,91 @@ void IntegrationPluginAlphaInnotec::discoverThings(ThingDiscoveryInfo *info)
         return;
     }
 
-    NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
-    connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
-    connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
 
-        foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
+    if (info->thingClassId() == alphaConnectThingClassId) {
+        NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
+        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
+        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
 
-            qCDebug(dcAlphaInnotec()) << "Found" << networkDeviceInfo;
+            foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
 
-            QString title;
-            if (networkDeviceInfo.hostName().isEmpty()) {
-                title = networkDeviceInfo.address().toString();
-            } else {
-                title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
+                qCDebug(dcAlphaInnotec()) << "Found" << networkDeviceInfo;
+
+                QString title;
+                if (networkDeviceInfo.hostName().isEmpty()) {
+                    title = networkDeviceInfo.address().toString();
+                } else {
+                    title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
+                }
+
+                QString description;
+                if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
+                    description = networkDeviceInfo.macAddress();
+                } else {
+                    description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
+                }
+
+                ThingDescriptor descriptor(alphaConnectThingClassId, title, description);
+                ParamList params;
+                params << Param(alphaConnectThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
+                params << Param(alphaConnectThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
+
+                // Check if we already have set up this device
+                Things existingThings = myThings().filterByParam(alphaConnectThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                if (existingThings.count() == 1) {
+                    qCDebug(dcAlphaInnotec()) << "This connection already exists in the system:" << networkDeviceInfo;
+                    descriptor.setThingId(existingThings.first()->id());
+                }
+
+                info->addThingDescriptor(descriptor);
             }
 
-            QString description;
-            if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
-                description = networkDeviceInfo.macAddress();
-            } else {
-                description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
+            info->finish(Thing::ThingErrorNoError);
+        });
+    }
+    if (info->thingClassId() == aitSmartHomeThingClassId) {
+        NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
+        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
+        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
+
+            foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
+
+                qCDebug(dcAlphaInnotec()) << "Found" << networkDeviceInfo;
+
+                QString title;
+                if (networkDeviceInfo.hostName().isEmpty()) {
+                    title = networkDeviceInfo.address().toString();
+                } else {
+                    title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
+                }
+
+                QString description;
+                if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
+                    description = networkDeviceInfo.macAddress();
+                } else {
+                    description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
+                }
+
+                ThingDescriptor descriptor(aitSmartHomeThingClassId, title, description);
+                ParamList params;
+                params << Param(aitSmartHomeThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
+                params << Param(aitSmartHomeThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
+
+                // Check if we already have set up this device
+                Things existingThings = myThings().filterByParam(aitSmartHomeThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                if (existingThings.count() == 1) {
+                    qCDebug(dcAlphaInnotec()) << "This connection already exists in the system:" << networkDeviceInfo;
+                    descriptor.setThingId(existingThings.first()->id());
+                }
+
+                info->addThingDescriptor(descriptor);
             }
 
-            ThingDescriptor descriptor(alphaConnectThingClassId, title, description);
-            ParamList params;
-            params << Param(alphaConnectThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
-            params << Param(alphaConnectThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
-            descriptor.setParams(params);
-
-            // Check if we already have set up this device
-            Things existingThings = myThings().filterByParam(alphaConnectThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
-            if (existingThings.count() == 1) {
-                qCDebug(dcAlphaInnotec()) << "This connection already exists in the system:" << networkDeviceInfo;
-                descriptor.setThingId(existingThings.first()->id());
-            }
-
-            info->addThingDescriptor(descriptor);
-        }
-
-        info->finish(Thing::ThingErrorNoError);
-    });
+            info->finish(Thing::ThingErrorNoError);
+        });
+    }
 }
 
 void IntegrationPluginAlphaInnotec::startMonitoringAutoThings()

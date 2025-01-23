@@ -35,6 +35,7 @@
 #include <integrations/integrationplugin.h>
 
 #include "alphainnotecmodbustcpconnection.h"
+#include "aitshimodbustcpconnection.h"
 
 class IntegrationPluginAlphaInnotec: public IntegrationPlugin
 {
@@ -56,6 +57,8 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, AlphaInnotecModbusTcpConnection *> m_connections;
+
+    QHash<Thing *, aitShiModbusTcpConnection *> m_aitShiConnections;
 };
 
 #endif // INTEGRATIONPLUGINALPHAINNOTEC_H
