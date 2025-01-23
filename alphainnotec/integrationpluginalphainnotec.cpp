@@ -72,10 +72,6 @@ void IntegrationPluginAlphaInnotec::discoverThings(ThingDiscoveryInfo *info)
                 }
 
                 ThingDescriptor descriptor(alphaConnectThingClassId, title, description);
-                ParamList params;
-                params << Param(alphaConnectThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
-                params << Param(alphaConnectThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
-                descriptor.setParams(params);
 
                 // Check if we already have set up this device
                 Things existingThings = myThings().filterByParam(alphaConnectThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
@@ -83,6 +79,11 @@ void IntegrationPluginAlphaInnotec::discoverThings(ThingDiscoveryInfo *info)
                     qCDebug(dcAlphaInnotec()) << "This connection already exists in the system:" << networkDeviceInfo;
                     descriptor.setThingId(existingThings.first()->id());
                 }
+
+                ParamList params;
+                params << Param(alphaConnectThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
+                params << Param(alphaConnectThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
 
                 info->addThingDescriptor(descriptor);
             }
@@ -346,6 +347,88 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
         // FIXME: make async and check if this is really an alpha connect
         info->finish(Thing::ThingErrorNoError);
     }
+
+    if (thing->thingClassId() == aitSmartHomeThingClassId) {
+
+        // Handle reconfigure
+        if (m_aitShiConnections.contains(thing)) {
+            qCDebug(dcAlphaInnotec()) << "Reconfiguring existing thing" << thing->name();
+            m_aitShiConnections.take(thing)->deleteLater();
+            if (m_monitors.contains(thing)) {
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
+        }
+
+        MacAddress macAddress = MacAddress(thing->paramValue(aitSmartHomeThingMacAddressParamTypeId).toString());
+        if (!macAddress.isValid()) {
+            qCWarning(dcAlphaInnotec()) << "The configured MAC address is not valid" << thing->params();
+            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not known. Please reconfigure the heatpump."));
+            return;
+        }
+
+        // Create the monitor
+        NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        m_monitors.insert(thing, monitor);
+        connect(info, &ThingSetupInfo::aborted, monitor, [=](){
+            // Clean up in case the setup gets aborted
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcAlphaInnotec()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
+        });
+
+        QHostAddress address = m_monitors.value(thing)->networkDeviceInfo().address();
+
+        qCInfo(dcAlphaInnotec()) << "Setting up AlphaInnotec on" << address.toString();
+        auto aitShiConnection = new aitShiModbusTcpConnection(address, 502 , 1, this);
+        connect(info, &ThingSetupInfo::aborted, aitShiConnection, &aitShiModbusTcpConnection::deleteLater);
+
+        // Reconnect on monitor reachable changed
+        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
+            qCDebug(dcAlphaInnotec()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+            if (!thing->setupComplete())
+                return;
+
+            if (reachable && !thing->stateValue("connected").toBool()) {
+                aitShiConnection->setHostAddress(monitor->networkDeviceInfo().address());
+                aitShiConnection->reconnectDevice();
+            } else if (!reachable) {
+                // Note: Auto reconnect is disabled explicitly and
+                // the device will be connected once the monitor says it is reachable again
+                aitShiConnection->disconnectDevice();
+            }
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::reachableChanged, thing, [this, thing, aitShiConnection](bool reachable){
+            qCInfo(dcAlphaInnotec()) << "Reachable changed to" << reachable << "for" << thing;
+            if (reachable) {
+                // Connected true will be set after successfull init
+                aitShiConnection->initialize();
+            } else {
+                thing->setStateValue("connected", false);
+            }
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::initializationFinished, thing, [=](bool success){
+            thing->setStateValue("connected", success);
+
+            if (!success) {
+                // Try once to reconnect the device
+                aitShiConnection->reconnectDevice();
+            } else {
+                qCInfo(dcAlphaInnotec()) << "Connection initialized successfully for" << thing;
+                aitShiConnection->update();
+            }
+        });
+
+        m_aitShiConnections.insert(thing, aitShiConnection);
+
+        if (monitor->reachable())
+            aitShiConnection->connectDevice();
+
+        info->finish(Thing::ThingErrorNoError);
+        return;
+    }
 }
 
 void IntegrationPluginAlphaInnotec::postSetupThing(Thing *thing)
@@ -386,6 +469,9 @@ void IntegrationPluginAlphaInnotec::thingRemoved(Thing *thing)
         connection->disconnectDevice();
         delete connection;
     }
+
+    if (m_monitors.contains(thing))
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
 
     if (myThings().isEmpty() && m_pluginTimer) {
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
@@ -526,5 +612,3 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
 
     info->finish(Thing::ThingErrorNoError);
 }
-
-

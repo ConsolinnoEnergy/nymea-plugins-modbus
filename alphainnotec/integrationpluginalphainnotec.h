@@ -33,6 +33,7 @@
 
 #include <plugintimer.h>
 #include <integrations/integrationplugin.h>
+#include <network/networkdevicemonitor.h>
 
 #include "alphainnotecmodbustcpconnection.h"
 #include "aitshimodbustcpconnection.h"
@@ -56,8 +57,9 @@ public:
 
 private:
     PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, AlphaInnotecModbusTcpConnection *> m_connections;
 
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    QHash<Thing *, AlphaInnotecModbusTcpConnection *> m_connections;
     QHash<Thing *, aitShiModbusTcpConnection *> m_aitShiConnections;
 };
 
