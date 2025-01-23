@@ -1,0 +1,294 @@
+{
+    "className": "aitShi",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 30,
+    "checkReachableRegister": "operatingState",
+    "enums": [
+        {
+            "name": "SystemStatus",
+            "values": [
+                {
+                    "key": "HeatingMode",
+                    "value": 0
+                },
+                {
+                    "key": "DomesticHotWater",
+                    "value": 1
+                },
+                {
+                    "key": "SwimmingPool",
+                    "value": 2
+                },
+                {
+                    "key": "EVUOff",
+                    "value": 3
+                },
+                {
+                    "key": "Defrost",
+                    "value": 4
+                },
+                {
+                    "key": "Off",
+                    "value": 5
+                },
+                {
+                    "key": "ExternalEnergySource",
+                    "value": 6
+                },
+                {
+                    "key": "CoolingMode",
+                    "value": 7
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "errorCode",
+            "address": 10201,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "description": "Error Code",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "totalEnergyConsumed",
+            "address": 10310,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "description": "Total energy consumed",
+            "defaultValue": "0",
+            "staticScaleFactor": -1,
+            "access": "RO"
+        }
+    ],
+    "blocks": [
+        {
+            "id": "stateBlock",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "heatpumpState",
+                    "address": 10000,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Heatpump state",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy0",
+                    "address": 10001,
+                    "size": 1,
+                    "type": "raw",
+                    "registerType": "inputRegister",
+                    "description": "Heatpump state",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "operatingState",
+                    "address": 10002,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "enum": "SystemStatus",
+                    "defaultValue": "SystemStatusOff",
+                    "access": "RO"
+                },
+                {
+                    "id": "heatingState",
+                    "address": 10003,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "warmwaterState",
+                    "address": 10004,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 10005,
+                    "size": 1,
+                    "type": "raw",
+                    "registerType": "inputRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "coolingState",
+                    "address": 10006,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Cooling state",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "poolState",
+                    "address": 10007,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Pool state",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "returnTempBlock",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "returnTempCurrent",
+                    "address": 10100,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current return temperature",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "returnTempTarget",
+                    "address": 10101,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Target return temperature",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "moreTempBlock",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "flowTemperature",
+                    "address": 10105,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Flow temperature",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "roomTemperature",
+                    "address": 10106,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Room temperature",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 10107,
+                    "size": 1,
+                    "type": "raw",
+                    "registerType": "inputRegister",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "outsideTemperature",
+                    "address": 10108,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Outside temperature",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "powerBlock",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "heatingPower",
+                    "address": 10300,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Heating power",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "electricalPower",
+                    "address": 10301,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Electrical power",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "fwVersionBlock",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "softwarePlatform",
+                    "address": 10400,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Software Platform",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "majorVersion",
+                    "address": 10401,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Major Version",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "minorVersion",
+                    "address": 10402,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Minor Version",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
+    ]
+}
