@@ -474,6 +474,60 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
             thing->setStateValue(aitSmartHomeHeatingPowerStateTypeId, power);
         });
 
+        connect(aitShiConnection, &aitShiModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](float energy) {
+            qCDebug(dcAlphaInnotec()) << "Total energy consumed changed to" << energy;
+            thing->setStateValue(aitSmartHomeTotalEnergyConsumedStateTypeId, energy);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::operatingStateChanged, thing, [thing](aitShiModbusTcpConnection::SystemStatus systemStatus){
+            qCDebug(dcAlphaInnotec()) << thing << "system status changed" << systemStatus;
+            switch (systemStatus) {
+            case aitShiModbusTcpConnection::SystemStatusHeatingMode:
+                thing->setStateValue(aitSmartHomeSystemStatusStateTypeId, "Heating mode");
+                break;
+            case aitShiModbusTcpConnection::SystemStatusDomesticHotWater:
+                thing->setStateValue(aitSmartHomeSystemStatusStateTypeId, "Domestic hot water");
+                break;
+            case aitShiModbusTcpConnection::SystemStatusSwimmingPool:
+                thing->setStateValue(aitSmartHomeSystemStatusStateTypeId, "Swimming pool");
+                break;
+            case aitShiModbusTcpConnection::SystemStatusEVUOff:
+                thing->setStateValue(aitSmartHomeSystemStatusStateTypeId, "EUV off");
+                break;
+            case aitShiModbusTcpConnection::SystemStatusDefrost:
+                thing->setStateValue(aitSmartHomeSystemStatusStateTypeId, "Defrost");
+                break;
+            case aitShiModbusTcpConnection::SystemStatusOff:
+                thing->setStateValue(aitSmartHomeSystemStatusStateTypeId, "Off");
+                break;
+            case aitShiModbusTcpConnection::SystemStatusExternalEnergySource:
+                thing->setStateValue(aitSmartHomeSystemStatusStateTypeId, "External energy source");
+                break;
+            case aitShiModbusTcpConnection::SystemStatusCoolingMode:
+                thing->setStateValue(aitSmartHomeSystemStatusStateTypeId, "Cooling mode");
+                break;
+            }
+
+            // Set heating and cooling states according to the system state
+            thing->setStateValue(aitSmartHomeHeatingOnStateTypeId, systemStatus == aitShiModbusTcpConnection::SystemStatusHeatingMode);
+            thing->setStateValue(aitSmartHomeCoolingOnStateTypeId, systemStatus == aitShiModbusTcpConnection::SystemStatusCoolingMode);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::softwarePlatformChanged, thing, [this, thing](quint16 version) {
+            qCDebug(dcAlphaInnotec()) << "Software Platform changed to" << version;
+            updateFirmwareVersion(thing, version, "platform");
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::majorVersionChanged, thing, [this, thing](quint16 version) {
+            qCDebug(dcAlphaInnotec()) << "Major version changed to" << version;
+            updateFirmwareVersion(thing, version, "major");
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::minorVersionChanged, thing, [this, thing](quint16 version) {
+            qCDebug(dcAlphaInnotec()) << "Minor version changed to" << version;
+            updateFirmwareVersion(thing, version, "minor");
+        });
+
         m_aitShiConnections.insert(thing, aitShiConnection);
 
         if (monitor->reachable())
@@ -664,4 +718,17 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
     }
 
     info->finish(Thing::ThingErrorNoError);
+}
+
+void IntegrationPluginAlphaInnotec::updateFirmwareVersion(Thing *thing, quint16 version, QString place)
+{
+    if (place == "platform") {
+        m_platformVersion = version;
+    } else if (place == "major") {
+        m_majorVersion = version;
+    } else if (place == "minor") {
+        m_minorVersion = version;
+    }
+    QString fwVersion = QString::number(m_platformVersion) + "." + QString::number(m_majorVersion) + "." + QString::number(m_minorVersion);
+    thing->setStateValue(aitSmartHomeFirmwareVersionStateTypeId, fwVersion);
 }

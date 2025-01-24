@@ -61,6 +61,11 @@ private:
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, AlphaInnotecModbusTcpConnection *> m_connections;
     QHash<Thing *, aitShiModbusTcpConnection *> m_aitShiConnections;
+
+    quint16 m_platformVersion = 0;
+    quint16 m_majorVersion = 0;
+    quint16 m_minorVersion = 0;
+    void updateFirmwareVersion(Thing *thing, quint16 version, QString place);
 };
 
 #endif // INTEGRATIONPLUGINALPHAINNOTEC_H
