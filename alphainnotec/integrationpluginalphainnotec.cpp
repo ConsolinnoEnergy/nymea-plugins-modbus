@@ -378,9 +378,11 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
         });
 
         QHostAddress address = m_monitors.value(thing)->networkDeviceInfo().address();
+        uint port = thing->paramValue(aitSmartHomeThingPortParamTypeId).toUInt();
+        quint16 slaveId = thing->paramValue(aitSmartHomeThingSlaveIdParamTypeId).toUInt();
 
         qCInfo(dcAlphaInnotec()) << "Setting up AlphaInnotec on" << address.toString();
-        auto aitShiConnection = new aitShiModbusTcpConnection(address, 502 , 1, this);
+        auto aitShiConnection = new aitShiModbusTcpConnection(address, port , slaveId, this);
         connect(info, &ThingSetupInfo::aborted, aitShiConnection, &aitShiModbusTcpConnection::deleteLater);
 
         // Reconnect on monitor reachable changed
