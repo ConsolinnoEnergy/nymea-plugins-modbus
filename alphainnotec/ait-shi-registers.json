@@ -218,12 +218,40 @@
                     "access": "RO"
                 },
                 {
-                    "id": "outsideTemperature",
+                    "id": "outdoorTemperature",
                     "address": 10108,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
-                    "description": "Outside temperature",
+                    "description": "Outdoor temperature",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "hotWaterTempBlock",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "hotWaterTempCurrent",
+                    "address": 10120,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current hot water temperature",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "hotWaterTempTarget",
+                    "address": 10121,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Target hot water temperature",
                     "defaultValue": "0",
                     "staticScaleFactor": -1,
                     "access": "RO"
@@ -341,33 +369,33 @@
                     "access": "RW"
                 },
                 {
-                    "id": "warmWaterMode",
+                    "id": "hotWaterMode",
                     "address": 10005,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "description": "Warm water mode",
+                    "description": "Hot water mode",
                     "defaultValue": "0",
                     "access": "RW"
                 },
                 {
-                    "id": "warmWaterTargetTemp",
+                    "id": "hotWaterTargetTemp",
                     "address": 10006,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "description": "Warm water target temp",
+                    "description": "Hot water target temp",
                     "defaultValue": "0",
                     "staticScaleFactor": -1,
                     "access": "RW"
                 },
                 {
-                    "id": "warmWaterOffsetTemp",
+                    "id": "hotWaterOffsetTemp",
                     "address": 10007,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "description": "Warm water offset temp",
+                    "description": "Hot water offset temp",
                     "staticScaleFactor": -1,
                     "defaultValue": "0",
                     "access": "RW"

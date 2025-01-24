@@ -468,11 +468,9 @@
                             "name": "returnSetpointTemperature",
                             "displayName": "Return temperature setpoint",
                             "displayNameEvent": "Return temperature setpoint changed",
-                            "displayNameAction": "Set return temperature setpoint",
                             "unit": "DegreeCelsius",
                             "type": "double",
                             "defaultValue": 0,
-                            "writable": true,
                             "suggestLogging": true
                         },
                         {
@@ -480,11 +478,9 @@
                             "name": "hotWaterSetpointTemperature",
                             "displayName": "Hot water temperature setpoint",
                             "displayNameEvent": "Hot water temperature setpoint changed",
-                            "displayNameAction": "Set hot water temperature setpoint",
                             "unit": "DegreeCelsius",
                             "type": "double",
                             "defaultValue": 0,
-                            "writable": true,
                             "suggestLogging": true
                         },
                         {

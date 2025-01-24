@@ -422,6 +422,57 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
                 aitShiConnection->update();
             }
         });
+        
+        // TODO: Connect the states here
+        connect(aitShiConnection, &aitShiModbusTcpConnection::returnTempCurrentChanged, thing, [thing](float temperature) {
+            qCDebug(dcAlphaInnotec()) << "Current return temperature changed to" << temperature;
+            thing->setStateValue(aitSmartHomeReturnTemperatureStateTypeId, temperature);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::returnTempTargetChanged, thing, [thing](float temperature) {
+            qCDebug(dcAlphaInnotec()) << "Return temperature target changed to" << temperature;
+            thing->setStateValue(aitSmartHomeReturnSetpointTemperatureStateTypeId, temperature);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::flowTemperatureChanged, thing, [thing](float temperature) {
+            qCDebug(dcAlphaInnotec()) << "Flow temperature target changed to" << temperature;
+            thing->setStateValue(aitSmartHomeFlowTemperatureStateTypeId, temperature);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::roomTemperatureChanged, thing, [thing](float temperature) {
+            qCDebug(dcAlphaInnotec()) << "Romm temperature changed" << temperature;
+            thing->setStateValue(aitSmartHomeRoomTemperatureStateTypeId, temperature);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::outdoorTemperatureChanged, thing, [thing](float temperature) {
+            qCDebug(dcAlphaInnotec()) << "Outdoor temperature changed" << temperature;
+            thing->setStateValue(aitSmartHomeOutdoorTemperatureStateTypeId, temperature);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::hotWaterTempCurrentChanged, thing, [thing](float temperature) {
+            qCDebug(dcAlphaInnotec()) << "Hot water temperature changed" << temperature;
+            thing->setStateValue(aitSmartHomeHotWaterTemperatureStateTypeId, temperature);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::hotWaterTempTargetChanged, thing, [thing](float temperature) {
+            qCDebug(dcAlphaInnotec()) << "Hot water setpoint temperature changed" << temperature;
+            thing->setStateValue(aitSmartHomeHotWaterSetpointTemperatureStateTypeId, temperature);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::errorCodeChanged, thing, [thing](quint16 code) {
+            qCDebug(dcAlphaInnotec()) << "Error code changed to" << code;
+            thing->setStateValue(aitSmartHomeErrorCodeStateTypeId, code);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::electricalPowerChanged, thing, [thing](float power) {
+            qCDebug(dcAlphaInnotec()) << "Current electrical power changed to" << power;
+            thing->setStateValue(aitSmartHomeCurrentPowerStateTypeId, power);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::heatingPowerChanged, thing, [thing](float power) {
+            qCDebug(dcAlphaInnotec()) << "Current heating power changed to" << power;
+            thing->setStateValue(aitSmartHomeHeatingPowerStateTypeId, power);
+        });
 
         m_aitShiConnections.insert(thing, aitShiConnection);
 
