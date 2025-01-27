@@ -148,7 +148,7 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
     if (thing->thingClassId() == alphaConnectThingClassId) {
         QHostAddress hostAddress = QHostAddress(thing->paramValue(alphaConnectThingIpAddressParamTypeId).toString());
         if (hostAddress.isNull()) {
-            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("No IP address given"));
+            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("No IP address given."));
             return;
         }
 
