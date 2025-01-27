@@ -25,7 +25,7 @@
                         },
                         {
                             "id": "f791c219-98a5-41ee-8e5f-1bfb5136dc9c",
-                            "name":"macAddress",
+                            "name": "macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
                             "inputType": "MacAddress",
@@ -33,14 +33,14 @@
                         },
                         {
                             "id": "b92025c1-8978-4d47-bd3c-4df749dbfd0f",
-                            "name":"port",
+                            "name": "port",
                             "displayName": "Port",
                             "type": "int",
                             "defaultValue": 502
                         },
                         {
                             "id": "1d9517ca-680c-49e2-a8d1-320743c27559",
-                            "name":"slaveId",
+                            "name": "slaveId",
                             "displayName": "Modbus slave ID",
                             "type": "int",
                             "defaultValue": 1
@@ -294,12 +294,7 @@
                             "displayNameEvent": "Smart grid mode changed",
                             "displayNameAction": "Set smart grid mode",
                             "type": "QString",
-                            "possibleValues": [
-                                "Off",
-                                "Low",
-                                "Standard",
-                                "High"
-                            ],
+                            "possibleValues": ["Off", "Low", "Standard", "High"],
                             "writable": true,
                             "defaultValue": "Standard",
                             "suggestLogging": true
@@ -335,14 +330,18 @@
                             "suggestLogging": true
                         }
                     ],
-                    "actionTypes": [ ]
+                    "actionTypes": []
                 },
                 {
                     "name": "aitSmartHome",
                     "displayName": "AlphaInnotec SHI",
                     "id": "d3395111-de03-4361-aecb-d17a76b7b1a7",
                     "createMethods": ["discovery", "user"],
-                    "interfaces": ["pvsurplusheatpump", "smartmeterconsumer", "connectable"],
+                    "interfaces": [
+                        "pvsurplusheatpump",
+                        "smartmeterconsumer",
+                        "connectable"
+                    ],
                     "paramTypes": [
                         {
                             "id": "5b452fb6-7f3c-47df-bbc7-2d79cd35b2c7",
@@ -354,7 +353,7 @@
                         },
                         {
                             "id": "b1eeb237-4328-4fb3-8a1e-afdc7ea89896",
-                            "name":"macAddress",
+                            "name": "macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
                             "inputType": "MacAddress",
@@ -362,17 +361,31 @@
                         },
                         {
                             "id": "aa8cdf0d-341f-48af-99be-ae710d116b13",
-                            "name":"port",
+                            "name": "port",
                             "displayName": "Port",
                             "type": "int",
                             "defaultValue": 502
                         },
                         {
                             "id": "6a7f5d6e-6214-43dc-b7fa-87ac9cd01a1e",
-                            "name":"slaveId",
+                            "name": "slaveId",
                             "displayName": "Modbus slave ID",
                             "type": "int",
                             "defaultValue": 1
+                        },
+                        {
+                            "id": "74d52504-1ec3-4af0-a695-c2ceb36b3f1e",
+                            "name": "heatingOffset",
+                            "displayName": "Heating offset temperature",
+                            "type": "uint",
+                            "defaultValue": 5
+                        },
+                        {
+                            "id": "bedf8f10-b64e-48a9-b710-c034cc36b604",
+                            "name": "hotWaterOffset",
+                            "displayName": "Hot water offset temperature",
+                            "type": "uint",
+                            "defaultValue": 5
                         }
                     ],
                     "stateTypes": [
@@ -536,17 +549,6 @@
                             "suggestLogging": true
                         },
                         {
-                            "id": "0c80f79e-183d-4562-987b-b351a9262d4f",
-                            "name": "powerLimitMode",
-                            "displayName": "Power limitation mode",
-                            "displayNameEvent": "Power limitation mode",
-                            "displayNameAction": "Set LPC mode",
-                            "type": "int",
-                            "writable": true,
-                            "defaultValue": 0,
-                            "suggestLogging": true
-                        },
-                        {
                             "id": "db7aa620-d7fd-4f3a-89ae-69e807c839d8",
                             "name": "firmwareVersion",
                             "displayName": "Firmware version",
@@ -563,55 +565,9 @@
                             "type": "int",
                             "defaultValue": 0,
                             "suggestLogging": true
-                        },
-                        {
-                            "id": "95b81454-88e8-4c25-8fd3-f657a92ccdcb",
-                            "name": "heatingMode",
-                            "displayName": "Heating mode",
-                            "displayNameEvent": "Heating mode changed",
-                            "displayNameAction": "Set heating mode",
-                            "type": "int",
-                            "defaultValue": 0,
-                            "writable": true,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "1129ec2c-302a-4253-baad-8c9bf5678f92",
-                            "name": "heatingOffsetTemp",
-                            "displayName": "Heating offset temperature",
-                            "displayNameEvent": "Heating offset temperature changed",
-                            "displayNameAction": "Set heating offset temp surplus",
-                            "unit": "Watt",
-                            "type": "double",
-                            "writable": true,
-                            "defaultValue": 0,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "8a7e9c06-6e48-4cc5-a9c2-56ea9cdab0e0",
-                            "name": "hotWaterMode",
-                            "displayName": "Hot water mode",
-                            "displayNameEvent": "Hot water mode changed",
-                            "displayNameAction": "Set hot water mode",
-                            "type": "int",
-                            "defaultValue": 0,
-                            "writable": true,
-                            "suggestLogging": true
-                        },
-                        {
-                            "id": "2d77c52d-bf63-4a69-8174-322539d9b2b7",
-                            "name": "hotWaterOffsetTemp",
-                            "displayName": "Hot Water offset temperature",
-                            "displayNameEvent": "HotWater offset temperature changed",
-                            "displayNameAction": "Set hot water offset temp surplus",
-                            "unit": "Watt",
-                            "type": "double",
-                            "writable": true,
-                            "defaultValue": 0,
-                            "suggestLogging": true
                         }
                     ],
-                    "actionTypes": [ ]
+                    "actionTypes": []
                 }
             ]
         }

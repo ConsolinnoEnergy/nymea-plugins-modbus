@@ -717,6 +717,13 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
         }
     }
 
+    if (thing->thingClassId() == alphaConnectThingClassId) {
+        if (info->action().actionTypeId() == )
+        {
+
+        }
+    }
+
     info->finish(Thing::ThingErrorNoError);
 }
 
