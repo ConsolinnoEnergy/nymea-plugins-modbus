@@ -377,14 +377,14 @@
                             "id": "74d52504-1ec3-4af0-a695-c2ceb36b3f1e",
                             "name": "heatingOffset",
                             "displayName": "Heating offset temperature",
-                            "type": "uint",
+                            "type": "double",
                             "defaultValue": 5
                         },
                         {
                             "id": "bedf8f10-b64e-48a9-b710-c034cc36b604",
                             "name": "hotWaterOffset",
                             "displayName": "Hot water offset temperature",
-                            "type": "uint",
+                            "type": "double",
                             "defaultValue": 5
                         }
                     ],

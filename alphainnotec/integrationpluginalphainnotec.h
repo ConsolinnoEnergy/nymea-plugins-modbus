@@ -66,6 +66,8 @@ private:
     quint16 m_majorVersion = 0;
     quint16 m_minorVersion = 0;
     void updateFirmwareVersion(Thing *thing, quint16 version, QString place);
+
+    void writeOffsetTemperatures(Thing *thing);
 };
 
 #endif // INTEGRATIONPLUGINALPHAINNOTEC_H
