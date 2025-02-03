@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "broetje",
-                    "displayName": "Brötje BLW Eco.1",
+                    "displayName": "Brötje BLW Eco.1 / Mono.1",
                     "id": "2940f87e-408c-4151-9a3c-38b7e337e5fb",
                     "createMethods": ["discovery"],
                     "interfaces": ["smartgridheatpump", "connectable"],
