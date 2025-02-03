@@ -55,12 +55,17 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
-    PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, VictronModbusTcpConnection *> m_victronConnections;
+    const int m_modbusTcpPort = 502;
+    const quint16 m_modbusSlaveAddress = 1;
+    PluginTimer *m_refreshTimer = nullptr;
+
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    QHash<Thing *, VictronModbusTcpConnection *> m_tcpConnections;
 
     void setupVictronConnection(ThingSetupInfo *info);
 
+    Thing *getMeterThing(Thing *parentThing);
+    Thing *getBatteryThing(Thing *parentThing);
 };
 
 #endif // INTEGRATIONPLUGINVICTRON_H

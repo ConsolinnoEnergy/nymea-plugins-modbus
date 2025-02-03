@@ -44,12 +44,7 @@ class VictronDiscovery : public QObject
 public:
     explicit VictronDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 1502, quint16 modbusAddress = 71, QObject *parent = nullptr);
     typedef struct VictronDiscoveryResult {
-        QString productName;
-        QString manufacturerName;
         QString serialNumber;
-        QString articleNumber;
-        QString softwareVersionMainController;
-        QString softwareVersionIoController;
         NetworkDeviceInfo networkDeviceInfo;
     } VictronDiscoveryResult;
 
@@ -67,8 +62,6 @@ private:
 
     QDateTime m_startDateTime;
 
-    NetworkDeviceInfos m_networkDeviceInfos;
-    NetworkDeviceInfos m_verifiedNetworkDeviceInfos;
 
     QList<VictronModbusTcpConnection *> m_connections;
 

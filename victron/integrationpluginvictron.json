@@ -9,10 +9,10 @@
             "id": "d6cc8099-a92c-4aec-ad0c-af96f874c2cf",
             "thingClasses": [
                 {
-                    "name": "victronInverter",
+                    "name": "victronInverterTcp",
                     "displayName": "VICTRON Inverter",
                     "id": "96a232b3-1d24-4bc6-9be4-23996e80c8c5",
-                    "createMethods": ["discovery", "user"],
+                    "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],
                     "providedInterfaces": [ "energymeter", "energystorage"],
                     "paramTypes": [
@@ -23,20 +23,6 @@
                             "type": "QString",
                             "inputType": "MacAddress",
                             "defaultValue": ""
-                        },
-                        {
-                            "id": "318b09e2-7573-4408-9b29-c856548c57ff",
-                            "name":"port",
-                            "displayName": "Port",
-                            "type": "int",
-                            "defaultValue": 1502
-                        },
-                        {
-                            "id": "87fd4a68-ae8a-4b77-b300-6f1d802bd06c",
-                            "name":"slaveId",
-                            "displayName": "Slave ID",
-                            "type": "int",
-                            "defaultValue": 71
                         }
                     ],
                     "stateTypes": [
@@ -65,87 +51,6 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.0,
                             "cached": true
-                        },
-                        {
-                            "id": "2ae3094f-bfb7-442d-9714-474fb419414f",
-                            "name": "phaseACurrent",
-                            "displayName": "Phase A current",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0.00,
-                            "cached": false
-                        },
-                        {
-                            "id": "80d5852a-c770-4803-9d1c-0013974e1246",
-                            "name": "phaseBCurrent",
-                            "displayName": "Phase B current",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0.00,
-                            "cached": false
-                        },
-                        {
-                            "id": "e4501a2d-d148-49e0-9195-3b28ea66a53e",
-                            "name": "phaseCCurrent",
-                            "displayName": "Phase C current",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0.00,
-                            "cached": false
-                        },
-                        {
-                            "id": "3017a23c-26ea-4163-9647-4f4eb2e397b6",
-                            "name": "voltagePhaseA",
-                            "displayName": "Voltage phase A",
-                            "type": "double",
-                            "unit": "Volt",
-                            "defaultValue": 0.00,
-                            "cached": false
-                        },
-                        {
-                            "id": "976560a2-1022-4089-9546-9bd143f5e3b2",
-                            "name": "voltagePhaseB",
-                            "displayName": "Voltage phase B",
-                            "type": "double",
-                            "unit": "Volt",
-                            "defaultValue": 0.00,
-                            "cached": false
-                        },
-                        {
-                            "id": "a1a4762c-f1e3-41e1-abe3-c8899d02944c",
-                            "name": "voltagePhaseC",
-                            "displayName": "Voltage phase C",
-                            "type": "double",
-                            "unit": "Volt",
-                            "defaultValue": 0.00,
-                            "cached": false
-                        },
-                        {
-                            "id": "13cdb10e-8a11-49a5-a0b3-ec48348d6150",
-                            "name": "currentPowerPhaseA",
-                            "displayName": "Current power phase A",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0.00,
-                            "cached": false
-                        },
-                        {
-                            "id": "f67b2b37-938d-4683-a75f-db5d8396f0f3",
-                            "name": "currentPowerPhaseB",
-                            "displayName": "Current power phase B",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0.00,
-                            "cached": false
-                        },
-                        {
-                            "id": "aa633a0b-7463-404f-8e1d-f3ac86901c6a",
-                            "name": "currentPowerPhaseC",
-                            "displayName": "Current power phase C",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0.00,
-                            "cached": false
                         },
                         {
                             "id": "7675f1ed-334c-4f1d-8983-be7e69558496",

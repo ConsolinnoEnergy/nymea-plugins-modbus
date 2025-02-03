@@ -1,199 +1,54 @@
 {
-    "className": "Sungrow",
+    "className": "Victron",
     "protocol": "TCP",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 5,
-    "checkReachableRegister": "totalPVPower",
+    "checkReachableRegister": "serialNumber",
     "enums": [
-        {
-            "name": "SystemState",
-            "values": [
-                {
-                    "key": "Stop",
-                    "value": 2
-                },
-                {
-                    "key": "Standby",
-                    "value": 8
-                },
-                {
-                    "key": "InitialStandby",
-                    "value": 16
-                },
-                {
-                    "key": "Startup",
-                    "value": 32
-                },
-                {
-                    "key": "Running",
-                    "value": 64
-                },
-                {
-                    "key": "Fault",
-                    "value": 256
-                },
-                {
-                    "key": "RunningMainMode",
-                    "value": 1024
-                },
-                {
-                    "key": "RunningForcedMode",
-                    "value": 2048
-                },
-                {
-                    "key": "RunningOffGridMode",
-                    "value": 4096
-                },
-                {
-                    "key": "Restarting",
-                    "value": 9473
-                },
-                {
-                    "key": "RunningExternalEMSMode",
-                    "value": 16384
-                }
-            ]
-        },
-        {
-            "name": "BatteryType",
-            "values": [
-                {
-                    "key": "LeadAcidNarada",
-                    "value": 0
-                },
-                {
-                    "key": "LiIonSamsung",
-                    "value": 1
-                },
-                {
-                    "key": "NoBattery",
-                    "value": 2
-                },
-                {
-                    "key": "LeadAcidOther",
-                    "value": 3
-                },
-                {
-                    "key": "LiIonUS2000A",
-                    "value": 4
-                },
-                {
-                    "key": "LiIonLG",
-                    "value": 5
-                },
-                {
-                    "key": "LiIonUS2000B",
-                    "value": 6
-                },
-                {
-                    "key": "LiIonGCL",
-                    "value": 7
-                },
-                {
-                    "key": "LiIonBSG",
-                    "value": 8
-                },
-                {
-                    "key": "LiIonSungrow",
-                    "value": 9
-                },
-                {
-                    "key": "LiIonBYD",
-                    "value": 10
-                },
-                {
-                    "key": "LiIonTawaki",
-                    "value": 11
-                }
-            ]
-        }
     ],
     "blocks": [
-        {
-            "id": "version",
-            "readSchedule": "init",
-            "registers": [
-                {
-                    "id": "protocolNumber",
-                    "address": 4949,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Protocol number",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "protocolVersion",
-                    "address": 4951,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "inputRegister",
-                    "description": "Device type code",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "armSoftwareVersion",
-                    "address": 4953,
-                    "size": 15,
-                    "type": "string",
-                    "registerType": "inputRegister",
-                    "description": "ARM software version",
-                    "access": "RO"
-                },
-                {
-                    "id": "dspSoftwareVersion",
-                    "address": 4968,
-                    "size": 15,
-                    "type": "string",
-                    "registerType": "inputRegister",
-                    "description": "ARM software version",
-                    "access": "RO"
-                }
-            ]
-        },
-        {
-            "id": "identification",
-            "readSchedule": "init",
-            "registers": [
-                {
-                    "id": "serialNumber",
-                    "address": 4989,
-                    "size": 10,
-                    "type": "string",
-                    "registerType": "inputRegister",
-                    "description": "Serial number",
-                    "access": "RO"
-                },
-                {
-                    "id": "deviceTypeCode",
-                    "address": 4999,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Device type code",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "nominalOutputPower",
-                    "address": 5000,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Nominal output power",
-                    "unit": "kW",
-                    "staticScaleFactor": -1,
-                    "defaultValue": "0",
-                    "access": "RO"
-                }
-            ]
-        },
         {
             "id": "system",
             "readSchedule": "update",
             "registers": [
+                {
+                    "id": "serialNumber",
+                    "address": 800,
+                    "size": 6,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Serial number",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy0",
+                    "address": 806,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPowerPv",
+                    "address": 808,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Power of AC-Coupled PV Inverters on the output",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 809,
+                    "size": 11,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
                 {
                     "id": "meterPowerA",
                     "address": 820,
@@ -228,7 +83,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy0",
+                    "id": "dummy2",
                     "address": 823,
                     "size": 17,
                     "type": "raw",
@@ -249,7 +104,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy1",
+                    "id": "dummy3",
                     "address": 841,
                     "size": 1,
                     "type": "raw",
@@ -270,7 +125,7 @@
                 },
                 {
                     "id": "batterySoc",
-                    "address": 13022,
+                    "address": 843,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
@@ -298,9 +153,9 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy2",
+                    "id": "dummy4",
                     "address": 263,
-                    "size": 47,
+                    "size": 46,
                     "type": "raw",
                     "registerType": "holdingRegister",
                     "description": "none",
@@ -361,7 +216,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy3",
+                    "id": "dummy5",
                     "address": 1052,
                     "size": 12,
                     "type": "raw",
@@ -460,7 +315,7 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy4",
+                    "id": "dummy6",
                     "address": 2622,
                     "size": 12,
                     "type": "raw",
@@ -493,9 +348,9 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy5",
-                    "address": 2637,
-                    "size": 7,
+                    "id": "dummy7",
+                    "address": 2638,
+                    "size": 6,
                     "type": "raw",
                     "registerType": "holdingRegister",
                     "description": "none",

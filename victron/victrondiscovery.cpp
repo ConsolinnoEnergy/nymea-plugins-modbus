@@ -43,6 +43,7 @@ VictronDiscovery::VictronDiscovery(NetworkDeviceDiscovery *networkDeviceDiscover
 void VictronDiscovery::startDiscovery()
 {
     qCInfo(dcVictron()) << "Discovery: Start searching for Victron inverters in the network...";
+    m_startDateTime = QDateTime::currentDateTime();
     NetworkDeviceDiscoveryReply *discoveryReply = m_networkDeviceDiscovery->discover();
 
     // Imedialty check any new device gets discovered
@@ -52,14 +53,7 @@ void VictronDiscovery::startDiscovery()
         connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
         qCDebug(dcVictron()) << "Discovery: Network discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "network devices";
-        m_networkDeviceInfos = discoveryReply->networkDeviceInfos();
 
-        // Send a report request to nework device info not sent already...
-        foreach (const NetworkDeviceInfo &networkDeviceInfo, m_networkDeviceInfos) {
-            if (!m_verifiedNetworkDeviceInfos.contains(networkDeviceInfo)) {
-                checkNetworkDevice(networkDeviceInfo);
-            }
-        }
 
         // Give the last connections added right before the network discovery finished a chance to check the device...
         QTimer::singleShot(3000, this, [this](){
@@ -79,70 +73,67 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
     // Create a victron connection and try to initialize it.
     // Only if initialized successfully and all information have been fetched correctly from
     // the device we can assume this is what we are locking for (ip, port, modbus address, correct registers).
-    // We cloud tough also filter the result only for certain software versions, manufactueres or whatever...
 
-    if (m_verifiedNetworkDeviceInfos.contains(networkDeviceInfo))
-        return;
-
+    qCDebug(dcVictron()) << "Creating Victron Modbus TCP connection for" << networkDeviceInfo.address() << "Port:" << m_port << "Slave Address" << m_modbusAddress;
     VictronModbusTcpConnection *connection = new VictronModbusTcpConnection(networkDeviceInfo.address(), m_port, m_modbusAddress, this);
+    connection->setTimeout(5000);
+    connection->setNumberOfRetries(0);
     m_connections.append(connection);
-    m_verifiedNetworkDeviceInfos.append(networkDeviceInfo);
 
     connect(connection, &VictronModbusTcpConnection::reachableChanged, this, [=](bool reachable){
+        qCDebug(dcVictron()) << "Victron Modbus TCP Connection reachable changed:" << reachable;
         if (!reachable) {
-            // Disconnected ... done with this connection
+
             cleanupConnection(connection);
             return;
         }
+        qCDebug(dcVictron()) << "Connected, proceeding with initialization";
 
-        // Modbus TCP connected...ok, let's try to initialize it!
-        connect(connection, &VictronModbusTcpConnection::initializationFinished, this, [=](bool success){
+         connect(connection, &VictronModbusTcpConnection::initializationFinished, this, [=](bool success){
             if (!success) {
                 qCDebug(dcVictron()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString() << "Continue...";;
                 cleanupConnection(connection);
                 return;
             }
+	    
+            qCDebug(dcVictron()) << "Discovery: Initialized successfully" << networkDeviceInfo << connection->serialNumber();
 
             VictronDiscoveryResult result;
-            result.productName = connection->productName();
-            result.manufacturerName = connection->inverterManufacturer();
-            result.serialNumber = connection->inverterSerialNumber1();
-            result.articleNumber = connection->inverterArticleNumber();
-            result.softwareVersionIoController = connection->softwareVersionIoController();
-            result.softwareVersionMainController = connection->softwareVersionMainController();
+            result.serialNumber = connection->serialNumber();
             result.networkDeviceInfo = networkDeviceInfo;
             m_discoveryResults.append(result);
 
-            qCDebug(dcVictron()) << "Discovery: --> Found" << result.manufacturerName << result.productName
-                                << "Article:" << result.articleNumber
-                                << "Serial number:" << result.serialNumber
-                                << "Software version main controller:" << result.softwareVersionMainController
-                                << "Software version IO controller:" << result.softwareVersionIoController
-                                << result.networkDeviceInfo;
+            connection->disconnectDevice();
 
 
-            // Done with this connection
-            cleanupConnection(connection);
         });
 
-        // Initializing...
+        qCDebug(dcVictron()) << "Discovery: The host" << networkDeviceInfo << "is reachable. Starting with initialization.";
         if (!connection->initialize()) {
-            qCDebug(dcVictron()) << "Discovery: Unable to initialize connection on" << networkDeviceInfo.address().toString() << "Continue...";;
+            qCDebug(dcVictron()) << "Discovery: Unable to initialize connection on" << networkDeviceInfo.address().toString() << "Continue...";
             cleanupConnection(connection);
         }
     });
 
-    // If we get any error...skip this host...
-    connect(connection, &VictronModbusTcpConnection::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
+
+    // In case of an error skip the host
+    connect(connection, &ModbusTCPMaster::connectionStateChanged, this, [=](bool connected){
+        if (connected) {
+            qCDebug(dcVictron()) << "Discovery: Connected with" << networkDeviceInfo.address().toString() << m_port;
+        }
+    });
+
+    // In case of an error skip the host
+    connect(connection, &ModbusTCPMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
         if (error != QModbusDevice::NoError) {
-            qCDebug(dcVictron()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";;
+            qCDebug(dcVictron()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";
             cleanupConnection(connection);
         }
     });
 
-    // If check reachability failed...skip this host...
+    // If the reachability check failed skip the host
     connect(connection, &VictronModbusTcpConnection::checkReachabilityFailed, this, [=](){
-        qCDebug(dcVictron()) << "Discovery: Check reachability failed on" << networkDeviceInfo.address().toString() << "Continue...";;
+        qCDebug(dcVictron()) << "Discovery: Check reachability failed on" << networkDeviceInfo.address().toString() << "Continue...";
         cleanupConnection(connection);
     });
 
@@ -152,6 +143,7 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
 
 void VictronDiscovery::cleanupConnection(VictronModbusTcpConnection *connection)
 {
+    qCDebug(dcVictron()) << "Discovery: Cleanup connection";
     m_connections.removeAll(connection);
     connection->disconnectDevice();
     connection->deleteLater();
@@ -161,11 +153,10 @@ void VictronDiscovery::finishDiscovery()
 {
     qint64 durationMilliSeconds = QDateTime::currentMSecsSinceEpoch() - m_startDateTime.toMSecsSinceEpoch();
 
-    // Cleanup any leftovers...we don't care any more
     foreach (VictronModbusTcpConnection *connection, m_connections)
         cleanupConnection(connection);
 
-    qCInfo(dcVictron()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count() << "Victron Inverters in" << QTime::fromMSecsSinceStartOfDay(durationMilliSeconds).toString("mm:ss.zzz");
+    qCDebug(dcVictron()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count() << "Victron Inverters in" << QTime::fromMSecsSinceStartOfDay(durationMilliSeconds).toString("mm:ss.zzz");
 
     emit discoveryFinished();
 }
