@@ -1,9 +1,9 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2024, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
-* This file is part of nymea.
+* This fileDescriptor is part of nymea.
 * This project including source code and documentation is protected by
 * copyright law, and remains the property of nymea GmbH. All rights, including
 * reproduction, publication, editing and translation, are reserved. The use of
@@ -28,46 +28,45 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSUNGROW_H
-#define INTEGRATIONPLUGINSUNGROW_H
+#ifndef INTEGRATIONPLUGINSUNGROWSG_H
+#define INTEGRATIONPLUGINSUNGROWSG_H
 
-#include <plugintimer.h>
 #include <integrations/integrationplugin.h>
-#include <network/networkdevicemonitor.h>
+#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <plugintimer.h>
 
 #include "extern-plugininfo.h"
-
 #include "sungrowmodbustcpconnection.h"
+#include "sungrowmodbusrtuconnection.h"
+
+#include <QObject>
+#include <QHostAddress>
+#include <QTimer>
+
+class NetworkDeviceMonitor;
 
 class IntegrationPluginSungrow: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginsungrow.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginsungrowsg.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
     explicit IntegrationPluginSungrow();
-
+    void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
 
 private:
-    const int m_modbusTcpPort = 502;
-    const quint16 m_modbusSlaveAddress = 1;
-    PluginTimer *m_refreshTimer = nullptr;
+    PluginTimer *m_pluginTimer = nullptr;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, SungrowModbusTcpConnection *> m_tcpConnections;
-
-    void setupSungrowTcpConnection(ThingSetupInfo *info);
-
-    Thing *getMeterThing(Thing *parentThing);
-    Thing *getBatteryThing(Thing *parentThing);
+    QHash<Thing *, SungrowModbusRtuConnection *> m_rtuConnections;
 };
 
-#endif // INTEGRATIONPLUGINSUNGROW_H
-
+#endif // INTEGRATIONPLUGINSUNGROWSG_H
 
