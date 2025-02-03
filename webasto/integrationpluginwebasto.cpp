@@ -342,7 +342,8 @@ void IntegrationPluginWebasto::postSetupThing(Thing *thing)
                     if (connection->reachable()) {
                         qCDebug(dcWebasto()) << "Updating connection" << connection->hostAddress().toString();
                         connection->update();
-                        connection->setAliveRegister(1);
+                        QModbusReply *reply = connection->setAliveRegister(1);
+                        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
                     }
                 }
             }
@@ -488,6 +489,7 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             }
 
             QModbusReply *reply = evc04Connection->setChargingCurrent(power ? info->thing()->stateValue(webastoUniteMaxChargingCurrentStateTypeId).toUInt() : 0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, info, [info, reply, power](){
                 if (reply->error() == QModbusDevice::NoError) {
                     if (!power) {
@@ -511,6 +513,7 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             int maxChargingCurrent = info->action().paramValue(webastoUniteMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toInt();
             if (power) {
                 QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
                 connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
                     if (reply->error() == QModbusDevice::NoError) {
                         qCDebug(dcWebasto()) << "Setting max charging current finished successfully.";
@@ -545,6 +548,7 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             }
 
             QModbusReply *reply = evc04Connection->setChargingCurrent(power ? info->thing()->stateValue("maxChargingCurrent").toUInt() : 0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, info, [info, reply, power](){
                 if (reply->error() == QModbusDevice::NoError) {
                     if (!power) {
@@ -568,6 +572,7 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             int maxChargingCurrent = info->action().paramValue(vestelEVC04MaxChargingCurrentActionMaxChargingCurrentParamTypeId).toInt();
             if (power) {
                 QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
                 connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
                     if (reply->error() == QModbusDevice::NoError) {
                         qCDebug(dcWebasto()) << "Setting max charging current finished successfully.";
@@ -602,6 +607,7 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             }
 
             QModbusReply *reply = evc04Connection->setChargingCurrent(power ? info->thing()->stateValue("maxChargingCurrent").toUInt() : 0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, info, [info, reply, power](){
                 if (reply->error() == QModbusDevice::NoError) {
                     if (!power) {
@@ -625,6 +631,7 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             int maxChargingCurrent = info->action().paramValue(eonDriveMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toInt();
             if (power) {
                 QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
                 connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
                     if (reply->error() == QModbusDevice::NoError) {
                         qCDebug(dcWebasto()) << "Setting max charging current finished successfully.";
@@ -1178,7 +1185,8 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         quint16 chargingCurrent = evc04Connection->chargingCurrent();
         bool power = thing->stateValue("power").toBool();
         if (chargingCurrent > 1 && !power) {
-            evc04Connection->setChargingCurrent(0);
+            QModbusReply *reply = evc04Connection->setChargingCurrent(0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
         }
 
         // I've been observing the wallbox getting stuck on modbus. It is still functional, but modbus keeps on returning the same old values
