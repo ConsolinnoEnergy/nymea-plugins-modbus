@@ -969,7 +969,7 @@ bool WebastoNextModbusTcpConnection::update()
     qCDebug(dcWebastoNextModbusTcpConnection()) << "--> Read \"Start / Cancel charging session\" register:" << 5006 << "size:" << 1;
     reply = readChargingAction();
     if (!reply) {
-        qCWarning(dcWebastoNextModbusTcpConnection()) << "Error occurred while reading \"Start / Cancel charging session\" registers from" << hostAddress().toString() << errorString();
+        qCDebug(dcWebastoNextModbusTcpConnection()) << "Error occurred while reading \"Start / Cancel charging session\" registers from" << hostAddress().toString() << errorString();
         return false;
     }
 
@@ -995,7 +995,7 @@ bool WebastoNextModbusTcpConnection::update()
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcWebastoNextModbusTcpConnection()) << "Modbus reply error occurred while reading \"Start / Cancel charging session\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCDebug(dcWebastoNextModbusTcpConnection()) << "Modbus reply error occurred while reading \"Start / Cancel charging session\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 
     // Read Life bit
@@ -1676,7 +1676,7 @@ void WebastoNextModbusTcpConnection::updateChargingAction()
     qCDebug(dcWebastoNextModbusTcpConnection()) << "--> Read \"Start / Cancel charging session\" register:" << 5006 << "size:" << 1;
     QModbusReply *reply = readChargingAction();
     if (!reply) {
-        qCWarning(dcWebastoNextModbusTcpConnection()) << "Error occurred while reading \"Start / Cancel charging session\" registers from" << hostAddress().toString() << errorString();
+        qCDebug(dcWebastoNextModbusTcpConnection()) << "Error occurred while reading \"Start / Cancel charging session\" registers from" << hostAddress().toString() << errorString();
         return;
     }
 
@@ -1696,7 +1696,7 @@ void WebastoNextModbusTcpConnection::updateChargingAction()
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcWebastoNextModbusTcpConnection()) << "Modbus reply error occurred while updating \"Start / Cancel charging session\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCDebug(dcWebastoNextModbusTcpConnection()) << "Modbus reply error occurred while updating \"Start / Cancel charging session\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
