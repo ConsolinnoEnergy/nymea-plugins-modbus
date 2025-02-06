@@ -3,7 +3,7 @@
     "protocol": "TCP",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 5,
-    "checkReachableRegister": "serialNumber",
+    "checkReachableRegister": "inverterCurrentPowerPv",
     "enums": [
     ],
     "blocks": [
@@ -11,24 +11,6 @@
             "id": "system",
             "readSchedule": "update",
             "registers": [
-                {
-                    "id": "serialNumber",
-                    "address": 800,
-                    "size": 6,
-                    "type": "string",
-                    "registerType": "holdingRegister",
-                    "description": "Serial number",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy0",
-                    "address": 806,
-                    "size": 2,
-                    "type": "raw",
-                    "registerType": "holdingRegister",
-                    "description": "none",
-                    "access": "RO"
-                },
                 {
                     "id": "inverterCurrentPowerPv",
                     "address": 808,
@@ -372,5 +354,15 @@
         }
     ],
     "registers": [
+        {
+            "id": "serialNumber",
+            "address": 800,
+            "size": 6,
+            "type": "string",
+            "readSchedule": "init",
+            "registerType": "holdingRegister",
+            "description": "Serial number",
+            "access": "RO"
+        }
     ]
 }

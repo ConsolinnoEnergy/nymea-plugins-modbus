@@ -42,21 +42,17 @@ VictronDiscovery::VictronDiscovery(NetworkDeviceDiscovery *networkDeviceDiscover
 
 void VictronDiscovery::startDiscovery()
 {
-    qCInfo(dcVictron()) << "Discovery: Start searching for Victron inverters in the network...";
+    qCDebug(dcVictron()) << "Discovery: Start searching for Victron inverters in the network...";
     m_startDateTime = QDateTime::currentDateTime();
+
     NetworkDeviceDiscoveryReply *discoveryReply = m_networkDeviceDiscovery->discover();
-
-    // Imedialty check any new device gets discovered
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::networkDeviceInfoAdded, this, &VictronDiscovery::checkNetworkDevice);
-
-    // Check what might be left on finished
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
-    connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
+    connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
+    connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=] () {
         qCDebug(dcVictron()) << "Discovery: Network discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "network devices";
 
-
         // Give the last connections added right before the network discovery finished a chance to check the device...
-        QTimer::singleShot(3000, this, [this](){
+        QTimer::singleShot(3000, this, [this] () {
             qCDebug(dcVictron()) << "Discovery: Grace period timer triggered.";
             finishDiscovery();
         });
@@ -83,13 +79,12 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
     connect(connection, &VictronModbusTcpConnection::reachableChanged, this, [=](bool reachable){
         qCDebug(dcVictron()) << "Victron Modbus TCP Connection reachable changed:" << reachable;
         if (!reachable) {
-
             cleanupConnection(connection);
             return;
         }
         qCDebug(dcVictron()) << "Connected, proceeding with initialization";
 
-         connect(connection, &VictronModbusTcpConnection::initializationFinished, this, [=](bool success){
+        connect(connection, &VictronModbusTcpConnection::initializationFinished, this, [=](bool success){
             if (!success) {
                 qCDebug(dcVictron()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString() << "Continue...";;
                 cleanupConnection(connection);
@@ -99,13 +94,11 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
             qCDebug(dcVictron()) << "Discovery: Initialized successfully" << networkDeviceInfo << connection->serialNumber();
 
             VictronDiscoveryResult result;
-            result.serialNumber = connection->serialNumber();
             result.networkDeviceInfo = networkDeviceInfo;
+            result.serialNumber = connection->serialNumber();
             m_discoveryResults.append(result);
 
             connection->disconnectDevice();
-
-
         });
 
         qCDebug(dcVictron()) << "Discovery: The host" << networkDeviceInfo << "is reachable. Starting with initialization.";
@@ -114,7 +107,6 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
             cleanupConnection(connection);
         }
     });
-
 
     // In case of an error skip the host
     connect(connection, &ModbusTCPMaster::connectionStateChanged, this, [=](bool connected){
@@ -137,7 +129,6 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
         cleanupConnection(connection);
     });
 
-    // Try to connect, maybe it works, maybe not...
     connection->connectDevice();
 }
 

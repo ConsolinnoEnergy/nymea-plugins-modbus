@@ -42,7 +42,7 @@ class VictronDiscovery : public QObject
 {
     Q_OBJECT
 public:
-    explicit VictronDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 1502, quint16 modbusAddress = 71, QObject *parent = nullptr);
+    explicit VictronDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 502, quint16 modbusAddress = 100, QObject *parent = nullptr);
     typedef struct VictronDiscoveryResult {
         QString serialNumber;
         NetworkDeviceInfo networkDeviceInfo;
@@ -62,9 +62,7 @@ private:
 
     QDateTime m_startDateTime;
 
-
     QList<VictronModbusTcpConnection *> m_connections;
-
     QList<VictronDiscoveryResult> m_discoveryResults;
 
     void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);

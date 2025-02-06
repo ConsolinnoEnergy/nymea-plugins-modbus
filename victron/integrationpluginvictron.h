@@ -56,7 +56,7 @@ public:
 
 private:
     const int m_modbusTcpPort = 502;
-    const quint16 m_modbusSlaveAddress = 1;
+    const quint16 m_modbusSlaveAddress = 100;
     PluginTimer *m_refreshTimer = nullptr;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
