@@ -190,7 +190,7 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             }
 
             // Check if a battery is connected to this Victron inverter
-            if (victronConnection->batteryTemperature() != 0 &&
+            if (victronConnection->batteryVoltage() != 0 &&
                     myThings().filterByParentId(thing->id()).filterByThingClassId(victronBatteryThingClassId).isEmpty()) {
                 qCDebug(dcVictron()) << "There is a battery connected but not set up yet. Creating a battery.";
                 ThingClass batteryThingClass = thingClass(victronBatteryThingClassId);
@@ -216,9 +216,12 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
                 // qCDebug(dcVictron()) << "Import power from grid:" << (runningState & (0x1 << 5) ? "true" : "false");
                 // qCDebug(dcVictron()) << "Negative load power:" << (runningState & (0x1 << 7) ? "true" : "false");
                 double meterPower = victronConnection->meterPowerA()+victronConnection->meterPowerB()+victronConnection->meterPowerC();
-                meterThing->setStateValue(victronMeterCurrentPowerStateTypeId, meterPower * -1);
+                meterThing->setStateValue(victronMeterCurrentPowerStateTypeId, meterPower);                
                 meterThing->setStateValue(victronMeterTotalEnergyConsumedStateTypeId, victronConnection->meterTotalEnergyConsumed());
                 meterThing->setStateValue(victronMeterTotalEnergyProducedStateTypeId, victronConnection->meterTotalEnergyProduced());
+                meterThing->setStateValue(victronMeterCurrentPowerPhaseAStateTypeId, victronConnection->meterPowerA());
+                meterThing->setStateValue(victronMeterCurrentPowerPhaseBStateTypeId, victronConnection->meterPowerB());
+                meterThing->setStateValue(victronMeterCurrentPowerPhaseCStateTypeId, victronConnection->meterPowerC());
                 meterThing->setStateValue(victronMeterCurrentPhaseAStateTypeId, victronConnection->meterCurrentA());
                 meterThing->setStateValue(victronMeterCurrentPhaseBStateTypeId, victronConnection->meterCurrentB());
                 meterThing->setStateValue(victronMeterCurrentPhaseCStateTypeId, victronConnection->meterCurrentC());
@@ -239,15 +242,13 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
 
                 // quint16 runningState = victronConnection->runningState();
                 double batteryPower = static_cast<double>(victronConnection->batteryPower());
-                // if (runningState & (0x1 << 1)) { //Bit 1: Battery charging bit
-                //     batteryThing->setStateValue(victronBatteryChargingStateStateTypeId, "charging");
-                //     batteryPower = batteryPower;
-                // } else if (runningState & (0x1 << 2)) { //Bit 2: Battery discharging bit
-                //     batteryThing->setStateValue(victronBatteryChargingStateStateTypeId, "discharging");
-                //     batteryPower = -1 * batteryPower;
-                // } else {
-                //     batteryThing->setStateValue(victronBatteryChargingStateStateTypeId, "idle");
-                // }
+                if (victronConnection->batteryState()==1) {
+                    batteryThing->setStateValue(victronBatteryChargingStateStateTypeId, "charging");
+                } else if(victronConnection->batteryState()==2) {
+                    batteryThing->setStateValue(victronBatteryChargingStateStateTypeId, "discharging");
+                } else {
+                    batteryThing->setStateValue(victronBatteryChargingStateStateTypeId, "idle");
+                }
                 batteryThing->setStateValue(victronBatteryCurrentPowerStateTypeId, batteryPower);
             }
         });

@@ -86,12 +86,15 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy3",
+                    "id": "batteryCurrent",
                     "address": 841,
                     "size": 1,
-                    "type": "raw",
+                    "type": "int16",
                     "registerType": "holdingRegister",
-                    "description": "none",
+                    "description": "DC battery current",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "unit": "A",
                     "access": "RO"
                 },
                 {
@@ -113,6 +116,16 @@
                     "registerType": "holdingRegister",
                     "description": "Battery state of charge",
                     "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryState",
+                    "address": 844,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "battery state; 0=idle, 1=charging; 2=discharging",
                     "defaultValue": "0",
                     "access": "RO"
                 }
