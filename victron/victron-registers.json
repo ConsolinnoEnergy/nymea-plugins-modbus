@@ -3,7 +3,7 @@
     "protocol": "TCP",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 5,
-    "checkReachableRegister": "inverterCurrentPowerPv",
+    "checkReachableRegister": "inverterPowerPvOutA",
     "enums": [
     ],
     "blocks": [
@@ -12,20 +12,75 @@
             "readSchedule": "update",
             "registers": [
                 {
-                    "id": "inverterCurrentPowerPv",
+                    "id": "inverterPowerPvOutA",
                     "address": 808,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "description": "Power of AC-Coupled PV Inverters on the output",
+                    "description": "PV - AC-coupled power on output L1",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvOutB",
+                    "address": 809,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on output L2",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvOutC",
+                    "address": 810,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on output L3",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvInpA",
+                    "address": 811,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on input L1",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvInpB",
+                    "address": 812,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on input L2",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvInpC",
+                    "address": 813,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on input L3",
                     "unit": "W",
                     "defaultValue": "0",
                     "access": "RO"
                 },
                 {
                     "id": "dummy1",
-                    "address": 809,
-                    "size": 11,
+                    "address": 814,
+                    "size": 6,
                     "type": "raw",
                     "registerType": "holdingRegister",
                     "description": "none",
