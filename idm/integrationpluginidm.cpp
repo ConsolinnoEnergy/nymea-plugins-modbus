@@ -225,6 +225,26 @@ void IntegrationPluginIdm::executeAction(ThingActionInfo *info)
                 thing->setStateValue(navigator2TargetTemperatureStateTypeId, targetTemperature);
                 info->finish(Thing::ThingErrorNoError);
             });
+        } else if (action.actionTypeId() == navigator2ActualPvSurplusActionTypeId){
+            float actualPvSurplus = action.paramValue(navigator2ActualPvSurplusActionActualPvSurplusParamTypeId).toDouble();
+            qCDebug(dcIdm()) << "Setting actual PV surplus to" << actualPvSurplus << "W";
+            QModbusReply *reply = connection->setCurrentPvSurplus(actualPvSurplus);
+            if (!reply) {
+                info->finish(Thing::ThingErrorHardwareFailure);
+                return;
+            }
+
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, info, [info, reply, thing, actualPvSurplus]{
+                if (reply->error() != QModbusDevice::NoError) {
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                    return;
+                }
+
+                qCDebug(dcIdm()) << "Actual PV surplus set successfully to" << actualPvSurplus << "W";
+                //thing->setStateValue(navigator2ActualPvSurplusStateTypeId, actualPvSurplus);
+                info->finish(Thing::ThingErrorNoError);
+            });
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(action.actionTypeId().toString()).toUtf8());
         }
@@ -321,6 +341,7 @@ void IntegrationPluginIdm::setupConnection(ThingSetupInfo *info)
             thing->setStateValue(navigator2EnergyProducedHeatingStateTypeId, connection->energyHeating());
             thing->setStateValue(navigator2EnergyProducedCoolingStateTypeId, connection->energyCooling());
             thing->setStateValue(navigator2EnergyProducedHotWaterStateTypeId, connection->energyHotWater());
+            thing->setStateValue(navigator2ActualPvSurplusStateTypeId, connection->currentPvSurplus());
 
             switch (connection->heatPumpOperatingMode()) {
             case IdmModbusTcpConnection::HeatPumpOperationModeOff:
@@ -362,6 +383,10 @@ void IntegrationPluginIdm::setupConnection(ThingSetupInfo *info)
             }
 
             thing->setStateValue(navigator2ErrorStateTypeId, connection->currentFaultNumber());
+
+            if (connection->currentPowerConsumption()>0){
+                thing->setStateValue(navigator2CoefficientOfPerformanceStateTypeId, connection->currentThermalPower()/connection->currentPowerConsumption());
+            }            
 
         });
 

@@ -13,7 +13,7 @@
                     "displayName": "Navigator 2.0",
                     "id": "1c95ac91-4eca-4cbf-b0f4-d60d35d069ed",
                     "createMethods": ["user", "discovery"],
-                    "interfaces": ["thermostat", "smartmeterconsumer", "connectable" ],
+                    "interfaces": ["thermostat", "smartmeterconsumer", "connectable", "pvsurplusheatpump"],
                     "paramTypes": [
                         {
                             "id": "d178ca29-41a1-4f56-82ec-76a833c1de50",
@@ -51,6 +51,28 @@
                             "maxValue": "28",
                             "defaultValue": 21.00,
                             "writable": true
+                        },
+                        {
+                            "id": "e0d92d65-2f4e-45f3-86bf-876e7574f210",
+                            "name": "actualPvSurplus",
+                            "displayName": "actual PV surplus",
+                            "displayNameEvent": "PV surplus changed",
+                            "displayNameAction": "Set PV surplus",
+                            "unit": "Watt",
+                            "type": "double",
+                            "writable": true,
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "76da0892-3a67-4ca4-ba30-1ce27a67e86d",
+                            "name": "coefficientOfPerformance",
+                            "displayName": "Coefficient of performance",
+                            "displayNameEvent": "Coefficient of performance changed",
+                            "unit": "None",
+                            "type": "double",
+                            "defaultValue": 0.00,
+                            "suggestLogging": true
                         },
                         {
                             "id": "fcf8e97f-a672-407f-94ae-30df15b310f4",

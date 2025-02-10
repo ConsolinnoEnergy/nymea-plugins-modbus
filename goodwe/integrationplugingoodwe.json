@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "goodweInverterRTU",
-                    "displayName": "GoodWe Inverter (Modbus RTU)",
+                    "displayName": "GoodWe Inverter",
                     "id": "f889d544-f8aa-4a48-8d63-b608262b1b94",
                     "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],

@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "sofarsolarInverterRTU",
-                    "displayName": "SOFAR solar Hybrid Inverter (Modbus RTU)",
+                    "displayName": "SOFAR solar HYD Inverter",
                     "id": "c3e20738-ca51-4b78-bacf-e129ac39ed97",
                     "createMethods": [
                         "discovery"

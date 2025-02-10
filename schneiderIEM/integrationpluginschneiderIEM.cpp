@@ -118,7 +118,6 @@ void IntegrationPluginSchneiderIEM::setupThing(ThingSetupInfo *info)
             thing->setStateValue(iemConnectedStateTypeId, reachable);
             if (reachable) {
                 qCDebug(dcSchneiderIEM()) << "Modbus RTU device " << thing << "connected on" << iemConnection->modbusRtuMaster()->serialPort() << "is sending data.";
-                iemConnection->initialize();
             } else {
                 qCDebug(dcSchneiderIEM()) << "Modbus RTU device " << thing << "connected on" << iemConnection->modbusRtuMaster()->serialPort() << "is not responding.";
                 thing->setStateValue(iemCurrentPowerStateTypeId, 0);
