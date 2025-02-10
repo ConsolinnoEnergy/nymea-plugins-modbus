@@ -8,9 +8,11 @@ include(../modbus.pri)
 SOURCES += \
     integrationpluginwebasto.cpp \
     webastodiscovery.cpp \
-    ../vestel/evc04discovery.cpp
+    ../vestel/evc04discovery.cpp \
+    webastonextmodbustcpconnection.cpp
 
 HEADERS += \
     integrationpluginwebasto.h \
     webastodiscovery.h \
-    ../vestel/evc04discovery.h
+    ../vestel/evc04discovery.h \
+    webastonextmodbustcpconnection.h
