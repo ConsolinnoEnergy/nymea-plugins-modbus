@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "lambdaTCP",
-                    "displayName": "Lambda heat pump (Modbus TCP)",
+                    "displayName": "Lambda EU 08L-20L",
                     "id": "19306c25-9d5a-473f-9d6d-a34e81182387",
                     "createMethods": [
                         "discovery"

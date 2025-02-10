@@ -1,4 +1,15 @@
-nymea-plugins-modbus (1.7.011) jammy; urgency=medium
+nymea-plugins-modbus (1.7.012) jammy; urgency=medium
+
+  * Fix Amperfied connect.home discovery
+  * SMA plugin update and fixes
+  * Added separate entry for vestel and eon wallbox
+  * SDM630: Fix energy per phase
+  * Added Janitza UMG 604 Pro meter
+  * Match vendor uuids
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 28 Nov 2024 13:49:00 +0100
+
+nymea-plugins-modbus (1.7.011-1) jammy; urgency=medium
 
   * Fix currentPower to zero when thing not reachable
   * Restore Sungrow SG
