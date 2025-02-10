@@ -1,5 +1,6 @@
 nymea-plugins-modbus (1.7.012) jammy; urgency=medium
 
+  * Fix Amperfied connect.home discovery
   * SMA plugin update and fixes
   * Added separate entry for vestel and eon wallbox
   * SDM630: Fix energy per phase
