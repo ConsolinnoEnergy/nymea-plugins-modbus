@@ -140,6 +140,7 @@ void IntegrationPluginSchneider::setupThing(ThingSetupInfo *info)
             schneiderWallboxTcpConnection->initialize();
         } else {
             thing->setStateValue(schneiderEvLinkConnectedStateTypeId, false);
+            thing->setStateValue(schneiderEvLinkCurrentPowerStateTypeId, 0);
         }
     });
 
