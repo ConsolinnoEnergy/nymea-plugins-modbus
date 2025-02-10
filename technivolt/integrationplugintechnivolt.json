@@ -11,7 +11,7 @@
                 {
                     "id": "ac4fec7d-8c56-434e-96fd-1188551b9fae",
                     "name": "technivoltWallbox",
-                    "displayName": "Technivolt Wallbox",
+                    "displayName": "Technivolt 1100 (smart)",
                     "createMethods": ["discovery", "user"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],
                     "paramTypes": [

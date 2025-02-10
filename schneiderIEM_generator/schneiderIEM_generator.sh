@@ -26,7 +26,7 @@ DEVICENAME=schneiderIEM
 cp -r ../$SOURCE_INTEGRATION ../$TARGET
 cd ../$TARGET
 rename "s/${SOURCE_INTEGRATION}/${TARGET}/g" ./*
-python3 ../$GENERATORNAME/patch_json.py $TARGETJSON --interfaces $INTERFACE1 $INTERFACE2 --output $TARGETJSON  --display_name "${DISPLAYNAME}"
+python3 ../$GENERATORNAME/patch_json.py $TARGETJSON --interfaces $INTERFACE1 $INTERFACE2 --output $TARGETJSON  --display_name "${DISPLAYNAME}" --vendor_uuid "75bc5b91-0983-4db3-a829-04fe04e63531"
 uuid=$(cat $TARGETJSON | grep "id" | head -n 1 | sed 's/"id": "//' | sed 's/",//g' | xargs)
 mv translations/*-de.ts translations/$uuid-de.ts 
 mv translations/*-de_DE.ts translations/$uuid-de_DE.ts 

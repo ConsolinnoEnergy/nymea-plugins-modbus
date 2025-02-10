@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "azzurroInverterRTU",
-                    "displayName": "Azzurro Hybrid Inverter (Modbus RTU)",
+                    "displayName": "Azzurro HYD Inverter",
                     "id": "72346dd7-42cb-4a58-ad21-94f93fd523d2",
                     "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],
