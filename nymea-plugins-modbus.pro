@@ -23,6 +23,7 @@ PLUGIN_DIRS = \
     huawei                  \
     idm                     \
     inepro                  \
+    janitza                 \
     kacosunspec             \
     kostal                  \
     lambda                  \
