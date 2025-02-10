@@ -1,5 +1,6 @@
 nymea-plugins-modbus (1.7.012) jammy; urgency=medium
 
+  * IDM: add pvsurplusheatpump interface and extend plugin
   * Fix Amperfied connect.home discovery
   * SMA plugin update and fixes
   * Added separate entry for vestel and eon wallbox
