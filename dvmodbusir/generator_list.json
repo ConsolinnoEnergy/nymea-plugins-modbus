@@ -1,5 +1,6 @@
 {
   "Device": {
+    "uuid": "26fe3a91-befc-448a-8bd3-249114abd2f2",
     "DvModbusIR Meter": {
       "filename": "dvmodbusirmeter",
       "interfaces": "energymeter connectable",
