@@ -1,6 +1,7 @@
 nymea-plugins-modbus (1.7.012) jammy; urgency=medium
 
-  * Added separate entry for vestel and eon wallbox 
+  * Added separate entry for vestel and eon wallbox
+  * Added Janitza UMG 604 Pro meter
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 28 Nov 2024 13:49:00 +0100
 
