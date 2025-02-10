@@ -28,47 +28,55 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef SPEEDWIREINTERFACE_H
-#define SPEEDWIREINTERFACE_H
+#ifndef SMAMODBUSSOLARINVERTERDISCOVERY_H
+#define SMAMODBUSSOLARINVERTERDISCOVERY_H
 
 #include <QObject>
-#include <QUdpSocket>
-#include <QDataStream>
 #include <QTimer>
 
-#include "speedwire.h"
+#include <network/networkdevicediscovery.h>
 
-class SpeedwireInterface : public QObject
+#include "smasolarinvertermodbustcpconnection.h"
+
+class SmaModbusSolarInverterDiscovery : public QObject
 {
     Q_OBJECT
 public:
+    explicit SmaModbusSolarInverterDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 502, quint16 modbusAddress = 3, QObject *parent = nullptr);
+    typedef struct SmaModbusDiscoveryResult {
+        QString productName;
+        QString deviceName;
+        QString serialNumber;
+        quint16 port;
+        quint16 modbusAddress;
+        QString softwareVersion;
+        NetworkDeviceInfo networkDeviceInfo;
+    } SmaModbusDiscoveryResult;
 
-    explicit SpeedwireInterface(quint32 sourceSerialNumber, QObject *parent = nullptr);
-    ~SpeedwireInterface();
+    void startDiscovery();
 
-    bool available() const;
-
-    quint32 sourceSerialNumber() const;
-
-    bool initialize();
-
-public slots:
-    void sendDataUnicast(const QHostAddress &address, const QByteArray &data);
-    void sendDataMulticast(const QByteArray &data);
+    QList<SmaModbusDiscoveryResult> discoveryResults() const;
 
 signals:
-    void dataReceived(const QHostAddress &senderAddress, quint16 senderPort, const QByteArray &data, bool multicast = false);
-
-private slots:
-    void reconfigureMulticastGroup();
+    void discoveryFinished();
 
 private:
-    QUdpSocket *m_unicast = nullptr;
-    QUdpSocket *m_multicast = nullptr;
-    quint32 m_sourceSerialNumber = 0;
-    bool m_available = false;
-    QTimer m_multicastReconfigureationTimer;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+    quint16 m_port;
+    quint16 m_modbusAddress;
+
+    QDateTime m_startDateTime;
+    NetworkDeviceInfos m_verifiedNetworkDeviceInfos;
+
+    QList<SmaSolarInverterModbusTcpConnection *> m_connections;
+
+    QList<SmaModbusDiscoveryResult> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SmaSolarInverterModbusTcpConnection *connection);
+
+    void finishDiscovery();
+
 };
 
-
-#endif // SPEEDWIREINTERFACE_H
+#endif // SMAMODBUSSOLARINVERTERDISCOVERY_H
