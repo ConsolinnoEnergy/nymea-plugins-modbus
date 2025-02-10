@@ -7,11 +7,11 @@
         {
             "name": "schneider",
             "displayName": "Schneider Electric",
-            "id": "8dd0fd13-d9e8-49c1-9a28-d63c104e7e31",
+            "id": "75bc5b91-0983-4db3-a829-04fe04e63531",
             "thingClasses": [
                 {
                     "name": "iem",
-                    "displayName": "Schneider Electric IEM Energymeter",
+                    "displayName": "Schneider Electric IEM 3150",
                     "id": "91e166dd-1d3d-461e-9ef7-dd1559095d6a",
                     "createMethods": ["discovery"],
                     "interfaces": ["energymeter", "connectable"],

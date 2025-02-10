@@ -73,7 +73,7 @@ private:
     SpeedwireInverterRequest m_request;
     quint8 m_retries = 0;
     quint8 m_maxRetries = 3;
-    int m_timeout = 3000;
+    int m_timeout = 6000; //JoOb changed from 3000 to 6000
 
     QByteArray m_responseData;
     Speedwire::Header m_responseHeader;

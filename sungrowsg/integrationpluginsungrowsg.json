@@ -6,7 +6,7 @@
         {
             "name": "sungrow",
             "displayName": "Sungrow",
-            "id": "c2ccee75-e82e-49c7-a7dd-54267c6044a6",
+            "id": "cdc58e0d-bfdb-45d9-b961-9c0b036c35aa",
             "thingClasses": [
                 {
                     "name": "sungrowInverterTCP",

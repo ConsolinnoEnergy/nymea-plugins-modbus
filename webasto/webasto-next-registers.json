@@ -1,6 +1,6 @@
 {
     "className": "WebastoNext",
-    "protocol": "TCP",
+    "protocol": "RTU",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "maxChargingCurrent",
