@@ -130,7 +130,7 @@ public:
         case 9223: return "SI6.0H-11";
         case 9224: return "SI8.0H-11";
 
-            // Speedwire / Modbus
+        // Speedwire / Modbus
         case 9015: return "SB 700";
         case 9016: return "SB 700U";
         case 9017: return "SB 1100";
@@ -232,6 +232,35 @@ public:
         case 9305: return "SB6.0-1SP-US-40";
         case 9306: return "SB8.0-1SP-US-40";
         case 9307: return "Energy Meter";
+        case 9313: return "SB50.0-3SP-40";
+        case 9319: return "SB3.0-1AV-40 (Sunny Boy 3.0 AV-40)";
+        case 9320: return "SB3.6-1AV-40 (Sunny Boy 3.6 AV-40)";
+        case 9321: return "SB4.0-1AV-40 (Sunny Boy 4.0 AV-40)";
+        case 9322: return "SB5.0-1AV-40 (Sunny Boy 5.0 AV-40)";
+        case 9324: return "SBS1.5-1VL-10 (Sunny Boy Storage 1.5)";
+        case 9325: return "SBS2.0-1VL-10 (Sunny Boy Storage 2.0)";
+        case 9326: return "SBS2.5-1VL-10 (Sunny Boy Storage 2.5)";
+        case 9327: return "SMA Energy Meter";
+        case 9331: return "SI 3.0M-12 (Sunny Island 3.0M)";
+        case 9332: return "SI 4.4M-12 (Sunny Island 4.4M)";
+        case 9333: return "SI 6.0H-12 (Sunny Island 6.0H)";
+        case 9334: return "SI 8.0H-12 (Sunny Island 8.0H)";
+        case 9335: return "SMA Com Gateway";
+        case 9336: return "STP 15000TL-30";
+        case 9337: return "STP 17000TL-30";
+        case 9344: return "STP4.0-3AV-40 (Sunny Tripower 4.0)";
+        case 9345: return "STP5.0-3AV-40 (Sunny Tripower 5.0)";
+        case 9346: return "STP6.0-3AV-40 (Sunny Tripower 6.0)";
+        case 9347: return "STP8.0-3AV-40 (Sunny Tripower 8.0)";
+        case 9348: return "STP10.0-3AV-40 (Sunny Tripower 10.0)";
+        case 9356: return "SBS3.7-1VL-10 (Sunny Boy Storage 3.7)";
+        case 9358: return "SBS5.0-10 (Sunny Boy Storage 5.0)";
+        case 9366: return "STP3.0-3AV-40 (Sunny Tripower 3.0)";
+        case 9401: return "SB3.0-1AV-41 (Sunny Boy 3.0 AV-41)";
+        case 9402: return "SB3.6-1AV-41 (Sunny Boy 3.6 AV-41)";
+        case 9403: return "SB4.0-1AV-41 (Sunny Boy 4.0 AV-41)";
+        case 9404: return "SB5.0-1AV-41 (Sunny Boy 5.0 AV-41)";
+        case 9405: return "SB6.0-1AV-41 (Sunny Boy 6.0 AV-41)";
         default:
             return "Unknown";
         }
