@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2024, nymea GmbH
+* Copyright 2013 - 2025, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This fileDescriptor is part of nymea.
@@ -97,6 +97,9 @@ public:
         RegisterBatMaxDischargeCurrent = 145,
         RegisterSolarEnergyTotal = 148,
         RegisterSolarEnergyToday = 150,
+        RegisterCurrentPowerMeter2 = 168,
+        RegisterFeedinEnergyTotalMeter2 = 170,
+        RegisterConsumEnergyTotalMeter2 = 172,
         RegisterReadExportLimit = 182,
         RegisterMeter1CommunicationState = 184,
         RegisterInverterType = 186,
@@ -288,6 +291,15 @@ public:
     /* Battery max discharge current (0x91) [A] - Address: 145, Size: 1 */
     float batMaxDischargeCurrent() const;
 
+    /* Meter 2 feedin power (0xA8) [W] - Address: 168, Size: 2 */
+    qint32 currentPowerMeter2() const;
+
+    /* Exported energy, meter 2, total (0xAA) [kWh] - Address: 170, Size: 2 */
+    float feedinEnergyTotalMeter2() const;
+
+    /* Consumed energy, meter 2, total (0xAC) [kWh] - Address: 172, Size: 2 */
+    float consumEnergyTotalMeter2() const;
+
     /* Read block from start addess 7 with size of 14 registers containing following 2 properties:
       - Factory name (0x07) - Address: 7, Size: 7
       - Module name (0x0E) - Address: 14, Size: 7
@@ -356,6 +368,13 @@ public:
     */
     void updateBatMaxInfoBlock();
 
+    /* Read block from start addess 168 with size of 6 registers containing following 3 properties:
+      - Meter 2 feedin power (0xA8) [W] - Address: 168, Size: 2
+      - Exported energy, meter 2, total (0xAA) [kWh] - Address: 170, Size: 2
+      - Consumed energy, meter 2, total (0xAC) [kWh] - Address: 172, Size: 2
+    */
+    void updateSecondaryMeterDataBlock();
+
     void updateBatteryCapacity();
     void updateBmsWarningLsb();
     void updateBmsWarningMsb();
@@ -404,6 +423,9 @@ public:
     void updateBatMaxDischargeVolt();
     void updateBatMaxChargeCurrent();
     void updateBatMaxDischargeCurrent();
+    void updateCurrentPowerMeter2();
+    void updateFeedinEnergyTotalMeter2();
+    void updateConsumEnergyTotalMeter2();
 
     QModbusReply *readBatteryCapacity();
     QModbusReply *readBmsWarningLsb();
@@ -454,6 +476,9 @@ public:
     QModbusReply *readBatMaxDischargeVolt();
     QModbusReply *readBatMaxChargeCurrent();
     QModbusReply *readBatMaxDischargeCurrent();
+    QModbusReply *readCurrentPowerMeter2();
+    QModbusReply *readFeedinEnergyTotalMeter2();
+    QModbusReply *readConsumEnergyTotalMeter2();
 
     /* Read block from start addess 7 with size of 14 registers containing following 2 properties:
      - Factory name (0x07) - Address: 7, Size: 7
@@ -523,6 +548,13 @@ public:
     */
     QModbusReply *readBlockBatMaxInfo();
 
+    /* Read block from start addess 168 with size of 6 registers containing following 3 properties:
+     - Meter 2 feedin power (0xA8) [W] - Address: 168, Size: 2
+     - Exported energy, meter 2, total (0xAA) [kWh] - Address: 170, Size: 2
+     - Consumed energy, meter 2, total (0xAC) [kWh] - Address: 172, Size: 2
+    */
+    QModbusReply *readBlockSecondaryMeterData();
+
 
     virtual bool initialize();
     virtual void initialize2();
@@ -540,6 +572,7 @@ public:
     virtual void update10();
     virtual void update11();
     virtual void update12();
+    virtual void update13();
 
 signals:
     void reachableChanged(bool reachable);
@@ -654,6 +687,12 @@ signals:
     void batMaxChargeCurrentReadFinished(float batMaxChargeCurrent);
     void batMaxDischargeCurrentChanged(float batMaxDischargeCurrent);
     void batMaxDischargeCurrentReadFinished(float batMaxDischargeCurrent);
+    void currentPowerMeter2Changed(qint32 currentPowerMeter2);
+    void currentPowerMeter2ReadFinished(qint32 currentPowerMeter2);
+    void feedinEnergyTotalMeter2Changed(float feedinEnergyTotalMeter2);
+    void feedinEnergyTotalMeter2ReadFinished(float feedinEnergyTotalMeter2);
+    void consumEnergyTotalMeter2Changed(float consumEnergyTotalMeter2);
+    void consumEnergyTotalMeter2ReadFinished(float consumEnergyTotalMeter2);
 
 protected:
     quint16 m_unlockPassword;
@@ -709,6 +748,9 @@ protected:
     float m_batMaxDischargeVolt = 0;
     float m_batMaxChargeCurrent = 0;
     float m_batMaxDischargeCurrent = 0;
+    qint32 m_currentPowerMeter2 = 0;
+    float m_feedinEnergyTotalMeter2 = 0;
+    float m_consumEnergyTotalMeter2 = 0;
 
     void processBatteryCapacityRegisterValues(const QVector<quint16> values);
     void processBmsWarningLsbRegisterValues(const QVector<quint16> values);
@@ -766,6 +808,10 @@ protected:
     void processBatMaxDischargeVoltRegisterValues(const QVector<quint16> values);
     void processBatMaxChargeCurrentRegisterValues(const QVector<quint16> values);
     void processBatMaxDischargeCurrentRegisterValues(const QVector<quint16> values);
+
+    void processCurrentPowerMeter2RegisterValues(const QVector<quint16> values);
+    void processFeedinEnergyTotalMeter2RegisterValues(const QVector<quint16> values);
+    void processConsumEnergyTotalMeter2RegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();
