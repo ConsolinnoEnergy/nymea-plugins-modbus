@@ -52,6 +52,12 @@ void IntegrationPluginSolax::init()
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
                 }
 
+                // Set connected state for meter 2
+                Things meter2Things = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+                if (!meter2Things.isEmpty()) {
+                    meter2Things.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
+                }
+
                 // Set connected state for battery
                 Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
                 if (!batteryThings.isEmpty()) {
@@ -257,6 +263,18 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                }
+            }
+            
+            // TODO: what to do with m_meterstates
+            m_meterstates.find(thing)->modbusReachable = reachable;
+            Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!secondaryMeterThings.isEmpty()) {
+                if (reachable && m_meterstates.value(thing).meterCommStatus) {
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
+                } else {
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, 0);
                 }
             }
 
@@ -697,6 +715,24 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         return;
     }
 
+    if (thing->thingClassId() == solaxMeterSecondaryThingClassId) {
+        // Nothing to do here, we get all information from the inverter connection
+
+        if (m_meterstates.contains(thing))
+            m_meterstates.remove(thing);
+
+        info->finish(Thing::ThingErrorNoError);
+        Thing *parentThing = myThings().findById(thing->parentId());
+        if (parentThing) {
+            if (parentThing->thingClassId() == solaxX3InverterTCPThingClassId) {
+                thing->setStateValue(solaxMeterSecondaryConnectedStateTypeId, parentThing->stateValue(solaxX3InverterTCPConnectedStateTypeId).toBool());
+            } else if (parentThing->thingClassId() == solaxX3InverterRTUThingClassId) {
+                thing->setStateValue(solaxMeterSecondaryConnectedStateTypeId, parentThing->stateValue(solaxX3InverterRTUConnectedStateTypeId).toBool());
+            }
+        }
+        return;
+    }
+
     if (thing->thingClassId() == solaxBatteryThingClassId) {
         // Nothing to do here, we get all information from the inverter connection
         info->finish(Thing::ThingErrorNoError);
@@ -784,18 +820,20 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, 0);
                 foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
                     childThing->setStateValue("connected", false);
-                }
-                Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-                if (!meterThings.isEmpty()) {
-                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
-                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                    childThing->setStateValue("currentPower", 0);
                 }
 
-                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-                if (!batteryThings.isEmpty()) {
-                    batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
-                }
+                // Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+                // if (!meterThings.isEmpty()) {
+                //     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                //     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                // }
+
+                // Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+                // if (!batteryThings.isEmpty()) {
+                //     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
+                //     batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
+                // }
             }
         });
 
@@ -812,6 +850,17 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                }
+            }
+
+            // TODO: what to do with m_meterstates
+            m_meterstates.find(thing)->modbusReachable = success;
+            Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!secondaryMeterThings.isEmpty()) {
+                if (success && m_meterstates.value(thing).meterCommStatus) {
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
+                } else {
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
                 }
             }
 
