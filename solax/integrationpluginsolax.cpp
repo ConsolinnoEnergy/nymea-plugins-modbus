@@ -256,6 +256,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
                 }
             }
 
@@ -267,6 +268,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                     batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, true);
                 } else {
                     batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
+                    batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
                 }
             }
 
@@ -786,11 +788,13 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
                 if (!meterThings.isEmpty()) {
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
                 }
 
                 Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
                 if (!batteryThings.isEmpty()) {
                     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
+                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
                 }
             }
         });

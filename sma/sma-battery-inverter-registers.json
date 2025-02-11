@@ -92,6 +92,18 @@
             "unit": "%",
             "defaultValue": 0,
             "access": "RO"
+        },
+        {
+            "id": "batteryCapacity",
+            "address": 40187,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Battery nominal capacity",
+            "unit": "Wh",
+            "defaultValue": 0,
+            "access": "RO"
         }
     ]
 }

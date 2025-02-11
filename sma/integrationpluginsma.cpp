@@ -987,8 +987,8 @@ void IntegrationPluginSma::setupModbusBatteryInverterConnection(ThingSetupInfo *
             thing->setStateValue(modbusBatteryInverterBatteryLevelStateTypeId, connection->batterySOC());
             thing->setStateValue(modbusBatteryInverterBatteryCriticalStateTypeId, connection->batterySOC() <= 5);
             thing->setStateValue(modbusBatteryInverterCurrentPowerStateTypeId, -connection->currentPower());
-            thing->setStateValue(modbusBatteryInverterChargingStateStateTypeId, connection->currentPower() == 0 ? "idle" : (connection->currentPower() > 0 ? "charging" : "discharging"));
-
+            thing->setStateValue(modbusBatteryInverterChargingStateStateTypeId, connection->currentPower() == 0 ? "idle" : (connection->currentPower() < 0 ? "charging" : "discharging"));
+            thing->setStateValue(modbusBatteryInverterCapacityStateTypeId, 0.001*connection->batteryCapacity());
         });
 
         // Update registers
