@@ -182,9 +182,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         if (m_monitors.contains(thing))
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
 
-        if (m_meterstates.contains(thing))
-            m_meterstates.remove(thing);
-
         if (m_batterystates.contains(thing))
             m_batterystates.remove(thing);
 
@@ -243,9 +240,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             m_rtuConnections.take(thing)->deleteLater();
         }
 
-        if (m_meterstates.contains(thing))
-            m_meterstates.remove(thing);
-
         if (m_batterystates.contains(thing))
             m_batterystates.remove(thing);
 
@@ -255,10 +249,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             thing->setStateValue(solaxX3InverterRTUConnectedStateTypeId, reachable);
 
             // Set connected state for meter
-            m_meterstates.find(thing)->modbusReachable = reachable;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                if (reachable && m_meterstates.value(thing).meterCommStatus) {
+                m_meterstates.find(meterThings.first())->modbusReachable = reachable;
+                if (reachable && m_meterstates.value(meterThings.first()).meterCommStatus) {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
@@ -266,11 +260,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 }
             }
             
-            // TODO: what to do with m_meterstates
-            m_meterstates.find(thing)->modbusReachable = reachable;
             Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
             if (!secondaryMeterThings.isEmpty()) {
-                if (reachable && m_meterstates.value(thing).meterCommStatus) {
+                m_meterstates.find(secondaryMeterThings.first())->modbusReachable = reachable;
+                if (reachable && m_meterstates.value(secondaryMeterThings.first()).meterCommStatus) {
                     secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
                 } else {
                     secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
@@ -389,11 +382,11 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         // Meter
         connect(connection, &SolaxModbusRtuConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
             bool commStatusBool = (commStatus != 0);
-            m_meterstates.find(thing)->meterCommStatus = commStatusBool;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
+                m_meterstates.find(meterThings.first())->meterCommStatus = commStatusBool;
                 qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
-                if (commStatusBool && m_meterstates.value(thing).modbusReachable) {
+                if (commStatusBool && m_meterstates.value(meterThings.first()).modbusReachable) {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
@@ -692,8 +685,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
         // FIXME: make async and check if this is really an solax
         m_rtuConnections.insert(thing, connection);
-        MeterStates meterStates{};
-        m_meterstates.insert(thing, meterStates);
         BatteryStates batteryStates{};
         m_batterystates.insert(thing, batteryStates);
         info->finish(Thing::ThingErrorNoError);
@@ -703,6 +694,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
     if (thing->thingClassId() == solaxMeterThingClassId) {
         // Nothing to do here, we get all information from the inverter connection
+
+        if (m_meterstates.contains(thing))
+            m_meterstates.remove(thing);
+
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
@@ -712,6 +707,9 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(solaxMeterConnectedStateTypeId, parentThing->stateValue(solaxX3InverterRTUConnectedStateTypeId).toBool());
             }
         }
+
+        MeterStates meterStates{};
+        m_meterstates.insert(thing, meterStates);
         return;
     }
 
@@ -730,6 +728,9 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(solaxMeterSecondaryConnectedStateTypeId, parentThing->stateValue(solaxX3InverterRTUConnectedStateTypeId).toBool());
             }
         }
+
+        MeterStates meterStates{};
+        m_meterstates.insert(thing, meterStates);
         return;
     }
 
@@ -782,8 +783,6 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         quint16 modbusId = thing->paramValue(solaxX3InverterTCPThingModbusIdParamTypeId).toUInt();
         SolaxModbusTcpConnection *connection = new SolaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
         m_tcpConnections.insert(thing, connection);
-        MeterStates meterStates{};
-        m_meterstates.insert(thing, meterStates);
         BatteryStates batteryStates{};
         m_batterystates.insert(thing, batteryStates);
 
@@ -843,21 +842,20 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             writePasswordToInverter(thing);
 
             // Set connected state for meter
-            m_meterstates.find(thing)->modbusReachable = success;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                if (success && m_meterstates.value(thing).meterCommStatus) {
+                m_meterstates.find(meterThings.first())->modbusReachable = success;
+                if (success && m_meterstates.value(meterThings.first()).meterCommStatus) {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
                 }
             }
 
-            // TODO: what to do with m_meterstates
-            m_meterstates.find(thing)->modbusReachable = success;
             Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
             if (!secondaryMeterThings.isEmpty()) {
-                if (success && m_meterstates.value(thing).meterCommStatus) {
+                m_meterstates.find(secondaryMeterThings.first())->modbusReachable = success;
+                if (success && m_meterstates.value(secondaryMeterThings.first()).meterCommStatus) {
                     secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
                 } else {
                     secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
@@ -1031,11 +1029,11 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         // Meter
         connect(connection, &SolaxModbusTcpConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
             bool commStatusBool = (commStatus != 0);
-            m_meterstates.find(thing)->meterCommStatus = commStatusBool;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
+                m_meterstates.find(meterThings.first())->meterCommStatus = commStatusBool;
                 qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
-                if (commStatusBool && m_meterstates.value(thing).modbusReachable) {
+                if (commStatusBool && m_meterstates.value(meterThings.first()).modbusReachable) {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
