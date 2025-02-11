@@ -692,6 +692,54 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
         });
 
+        // Set meter 2 states
+        connect(connection, &SolaxModbusRtuConnection::consumEnergyTotalMeter2Changed, thing, [this, thing](double consumEnergyTotal){
+            // New value should not be smaller then old one.
+            // Difference should not be greater than 10
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter consumed energy total (consumEnergyTotal) changed" << consumEnergyTotal << "kWh";
+                double oldEnergyValue = meterThings.first()->stateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId).toDouble();
+                double diffEnergy = consumEnergyTotal - oldEnergyValue;
+                if (oldEnergyValue == 0 ||
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
+                {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId, consumEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "RTU Meter 2 Consumed - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "RTU Meter 2 Consumed - New energy value is" << consumEnergyTotal;
+                    writeErrorLog();
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusRtuConnection::feedinEnergyTotalMeter2Changed, thing, [this, thing](double feedinEnergyTotal){
+            // New value should not be smaller than the old one.
+            // Difference should not be greater than 10
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter exported energy total (feedinEnergyTotal) changed" << feedinEnergyTotal << "kWh";
+                double oldEnergyValue = meterThings.first()->stateValue(solaxMeterSecondaryTotalEnergyProducedStateTypeId).toDouble();
+                double diffEnergy = feedinEnergyTotal - oldEnergyValue;
+                if (oldEnergyValue == 0 ||
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
+                {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyProducedStateTypeId, feedinEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "RTU Meter Produced - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "RTU Meter Produced - New energy value is" << feedinEnergyTotal;
+                    writeErrorLog();
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusRtuConnection::currentPowerMeter2Changed, thing, [this, thing](qint32 feedinPower){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
+                meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
+            }
+        });
 
         // FIXME: make async and check if this is really an solax
         m_rtuConnections.insert(thing, connection);
@@ -1308,6 +1356,54 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             }
         });
 
+        // Set meter 2 states
+        connect(connection, &SolaxModbusTcpConnection::consumEnergyTotalMeter2Changed, thing, [this, thing](double consumEnergyTotal){
+            // New value should not be smaller then old one.
+            // Difference should not be greater than 10
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter consumed energy total (consumEnergyTotal) changed" << consumEnergyTotal << "kWh";
+                double oldEnergyValue = meterThings.first()->stateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId).toDouble();
+                double diffEnergy = consumEnergyTotal - oldEnergyValue;
+                if (oldEnergyValue == 0 ||
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
+                {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId, consumEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "TCP Meter 2 Consumed - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "TCP Meter 2 Consumed - New energy value is" << consumEnergyTotal;
+                    writeErrorLog();
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::feedinEnergyTotalMeter2Changed, thing, [this, thing](double feedinEnergyTotal){
+            // New value should not be smaller than the old one.
+            // Difference should not be greater than 10
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter exported energy total (feedinEnergyTotal) changed" << feedinEnergyTotal << "kWh";
+                double oldEnergyValue = meterThings.first()->stateValue(solaxMeterSecondaryTotalEnergyProducedStateTypeId).toDouble();
+                double diffEnergy = feedinEnergyTotal - oldEnergyValue;
+                if (oldEnergyValue == 0 ||
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
+                {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyProducedStateTypeId, feedinEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "TCP Meter Produced - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "TCP Meter Produced - New energy value is" << feedinEnergyTotal;
+                    writeErrorLog();
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::currentPowerMeter2Changed, thing, [this, thing](qint32 feedinPower){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
+                meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
+            }
+        });
 
         if (monitor->reachable())
             connection->connectDevice();
