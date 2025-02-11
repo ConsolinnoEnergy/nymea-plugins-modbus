@@ -550,6 +550,16 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusRtuConnection::updateFinished, thing, [this, thing, connection](){
             qCDebug(dcSolax()) << "Solax X3 - Update finished.";
+
+            // TODO: does this reliably create the secondary meter?
+            Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (secondaryMeterThings.isEmpty() && (connection->feedinEnergyTotalMeter2() != 0 || connection->consumEnergyTotalMeter2() != 0)) {
+                qCDebug(dcSolax()) << "Create the secondary meter thing";
+                QString name = supportedThings().findById(solaxMeterSecondaryThingClassId).displayName();
+                ThingDescriptor descriptor(solaxMeterSecondaryThingClassId, name, QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             qint16 currentBatPower = 0;
             if (!batteryThings.isEmpty()) {
@@ -978,6 +988,16 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection](){
             qCDebug(dcSolax()) << "Solax X3 - Update finished.";
+
+            // TODO: does this reliably create the secondary meter?
+            Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (secondaryMeterThings.isEmpty() && (connection->feedinEnergyTotalMeter2() != 0 || connection->consumEnergyTotalMeter2() != 0)) {
+                qCDebug(dcSolax()) << "Create the secondary meter thing";
+                QString name = supportedThings().findById(solaxMeterSecondaryThingClassId).displayName();
+                ThingDescriptor descriptor(solaxMeterSecondaryThingClassId, name, QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             qint16 currentBatPower = 0;
             if (!batteryThings.isEmpty()) {
