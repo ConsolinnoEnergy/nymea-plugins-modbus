@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "growattInverterRTU",
-                    "displayName": "GROWATT Inverter (Modbus RTU)",
+                    "displayName": "GROWATT MOD TL3-XH",
                     "id": "0dd502d9-0ab1-498e-b9e1-b54d27e9f8bd",
                     "createMethods": [
                         "discovery",

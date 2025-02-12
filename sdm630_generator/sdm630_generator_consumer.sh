@@ -2,7 +2,7 @@
 cp -r ../bgetech ../bgetech_consumer
 cd ../bgetech_consumer
 rename 's/bgetech/bgetech_consumer/g' ./*
-python3 ../sdm630_generator/patch_json.py integrationpluginbgetech_consumer.json --interfaces smartmeterconsumer connectable --output integrationpluginbgetech_consumer.json  --display_name_sdm630 "SDM630 Consumer" --display_name_sdm72 "SDM72 Consumer" --uuid_offset 2
+python3 ../sdm630_generator/patch_json.py integrationpluginbgetech_consumer.json --interfaces smartmeterconsumer connectable --output integrationpluginbgetech_consumer.json  --display_name_sdm630 "SDM630 Consumer" --display_name_sdm72 "SDM72 Consumer" --uuid_offset 2 --vendor_uuid "215035fe-95e8-43d8-a52e-0a31b787d902"
 uuid=$(cat integrationpluginbgetech_consumer.json | grep "id" | head -n 1 | sed 's/"id": "//' | sed 's/",//g' | xargs)
 mv translations/*-de.ts translations/$uuid-de.ts
 mv translations/*-de_DE.ts translations/$uuid-de_DE.ts
