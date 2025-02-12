@@ -26,6 +26,7 @@
 #include "extern-plugininfo.h"
 #include "kacosunspecmodbustcpconnection.h"
 #include "kacosunspecmodbusrtuconnection.h"
+#include "kaconh3modbustcpconnection.h"
 
 #include <QObject>
 #include <QHostAddress>
@@ -58,11 +59,18 @@ private:
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, KacoSunSpecModbusTcpConnection *> m_tcpConnections;
+    QHash<Thing *, KacoNH3ModbusTcpConnection *> m_nh3Connections;
     QHash<Thing *, KacoSunSpecModbusRtuConnection *> m_rtuConnections;
     QHash<Thing *, ScaleFactors> m_scalefactors;
 
+    Thing *getMeterThing(Thing *parentThing);
+    Thing *getBatteryThing(Thing *parentThing);
+
     void setOperatingState(Thing *thing, KacoSunSpecModbusTcpConnection::OperatingState state);
     void setOperatingState(Thing *thing, KacoSunSpecModbusRtuConnection::OperatingState state);
+    void setOperatingState(Thing *thing, KacoNH3ModbusTcpConnection::OperatingState state);
+    void setChargingState(Thing *thing, KacoNH3ModbusTcpConnection::ChargeStatus state);
+    void setBatteryState(Thing *thing, KacoNH3ModbusTcpConnection::BatteryStatus state);
 };
 
 #endif // INTEGRATIONPLUGINKACOSUNSPEC_H
