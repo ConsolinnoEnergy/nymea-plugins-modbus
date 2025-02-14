@@ -36,7 +36,7 @@
 
 #include <network/networkdevicediscovery.h>
 
-#include "victronmodbustcpconnection.h"
+#include "victronsystemmodbustcpconnection.h"
 
 class VictronDiscovery : public QObject
 {
@@ -62,11 +62,11 @@ private:
 
     QDateTime m_startDateTime;
 
-    QList<VictronModbusTcpConnection *> m_connections;
+    QList<VictronSystemModbusTcpConnection *> m_connections;
     QList<VictronDiscoveryResult> m_discoveryResults;
 
     void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
-    void cleanupConnection(VictronModbusTcpConnection *connection);
+    void cleanupConnection(VictronSystemModbusTcpConnection *connection);
 
     void finishDiscovery();
 };

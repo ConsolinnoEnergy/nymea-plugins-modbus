@@ -1,0 +1,74 @@
+{
+    "className": "VictronVebus",
+    "protocol": "TCP",
+    "endianness": "LittleEndian",
+    "errorLimitUntilNotReachable": 5,
+    "checkReachableRegister": "powerSetpointPhaseA",
+    "enums": [
+    ],
+    "blocks": [
+        {
+            "id": "vebuswrite",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "powerSetpointPhaseA",
+                    "address": 37,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "ESS power setpoint phase 1",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "disableCharge",
+                    "address": 38,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "disable charge flag",
+                    "unit": "-",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "disableFeedIn",
+                    "address": 39,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "disable feed in flag",
+                    "unit": "-",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "powerSetpointPhaseB",
+                    "address": 40,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "ESS power setpoint phase 2",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "powerSetpointPhaseC",
+                    "address": 41,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "ESS power setpoint phase 3",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RW"
+                }
+            ]
+        }
+    ],
+    "registers": [        
+    ]
+}

@@ -1,7 +1,7 @@
 include(../plugins.pri)
 
 # Generate modbus connection
-MODBUS_CONNECTIONS += victron-registers.json
+MODBUS_CONNECTIONS += victronsystem-registers.json victronvebus-registers.json
 #MODBUS_TOOLS_CONFIG += VERBOSE
 include(../modbus.pri)
 

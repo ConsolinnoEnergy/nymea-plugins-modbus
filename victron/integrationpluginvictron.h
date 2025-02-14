@@ -37,7 +37,8 @@
 
 #include "extern-plugininfo.h"
 
-#include "victronmodbustcpconnection.h"
+#include "victronsystemmodbustcpconnection.h"
+#include "victronvebusmodbustcpconnection.h"
 
 class IntegrationPluginVictron: public IntegrationPlugin
 {
@@ -56,11 +57,13 @@ public:
 
 private:
     const int m_modbusTcpPort = 502;
-    const quint16 m_modbusSlaveAddress = 100;
+    const quint16 m_systemModbusSlaveAddress = 100;
+    const quint16 m_vebusModbusSlaveAddress = 227;
     PluginTimer *m_refreshTimer = nullptr;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, VictronModbusTcpConnection *> m_tcpConnections;
+    QHash<Thing *, VictronSystemModbusTcpConnection *> m_systemTcpConnections;
+    QHash<Thing *, VictronVebusModbusTcpConnection *> m_vebusTcpConnections;
 
     void setupVictronConnection(ThingSetupInfo *info);
 

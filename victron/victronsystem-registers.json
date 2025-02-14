@@ -1,0 +1,202 @@
+{
+    "className": "VictronSystem",
+    "protocol": "TCP",
+    "endianness": "LittleEndian",
+    "errorLimitUntilNotReachable": 5,
+    "checkReachableRegister": "inverterPowerPvOutA",
+    "enums": [
+    ],
+    "blocks": [
+        {
+            "id": "system",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "inverterPowerPvOutA",
+                    "address": 808,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on output L1",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvOutB",
+                    "address": 809,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on output L2",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvOutC",
+                    "address": 810,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on output L3",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvInpA",
+                    "address": 811,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on input L1",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvInpB",
+                    "address": 812,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on input L2",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerPvInpC",
+                    "address": 813,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - AC-coupled power on input L3",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 814,
+                    "size": 6,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterPowerA",
+                    "address": 820,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Phase A power from grid",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterPowerB",
+                    "address": 821,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Phase B power from grid",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterPowerC",
+                    "address": 822,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Phase A power from grid",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 823,
+                    "size": 17,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryVoltage",
+                    "address": 840,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "DC battery voltage",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "unit": "V",
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryCurrent",
+                    "address": 841,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "DC battery current",
+                    "defaultValue": "0",
+                    "staticScaleFactor": -1,
+                    "unit": "A",
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryPower",
+                    "address": 842,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "DC battery power, positive: charging, negative: discharging",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batterySoc",
+                    "address": 843,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery state of charge",
+                    "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryState",
+                    "address": 844,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "battery state; 0=idle, 1=charging; 2=discharging",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "serialNumber",
+            "address": 800,
+            "size": 6,
+            "type": "string",
+            "readSchedule": "init",
+            "registerType": "holdingRegister",
+            "description": "Serial number",
+            "access": "RO"
+        }
+    ]
+}

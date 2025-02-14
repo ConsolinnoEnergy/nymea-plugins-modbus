@@ -71,12 +71,12 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
     // the device we can assume this is what we are locking for (ip, port, modbus address, correct registers).
 
     qCDebug(dcVictron()) << "Creating Victron Modbus TCP connection for" << networkDeviceInfo.address() << "Port:" << m_port << "Slave Address" << m_modbusAddress;
-    VictronModbusTcpConnection *connection = new VictronModbusTcpConnection(networkDeviceInfo.address(), m_port, m_modbusAddress, this);
+    VictronSystemModbusTcpConnection *connection = new VictronSystemModbusTcpConnection(networkDeviceInfo.address(), m_port, m_modbusAddress, this);
     connection->setTimeout(5000);
     connection->setNumberOfRetries(0);
     m_connections.append(connection);
 
-    connect(connection, &VictronModbusTcpConnection::reachableChanged, this, [=](bool reachable){
+    connect(connection, &VictronSystemModbusTcpConnection::reachableChanged, this, [=](bool reachable){
         qCDebug(dcVictron()) << "Victron Modbus TCP Connection reachable changed:" << reachable;
         if (!reachable) {
             cleanupConnection(connection);
@@ -84,7 +84,7 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
         }
         qCDebug(dcVictron()) << "Connected, proceeding with initialization";
 
-        connect(connection, &VictronModbusTcpConnection::initializationFinished, this, [=](bool success){
+        connect(connection, &VictronSystemModbusTcpConnection::initializationFinished, this, [=](bool success){
             if (!success) {
                 qCDebug(dcVictron()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString() << "Continue...";;
                 cleanupConnection(connection);
@@ -124,7 +124,7 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
     });
 
     // If the reachability check failed skip the host
-    connect(connection, &VictronModbusTcpConnection::checkReachabilityFailed, this, [=](){
+    connect(connection, &VictronSystemModbusTcpConnection::checkReachabilityFailed, this, [=](){
         qCDebug(dcVictron()) << "Discovery: Check reachability failed on" << networkDeviceInfo.address().toString() << "Continue...";
         cleanupConnection(connection);
     });
@@ -132,7 +132,7 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
     connection->connectDevice();
 }
 
-void VictronDiscovery::cleanupConnection(VictronModbusTcpConnection *connection)
+void VictronDiscovery::cleanupConnection(VictronSystemModbusTcpConnection *connection)
 {
     qCDebug(dcVictron()) << "Discovery: Cleanup connection";
     m_connections.removeAll(connection);
@@ -144,7 +144,7 @@ void VictronDiscovery::finishDiscovery()
 {
     qint64 durationMilliSeconds = QDateTime::currentMSecsSinceEpoch() - m_startDateTime.toMSecsSinceEpoch();
 
-    foreach (VictronModbusTcpConnection *connection, m_connections)
+    foreach (VictronSystemModbusTcpConnection *connection, m_connections)
         cleanupConnection(connection);
 
     qCDebug(dcVictron()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count() << "Victron Inverters in" << QTime::fromMSecsSinceStartOfDay(durationMilliSeconds).toString("mm:ss.zzz");
