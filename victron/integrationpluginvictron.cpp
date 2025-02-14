@@ -119,6 +119,9 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
         auto victronConnection = new VictronSystemModbusTcpConnection(address, m_modbusTcpPort , m_systemModbusSlaveAddress, this);
         connect(info, &ThingSetupInfo::aborted, victronConnection, &VictronSystemModbusTcpConnection::deleteLater);
 
+        auto vebusConnection = new VictronVebusModbusTcpConnection(address, m_modbusTcpPort , m_vebusModbusSlaveAddress, this); //JoOb
+        connect(info, &ThingSetupInfo::aborted, vebusConnection, &VictronVebusModbusTcpConnection::deleteLater); // JoOb
+
         // Reconnect on monitor reachable changed
         connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
             qCDebug(dcVictron()) << "Network device monitor reachable changed for" << thing->name() << reachable;
@@ -255,8 +258,15 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             }
         });
 
+        connect(vebusConnection, &VictronVebusModbusTcpConnection::updateFinished, thing, [=](){
+            qCDebug(dcVictron()) << "Updated" << vebusConnection;
+            qCDebug(dcVictron()) << "Power Setpoint L1: " << vebusConnection->powerSetpointPhaseA();
+            qCDebug(dcVictron()) << "Power Setpoint L2: " << vebusConnection->powerSetpointPhaseB();
+            qCDebug(dcVictron()) << "Power Setpoint L3: " << vebusConnection->powerSetpointPhaseC();            
+        });
         m_systemTcpConnections.insert(thing, victronConnection);
-
+        m_vebusTcpConnections.insert(thing, vebusConnection); //JoOb
+        
         if (monitor->reachable())
             victronConnection->connectDevice();
 
@@ -332,6 +342,16 @@ void IntegrationPluginVictron::postSetupThing(Thing *thing)
                     } else {
                         qCDebug(dcVictron()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
                         connection->reconnectDevice();
+                    }
+
+                    auto vebusConnection = m_vebusTcpConnections.value(thing);
+
+                    if (vebusConnection->reachable()) {
+                        qCDebug(dcVictron()) << "Updating connection" << vebusConnection->hostAddress().toString();
+                        vebusConnection->update();
+                    } else {
+                        qCDebug(dcVictron()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
+                        vebusConnection->reconnectDevice();
                     }
                 }
             });
