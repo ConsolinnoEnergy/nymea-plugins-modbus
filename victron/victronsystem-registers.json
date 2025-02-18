@@ -197,6 +197,16 @@
             "registerType": "holdingRegister",
             "description": "Serial number",
             "access": "RO"
+        },
+        {
+            "id": "essMode",
+            "address": 2902,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "ESS mode; 1: ESS with phase comp, 2: ESS without phase comp, 3: external control",
+            "access": "RW"
         }
     ]
 }

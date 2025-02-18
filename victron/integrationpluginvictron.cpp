@@ -344,7 +344,7 @@ void IntegrationPluginVictron::postSetupThing(Thing *thing)
                         connection->reconnectDevice();
                     }
 
-                    auto vebusConnection = m_vebusTcpConnections.value(thing);
+                    auto vebusConnection = m_vebusTcpConnections.value(thing); // JoOb: following lines should be nested into system connection reachable?
 
                     if (vebusConnection->reachable()) {
                         qCDebug(dcVictron()) << "Updating connection" << vebusConnection->hostAddress().toString();
@@ -371,6 +371,46 @@ void IntegrationPluginVictron::postSetupThing(Thing *thing)
     }
 }
 
+// Code for setting power limit. Disabled for now.
+void IntegrationPluginVictron::executeAction(ThingActionInfo *info)
+{
+    Thing *thing = info->thing();
+    Action action = info->action();
+
+    if (thing->thingClassId() == victronBatteryThingClassId) {
+        Thing *inverterThing = myThings().findById(thing->parentId());
+        qCWarning(dcVictron()) << "executeAction: should be inverter thing" << inverterThing;
+
+        if (action.actionTypeId() == victronBatteryEnableForcePowerActionTypeId) {
+            bool state = action.paramValue(victronBatteryEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
+            // uint batteryTimeout = thing->stateValue(victronBatteryForcePowerTimeoutStateTypeId).toUInt();
+            int powerToSet = thing->stateValue(victronBatteryForcePowerStateTypeId).toInt();
+
+            qCWarning(dcVictron()) << "Battery manual mode is enabled?" << state;
+            if (state) {
+                setBatteryPower(inverterThing, powerToSet);
+            } else {
+                disableRemoteControl(inverterThing);
+            }
+
+            thing->setStateValue(victronBatteryEnableForcePowerStateTypeId, state);
+        } else if (action.actionTypeId() == victronBatteryForcePowerActionTypeId) {
+            int batteryPower = action.paramValue(victronBatteryForcePowerActionForcePowerParamTypeId).toInt();
+            qCWarning(dcVictron()) << "Battery power should be set to" << batteryPower;
+            thing->setStateValue(victronBatteryForcePowerStateTypeId, batteryPower);
+
+            // uint timeout = thing->stateValue(victronBatteryForcePowerTimeoutCountdownStateTypeId).toUInt();
+            bool state = thing->stateValue(victronBatteryEnableForcePowerStateStateTypeId).toBool();
+            if (state)
+            {
+                setBatteryPower(inverterThing, batteryPower);
+            }   
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+        }
+    }
+}
+
 void IntegrationPluginVictron::thingRemoved(Thing *thing)
 {
     if (thing->thingClassId() == victronInverterTcpThingClassId && m_systemTcpConnections.contains(thing)) {
@@ -388,6 +428,81 @@ void IntegrationPluginVictron::thingRemoved(Thing *thing)
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
         m_refreshTimer = nullptr;
     }
+}
+
+void IntegrationPluginVictron::setBatteryPower(Thing *thing, qint32 powerToSet)
+{
+    if (thing->thingClassId() == victronInverterTcpThingClassId) {
+        VictronVebusModbusTcpConnection *vebusConnection = m_vebusTcpConnections.value(thing);
+
+        VictronSystemModbusTcpConnection *systemConnection = m_systemTcpConnections.value(thing);
+        if (!vebusConnection) {
+            qCWarning(dcVictron()) << "setBatteryPower - VE.bus Modbus connection not available";
+            // info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+        if (!systemConnection) {
+            qCWarning(dcVictron()) << "setBatteryPower - Victron GX Modbus connection not available";
+            // info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+
+        quint16 modeTypeValue = 3;
+        QModbusReply *replyMode = systemConnection->setEssMode(modeTypeValue);
+        connect(replyMode, &QModbusReply::finished, replyMode, &QModbusReply::deleteLater);
+        connect(replyMode, &QModbusReply::finished, thing, [thing, replyMode, vebusConnection, powerToSet](){
+            if (replyMode->error() != QModbusDevice::NoError) {
+                qCWarning(dcVictron()) << "setBatteryPower - Error setting mode and type" << replyMode->error() << replyMode->errorString();
+                //info->finish(Thing::ThingErrorHardwareFailure);
+            } else {
+                qCWarning(dcVictron()) << "setBatteryPower - Mode set to 8, Type set to 1";
+                //info->finish(Thing::ThingErrorNoError);
+                // QModbusReply *replyBatterPower = vebusConnection->setPowerSetpointPhaseA(-1*powerToSet);
+                // vebusConnection->setPowerSetpointPhaseB(0);
+                // vebusConnection->setPowerSetpointPhaseC(0);
+                // connect(replyBatterPower, &QModbusReply::finished, replyBatterPower, &QModbusReply::deleteLater);
+                // connect(replyBatterPower, &QModbusReply::finished, thing, [thing, replyBatterPower, powerToSet](){
+                //     if (replyBatterPower->error() != QModbusDevice::NoError) {
+                //         qCWarning(dcVictron()) << "setBatteryPower - Error setting battery power" << replyBatterPower->error() << replyBatterPower->errorString();
+                //         //info->finish(Thing::ThingErrorHardwareFailure);
+                //     } else {
+                //         qCWarning(dcVictron()) << "setBatteryPower - Set battery power to" << powerToSet;
+                //         //info->finish(Thing::ThingErrorNoError);
+                //     }
+                // });
+            }
+        });
+    } else {
+        qCWarning(dcVictron()) << "setBatteryPower - Received incorrect thing";
+    }
+}
+
+void IntegrationPluginVictron::disableRemoteControl(Thing *thing)
+{
+    if (thing->thingClassId() == victronInverterTcpThingClassId) {
+        VictronSystemModbusTcpConnection *systemConnection = m_systemTcpConnections.value(thing);
+        
+        if (!systemConnection) {
+            qCWarning(dcVictron()) << "setBatteryPower - Victron GX Modbus connection not available";
+            // info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+
+        QModbusReply *replyMode = systemConnection->setEssMode(1);
+        connect(replyMode, &QModbusReply::finished, replyMode, &QModbusReply::deleteLater);
+        connect(replyMode, &QModbusReply::finished, thing, [thing, replyMode](){
+            if (replyMode->error() != QModbusDevice::NoError) {
+                qCWarning(dcVictron()) << "disableRemoteControl - Error setting mode and type" << replyMode->error() << replyMode->errorString();
+                //info->finish(Thing::ThingErrorHardwareFailure);
+            } else {
+                qCWarning(dcVictron()) << "disableRemoteControl - ESS Mode set to 1";
+                //info->finish(Thing::ThingErrorNoError);
+            }
+        });
+    } else {
+        qCWarning(dcVictron()) << "disableRemoteControl - Received wrong thing";
+    }
+    
 }
 
 Thing *IntegrationPluginVictron::getMeterThing(Thing *parentThing)

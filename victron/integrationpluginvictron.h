@@ -54,6 +54,7 @@ public:
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
+    void executeAction(ThingActionInfo *info) override;
 
 private:
     const int m_modbusTcpPort = 502;
@@ -66,6 +67,8 @@ private:
     QHash<Thing *, VictronVebusModbusTcpConnection *> m_vebusTcpConnections;
 
     void setupVictronConnection(ThingSetupInfo *info);
+    void disableRemoteControl(Thing *thing);
+    void setBatteryPower(Thing *thing, qint32 powerToSet);
 
     Thing *getMeterThing(Thing *parentThing);
     Thing *getBatteryThing(Thing *parentThing);
