@@ -55,7 +55,7 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &SolaxEvcTCPDiscovery::discoveryFinished, info, [=]() {
             foreach (const SolaxEvcTCPDiscovery::Result &result, discovery->discoveryResults()) {
 
-                ThingDescriptor descriptor(solaxEvcThingClassId, "Solax X3 EVCharger",
+                ThingDescriptor descriptor(solaxEvcThingClassId, supportedThings().findById(solaxEvcThingClassId).displayName(),
                                            result.networkDeviceInfo.address().toString());
                 qCInfo(dcSolaxEvc())
                         << "Discovered:" << descriptor.title() << descriptor.description();
