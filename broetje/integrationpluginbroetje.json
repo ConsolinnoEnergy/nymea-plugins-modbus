@@ -1,0 +1,172 @@
+{
+    "name": "Broetje",
+    "displayName": "Brötje",
+    "id": "94f27f7c-ccd4-40d5-9d4d-80930965e7f4",
+    "vendors": [
+        {
+            "name": "broetje",
+            "displayName": "Brötje",
+            "id": "0c4db3d0-8222-4da6-b475-7fe75ab5badf",
+            "thingClasses": [
+                {
+                    "name": "broetje",
+                    "displayName": "Brötje BLW Eco.1 / Mono.1",
+                    "id": "2940f87e-408c-4151-9a3c-38b7e337e5fb",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["smartgridheatpump", "connectable"],
+                    "paramTypes": [
+                        {
+                            "id": "15969436-7929-43de-b318-466bc23d2c5b",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 247,
+                            "defaultValue": 1,
+                            "readOnly": true
+                        },
+                        {
+                            "id": "9775a38d-6908-49a2-80d5-e7a11848b2f8",
+                            "name": "modbusMasterUuid",
+                            "displayName": "Modbus RTU master",
+                            "type": "QUuid",
+                            "defaultValue": "",
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "1d736cea-0ea6-487d-91f9-5212d8778087",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "42c62594-48e5-434b-ba37-8f9975159943",
+                            "name": "flowTemperature",
+                            "displayName": "Flow temperature",
+                            "displayNameEvent": "Flow temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "5894c1a0-d9cf-4b2f-bfac-1f12e150fd78",
+                            "name": "returnTemperature",
+                            "displayName": "Return temperature",
+                            "displayNameEvent": "Return temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "55d4f93d-8bac-49ad-9426-27af60de1f76",
+                            "name": "outdoorTemperature",
+                            "displayName": "Outdoor temperature",
+                            "displayNameEvent": "Outdoor temperature changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "a685900e-8c73-41a4-95ee-573a41e67004",
+                            "name": "hotWaterTemperature",
+                            "displayName": "Hot water temperature",
+                            "displayNameEvent": "Hot water changed",
+                            "unit": "DegreeCelsius",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "64dfff52-3903-4956-9ce2-da75f2b314f7",
+                            "name": "calculatedCop",
+                            "displayName": "Calculated COP",
+                            "displayNameEvent": "Calculated COP changed",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "6174feff-b215-4c62-a9a2-7209f0f5879d",
+                            "name": "energyConsumedYear",
+                            "displayName": "Energy consumed this year",
+                            "displayNameEvent": "Heating power changed",
+                            "unit": "KiloWattHour",
+                            "type": "double",
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "650f9418-52db-490a-b834-6ea9e2fb66b0",
+                            "name": "sgReadyMode",
+                            "displayName": "SG Ready mode",
+                            "displayNameEvent": "SG Ready mode changed",
+                            "displayNameAction": "Set SG Ready mode",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Off",
+                                "Low",
+                                "Standard",
+                                "High"
+                            ],
+                            "writable": true,
+                            "defaultValue": "Low",
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "6ecc2e8d-322a-4033-b1f6-79195a54a051",
+                            "name": "sgReadyMode3or4",
+                            "displayName": "SG Ready mode 3 or 4",
+                            "displayNameEvent": "SG Ready mode 3 or 4 changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "19c6fd81-e9be-4665-ae83-579aced5d9e0",
+                            "name": "systemStatus",
+                            "displayName": "System status",
+                            "displayNameEvent": "System status changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "b746f3e6-af41-47bc-acff-079f6a5be3c3",
+                            "name": "subsystemStatus",
+                            "displayName": "Subsystem status",
+                            "displayNameEvent": "Subsystem status changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "66819f9a-e1fe-40c8-ac67-422488edf1cf",
+                            "name": "error",
+                            "displayName": "Error",
+                            "displayNameEvent": "Error changed",
+                            "type": "QString",
+                            "defaultValue": "No error",
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "dffac5ec-bed1-47d0-ba42-c29e96faedea",
+                            "name": "gtwVersion",
+                            "displayName": "GTW-08 firmware version",
+                            "displayNameEvent": "GTW-08 firmware version changed",
+                            "type": "QString",
+                            "defaultValue": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

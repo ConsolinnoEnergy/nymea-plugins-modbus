@@ -14,6 +14,7 @@ PLUGIN_DIRS = \
     azzurro                 \
     amperfied               \
     bgetech                 \
+    broetje                 \
     kostalmeter             \
     drexelundweiss          \
     foxesswbv3              \
@@ -22,23 +23,29 @@ PLUGIN_DIRS = \
     huawei                  \
     idm                     \
     inepro                  \
+    janitza                 \
     kacosunspec             \
     kostal                  \
+    lambda                  \
     mennekes                \
     modbuscommander         \
     mtec                    \
     mypv                    \
     phoenixconnect          \
+    qcellsg4wb              \
     sax                     \
     schneider               \
     schneiderIEM            \
     schrack                 \
     senseair                \
     sma                     \
+    sofarsolar              \
     solaxevc                \
     solax                   \
+    solaxultra              \
     stiebeleltron           \
-    sungrow                 \
+    sungrowsg               \
+    sungrowsh               \
     sunspec                 \
     technivolt              \
     unipi                   \

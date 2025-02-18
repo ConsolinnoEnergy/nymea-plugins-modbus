@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2023, nymea GmbH
+* Copyright 2013 - 2024, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This fileDescriptor is part of nymea.
@@ -50,7 +50,7 @@ class SolaxModbusTcpConnection : public ModbusTCPMaster
     Q_OBJECT
 public:
     enum Registers {
-        RegisterInverterVoltage = 0,
+        RegisterUnlockPassword = 0,
         RegisterInverterCurrent = 1,
         RegisterInverterPower = 2,
         RegisterPvVoltage1 = 3,
@@ -69,8 +69,8 @@ public:
         RegisterBmsConnectState = 23,
         RegisterTemperatureBat = 24,
         RegisterBatteryCapacity = 28,
-        RegisterActivePowerLimit = 37,
         RegisterInverterFaultBits = 64,
+        RegisterWriteExportLimit = 66,
         RegisterBmsWarningLsb = 68,
         RegisterBmsWarningMsb = 69,
         RegisterFeedinPower = 70,
@@ -88,11 +88,19 @@ public:
         RegisterGridCurrentT = 115,
         RegisterGridPowerT = 116,
         RegisterGridFrequencyT = 117,
+        RegisterModeType = 124,
         RegisterFirmwareVersion = 125,
+        RegisterForceBatteryPower = 137,
+        RegisterBatMaxChargeVolt = 142,
+        RegisterBatMaxDischargeVolt = 143,
+        RegisterBatMaxChargeCurrent = 144,
+        RegisterBatMaxDischargeCurrent = 145,
         RegisterSolarEnergyTotal = 148,
         RegisterSolarEnergyToday = 150,
+        RegisterReadExportLimit = 182,
         RegisterMeter1CommunicationState = 184,
-        RegisterInverterType = 186
+        RegisterInverterType = 186,
+        RegisterModbusPowerControl = 256
     };
     Q_ENUM(Registers)
 
@@ -121,6 +129,9 @@ public:
     uint checkReachableRetries() const;
     void setCheckReachableRetries(uint checkReachableRetries);
 
+    /* Unlock password (0x00) - Address: 0, Size: 1 */
+    QModbusReply *setUnlockPassword(quint16 unlockPassword);
+
     /* Battery state of charge (0x1C) [%] - Address: 28, Size: 1 */
     quint16 batteryCapacity() const;
 
@@ -136,8 +147,11 @@ public:
     /* Meter 1 communication status (0xB8) - Address: 184, Size: 1 */
     quint16 meter1CommunicationState() const;
 
-    /* Active power limit (0x25) [%] - Address: 37, Size: 1 */
-    quint16 activePowerLimit() const;
+    /* Read grid export limit (0xB6) [W] - Address: 182, Size: 1 */
+    float readExportLimit() const;
+
+    /* Write grid export limit (0x42) [W] - Address: 66, Size: 1 */
+    QModbusReply *setWriteExportLimit(float writeExportLimit);
 
     /* Firmware version (0x7D) - Address: 125, Size: 1 */
     quint16 firmwareVersion() const;
@@ -145,8 +159,14 @@ public:
     /* Inverter rated power (0xBA) [W] - Address: 186, Size: 1 */
     quint16 inverterType() const;
 
-    /* Serial number (0x00) - Address: 0, Size: 7 */
-    QString serialNumber() const;
+    /* Control mode and target type (0x7C) - Address: 124, Size: 2 */
+    QModbusReply *setModeType(quint32 modeType);
+
+    /* Battery power (0x89) [W] - Address: 137, Size: 2 */
+    QModbusReply *setForceBatteryPower(qint32 forceBatteryPower);
+
+    /* Modbus power control read-only (0x89) - Address: 256, Size: 1 */
+    quint16 modbusPowerControl() const;
 
     /* Factory name (0x07) - Address: 7, Size: 7 */
     QString factoryName() const;
@@ -256,8 +276,19 @@ public:
     /* Solar energy produced today (0x96) [kWh] - Address: 150, Size: 1 */
     float solarEnergyToday() const;
 
-    /* Read block from start addess 0 with size of 21 registers containing following 3 properties:
-      - Serial number (0x00) - Address: 0, Size: 7
+    /* Battery max charge voltage (0x8E) [V] - Address: 142, Size: 1 */
+    float batMaxChargeVolt() const;
+
+    /* Battery max discharge voltage (0x8F) [V] - Address: 143, Size: 1 */
+    float batMaxDischargeVolt() const;
+
+    /* Battery max charge current (0x90) [A] - Address: 144, Size: 1 */
+    float batMaxChargeCurrent() const;
+
+    /* Battery max discharge current (0x91) [A] - Address: 145, Size: 1 */
+    float batMaxDischargeCurrent() const;
+
+    /* Read block from start addess 7 with size of 14 registers containing following 2 properties:
       - Factory name (0x07) - Address: 7, Size: 7
       - Module name (0x0E) - Address: 14, Size: 7
     */
@@ -317,14 +348,22 @@ public:
     */
     void updateSolarEnergyBlock();
 
+    /* Read block from start addess 142 with size of 4 registers containing following 4 properties:
+      - Battery max charge voltage (0x8E) [V] - Address: 142, Size: 1
+      - Battery max discharge voltage (0x8F) [V] - Address: 143, Size: 1
+      - Battery max charge current (0x90) [A] - Address: 144, Size: 1
+      - Battery max discharge current (0x91) [A] - Address: 145, Size: 1
+    */
+    void updateBatMaxInfoBlock();
+
     void updateBatteryCapacity();
     void updateBmsWarningLsb();
     void updateBmsWarningMsb();
     void updateInverterFaultBits();
     void updateMeter1CommunicationState();
-    void updateActivePowerLimit();
+    void updateReadExportLimit();
+    void updateModbusPowerControl();
 
-    void updateSerialNumber();
     void updateFactoryName();
     void updateModuleName();
     void updateInverterVoltage();
@@ -361,16 +400,20 @@ public:
     void updateGridFrequencyT();
     void updateSolarEnergyTotal();
     void updateSolarEnergyToday();
+    void updateBatMaxChargeVolt();
+    void updateBatMaxDischargeVolt();
+    void updateBatMaxChargeCurrent();
+    void updateBatMaxDischargeCurrent();
 
     QModbusReply *readBatteryCapacity();
     QModbusReply *readBmsWarningLsb();
     QModbusReply *readBmsWarningMsb();
     QModbusReply *readInverterFaultBits();
     QModbusReply *readMeter1CommunicationState();
-    QModbusReply *readActivePowerLimit();
+    QModbusReply *readReadExportLimit();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readInverterType();
-    QModbusReply *readSerialNumber();
+    QModbusReply *readModbusPowerControl();
     QModbusReply *readFactoryName();
     QModbusReply *readModuleName();
     QModbusReply *readInverterVoltage();
@@ -407,9 +450,12 @@ public:
     QModbusReply *readGridFrequencyT();
     QModbusReply *readSolarEnergyTotal();
     QModbusReply *readSolarEnergyToday();
+    QModbusReply *readBatMaxChargeVolt();
+    QModbusReply *readBatMaxDischargeVolt();
+    QModbusReply *readBatMaxChargeCurrent();
+    QModbusReply *readBatMaxDischargeCurrent();
 
-    /* Read block from start addess 0 with size of 21 registers containing following 3 properties:
-     - Serial number (0x00) - Address: 0, Size: 7
+    /* Read block from start addess 7 with size of 14 registers containing following 2 properties:
      - Factory name (0x07) - Address: 7, Size: 7
      - Module name (0x0E) - Address: 14, Size: 7
     */
@@ -469,10 +515,19 @@ public:
     */
     QModbusReply *readBlockSolarEnergy();
 
+    /* Read block from start addess 142 with size of 4 registers containing following 4 properties:
+     - Battery max charge voltage (0x8E) [V] - Address: 142, Size: 1
+     - Battery max discharge voltage (0x8F) [V] - Address: 143, Size: 1
+     - Battery max charge current (0x90) [A] - Address: 144, Size: 1
+     - Battery max discharge current (0x91) [A] - Address: 145, Size: 1
+    */
+    QModbusReply *readBlockBatMaxInfo();
+
 
     virtual bool initialize();
     virtual void initialize2();
     virtual void initialize3();
+    virtual void initialize4();
     virtual bool update();
     virtual void update2();
     virtual void update3();
@@ -484,6 +539,7 @@ public:
     virtual void update9();
     virtual void update10();
     virtual void update11();
+    virtual void update12();
 
 signals:
     void reachableChanged(bool reachable);
@@ -505,15 +561,19 @@ signals:
     void inverterFaultBitsReadFinished(quint32 inverterFaultBits);
     void meter1CommunicationStateChanged(quint16 meter1CommunicationState);
     void meter1CommunicationStateReadFinished(quint16 meter1CommunicationState);
-    void activePowerLimitChanged(quint16 activePowerLimit);
-    void activePowerLimitReadFinished(quint16 activePowerLimit);
+    void readExportLimitChanged(float readExportLimit);
+    void readExportLimitReadFinished(float readExportLimit);
     void firmwareVersionChanged(quint16 firmwareVersion);
     void firmwareVersionReadFinished(quint16 firmwareVersion);
     void inverterTypeChanged(quint16 inverterType);
     void inverterTypeReadFinished(quint16 inverterType);
+    void modeTypeChanged(quint32 modeType);
+    void modeTypeReadFinished(quint32 modeType);
+    void forceBatteryPowerChanged(qint32 forceBatteryPower);
+    void forceBatteryPowerReadFinished(qint32 forceBatteryPower);
+    void modbusPowerControlChanged(quint16 modbusPowerControl);
+    void modbusPowerControlReadFinished(quint16 modbusPowerControl);
 
-    void serialNumberChanged(const QString &serialNumber);
-    void serialNumberReadFinished(const QString &serialNumber);
     void factoryNameChanged(const QString &factoryName);
     void factoryNameReadFinished(const QString &factoryName);
     void moduleNameChanged(const QString &moduleName);
@@ -586,17 +646,29 @@ signals:
     void solarEnergyTotalReadFinished(float solarEnergyTotal);
     void solarEnergyTodayChanged(float solarEnergyToday);
     void solarEnergyTodayReadFinished(float solarEnergyToday);
+    void batMaxChargeVoltChanged(float batMaxChargeVolt);
+    void batMaxChargeVoltReadFinished(float batMaxChargeVolt);
+    void batMaxDischargeVoltChanged(float batMaxDischargeVolt);
+    void batMaxDischargeVoltReadFinished(float batMaxDischargeVolt);
+    void batMaxChargeCurrentChanged(float batMaxChargeCurrent);
+    void batMaxChargeCurrentReadFinished(float batMaxChargeCurrent);
+    void batMaxDischargeCurrentChanged(float batMaxDischargeCurrent);
+    void batMaxDischargeCurrentReadFinished(float batMaxDischargeCurrent);
 
 protected:
+    quint16 m_unlockPassword;
     quint16 m_batteryCapacity = 0;
     quint16 m_bmsWarningLsb = 0;
     quint16 m_bmsWarningMsb = 0;
     quint32 m_inverterFaultBits = 0;
     quint16 m_meter1CommunicationState = 0;
-    quint16 m_activePowerLimit = 0;
+    float m_readExportLimit = 0;
+    float m_writeExportLimit = 0;
     quint16 m_firmwareVersion = 0;
     quint16 m_inverterType = 0;
-    QString m_serialNumber;
+    quint32 m_modeType = 0;
+    qint32 m_forceBatteryPower = 0;
+    quint16 m_modbusPowerControl = 0;
     QString m_factoryName;
     QString m_moduleName;
     float m_inverterVoltage = 0;
@@ -633,17 +705,21 @@ protected:
     float m_gridFrequencyT = 0;
     float m_solarEnergyTotal = 0;
     float m_solarEnergyToday = 0;
+    float m_batMaxChargeVolt = 0;
+    float m_batMaxDischargeVolt = 0;
+    float m_batMaxChargeCurrent = 0;
+    float m_batMaxDischargeCurrent = 0;
 
     void processBatteryCapacityRegisterValues(const QVector<quint16> values);
     void processBmsWarningLsbRegisterValues(const QVector<quint16> values);
     void processBmsWarningMsbRegisterValues(const QVector<quint16> values);
     void processInverterFaultBitsRegisterValues(const QVector<quint16> values);
     void processMeter1CommunicationStateRegisterValues(const QVector<quint16> values);
-    void processActivePowerLimitRegisterValues(const QVector<quint16> values);
+    void processReadExportLimitRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processInverterTypeRegisterValues(const QVector<quint16> values);
+    void processModbusPowerControlRegisterValues(const QVector<quint16> values);
 
-    void processSerialNumberRegisterValues(const QVector<quint16> values);
     void processFactoryNameRegisterValues(const QVector<quint16> values);
     void processModuleNameRegisterValues(const QVector<quint16> values);
 
@@ -685,6 +761,11 @@ protected:
 
     void processSolarEnergyTotalRegisterValues(const QVector<quint16> values);
     void processSolarEnergyTodayRegisterValues(const QVector<quint16> values);
+
+    void processBatMaxChargeVoltRegisterValues(const QVector<quint16> values);
+    void processBatMaxDischargeVoltRegisterValues(const QVector<quint16> values);
+    void processBatMaxChargeCurrentRegisterValues(const QVector<quint16> values);
+    void processBatMaxDischargeCurrentRegisterValues(const QVector<quint16> values);
 
     void handleModbusError(QModbusDevice::Error error);
     void testReachability();

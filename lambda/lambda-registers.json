@@ -1,0 +1,915 @@
+{
+    "className": "Lambda",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 30,
+    "checkReachableRegister": "systemStatus",
+    "enums": [
+        {
+            "name": "AmbientState",
+            "values": [
+                {
+                    "key": "Off",
+                    "value": 0
+                },
+                {
+                    "key": "Automatik",
+                    "value": 1
+                },
+                {
+                    "key": "Manual",
+                    "value": 2
+                },
+                {
+                    "key": "Error",
+                    "value": 3
+                }
+            ]
+        },
+        {
+            "name": "EmanagerState",
+            "values": [
+                {
+                    "key": "Off",
+                    "value": 0
+                },
+                {
+                    "key": "Automatik",
+                    "value": 1
+                },
+                {
+                    "key": "Manual",
+                    "value": 2
+                },
+                {
+                    "key": "Error",
+                    "value": 3
+                },
+                {
+                    "key": "Offline",
+                    "value": 4
+                }
+            ]
+        },
+        {
+            "name": "HeatpumpErrorState",
+            "values": [
+                {
+                    "key": "None",
+                    "value": 0
+                },
+                {
+                    "key": "Message",
+                    "value": 1
+                },
+                {
+                    "key": "Warning",
+                    "value": 2
+                },
+                {
+                    "key": "Alarm",
+                    "value": 3
+                },
+                {
+                    "key": "Fault",
+                    "value": 4
+                }
+            ]
+        },
+        {
+            "name": "SystemStatus",
+            "values": [
+                {
+                    "key": "Init",
+                    "value": 0
+                },
+                {
+                    "key": "Reference",
+                    "value": 1
+                },
+                {
+                    "key": "RestartBlock",
+                    "value": 2
+                },
+                {
+                    "key": "Ready",
+                    "value": 3
+                },
+                {
+                    "key": "StartPumps",
+                    "value": 4
+                },
+                {
+                    "key": "StartCompressor",
+                    "value": 5
+                },
+                {
+                    "key": "PreRegulation",
+                    "value": 6
+                },
+                {
+                    "key": "Regulation",
+                    "value": 7
+                },
+                {
+                    "key": "NotUsed",
+                    "value": 8
+                },
+                {
+                    "key": "Cooling",
+                    "value": 9
+                },
+                {
+                    "key": "Defrosting",
+                    "value": 10
+                },
+                {
+                    "key": "Stopping",
+                    "value": 20
+                },
+                {
+                    "key": "FaultLock",
+                    "value": 30
+                },
+                {
+                    "key": "AlarmBlock",
+                    "value": 31
+                },
+                {
+                    "key": "ErrorReset",
+                    "value": 40
+                }
+            ]
+        },
+        {
+            "name": "HeatpumpState",
+            "values": [
+                {
+                    "key": "Stby",
+                    "value": 0
+                },
+                {
+                    "key": "Ch",
+                    "value": 1
+                },
+                {
+                    "key": "Dhw",
+                    "value": 2
+                },
+                {
+                    "key": "Cc",
+                    "value": 3
+                },
+                {
+                    "key": "Circulate",
+                    "value": 4
+                },
+                {
+                    "key": "Defrost",
+                    "value": 5
+                },
+                {
+                    "key": "Off",
+                    "value": 6
+                },
+                {
+                    "key": "Frost",
+                    "value": 7
+                },
+                {
+                    "key": "StbyFrost",
+                    "value": 8
+                },
+                {
+                    "key": "NotUsed",
+                    "value": 9
+                },
+                {
+                    "key": "Summer",
+                    "value": 10
+                },
+                {
+                    "key": "Holiday",
+                    "value": 11
+                },
+                {
+                    "key": "Error",
+                    "value": 12
+                },
+                {
+                    "key": "Warning",
+                    "value": 13
+                },
+                {
+                    "key": "InfoMessage",
+                    "value": 14
+                },
+                {
+                    "key": "TimeBlock",
+                    "value": 15
+                },
+                {
+                    "key": "ReleaseBlock",
+                    "value": 16
+                },
+                {
+                    "key": "MinTempBlock",
+                    "value": 17
+                },
+                {
+                    "key": "FirmwareDownload",
+                    "value": 18
+                }                
+            ]
+        },
+        {
+            "name": "BufferState",
+            "values": [
+                {
+                    "key": "Stby",
+                    "value": 0
+                },
+                {
+                    "key": "Heating",
+                    "value": 1
+                },
+                {
+                    "key": "Cooling",
+                    "value": 2
+                },
+                {
+                    "key": "Summer",
+                    "value": 3
+                },
+                {
+                    "key": "Frost",
+                    "value": 4
+                },
+                {
+                    "key": "Holiday",
+                    "value": 5
+                },
+                {
+                    "key": "PrioStop",
+                    "value": 6
+                },
+                {
+                    "key": "Error",
+                    "value": 7
+                },
+                {
+                    "key": "Off",
+                    "value": 8
+                },
+                {
+                    "key": "StbyFrost",
+                    "value": 9
+                }
+            ]
+        },
+        {
+            "name": "HeatingcircuitState",
+            "values": [
+                {
+                    "key": "Heating",
+                    "value": 0
+                },
+                {
+                    "key": "Eco",
+                    "value": 1
+                },
+                {
+                    "key": "Cooling",
+                    "value": 2
+                },
+                {
+                    "key": "Floordry",
+                    "value": 3
+                },
+                {
+                    "key": "Frost",
+                    "value": 4
+                },
+                {
+                    "key": "MaxTemp",
+                    "value": 5
+                },
+                {
+                    "key": "Error",
+                    "value": 6
+                },
+                {
+                    "key": "Service",
+                    "value": 7
+                },
+                {
+                    "key": "Holiday",
+                    "value": 8
+                },
+                {
+                    "key": "ChSummer",
+                    "value": 9
+                },
+                {
+                    "key": "CcWinter",
+                    "value": 10
+                },
+                {
+                    "key": "PrioStop",
+                    "value": 11
+                },
+                {
+                    "key": "Off",
+                    "value": 12
+                },
+                {
+                    "key": "ReleaseOff",
+                    "value": 13
+                },
+                {
+                    "key": "TimeOff",
+                    "value": 14
+                },
+                {
+                    "key": "Stby",
+                    "value": 15
+                },
+                {
+                    "key": "StbyHeating",
+                    "value": 16
+                },
+                {
+                    "key": "StbyEco",
+                    "value": 17
+                },
+                {
+                    "key": "StbyCooling",
+                    "value": 18
+                },
+                {
+                    "key": "StbyFrost",
+                    "value": 19
+                },
+                {
+                    "key": "StbyFloordry",
+                    "value": 20
+                }
+            ]
+        },
+        {
+            "name": "HeatingcircuitMode",
+            "values": [    
+                {
+                    "key": "Off",
+                    "value": 0
+                },
+                {
+                    "key": "Manual",
+                    "value": 1
+                },
+                {
+                    "key": "Automatik",
+                    "value": 2
+                },
+                {
+                    "key": "AutoHeating",
+                    "value": 3
+                },
+                {
+                    "key": "AutoCooling",
+                    "value": 4
+                },
+                {
+                    "key": "Frost",
+                    "value": 5
+                },
+                {
+                    "key": "Summer",
+                    "value": 6
+                },
+                {
+                    "key": "FloorDry",
+                    "value": 7
+                }
+            ]
+        }        
+    ], 
+    "blocks": [
+        {
+            "id": "ambient",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "ambientErrorNumber",
+                    "address": 0,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "ambient error number",
+                    "defaultValue": "0",
+                    "unit": "",
+                    "access": "RO"
+                },
+                {
+                    "id": "ambientState",
+                    "address": 1,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "AmbientState",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "operating state for ambient module",
+                    "defaultValue": "AmbientStateOff",
+                    "access": "RO"
+                },
+                {
+                    "id": "actualAmbientTemperature",
+                    "address": 2,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "actual ambient temperature",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "20",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "averageAmbientTemperature",
+                    "address": 3,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Arithmetic average temperature of the last 60 minutes",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "20",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "outdoorTemperature",
+                    "address": 4,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "calculated ambient temperature",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "20",
+                    "unit": "°C",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "emanager",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "emanagerErrorNumber",
+                    "address": 100,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "E-Manager error number, 0: no error",
+                    "defaultValue": "0",
+                    "unit": "",
+                    "access": "RO"
+                },
+                {
+                    "id": "emanagerState",
+                    "address": 101,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "EmanagerState",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "operating state for E-Manager module",
+                    "defaultValue": "EmanagerStateOff",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "power",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currentPower",
+                    "address": 103,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "actual power consumption of all configured heat pumps",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerSetpoint",
+                    "address": 104,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "realized power consumption setpoint of all configured heat pumps",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "heatpump",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "heatpumpErrorState",
+                    "address": 1000,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "HeatpumpErrorState",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "error state for heat pump module",
+                    "defaultValue": "HeatpumpErrorStateNone",
+                    "access": "RO"
+                },
+                {
+                    "id": "heatpumpErrorNumber",
+                    "address": 1001,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "active heat pump error numbers",
+                    "defaultValue": "0",
+                    "unit": "",
+                    "access": "RO"
+                },
+                {
+                    "id": "systemStatus",
+                    "address": 1002,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "SystemStatus",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "System status of the heat pump",
+                    "defaultValue": "SystemStatusInit",
+                    "access": "RO"
+                },
+                {
+                    "id": "heatpumpState",
+                    "address": 1003,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "HeatpumpState",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Operating state of the heat pump",
+                    "defaultValue": "HeatpumpStateStby",
+                    "access": "RO"
+                },
+                {
+                    "id": "heatpumpFlowTemperature",
+                    "address": 1004,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Flow line temperature of the heat pump",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "heatpumpReturnTemperature",
+                    "address": 1005,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Return line temperature of the heat pump",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "volumeFlowSink",
+                    "address": 1006,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Volume flow heat sink",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "l/min",
+                    "access": "RO"
+                },
+                {
+                    "id": "energySourceInletTemperature",
+                    "address": 1007,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Heat source inlet temperature",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "energySourceOutletTemperature",
+                    "address": 1008,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Heat source outlet temperature",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "volumeFlowSource",
+                    "address": 1009,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": " Volume flow energy source",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "l/min",
+                    "access": "RO"
+                },
+                {
+                    "id": "compressorRating",
+                    "address": 1010,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Compressor unit rating",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "%",
+                    "access": "RO"
+                },
+                {
+                    "id": "actualHeatingCapacity",
+                    "address": 1011,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Actual heating capacity",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "kW",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerActualInverter",
+                    "address": 1012,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Frequency inverter actual power consumption",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "access": "RO"
+                },
+                {
+                    "id": "coefficientOfPerformance",
+                    "address": 1013,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Coefficient of performance",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "unit": "%",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "buffer",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "bufferErrorNumber",
+                    "address": 3000,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "buffer error number, 0: no error",
+                    "defaultValue": "0",
+                    "unit": "",
+                    "access": "RO"
+                },
+                {
+                    "id": "bufferState",
+                    "address": 3001,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "BufferState",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Operating state of the buffer",
+                    "defaultValue": "BufferStateStby",
+                    "access": "RO"
+                },
+                {
+                    "id": "bufferTemperatureHigh",
+                    "address": 3002,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Actual temperature buffer high sensor",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "bufferTemperatureLow",
+                    "address": 3003,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Actual temperature buffer low sensor",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "heatcirc",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "heatingcircuitErrorNumber",
+                    "address": 5000,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "heating circuit error number, 0: no error",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "",
+                    "access": "RO"
+                },
+                {
+                    "id": "heatingcircuitState",
+                    "address": 5001,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "HeatingcircuitState",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Operating state of the heating circuit",
+                    "defaultValue": "HeatingcircuitStateHeating",
+                    "access": "RO"
+                },
+                {
+                    "id": "flowTemperature",
+                    "address": 5002,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Actual temperature flow line sensor",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "returnTemperature",
+                    "address": 5003,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Actual temperature return line sensor",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "roomTemperature",
+                    "address": 5004,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "actual temperatur room device sensor",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "setpointFlowTemperature",
+                    "address": 5005,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Setpoint flow temperature",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "unit": "°C",
+                    "access": "RO"
+                },
+                {
+                    "id": "heatingcircuitMode",
+                    "address": 5006,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "HeatingcircuitMode",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Operating mode of the heating circuit",
+                    "defaultValue": "HeatingcircuitModeOff",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "actualPvSurplus",
+            "address": 102,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "actual PV surplus power",
+            "defaultValue": "0",
+            "unit": "W",
+            "access": "RW"
+        },
+        {
+            "id": "totalEnergyConsumed",
+            "address": 1020,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Accumulated electrical energy consumption of compressor unit since last statistic reset",
+            "staticScaleFactor": -3,
+            "defaultValue": "0",
+            "unit": "kWh",
+            "access": "RO"
+        },
+        {
+            "id": "compressorTotalHeatOutput",
+            "address": 1022,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Accumulated thermal energy output of compressor unit since last statistic reset",
+            "staticScaleFactor": -3,
+            "defaultValue": "0",
+            "unit": "kWh",
+            "access": "RO"
+        },
+        {
+            "id": "hotWaterTemperature",
+            "address": 2002,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Actual temperature boiler high sensor",
+            "staticScaleFactor": -1,
+            "defaultValue": "0",
+            "unit": "°C",
+            "access": "RO"
+        }
+    ]
+}

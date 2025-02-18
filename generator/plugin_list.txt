@@ -1,1 +1,6 @@
 kostalmeter
+solax
+solaxevc
+dvmodbusir
+technivolt
+janitza

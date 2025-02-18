@@ -450,8 +450,7 @@ void IntegrationPluginTemplate::setupInverter(ThingSetupInfo *info){
     e3dcInverter* inverter = new e3dcInverter();
 
 
-
-//     everytime the Inverter gets updated, also update the thing
+    // everytime the Inverter gets updated, also update the thing
     connect(inverter, &e3dcInverter::currentPowerChanged, this, [thing](float currentPower){
         qCDebug(dcE3dc()) << thing << "Inverter current Power changed" << currentPower << "W";
         thing->setStateValue(e3dcInverterCurrentPowerStateTypeId, currentPower);

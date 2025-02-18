@@ -336,7 +336,7 @@ void IntegrationPluginMennekes::updateECUPhaseCount(Thing *thing)
         qCDebug(dcMennekes()) << "Connected phases:" << phaseCount;
     }
 
-    thing->setStateValue(amtronECUPhaseCountStateTypeId, phaseCount);
+    thing->setStateValue(amtronECUPhaseCountStateTypeId, qMax(phaseCount, 1));
 }
 
 void IntegrationPluginMennekes::setupAmtronECUConnection(ThingSetupInfo *info)
@@ -372,6 +372,7 @@ void IntegrationPluginMennekes::setupAmtronECUConnection(ThingSetupInfo *info)
             amtronECUConnection->initialize();
         } else {
             thing->setStateValue(amtronECUConnectedStateTypeId, false);
+            thing->setStateValue(amtronECUCurrentPowerStateTypeId, 0);
         }
     });
 
