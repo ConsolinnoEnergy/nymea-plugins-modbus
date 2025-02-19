@@ -60,7 +60,7 @@
         {
             "id": "status",
             "readSchedule": "update",
-            "registers": [
+            "registers": [                
                 {
                     "id": "currentFaultNumber",
                     "address": 1004,
@@ -182,7 +182,7 @@
             "defaultValue": "0",
             "unit": "°C",
             "access": "RO"
-        },
+        },        
         {
             "id": "targetHotWaterTemperature",
             "address": 1032,
@@ -193,6 +193,18 @@
             "description": "Target hot water temperature",
             "defaultValue": "0",
             "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "heatPumpOperatingMode",
+            "address": 1090,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Heat pump operation mode",
+            "enum": "HeatPumpOperationMode",
+            "defaultValue": "HeatPumpOperationModeOff",
             "access": "RO"
         },
         {
@@ -220,18 +232,6 @@
             "access": "RW"
         },
         {
-            "id": "heatPumpOperatingMode",
-            "address": 1090,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Heat pump operation mode",
-            "enum": "HeatPumpOperationMode",
-            "defaultValue": "HeatPumpOperationModeOff",
-            "access": "RO"
-        },
-        {
             "id": "currentPowerConsumption",
             "address": 4122,
             "size": 2,
@@ -239,6 +239,18 @@
             "readSchedule": "update",
             "registerType": "holdingRegister",
             "description": "Current power consumption",
+            "unit": "kW",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "currentThermalPower",
+            "address": 4126,
+            "size": 2,
+            "type": "float",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Current thermal power",
             "unit": "kW",
             "defaultValue": "0",
             "access": "RO"

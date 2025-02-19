@@ -1,0 +1,13 @@
+{
+    "title": "Solax Inverter",
+    "tagline": "Connect to Solax inverters.",
+    "icon": "solax.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

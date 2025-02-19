@@ -46,6 +46,12 @@
 
 #include "../vestel/evc04discovery.h"
 
+// Known problems: For the Webasto Next, the registers 5004 (chargePower) and 5006 (chargingAction) are read only. But the current Nymea version (1.7) is buggy for
+// read only registers (compile error), so the workaround is to set them to RW. This will constantly give errors when the plugin tries to read them (which is not
+// possible, hence the error), but other than that it works.
+// Another thing for the Next: When the wallbox is power cycled, it takes a really long time before it starts answering modbus calls again (~5 min). The plugin will
+// recover the connected state, but it takes unusually long.
+
 IntegrationPluginWebasto::IntegrationPluginWebasto()
 {
 }
@@ -66,6 +72,14 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
     if (info->thingClassId() == webastoNextThingClassId) {
 
         qCInfo(dcWebasto()) << "Start discovering Webasto NEXT in the local network...";
+        m_nextDiscoveryRunning = true;
+        foreach(WebastoNextModbusTcpConnection *connection, m_webastoNextConnections) {
+            // Reconfigure won't work without this. The device will not answer modbus calls (discovery will skip it) if there already is another active connection.
+            qCWarning(dcWebasto()) << "Disconnecting existing device" << connection->hostAddress().toString()
+                                   << "temporarily to not interfere with discovery. Nothing to worry about, the device will reconnect after discovery is done.";
+            connection->disconnectDevice();
+        }
+
 
         // Create a discovery with the info as parent for auto deleting the object once the discovery info is done
         WebastoDiscovery *discovery = new WebastoDiscovery(hardwareManager()->networkDeviceDiscovery(), info);
@@ -107,13 +121,34 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
             }
 
             info->finish(Thing::ThingErrorNoError);
+            m_nextDiscoveryRunning = false;
+            foreach(WebastoNextModbusTcpConnection *connection, m_webastoNextConnections) {
+                qCDebug(dcWebasto()) << "Discovery is done, reconnecting existing device" << connection->hostAddress().toString();
+                connection->reconnectDevice();
+
+                // Warning: This code needs to execute, otherwise the plugin is effectively disabled.
+                // Research needed: Is it guaranteed, that this code will trigger? Is a different code path possible, for example when the discovery fails?
+            }
         });
 
         discovery->startDiscovery();
         return;
     }
 
-    if (info->thingClassId() == webastoUniteThingClassId) {
+    if (info->thingClassId() == webastoUniteThingClassId ||
+        info->thingClassId() == vestelEVC04ThingClassId ||
+        info->thingClassId() == eonDriveThingClassId) {
+
+        qCInfo(dcWebasto()) << "Start discovering Webasto Unite | Vestel EVC04 | EON Drive in the local network...";
+        m_uniteDiscoveryRunning = true;
+        foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
+            // Reconfigure won't work without this. The device will not answer modbus calls (discovery will skip it) if there already is another active connection.
+            qCWarning(dcWebasto()) << "Disconnecting existing device" << connection->hostAddress().toString()
+                                   << "temporarily to not interfere with discovery. Nothing to worry about, the device will reconnect after discovery is done.";
+            connection->disconnectDevice();
+        }
+
+        // Create a discovery with the info as parent for auto deleting the object once the discovery info is done
         EVC04Discovery *discovery = new EVC04Discovery(hardwareManager()->networkDeviceDiscovery(), dcWebasto(), info);
         connect(discovery, &EVC04Discovery::discoveryFinished, info, [=](){
             foreach (const EVC04Discovery::Result &result, discovery->discoveryResults()) {
@@ -125,11 +160,17 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
                 }
                 QString title = result.brand + " " + result.model;
                 QString description = result.chargepointId;
-                ThingDescriptor descriptor(webastoUniteThingClassId, title, description);
+                ThingDescriptor descriptor(info->thingClassId(), title, description);
                 qCDebug(dcWebasto()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 ParamList params;
-                params << Param(webastoUniteThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                if (info->thingClassId() == webastoUniteThingClassId) {
+                    params << Param(webastoUniteThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                } else if (info->thingClassId() == vestelEVC04ThingClassId) {
+                    params << Param(vestelEVC04ThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                } else if (info->thingClassId() == eonDriveThingClassId) {
+                    params << Param(eonDriveThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                }
                 descriptor.setParams(params);
 
                 // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
@@ -147,6 +188,14 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
             }
 
             info->finish(Thing::ThingErrorNoError);
+            m_uniteDiscoveryRunning = false;
+            foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
+                qCDebug(dcWebasto()) << "Discovery is done, reconnecting existing device" << connection->hostAddress().toString();
+                connection->reconnectDevice();
+
+                // Warning: This code needs to execute, otherwise the plugin is effectively disabled.
+                // Research needed: Is it guaranteed, that this code will trigger? Is a different code path possible, for example when the discovery fails?
+            }
         });
         discovery->startDiscovery();
 
@@ -160,6 +209,7 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
     qCDebug(dcWebasto()) << "Setup thing" << thing->name();
 
     if (thing->thingClassId() == webastoNextThingClassId) {
+        m_nextSetupRunning = false;
 
         // Handle reconfigure
         if (m_webastoNextConnections.contains(thing)) {
@@ -205,7 +255,9 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
         } else {
             qCDebug(dcWebasto()) << "Waiting for the network monitor to get reachable before continue to set up the connection" << thing->name() << address.toString() << "...";
             connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [=](bool reachable){
-                if (reachable) {
+                if (reachable && !m_nextSetupRunning) {
+                    // The monitor is unreliable and can change reachable true->false->true before setup is done. Make sure this runs only once.
+                    m_nextSetupRunning = true;
                     qCDebug(dcWebasto()) << "The monitor for thing setup" << thing->name() << "is now reachable. Continue setup...";
                     setupWebastoNextConnection(info);
                 }
@@ -215,7 +267,10 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
         return;
     }
 
-    if (thing->thingClassId() == webastoUniteThingClassId) {
+    if (thing->thingClassId() == webastoUniteThingClassId ||
+        thing->thingClassId() == vestelEVC04ThingClassId ||
+        thing->thingClassId() == eonDriveThingClassId) {
+        m_uniteSetupRunning = false;
 
         if (m_evc04Connections.contains(thing)) {
             qCDebug(dcWebasto()) << "Reconfiguring existing thing" << thing->name();
@@ -225,7 +280,7 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         }
 
-        MacAddress macAddress = MacAddress(thing->paramValue(webastoUniteThingMacAddressParamTypeId).toString());
+        MacAddress macAddress = MacAddress(thing->paramValue("macAddress").toString());
         if (macAddress.isNull()) {
             qCWarning(dcWebasto()) << "The configured mac address is not valid" << thing->params();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not known. Please reconfigure the thing."));
@@ -250,7 +305,9 @@ void IntegrationPluginWebasto::setupThing(ThingSetupInfo *info)
         } else {
             qCDebug(dcWebasto()) << "Waiting for the network monitor to get reachable before continuing to set up the connection" << thing->name() << "...";
             connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [=](bool reachable){
-                if (reachable) {
+                if (reachable && !m_uniteSetupRunning) {
+                    // The monitor is unreliable and can change reachable true->false->true before setup is done. Make sure this runs only once.
+                    m_uniteSetupRunning = true;
                     qCDebug(dcWebasto()) << "The monitor for thing setup" << thing->name() << "is now reachable. Continuing setup on" << monitor->networkDeviceInfo().address().toString();
                     setupEVC04Connection(info);
                 }
@@ -272,19 +329,25 @@ void IntegrationPluginWebasto::postSetupThing(Thing *thing)
         m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(1);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
 
-            foreach(WebastoNextModbusTcpConnection *webastoNext, m_webastoNextConnections) {
-                if (webastoNext->reachable()) {
-                    webastoNext->update();
+            if (!m_nextDiscoveryRunning) {
+                foreach(WebastoNextModbusTcpConnection *connection, m_webastoNextConnections) {
+                    if (connection->reachable()) {
+                        connection->update();
+                    }
                 }
             }
 
-            foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
-                qCDebug(dcWebasto()) << "Updating connection" << connection->hostAddress().toString();
-                if (connection->reachable()) {
-                    connection->update();
-                    connection->setAliveRegister(1);
+            if (!m_uniteDiscoveryRunning) {
+                foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
+                    if (connection->reachable()) {
+                        qCDebug(dcWebasto()) << "Updating connection" << connection->hostAddress().toString();
+                        connection->update();
+                        QModbusReply *reply = connection->setAliveRegister(1);
+                        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+                    }
                 }
             }
+
         });
 
         m_pluginTimer->start();
@@ -317,7 +380,11 @@ void IntegrationPluginWebasto::thingRemoved(Thing *thing)
         connection->deleteLater();
     }
 
-    if (thing->thingClassId() == webastoUniteThingClassId && m_evc04Connections.contains(thing)) {
+    if ((thing->thingClassId() == webastoUniteThingClassId ||
+         thing->thingClassId() == vestelEVC04ThingClassId ||
+         thing->thingClassId() == eonDriveThingClassId) && 
+         m_evc04Connections.contains(thing)) {
+
         EVC04ModbusTcpConnection *connection = m_evc04Connections.take(thing);
         connection->disconnectDevice();
         connection->deleteLater();
@@ -422,6 +489,7 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             }
 
             QModbusReply *reply = evc04Connection->setChargingCurrent(power ? info->thing()->stateValue(webastoUniteMaxChargingCurrentStateTypeId).toUInt() : 0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, info, [info, reply, power](){
                 if (reply->error() == QModbusDevice::NoError) {
                     if (!power) {
@@ -445,6 +513,7 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             int maxChargingCurrent = info->action().paramValue(webastoUniteMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toInt();
             if (power) {
                 QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
                 connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
                     if (reply->error() == QModbusDevice::NoError) {
                         qCDebug(dcWebasto()) << "Setting max charging current finished successfully.";
@@ -458,6 +527,124 @@ void IntegrationPluginWebasto::executeAction(ThingActionInfo *info)
             } else {
                 qCDebug(dcWebasto()) << "Setting max charging current registered, but not sending modbus call because the wallbox should be off.";
                 info->thing()->setStateValue(webastoUniteMaxChargingCurrentStateTypeId, maxChargingCurrent);
+                info->finish(Thing::ThingErrorNoError);
+            }
+        }
+        return;
+    }
+
+    if (info->thing()->thingClassId() == vestelEVC04ThingClassId) {
+        EVC04ModbusTcpConnection *evc04Connection = m_evc04Connections.value(info->thing());
+
+        if (info->action().actionTypeId() == vestelEVC04PowerActionTypeId) {
+            bool power = info->action().paramValue(vestelEVC04PowerActionPowerParamTypeId).toBool();
+
+            // If the car is *not* connected, writing a 0 to the charging current register will cause it to go to 6 A instead of 0
+            // Because of this, we we're not connected, we'll do nothing, but once it get's connected, we'll sync the state over (see below in cableStateChanged)
+            if (!power && evc04Connection->cableState() < EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnected) {
+                info->thing()->setStateValue("power", false);
+                info->finish(Thing::ThingErrorNoError);
+                return;
+            }
+
+            QModbusReply *reply = evc04Connection->setChargingCurrent(power ? info->thing()->stateValue("maxChargingCurrent").toUInt() : 0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, info, [info, reply, power](){
+                if (reply->error() == QModbusDevice::NoError) {
+                    if (!power) {
+                        qCDebug(dcWebasto()) << "Turning off wallbox by setting maxChargingCurrent to 0 finished successfully.";
+                    } else {
+                        qCDebug(dcWebasto()) << "Turning on wallbox by setting maxChargingCurrent to" << info->thing()->stateValue("maxChargingCurrent").toUInt() << "finished successfully.";
+                    }
+                    info->thing()->setStateValue("power", power);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
+        if (info->action().actionTypeId() == vestelEVC04MaxChargingCurrentActionTypeId) {
+
+            // Setting a charge current will turn on the wallbox. So only send a charge current when the wallbox should be on. Otherwise, just write the charge current
+            // to the state. The current will be set when the power action is triggered.
+            bool power = info->thing()->stateValue("power").toBool();
+            int maxChargingCurrent = info->action().paramValue(vestelEVC04MaxChargingCurrentActionMaxChargingCurrentParamTypeId).toInt();
+            if (power) {
+                QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+                connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
+                    if (reply->error() == QModbusDevice::NoError) {
+                        qCDebug(dcWebasto()) << "Setting max charging current finished successfully.";
+                        info->thing()->setStateValue("maxChargingCurrent", maxChargingCurrent);
+                        info->finish(Thing::ThingErrorNoError);
+                    } else {
+                        qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                    }
+                });
+            } else {
+                qCDebug(dcWebasto()) << "Setting max charging current registered, but not sending modbus call because the wallbox should be off.";
+                info->thing()->setStateValue("maxChargingCurrent", maxChargingCurrent);
+                info->finish(Thing::ThingErrorNoError);
+            }
+        }
+        return;
+    }
+
+    if (info->thing()->thingClassId() == eonDriveThingClassId) {
+        EVC04ModbusTcpConnection *evc04Connection = m_evc04Connections.value(info->thing());
+
+        if (info->action().actionTypeId() == eonDrivePowerActionTypeId) {
+            bool power = info->action().paramValue(eonDrivePowerActionPowerParamTypeId).toBool();
+
+            // If the car is *not* connected, writing a 0 to the charging current register will cause it to go to 6 A instead of 0
+            // Because of this, we we're not connected, we'll do nothing, but once it get's connected, we'll sync the state over (see below in cableStateChanged)
+            if (!power && evc04Connection->cableState() < EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnected) {
+                info->thing()->setStateValue("power", false);
+                info->finish(Thing::ThingErrorNoError);
+                return;
+            }
+
+            QModbusReply *reply = evc04Connection->setChargingCurrent(power ? info->thing()->stateValue("maxChargingCurrent").toUInt() : 0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, info, [info, reply, power](){
+                if (reply->error() == QModbusDevice::NoError) {
+                    if (!power) {
+                        qCDebug(dcWebasto()) << "Turning off wallbox by setting maxChargingCurrent to 0 finished successfully.";
+                    } else {
+                        qCDebug(dcWebasto()) << "Turning on wallbox by setting maxChargingCurrent to" << info->thing()->stateValue("maxChargingCurrent").toUInt() << "finished successfully.";
+                    }
+                    info->thing()->setStateValue("power", power);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
+        if (info->action().actionTypeId() == eonDriveMaxChargingCurrentActionTypeId) {
+
+            // Setting a charge current will turn on the wallbox. So only send a charge current when the wallbox should be on. Otherwise, just write the charge current
+            // to the state. The current will be set when the power action is triggered.
+            bool power = info->thing()->stateValue("power").toBool();
+            int maxChargingCurrent = info->action().paramValue(eonDriveMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toInt();
+            if (power) {
+                QModbusReply *reply = evc04Connection->setChargingCurrent(maxChargingCurrent);
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+                connect(reply, &QModbusReply::finished, info, [info, reply, maxChargingCurrent](){
+                    if (reply->error() == QModbusDevice::NoError) {
+                        qCDebug(dcWebasto()) << "Setting max charging current finished successfully.";
+                        info->thing()->setStateValue("maxChargingCurrent", maxChargingCurrent);
+                        info->finish(Thing::ThingErrorNoError);
+                    } else {
+                        qCWarning(dcWebasto()) << "Error setting maxChargingCurrent:" << reply->error() << reply->errorString();
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                    }
+                });
+            } else {
+                qCDebug(dcWebasto()) << "Setting max charging current registered, but not sending modbus call because the wallbox should be off.";
+                info->thing()->setStateValue("maxChargingCurrent", maxChargingCurrent);
                 info->finish(Thing::ThingErrorNoError);
             }
         }
@@ -491,14 +678,15 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
     connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool monitorReachable){
 
         if (monitorReachable) {
-            qCDebug(dcWebasto()) << "Network device is now reachable for" << thing << monitor->networkDeviceInfo();
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "is now reachable at" << monitor->networkDeviceInfo();
         } else {
-            qCDebug(dcWebasto()) << "Network device not reachable any more" << thing;
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "is offline";
         }
 
         if (!thing->setupComplete())
             return;
 
+        // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
         if (m_webastoNextConnections.contains(thing)) {
             // The monitor is not very reliable. Sometimes it says monitor is not reachable, even when the connection ist still working.
             // So we need to test if the connection is actually not working before triggering a reconnect. Don't reconnect when the connection is actually working.
@@ -506,10 +694,12 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
                 // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
                 if (monitorReachable) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
+                    qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
                     m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
                     m_webastoNextConnections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    qCDebug(dcWebasto()) << "The device is offline. Stopping communication attempts.";
                     m_webastoNextConnections.value(thing)->disconnectDevice();
                 }
             }
@@ -517,11 +707,17 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
     });
 
     connect(webastoNextConnection, &WebastoNextModbusTcpConnection::reachableChanged, thing, [this, thing, webastoNextConnection, monitor](bool reachable){
-        qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing;
+        if (m_nextDiscoveryRunning == true) {
+            // Don't do anything if this triggers because of a discovery.
+            return;
+        }
+
+        qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing << ". Monitor is" << monitor->reachable();
+
         thing->setStateValue(webastoNextConnectedStateTypeId, reachable);
         if (reachable) {
             webastoNextConnection->update();
-        } else {
+        } else {            
             thing->setStateValue(webastoNextCurrentPowerStateTypeId, 0);
             thing->setStateValue(webastoNextCurrentPowerPhaseAStateTypeId, 0);
             thing->setStateValue(webastoNextCurrentPowerPhaseBStateTypeId, 0);
@@ -530,30 +726,46 @@ void IntegrationPluginWebasto::setupWebastoNextConnection(ThingSetupInfo *info)
             thing->setStateValue(webastoNextCurrentPhaseBStateTypeId, 0);
             thing->setStateValue(webastoNextCurrentPhaseCStateTypeId, 0);
 
+            // Check the monitor. If the monitor is reachable, get the current IP (maybe it changed) and reconnect.
             if (monitor->reachable()) {
-                m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
-                webastoNextConnection->reconnectDevice();
+                // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+                if (m_webastoNextConnections.contains(thing)) {
+                    qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
+                    m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_webastoNextConnections.value(thing)->reconnectDevice();
+                }
             }
         }
     });
 
-    connect(webastoNextConnection, &WebastoNextModbusTcpConnection::checkReachabilityFailed, thing, [webastoNextConnection, monitor, thing](){
-        // If the reachability failed, try again 10 seconds later. This is needed to reconnect to the device after it was turned off.
-        // After startup, apparently the ModbusMaster can connecte to the device long before it will actually answer a modbus call. The
-        // modbus call will return an error and the reachability will fail. After a while the device will answer modbus calls, so just try
-        // again a bit later.
-        qCDebug(dcWebasto()) << "Failed communication attempt with" << thing << ". Trying again in 10 seconds.";
-        QTimer::singleShot(10000, thing, [webastoNextConnection, monitor, thing](){
-            if (monitor->reachable() && !webastoNextConnection->reachable()) {
-                qCDebug(dcWebasto()) << "Next communication attempt with" << thing;
-                webastoNextConnection->reconnectDevice();
-            }
-        });
+    connect(webastoNextConnection, &WebastoNextModbusTcpConnection::checkReachabilityFailed, thing, [this, monitor, thing](){
+        // Get the connection from the list, to avoid problems when the device is beeing deleted. If it is in the process of beeing deleted, the connection will not be in the list.
+        if (m_webastoNextConnections.contains(thing)) {
+            // If the reachability failed, try again 10 seconds later. This is needed to reconnect to the device after it was turned off.
+            // After startup, apparently the ModbusMaster can connecte to the device long before it will actually answer a modbus call. The
+            // modbus call will return an error and the reachability will fail. After a while the device will answer modbus calls, so just try
+            // again a bit later.
+            qCDebug(dcWebasto()) << "Failed communication attempt with" << thing << ". Trying again in 10 seconds.";
+            QTimer::singleShot(10000, thing, [this, monitor, thing](){
+                // Again, check the list for the connection object to not reconnect a device that is beeing removed.
+                if (m_webastoNextConnections.contains(thing) && monitor->reachable() && !m_webastoNextConnections.value(thing)->reachable()) {
+                    qCDebug(dcWebasto()) << "Next communication attempt with" << thing << ", trying IP address" << monitor->networkDeviceInfo().address();
+                    m_webastoNextConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_webastoNextConnections.value(thing)->reconnectDevice();
+                }
+            });
+        }
     });
 
     connect(webastoNextConnection, &WebastoNextModbusTcpConnection::updateFinished, thing, [thing, webastoNextConnection](){
 
-        qCDebug(dcWebasto()) << "Update finished" << webastoNextConnection;
+        if (!webastoNextConnection->connected()) {
+            qCDebug(dcWebasto()) << "Skipping Webasto Next updateFinished, device is not connected.";
+            return;
+        }
+
+        //qCDebug(dcWebasto()) << "Update finished" << webastoNextConnection;
+        qCDebug(dcWebasto()) << "Update finished";
         // States
         switch (webastoNextConnection->chargeState()) {
         case WebastoNextModbusTcpConnection::ChargeStateIdle:
@@ -786,43 +998,118 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
 
     // Reconnect on monitor reachable changed
     NetworkDeviceMonitor *monitor = m_monitors.value(thing);
-    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
-        qCDebug(dcWebasto()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool monitorReachable){
+
+        if (monitorReachable) {
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "is now reachable at" << monitor->networkDeviceInfo();
+        } else {
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "is offline";
+        }
+
         if (!thing->setupComplete())
             return;
 
-        if (reachable && !thing->stateValue("connected").toBool()) {
-            evc04Connection->setHostAddress(monitor->networkDeviceInfo().address());
-            evc04Connection->connectDevice();
-        } else if (!reachable) {
-            // Note: We disable autoreconnect explicitly and we will
-            // connect the device once the monitor says it is reachable again
-            evc04Connection->disconnectDevice();
+        // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+        if (m_evc04Connections.contains(thing)) {
+            // The monitor is not very reliable. Sometimes it says monitor is not reachable, even when the connection ist still working.
+            // So we need to test if the connection is actually not working before triggering a reconnect. Don't reconnect when the connection is actually working.
+            if (!thing->stateValue("connected").toBool()) {
+                // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
+                if (monitorReachable) {
+                    // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
+                    qCDebug(dcWebasto()) << "Connection is not working. Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
+                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->reconnectDevice();
+                } else {
+                    // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    qCDebug(dcWebasto()) << "The device is offline. Stopping communication attempts.";
+                    m_evc04Connections.value(thing)->disconnectDevice();
+                }
+            }
         }
     });
 
-    connect(evc04Connection, &EVC04ModbusTcpConnection::reachableChanged, thing, [thing, evc04Connection](bool reachable){
-        qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing;
+    connect(evc04Connection, &EVC04ModbusTcpConnection::reachableChanged, thing, [this, thing, evc04Connection, monitor](bool reachable){
+        if (m_uniteDiscoveryRunning == true) {
+            // Don't do anything if this triggers because of a discovery.
+            return;
+        }
+
+        qCDebug(dcWebasto()) << "Reachable changed to" << reachable << "for" << thing << ". Monitor is" << monitor->reachable();
+
         if (reachable) {
             evc04Connection->initialize();
         } else {
-            thing->setStateValue(webastoUniteConnectedStateTypeId, false);
-            thing->setStateValue(webastoUniteCurrentPowerStateTypeId, 0);
+            thing->setStateValue("connected", false);
+            thing->setStateValue("currentPower", 0);
+
+            // Check the monitor. If the monitor is reachable, get the current IP (maybe it changed) and reconnect.
+            if (monitor->reachable()) {
+                // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+                if (m_evc04Connections.contains(thing)) {
+                    qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
+                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->reconnectDevice();
+                }
+            } else {
+                // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                m_evc04Connections.value(thing)->disconnectDevice();
+            }
         }
     });
 
-    connect(evc04Connection, &EVC04ModbusTcpConnection::initializationFinished, thing, [=](bool success){
+    // This is needed because the monitor is sometimes too slow to trigger reachableChanged when the address changed.
+    connect(monitor, &NetworkDeviceMonitor::networkDeviceInfoChanged, thing, [=](NetworkDeviceInfo networkDeviceInfo){
+
+        if (monitor->reachable()) {
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "has changed it's network address and is now reachable at" << networkDeviceInfo;
+        } else {
+            qCDebug(dcWebasto()) << "Monitor detected a change -" << thing << "has changed it's network address and is offline";
+        }
+
+        if (!thing->setupComplete())
+            return;
+
+        // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+        if (m_evc04Connections.contains(thing)) {
+            // The monitor is not very reliable. Sometimes it says monitor is not reachable, even when the connection ist still working.
+            // So we need to test if the connection is actually not working before triggering a reconnect. Don't reconnect when the connection is actually working.
+            if (!thing->stateValue("connected").toBool()) {
+                // connectedState switches to false when modbus calls don't work (webastoNextConnection->reachable == false).
+                if (monitor->reachable()) {
+                    // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
+                    qCDebug(dcWebasto()) << "Connection is not working. Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
+                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->reconnectDevice();
+                } else {
+                    // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
+                    qCDebug(dcWebasto()) << "The device is offline. Stopping communication attempts.";
+                    m_evc04Connections.value(thing)->disconnectDevice();
+                }
+            }
+        }
+    });
+
+    connect(evc04Connection, &EVC04ModbusTcpConnection::initializationFinished, thing, [this, thing, evc04Connection, monitor](bool success){
         if (!thing->setupComplete())
             return;
 
         if (success) {
-            thing->setStateValue(webastoUniteConnectedStateTypeId, true);
+            thing->setStateValue("connected", true);
         } else {
-            thing->setStateValue(webastoUniteConnectedStateTypeId, false);
-            thing->setStateValue(webastoUniteCurrentPowerStateTypeId, 0);
+            qCDebug(dcWebasto()) << "Initialization failed";
+            thing->setStateValue("connected", false);
+            thing->setStateValue("currentPower", 0);
 
             // Try once to reconnect the device
-            evc04Connection->reconnectDevice();
+            if (monitor->reachable()) {
+                // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
+                if (m_evc04Connections.contains(thing)) {
+                    qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
+                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->reconnectDevice();
+                }
+            }
         }
     });
 
@@ -840,8 +1127,8 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         m_evc04Connections.insert(thing, evc04Connection);
         info->finish(Thing::ThingErrorNoError);
 
-        thing->setStateValue(webastoUniteConnectedStateTypeId, true);
-        thing->setStateValue(webastoUniteVersionStateTypeId, QString(QString::fromUtf16(evc04Connection->firmwareVersion().data(), evc04Connection->firmwareVersion().length()).toUtf8()).trimmed());
+        thing->setStateValue("connected", true);
+        thing->setStateValue("version", QString(QString::fromUtf16(evc04Connection->firmwareVersion().data(), evc04Connection->firmwareVersion().length()).toUtf8()).trimmed());
 
         m_timeoutCount[thing] = 0;
         evc04Connection->update();
@@ -853,21 +1140,22 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
             return;
         }
 
-        qCDebug(dcWebasto()) << "EVC04 update finished:" << thing->name() << evc04Connection;
+        //qCDebug(dcWebasto()) << "EVC04 update finished:" << thing->name() << evc04Connection;
+        qCDebug(dcWebasto()) << "EVC04 update finished:" << thing->name();
 
-        qCDebug(dcWebasto()) << "Serial:" << QString(QString::fromUtf16(evc04Connection->serialNumber().data(), evc04Connection->serialNumber().length()).toUtf8()).trimmed();
-        qCDebug(dcWebasto()) << "ChargePoint ID:" << QString(QString::fromUtf16(evc04Connection->chargepointId().data(), evc04Connection->chargepointId().length()).toUtf8()).trimmed();
-        qCDebug(dcWebasto()) << "Brand:" << QString(QString::fromUtf16(evc04Connection->brand().data(), evc04Connection->brand().length()).toUtf8()).trimmed();
-        qCDebug(dcWebasto()) << "Model:" << QString(QString::fromUtf16(evc04Connection->model().data(), evc04Connection->model().length()).toUtf8()).trimmed();
+        //qCDebug(dcWebasto()) << "Serial:" << QString(QString::fromUtf16(evc04Connection->serialNumber().data(), evc04Connection->serialNumber().length()).toUtf8()).trimmed();
+        //qCDebug(dcWebasto()) << "ChargePoint ID:" << QString(QString::fromUtf16(evc04Connection->chargepointId().data(), evc04Connection->chargepointId().length()).toUtf8()).trimmed();
+        //qCDebug(dcWebasto()) << "Brand:" << QString(QString::fromUtf16(evc04Connection->brand().data(), evc04Connection->brand().length()).toUtf8()).trimmed();
+        //qCDebug(dcWebasto()) << "Model:" << QString(QString::fromUtf16(evc04Connection->model().data(), evc04Connection->model().length()).toUtf8()).trimmed();
 
         updateEVC04MaxCurrent(thing, evc04Connection);
 
         double currentPhaseA = evc04Connection->currentL1() / 1000.0;
         double currentPhaseB = evc04Connection->currentL2() / 1000.0;
         double currentPhaseC = evc04Connection->currentL3() / 1000.0;
-        thing->setStateValue(webastoUniteCurrentPhaseAStateTypeId, currentPhaseA);
-        thing->setStateValue(webastoUniteCurrentPhaseBStateTypeId, currentPhaseB);
-        thing->setStateValue(webastoUniteCurrentPhaseCStateTypeId, currentPhaseC);
+        thing->setStateValue("currentPhaseA", currentPhaseA);
+        thing->setStateValue("currentPhaseB", currentPhaseB);
+        thing->setStateValue("currentPhaseC", currentPhaseC);
 
         quint16 phaseCount{0};
         if (currentPhaseA > 1) {
@@ -884,20 +1172,21 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
         if (phaseCount < 1) {
             phaseCount = 1;
         }
-        thing->setStateValue(webastoUnitePhaseCountStateTypeId, phaseCount);
+        thing->setStateValue("phaseCount", phaseCount);
 
         quint32 evseFaultCode = evc04Connection->evseFaultCode();
         if (evseFaultCode == 0) {
-            thing->setStateValue(webastoUniteEvseFaultCodeStateTypeId, "No error");
+            thing->setStateValue("evseFaultCode", "No error");
         } else {
-            thing->setStateValue(webastoUniteEvseFaultCodeStateTypeId, evseFaultCode);
+            thing->setStateValue("evseFaultCode", evseFaultCode);
         }
 
         // The wallbox starts charging as soon as you plug in the car. We don't want that. We want it to only charge when Nymea says so.
         quint16 chargingCurrent = evc04Connection->chargingCurrent();
-        bool power = thing->stateValue(webastoUnitePowerStateTypeId).toBool();
+        bool power = thing->stateValue("power").toBool();
         if (chargingCurrent > 1 && !power) {
-            evc04Connection->setChargingCurrent(0);
+            QModbusReply *reply = evc04Connection->setChargingCurrent(0);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
         }
 
         // I've been observing the wallbox getting stuck on modbus. It is still functional, but modbus keeps on returning the same old values
@@ -937,20 +1226,20 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::chargingStateChanged, thing, [thing](EVC04ModbusTcpConnection::ChargingState chargingState) {
         qCDebug(dcWebasto()) << "Charging state changed:" << chargingState;
-        thing->setStateValue(webastoUniteChargingStateTypeId, chargingState == EVC04ModbusTcpConnection::ChargingStateCharging);
+        thing->setStateValue("charging", chargingState == EVC04ModbusTcpConnection::ChargingStateCharging);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::activePowerTotalChanged, thing, [thing](quint16 activePowerTotal) {
         qCDebug(dcWebasto()) << "Total active power:" << activePowerTotal;
         // The wallbox reports some 5-6W even when there's nothing connected. Let's hide that if we're not charging
-        if (thing->stateValue(webastoUniteChargingStateTypeId).toBool() == true) {
-            thing->setStateValue(webastoUniteCurrentPowerStateTypeId, activePowerTotal);
+        if (thing->stateValue("charging").toBool() == true) {
+            thing->setStateValue("currentPower", activePowerTotal);
         } else {
-            thing->setStateValue(webastoUniteCurrentPowerStateTypeId, 0);
+            thing->setStateValue("currentPower", 0);
         }
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::meterReadingChanged, thing, [thing](quint32 meterReading) {
         qCDebug(dcWebasto()) << "Meter reading changed:" << meterReading;
-        thing->setStateValue(webastoUniteTotalEnergyConsumedStateTypeId, meterReading / 10.0);
+        thing->setStateValue("totalEnergyConsumed", meterReading / 10.0);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::sessionMaxCurrentChanged, thing, [](quint16 sessionMaxCurrent) {
         // This mostly just reflects what we've been writing to cargingCurrent, so not of much use...
@@ -962,7 +1251,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::evseMinCurrentChanged, thing, [thing](quint16 evseMinCurrent) {
         qCDebug(dcWebasto()) << "EVSE min current changed:" << evseMinCurrent;
-        thing->setStateMinValue(webastoUniteMaxChargingCurrentStateTypeId, evseMinCurrent);
+        thing->setStateMinValue("maxChargingCurrent", evseMinCurrent);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::evseMaxCurrentChanged, thing, [this, evc04Connection, thing](quint16 evseMaxCurrent) {
         qCDebug(dcWebasto()) << "EVSE max current changed:" << evseMaxCurrent;
@@ -970,25 +1259,25 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::sessionEnergyChanged, thing, [thing](quint32 sessionEnergy) {
         qCDebug(dcWebasto()) << "Session energy changed:" << sessionEnergy;
-        thing->setStateValue(webastoUniteSessionEnergyStateTypeId, sessionEnergy / 1000.0);
+        thing->setStateValue("sessionEnergy", sessionEnergy / 1000.0);
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::chargingCurrentChanged, thing, [thing](quint16 chargingCurrent) {
         qCDebug(dcWebasto()) << "Charging current changed:" << chargingCurrent;
 
         // This wallbox is turned off by setting the charging current to 0. Only set the value when it is not zero, otherwise turning the wallbox off will change this value.
         if (chargingCurrent > 1) {
-            thing->setStateValue(webastoUniteMaxChargingCurrentStateTypeId, chargingCurrent);
+            thing->setStateValue("maxChargingCurrent", chargingCurrent);
         }
     });
     connect(evc04Connection, &EVC04ModbusTcpConnection::cableStateChanged, thing, [evc04Connection, thing](EVC04ModbusTcpConnection::CableState cableState) {
         switch (cableState) {
         case EVC04ModbusTcpConnection::CableStateNotConnected:
         case EVC04ModbusTcpConnection::CableStateCableConnectedVehicleNotConnected:
-            thing->setStateValue(webastoUnitePluggedInStateTypeId, false);
+            thing->setStateValue("pluggedIn", false);
             break;
         case EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnected:
         case EVC04ModbusTcpConnection::CableStateCableConnectedVehicleConnectedCableLocked:
-            thing->setStateValue(webastoUnitePluggedInStateTypeId, true);
+            thing->setStateValue("pluggedIn", true);
             break;
         }
     });
@@ -1005,5 +1294,5 @@ void IntegrationPluginWebasto::updateEVC04MaxCurrent(Thing *thing, EVC04ModbusTc
 
     quint8 overallMax = qMin(qMin(wallboxMax, evseMax), cableMax);
     qCDebug(dcWebasto()) << "Adjusting max current: Wallbox max:" << wallboxMax << "EVSE max:" << evseMax << "cable max:" << cableMax << "Overall:" << overallMax;
-    thing->setStateMinMaxValues(webastoUniteMaxChargingCurrentStateTypeId, 6, overallMax);
+    thing->setStateMinMaxValues("maxChargingCurrent", 6, overallMax);
 }

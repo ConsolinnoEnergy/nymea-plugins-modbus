@@ -21,7 +21,7 @@
                     "value": 2
                 },
                 {
-                    "key": "StandbyDridDetecting",
+                    "key": "StandbyGridDetecting",
                     "value": 3
                 },
                 {
@@ -149,132 +149,478 @@
         }
     ],
     "blocks": [
-    ],
-    "registers": [
         {
-            "id": "inverterActivePower",
-            "address": 32080,
-            "size": 2,
-            "type": "int32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Inverter active power",
-            "unit": "kW",
-            "staticScaleFactor": -3,
-            "defaultValue": "0",
-            "access": "RO"
+            "id": "identifyer",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "model",
+                    "address": 30000,
+                    "size": 15,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Model",
+                    "access": "RO"
+                },
+                {
+                    "id": "serialNumber",
+                    "address": 30015,
+                    "size": 10,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Serial number",
+                    "access": "RO"
+                },
+                {
+                    "id": "productNumber",
+                    "address": 30025,
+                    "size": 10,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Product number",
+                    "access": "RO"
+                }
+            ]
         },
         {
-            "id": "inverterDeviceStatus",
-            "address": 32089,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
+            "id": "inverterStuff",
             "readSchedule": "update",
-            "description": "Inverter device status",
-            "enum": "InverterDeviceStatus",
-            "defaultValue": "InverterDeviceStatusStandbyInitializing",
-            "access": "RO"
+            "registers": [
+                {
+                    "id": "inverterInputPower",
+                    "address": 32064,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Inverter input power",
+                    "unit": "kW",
+                    "staticScaleFactor": -3,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister1",
+                    "address": 32066,
+                    "size": 14,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister1",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterActivePower",
+                    "address": 32080,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Inverter active power",
+                    "unit": "kW",
+                    "staticScaleFactor": -3,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister2",
+                    "address": 32082,
+                    "size": 7,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister2",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterDeviceStatus",
+                    "address": 32089,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Inverter device status",
+                    "enum": "InverterDeviceStatus",
+                    "defaultValue": "InverterDeviceStatusStandbyInitializing",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister3",
+                    "address": 32090,
+                    "size": 16,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister3",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterEnergyProduced",
+                    "address": 32106,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Inverter energy produced",
+                    "unit": "kWh",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         },
         {
-            "id": "inverterEnergyProduced",
-            "address": 32106,
-            "size": 2,
-            "type": "uint32",
-            "registerType": "holdingRegister",
+            "id": "battery1",
             "readSchedule": "update",
-            "description": "Inverter energy produced",
-            "unit": "kWh",
-            "staticScaleFactor": -2,
-            "defaultValue": "0",
-            "access": "RO"
+            "registers": [
+                {
+                    "id": "lunaBattery1Status",
+                    "address": 37000,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 1 status",
+                    "enum": "BatteryDeviceStatus",
+                    "defaultValue": "BatteryDeviceStatusOffline",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery1Power",
+                    "address": 37001,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 1 power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister4",
+                    "address": 37003,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister4",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery1Soc",
+                    "address": 37004,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 1 state of charge",
+                    "staticScaleFactor": -1,
+                    "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         },
         {
-            "id": "powerMeterActivePower",
-            "address": 37113,
-            "size": 2,
-            "type": "int32",
-            "registerType": "holdingRegister",
+            "id": "meterStuff",
             "readSchedule": "update",
-            "description": "Power meter active power",
-            "unit": "W",
-            "defaultValue": "0",
-            "access": "RO"
+            "registers": [
+                {
+                    "id": "meterGridVoltageAphase",
+                    "address": 37101,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid voltage A phase",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridVoltageBphase",
+                    "address": 37103,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid voltage B phase",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridVoltageCphase",
+                    "address": 37105,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid voltage C phase",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridCurrentAphase",
+                    "address": 37107,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid current A phase",
+                    "unit": "A",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridCurrentBphase",
+                    "address": 37109,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid current B phase",
+                    "unit": "A",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridCurrentCphase",
+                    "address": 37111,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid current C phase",
+                    "unit": "A",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerMeterActivePower",
+                    "address": 37113,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Power meter active power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterReactivePower",
+                    "address": 37115,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter reactive power",
+                    "unit": "Var",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterPowerFactor",
+                    "address": 37117,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter power factor",
+                    "staticScaleFactor": -3,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterGridFrequency",
+                    "address": 37118,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter grid frequency",
+                    "unit": "Hz",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerMeterEnergyReturned",
+                    "address": 37119,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": " Positive active electricity - To Grid",
+                    "unit": "kWh",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerMeterEnergyAquired",
+                    "address": 37121,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Reverse active power - From Grid",
+                    "unit": "kWh",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister5",
+                    "address": 37123,
+                    "size": 9,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister5",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterAphaseActivePower",
+                    "address": 37132,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter A phase active power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterBphaseActivePower",
+                    "address": 37134,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter B phase active power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCphaseActivePower",
+                    "address": 37136,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Meter C phase active power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         },
         {
-            "id": "lunaBattery1Status",
-            "address": 37000,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
+            "id": "battery2",
             "readSchedule": "update",
-            "description": "Luna 2000 Battery 1 status",
-            "enum": "BatteryDeviceStatus",
-            "defaultValue": "BatteryDeviceStatusOffline",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery1Power",
-            "address": 37001,
-            "size": 2,
-            "type": "int32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 1 power",
-            "unit": "W",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery1Soc",
-            "address": 37004,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 1 state of charge",
-            "staticScaleFactor": -1,
-            "unit": "%",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery2Status",
-            "address": 37741,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 2 status",
-            "enum": "BatteryDeviceStatus",
-            "defaultValue": "BatteryDeviceStatusOffline",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery2Power",
-            "address": 37743,
-            "size": 2,
-            "type": "int32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 2 power",
-            "unit": "W",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "lunaBattery2Soc",
-            "address": 37738,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Luna 2000 Battery 2 state of charge",
-            "staticScaleFactor": -1,
-            "unit": "%",
-            "defaultValue": "0",
-            "access": "RO"
+            "registers": [
+                {
+                    "id": "lunaBattery2Soc",
+                    "address": 37738,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 2 state of charge",
+                    "staticScaleFactor": -1,
+                    "unit": "%",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister6",
+                    "address": 37739,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister6",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery2Status",
+                    "address": 37741,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 2 status",
+                    "enum": "BatteryDeviceStatus",
+                    "defaultValue": "BatteryDeviceStatusOffline",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister7",
+                    "address": 37742,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister7",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery2Power",
+                    "address": 37743,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery 2 power",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "fillerRegister8",
+                    "address": 37745,
+                    "size": 13,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister8",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery2Capacity",
+                    "address": 37758,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery capacity",
+                    "staticScaleFactor": -3,
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         }
-    ]
+    ],
+    "registers": []
 }
-

@@ -53,19 +53,6 @@
                     "value": 11
                 }
             ]
-        },
-        {
-            "name": "Standby",
-            "values": [
-                {
-                    "key": "StandbyEnabled",
-                    "value": 0
-                },
-                {
-                    "key": "StandbyDisabled",
-                    "value": 4
-                }
-            ]
         }
     ],
     "blocks": [
@@ -257,17 +244,6 @@
             "description": "Charging current",
             "unit": "1/10 A",
             "defaultValue": "0",
-            "access": "RW"
-        },
-        {
-            "id": "standby",
-            "address": 258,
-            "size": 1,
-            "type": "uint16",
-            "readSchedule": "init",
-            "registerType": "holdingRegister",
-            "description": "Standby function control",
-            "defaultValue": 0,
             "access": "RW"
         },
         {

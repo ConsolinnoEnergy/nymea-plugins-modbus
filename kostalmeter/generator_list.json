@@ -1,9 +1,15 @@
 {
   "Kostal": {
+    "uuid": "862d1ebf-cb78-4c55-89b2-819fddfd9acd",
     "Smart Meter P Inverter": {
       "filename": "kostalmeterinverter",
       "interfaces": "solarinverter connectable",
       "uuid_offset": 7
+    },
+    "Smart Meter P Consumer": {
+      "filename": "kostalmeterconsumer",
+      "interfaces": "smartmeterconsumer connectable",
+      "uuid_offset": 9
     }
   }
 }

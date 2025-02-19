@@ -1,0 +1,13 @@
+{
+    "title": "SOFAR solar Inverter",
+    "tagline": "Connect to SOFAR solar inverters.",
+    "icon": "sofarsolar.jpeg",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

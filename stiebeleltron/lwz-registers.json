@@ -1,0 +1,264 @@
+{
+    "className": "Lwz",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 10,
+    "checkReachableRegister": "controllerType",
+    "enums": [
+        {
+            "name": "OperatingModeLwz",
+            "values": [
+                {
+                    "key": "Emergency",
+                    "value": 0
+                },
+                {
+                    "key": "Standby",
+                    "value": 1
+                },
+                {
+                    "key": "Program",
+                    "value": 2
+                },
+                {
+                    "key": "Comfort",
+                    "value": 3
+                },
+                {
+                    "key": "Eco",
+                    "value": 4
+                },
+                {
+                    "key": "HotWater",
+                    "value": 5
+                },
+                {
+                    "key": "Automatic",
+                    "value": 11
+                },
+                {
+                    "key": "Manual",
+                    "value": 14
+                }
+            ]
+        },
+        {
+            "name": "SmartGridState",
+            "values": [
+                {
+                    "key": "ModeOne",
+                    "value": 1,
+                    "comment": "0x00000001"
+                },
+                {
+                    "key": "ModeTwo",
+                    "value": 0,
+                    "comment": "0x00000000"
+                },
+                {
+                    "key": "ModeThree",
+                    "value": 65536,
+                    "comment": "0x00010000"
+                },
+                {
+                    "key": "ModeFour",
+                    "value": 65537,
+                    "comment": "0x00010001"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "outdoorTemperature",
+            "address": 6,
+            "size": 1,
+            "type": "int16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Outdoor temperature",
+            "staticScaleFactor": -1,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "flowTemperature",
+            "address": 11,
+            "size": 1,
+            "type": "int16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Flow temperature",
+            "staticScaleFactor": -1,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "returnTemperature",
+            "address": 12,
+            "size": 1,
+            "type": "int16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Return temperature",
+            "staticScaleFactor": -1,
+            "defaultValue": 0,
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "hotWaterTemperature",
+            "address": 15,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Hot water temperature",
+            "staticScaleFactor": -1,
+            "defaultValue": "0",
+            "unit": "°C",
+            "access": "RO"
+        },
+        {
+            "id": "operatingMode",
+            "address": 1000,
+            "size": 1,
+            "type": "uint16",
+            "enum": "OperatingModeLwz",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Operating mode",
+            "defaultValue": "OperatingModeLwzStandby",
+            "access": "RO"
+        },
+        {
+            "id": "systemStatus",
+            "address": 2000,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "System status",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "faultStatus",
+            "address": 2001,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Fault status",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "operatingStatus2",
+            "address": 2004,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Operating status 2",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "heatingEnergy",
+            "address": 3001,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "description": "Heating energy",
+            "access": "RO"
+        },
+        {
+            "id": "hotWaterEnergy",
+            "address": 3004,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "description": "Hot water energy",
+            "access": "RO"
+        },
+        {
+            "id": "consumedEnergyHeating",
+            "address": 3022,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "description": "Consumed energy heating",
+            "access": "RO"
+        },
+        {
+            "id": "consumedEnergyHotWater",
+            "address": 3025,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "defaultValue": "0",
+            "unit": "kWh",
+            "description": "Consumed energy hot water",
+            "access": "RO"
+        },
+        {
+            "id": "sgReadyActive",
+            "address": 4000,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "SG ready active",
+            "defaultValue": 0,
+            "access": "RW"
+        },
+        {
+            "id": "sgReadyState",
+            "address": 4001,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "enum": "SmartGridState",
+            "readSchedule": "update",
+            "description": "SG Ready mode",
+            "defaultValue": "SmartGridStateModeThree",
+            "access": "RW"
+        },
+        {
+            "id": "sgReadyStateRO",
+            "address": 5000,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Smart grid status",
+            "defaultValue": 3,
+            "access": "RO"
+        },
+        {
+            "id": "controllerType",
+            "address": 5001,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "init",
+            "description": "Controller type",
+            "defaultValue": 0,
+            "access": "RO"
+        }
+    ],
+    "blocks": [ ]
+}

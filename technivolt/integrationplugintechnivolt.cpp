@@ -123,6 +123,7 @@ void IntegrationPluginTechnivolt::setupThing(ThingSetupInfo *info)
             technivoltModbusTcpConnection->initialize();
         } else {
             thing->setStateValue("connected", false);
+            thing->setStateValue("currentPower", 0);
         }
     });
 

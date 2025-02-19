@@ -2,7 +2,7 @@
     "className": "Sdm630",
     "protocol": "RTU",
     "endianness": "BigEndian",
-    "errorLimitUntilNotReachable": 15,
+    "errorLimitUntilNotReachable": 3,
     "checkReachableRegister": "voltagePhaseA",
     "registers": [
         {
@@ -186,44 +186,8 @@
             "readSchedule": "update",
             "registers": [
                 {
-                    "id": "energyProducedPhaseA",
-                    "address": 346,
-                    "size": 2,
-                    "type": "float",
-                    "registerType": "inputRegister",
-                    "readSchedule": "update",
-                    "description": "Energy produced phase A",
-                    "unit": "kWh",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "energyProducedPhaseB",
-                    "address": 348,
-                    "size": 2,
-                    "type": "float",
-                    "registerType": "inputRegister",
-                    "readSchedule": "update",
-                    "description": "Energy produced phase B",
-                    "unit": "kWh",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "energyProducedPhaseC",
-                    "address": 350,
-                    "size": 2,
-                    "type": "float",
-                    "registerType": "inputRegister",
-                    "readSchedule": "update",
-                    "description": "Energy produced phase C",
-                    "unit": "kWh",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
                     "id": "energyConsumedPhaseA",
-                    "address": 352,
+                    "address": 346,
                     "size": 2,
                     "type": "float",
                     "registerType": "inputRegister",
@@ -235,7 +199,7 @@
                 },
                 {
                     "id": "energyConsumedPhaseB",
-                    "address": 354,
+                    "address": 348,
                     "size": 2,
                     "type": "float",
                     "registerType": "inputRegister",
@@ -247,13 +211,77 @@
                 },
                 {
                     "id": "energyConsumedPhaseC",
-                    "address": 356,
+                    "address": 350,
                     "size": 2,
                     "type": "float",
                     "registerType": "inputRegister",
                     "readSchedule": "update",
                     "description": "Energy consumed phase C",
                     "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "energyProducedPhaseA",
+                    "address": 352,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Energy produced phase A",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "energyProducedPhaseB",
+                    "address": 354,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Energy produced phase B",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "energyProducedPhaseC",
+                    "address": 356,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Energy produced phase C",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "serialAndMeterCode",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "serialNumber",
+                    "address": 64512,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
+                    "description": "Serial number",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCode",
+                    "address": 64514,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
+                    "description": "Meter code",
                     "defaultValue": "0",
                     "access": "RO"
                 }

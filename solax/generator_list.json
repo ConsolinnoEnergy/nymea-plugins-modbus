@@ -1,0 +1,10 @@
+{
+  "Qcells": {
+    "uuid": "ab7e33e3-e376-4e63-891b-7aa9d46f42f4",
+    "Q.HOME HYB-G3 (TCP), Q.HOME HYB-G3 (RTU), Meter, Battery": {
+      "filename": "qcellsg3",
+      "interfaces": "null",
+      "uuid_offset": 7
+    }
+  }
+}
