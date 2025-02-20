@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.012) jammy; urgency=medium
+nymea-plugins-modbus (1.7.012-1) jammy; urgency=medium
 
   * lambda: smaller plugin fixes (enumerate, build workaround)
   * IDM: add pvsurplusheatpump interface and extend plugin
