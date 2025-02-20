@@ -261,15 +261,17 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             // Mode: 170 - ON | Export will be limited to chosen value
             //       85 - OFF | Export not limited, max export
             // Check if mode is 85. If yes, set to 170
+            qCWarning(dcSungrow()) << "Current export mode is" << sungrowConnection->exportLimitMode();
             if (sungrowConnection->exportLimitMode() == InverterLimitation::UNLIMITED) {
+                qCWarning(dcSungrow()) << "Export is unlimited, try to limit it";
                 QModbusReply *reply = sungrowConnection->setExportLimitMode(InverterLimitation::LIMITED);
                 connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
                 connect(reply, &QModbusReply::finished, thing, [reply]() {
-                    qCDebug(dcSungrow()) << "Set export mode finished";
+                    qCWarning(dcSungrow()) << "Set export mode finished";
                     if (reply->error() != QModbusDevice::NoError) {
                         qCWarning(dcSungrow()) << "Error setting export limit mode";
                     } else {
-                        qCDebug(dcSungrow()) << "Successfully set export limit mode";
+                        qCWarning(dcSungrow()) << "Successfully set export limit mode";
                     }
                 });
             }
