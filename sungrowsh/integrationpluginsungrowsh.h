@@ -58,8 +58,8 @@ public:
 private:
 
     enum InverterLimitation {
-        LIMITED = 85,   // 0x55
-        UNLIMITED = 170 // 0xAA
+        UNLIMITED = 85,   // 0x55
+        LIMITED = 170 // 0xAA
     };
     enum BatteryControl {
         FORCE_CHARGE = 170,     // 0xAA
@@ -89,5 +89,3 @@ signals:
 };
 
 #endif // INTEGRATIONPLUGINSUNGROW_H
-
-
