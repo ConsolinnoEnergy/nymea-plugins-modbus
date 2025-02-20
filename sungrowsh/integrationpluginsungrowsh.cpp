@@ -451,13 +451,13 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
     if (thing->thingClassId() == sungrowInverterTcpThingClassId) {
         SungrowModbusTcpConnection *connection = m_tcpConnections.value(thing);
         if (!connection) {
-            qCDebug(dcSungrow()) << "executeAction - Modbus connection not available.";
+            qCWarning(dcSungrow()) << "executeAction - Modbus connection not available.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
         }
 
         if (!connection->connected()) {
-            qCDebug(dcSungrow()) << "Could not execute action. Modbus connection is not connected.";
+            qCWarning(dcSungrow()) << "Could not execute action. Modbus connection is not connected.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
         }
@@ -470,15 +470,15 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
             QModbusReply *reply = connection->setExportLimit(targetPowerLimit);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, reply, [info, reply, targetPowerLimit] (){
-                qCDebug(dcSungrow()) << "Set export limit - Received reply";
+                qCWarning(dcSungrow()) << "Set export limit - Received reply";
                 if (reply->error() != QModbusDevice::NoError) {
                     qCWarning(dcSungrow()) << "Error settting active power limit" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 } else {
-                    qCDebug(dcSungrow()) << "Successfully set export limit to " << targetPowerLimit;
+                    qCWarning(dcSungrow()) << "Successfully set export limit to " << targetPowerLimit;
                     info->finish(Thing::ThingErrorNoError);
                 }
-            });
+            }, Qt::UniqueConnection);
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
@@ -486,13 +486,13 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
         Thing *inverterThing = myThings().findById(thing->parentId());
         SungrowModbusTcpConnection *connection = m_tcpConnections.value(inverterThing);
         if (!connection) {
-            qCDebug(dcSungrow()) << "executeAction - Modbus connection not available.";
+            qCWarning(dcSungrow()) << "executeAction - Modbus connection not available.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
         }
 
         if (!connection->connected()) {
-            qCDebug(dcSungrow()) << "Could not execute action. Modbus connection is not connected.";
+            qCWarning(dcSungrow()) << "Could not execute action. Modbus connection is not connected.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
         }
@@ -506,7 +506,7 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
 
             bool power = action.paramValue(sungrowBatteryEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
             connect(this, &IntegrationPluginSungrow::setEmsModeDone, thing, [this, connection, info, thing, power] (bool result) {
-                qCDebug(dcSungrow()) << "Set ems mode finished";
+                qCWarning(dcSungrow()) << "Set ems mode finished";
                 if (!result) {
                     info->finish(Thing::ThingErrorHardwareNotAvailable);
                 } else {
@@ -523,7 +523,7 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
                     thing->setStateValue(sungrowBatteryEnableForcePowerStateTypeId, power);
                     info->finish(Thing::ThingErrorNoError);
                 }
-            });
+            }, Qt::UniqueConnection);
 
             if (power == false) {
                 setEmsMode(connection, 0);
@@ -539,7 +539,7 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
 
             double targetPower = action.paramValue(sungrowBatteryForcePowerActionTypeId).toDouble();
             connect(this, &IntegrationPluginSungrow::setBatteryPowerDone, thing, [this, connection, info, thing, targetPower] (bool result) {
-                qCDebug(dcSungrow()) << "Set battery power done";
+                qCWarning(dcSungrow()) << "Set battery power done";
                 if (!result) {
                     info->finish(Thing::ThingErrorHardwareNotAvailable);
                 } else {
@@ -556,7 +556,7 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
                     thing->setStateValue(sungrowBatteryForcePowerStateTypeId, targetPower);
                     info->finish(Thing::ThingErrorNoError);
                 }
-            });
+            }, Qt::UniqueConnection);
 
             setBatteryPower(connection, targetPower);
 
@@ -566,15 +566,15 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
             QModbusReply *reply = connection->setBatteryMinLevel(minLevel);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, reply, [info, reply, minLevel] (){
-                qCDebug(dcSungrow()) << "Set min battery level - Received reply";
+                qCWarning(dcSungrow()) << "Set min battery level - Received reply";
                 if (reply->error() != QModbusDevice::NoError) {
                     qCWarning(dcSungrow()) << "Error: Set min battery level" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 } else {
-                    qCDebug(dcSungrow()) << "Set min battery level to" << minLevel;
+                    qCWarning(dcSungrow()) << "Set min battery level to" << minLevel;
                     info->finish(Thing::ThingErrorNoError);
                 }
-            });
+            }, Qt::UniqueConnection);
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
@@ -586,15 +586,15 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
 
 void IntegrationPluginSungrow::setBatteryPower(SungrowModbusTcpConnection *connection, double targetPower)
 {
-   QModbusReply *reply = connection->setChargePower(targetPower);
+   QModbusReply *reply = connection->setChargePower(qAbs(targetPower));
    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
    connect(reply, &QModbusReply::finished, reply, [this, reply, targetPower] (){
-       qCDebug(dcSungrow()) << "Set battery power - Received reply";
+       qCWarning(dcSungrow()) << "Set battery power - Received reply";
        if (reply->error() != QModbusDevice::NoError) {
            qCWarning(dcSungrow()) << "Set battery power - Error setting ems mode" << reply->error() << reply->errorString();
            emit setBatteryPowerDone(false);
        } else {
-           qCDebug(dcSungrow()) << "Set battery power - Successfully set battery power to" << targetPower;
+           qCWarning(dcSungrow()) << "Set battery power - Successfully set battery power to" << targetPower;
            emit setBatteryPowerDone(true);
        }
    });
@@ -605,12 +605,12 @@ void IntegrationPluginSungrow::setEmsMode(SungrowModbusTcpConnection *connection
    QModbusReply *reply = connection->setEmsModeSelection(mode);
    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
    connect(reply, &QModbusReply::finished, reply, [this, reply, mode] (){
-       qCDebug(dcSungrow()) << "Set ems mode - Received reply";
+       qCWarning(dcSungrow()) << "Set ems mode - Received reply";
        if (reply->error() != QModbusDevice::NoError) {
            qCWarning(dcSungrow()) << "Set ems mode - Error setting ems mode" << reply->error() << reply->errorString();
            emit setEmsModeDone(false);
        } else {
-           qCDebug(dcSungrow()) << "Set ems mode - Successfully set ems mode to" << mode;
+           qCWarning(dcSungrow()) << "Set ems mode - Successfully set ems mode to" << mode;
            emit setEmsModeDone(true);
        }
    });
@@ -621,11 +621,11 @@ void IntegrationPluginSungrow::forceBatteryState(SungrowModbusTcpConnection *con
    QModbusReply *reply = connection->setChargeCommand(mode);
    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
    connect(reply, &QModbusReply::finished, reply, [this, reply, mode] (){
-       qCDebug(dcSungrow()) << "Set battery state - Received reply";
+       qCWarning(dcSungrow()) << "Set battery state - Received reply";
        if (reply->error() != QModbusDevice::NoError) {
            qCWarning(dcSungrow()) << "Set battery state - Error setting ems mode" << reply->error() << reply->errorString();
        } else {
-           qCDebug(dcSungrow()) << "Set battery state - Successfully set battery state to" << mode;
+           qCWarning(dcSungrow()) << "Set battery state - Successfully set battery state to" << mode;
        }
    });
 }
