@@ -6,53 +6,53 @@ SUBDIRS += nymea-modbus-cli libnymea-modbus libnymea-sunspec
 #SUBDIRS += nymea-modbus-cli libnymea-modbus
 
 PLUGIN_DIRS = \
-    # abb                     \
-    # aeberle                 \
-    # alfen                   \
-    # alphainnotec            \
-    # alphatec                \
-    # azzurro                 \
-    # amperfied               \
-    # bgetech                 \
-    # broetje                 \
-    # kostalmeter             \
-    # drexelundweiss          \
-    # foxesswbv3              \
-    # goodwe                  \
-    # growatt                 \
-    # huawei                  \
-    # idm                     \
-    # inepro                  \
-    # janitza                 \
-    # kacosunspec             \
-    # kostal                  \
-    # lambda                  \
-    # mennekes                \
-    # modbuscommander         \
-    # mtec                    \
-    # mypv                    \
-    # phoenixconnect          \
-    # qcellsg4wb              \
-    # sax                     \
-    # schneider               \
-    # schneiderIEM            \
-    # schrack                 \
-    # senseair                \
-    # sma                     \
-    # sofarsolar              \
-    # solaxevc                \
-    # solax                   \
-    # solaxultra              \
-    # stiebeleltron           \
-    # sungrowsg               \
+    abb                     \
+    aeberle                 \
+    alfen                   \
+    alphainnotec            \
+    alphatec                \
+    azzurro                 \
+    amperfied               \
+    bgetech                 \
+    broetje                 \
+    kostalmeter             \
+    drexelundweiss          \
+    foxesswbv3              \
+    goodwe                  \
+    growatt                 \
+    huawei                  \
+    idm                     \
+    inepro                  \
+    janitza                 \
+    kacosunspec             \
+    kostal                  \
+    lambda                  \
+    mennekes                \
+    modbuscommander         \
+    mtec                    \
+    mypv                    \
+    phoenixconnect          \
+    qcellsg4wb              \
+    sax                     \
+    schneider               \
+    schneiderIEM            \
+    schrack                 \
+    senseair                \
+    sma                     \
+    sofarsolar              \
+    solaxevc                \
+    solax                   \
+    solaxultra              \
+    stiebeleltron           \
+    sungrowsg               \
     sungrowsh               \
-    # sunspec                 \
-    # technivolt              \
-    # unipi                   \
-    # vestel                  \
-    # webasto                 \
-    # e3dc                    \
-    # dvmodbusir
+    sunspec                 \
+    technivolt              \
+    unipi                   \
+    vestel                  \
+    webasto                 \
+    e3dc                    \
+    dvmodbusir
 
 gcc {
     COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
