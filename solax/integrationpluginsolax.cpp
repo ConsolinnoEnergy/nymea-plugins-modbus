@@ -605,7 +605,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             double nominalPowerInverter = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
             double currentPower = powerDc1+powerDc2+2*powerDifference;
             if (qFabs(currentPower) < nominalPowerInverter + 5000)
-                thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+                thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2));
 
             m_energyCheck = 10;
         });
@@ -1083,7 +1083,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             // If battery is currently charging, check if batteryPower is bigger than solaxpower
             // If yes, add that difference to solarpower
             qint16 powerDifference = 0;
-            if (currentBatPower > 0) {
+            if (currentBatPower > 0 && (powerDc1+powerDc2) > 0) {
                 powerDifference = currentBatPower - (powerDc1+powerDc2);
                 if (powerDifference < 0) {
                     powerDifference = 0;
@@ -1092,7 +1092,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             double nominalPowerInverter = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
             double currentPower = powerDc1+powerDc2+2*powerDifference;
             if (qFabs(currentPower) < nominalPowerInverter + 5000)
-                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2 + powerDifference/10));
 
             m_energyCheck = 10;
         });
