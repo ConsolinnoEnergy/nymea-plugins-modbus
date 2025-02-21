@@ -594,7 +594,7 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
             });
 
         } else if (action.actionTypeId() == sungrowBatteryMinBatteryLevelActionTypeId) {
-            double minLevel = thing->paramValue(sungrowBatteryMinBatteryLevelActionMinBatteryLevelParamTypeId).toDouble();
+            quint16 minLevel = action.paramValue(sungrowBatteryMinBatteryLevelActionMinBatteryLevelParamTypeId).toUInt();
 
             QModbusReply *reply = connection->setBatteryMinLevel(minLevel);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
