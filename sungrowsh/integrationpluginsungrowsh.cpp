@@ -514,10 +514,11 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
             // Set EMS Mode
             QModbusReply *reply = connection->setEmsModeSelection(mode);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, reply, [info, power, connection, reply, mode, targetPower] (){
+            connect(reply, &QModbusReply::finished, reply, [info, thing, power, connection, reply, mode, targetPower] (){
                 qCWarning(dcSungrow()) << "Set ems mode - Received reply";
                 if (reply->error() != QModbusDevice::NoError) {
                     qCWarning(dcSungrow()) << "Set ems mode - Error setting ems mode" << reply->error() << reply->errorString();
+                    thing->setStateValue(sungrowBatteryEnableForcePowerStateTypeId, !power);
                     info->finish(Thing::ThingErrorHardwareFailure);
                 } else {
                     qCWarning(dcSungrow()) << "Set ems mode - Successfully set ems mode to" << mode;
@@ -534,13 +535,15 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
                     // Set charge command
                     QModbusReply *replyCharge = connection->setChargeCommand(command);
                     connect(replyCharge, &QModbusReply::finished, replyCharge, &QModbusReply::deleteLater);
-                    connect(replyCharge, &QModbusReply::finished, replyCharge, [info, replyCharge, command] (){
+                    connect(replyCharge, &QModbusReply::finished, replyCharge, [info, thing, replyCharge, command, power] (){
                         qCWarning(dcSungrow()) << "Set battery state - Received reply";
                         if (replyCharge->error() != QModbusDevice::NoError) {
                             qCWarning(dcSungrow()) << "Set battery state - Error setting ems mode" << replyCharge->error() << replyCharge->errorString();
+                            thing->setStateValue(sungrowBatteryEnableForcePowerStateTypeId, !power);
                             info->finish(Thing::ThingErrorHardwareFailure);
                         } else {
                             qCWarning(dcSungrow()) << "Set battery state - Successfully set battery state to" << command;
+                            thing->setStateValue(sungrowBatteryEnableForcePowerStateTypeId, power);
                             info->finish(Thing::ThingErrorNoError);
                         }
                     });
@@ -548,46 +551,45 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
             });
 
         } else if (action.actionTypeId() == sungrowBatteryForcePowerActionTypeId) {
-            // TODO: If power should be set
-            // Check if battery should be charged (+) or discharged (-)
-            // Set chosen battery power (uint)
-            // Check if battery is charging or discharging
+            // TODO: Do not set command to FORCE_STOP, only set CHARGE / DISCHARGE
 
-            double targetPower = action.paramValue(sungrowBatteryForcePowerActionTypeId).toDouble();
+            double targetPower = action.paramValue(sungrowBatteryForcePowerActionForcePowerParamTypeId).toDouble();
             bool power = thing->stateValue(sungrowBatteryEnableForcePowerStateTypeId).toBool();
 
             QModbusReply *reply = connection->setChargePower(qAbs(targetPower));
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, reply, [info, reply, targetPower, power, connection] (){
+            connect(reply, &QModbusReply::finished, reply, [info, thing, reply, targetPower, power, connection] (){
                 qCWarning(dcSungrow()) << "Set battery power - Received reply";
                 if (reply->error() != QModbusDevice::NoError) {
                     qCWarning(dcSungrow()) << "Set battery power - Error setting ems mode" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 } else {
                     qCWarning(dcSungrow()) << "Set battery power - Successfully set battery power to" << targetPower;
-                    quint16 command = 0;
                     if (power == false) {
-                        command = BatteryControl::FORCE_STOP;
+                         thing->setStateValue(sungrowBatteryForcePowerStateTypeId, targetPower);
+                         info->finish(Thing::ThingErrorNoError);
                     } else {
+                        quint16 command = 0;
                         if (targetPower > 0) {
                             command = BatteryControl::FORCE_CHARGE;
                         } else {
                             command = BatteryControl::FORCE_DISCHARGE;
                         }
+                        // Set charge command
+                        QModbusReply *replyCharge = connection->setChargeCommand(command);
+                        connect(replyCharge, &QModbusReply::finished, replyCharge, &QModbusReply::deleteLater);
+                        connect(replyCharge, &QModbusReply::finished, replyCharge, [info, thing, targetPower, replyCharge, command] (){
+                            qCWarning(dcSungrow()) << "Set battery state - Received reply";
+                            if (replyCharge->error() != QModbusDevice::NoError) {
+                                qCWarning(dcSungrow()) << "Set battery state - Error setting ems mode" << replyCharge->error() << replyCharge->errorString();
+                                info->finish(Thing::ThingErrorHardwareFailure);
+                            } else {
+                                qCWarning(dcSungrow()) << "Set battery state - Successfully set battery state to" << command;
+                                thing->setStateValue(sungrowBatteryForcePowerStateTypeId, targetPower);
+                                info->finish(Thing::ThingErrorNoError);
+                            }
+                        });
                     }
-                    // Set charge command
-                    QModbusReply *replyCharge = connection->setChargeCommand(command);
-                    connect(replyCharge, &QModbusReply::finished, replyCharge, &QModbusReply::deleteLater);
-                    connect(replyCharge, &QModbusReply::finished, replyCharge, [info, replyCharge, command] (){
-                        qCWarning(dcSungrow()) << "Set battery state - Received reply";
-                        if (replyCharge->error() != QModbusDevice::NoError) {
-                            qCWarning(dcSungrow()) << "Set battery state - Error setting ems mode" << replyCharge->error() << replyCharge->errorString();
-                            info->finish(Thing::ThingErrorHardwareFailure);
-                        } else {
-                            qCWarning(dcSungrow()) << "Set battery state - Successfully set battery state to" << command;
-                            info->finish(Thing::ThingErrorNoError);
-                        }
-                    });
                 }
             });
 
