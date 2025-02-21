@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.012) jammy; urgency=medium
+nymea-plugins-modbus (1.7.013) jammy; urgency=medium
 
   * Sungrow SH: Support battery control and export limit
 
