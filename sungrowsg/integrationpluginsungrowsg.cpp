@@ -294,16 +294,18 @@ void IntegrationPluginSungrow::postSetupThing(Thing *thing)
 
 void IntegrationPluginSungrow::thingRemoved(Thing *thing)
 {
-    if (m_monitors.contains(thing)) {
-        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-    }
-
     if (m_tcpConnections.contains(thing)) {
-        m_tcpConnections.take(thing)->deleteLater();
+        auto *connection = m_tcpConnections.take(thing);
+        connection->disconnectDevice();
+        connection->deleteLater();
     }
 
     if (m_rtuConnections.contains(thing)) {
         m_rtuConnections.take(thing)->deleteLater();
+    }
+
+    if (m_monitors.contains(thing)) {
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
     }
 
     if (myThings().isEmpty() && m_pluginTimer) {
