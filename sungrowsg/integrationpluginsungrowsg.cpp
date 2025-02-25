@@ -30,6 +30,7 @@
 
 #include "integrationpluginsungrowsg.h"
 #include "plugininfo.h"
+#include "sungrowdiscovery.h"
 
 #include <network/networkdevicediscovery.h>
 #include <types/param.h>
@@ -67,47 +68,34 @@ void IntegrationPluginSungrow::discoverThings(ThingDiscoveryInfo *info)
             info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
             return;
         }
-        ThingClass thingClass = supportedThings().findById(info->thingClassId()); // TODO can this be done easier?
-        qCDebug(dcSungrow()) << "Starting network discovery...";
-        NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, info, [=](){
-            qCDebug(dcSungrow()) << "Discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "devices";
-            foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
-                qCDebug(dcSungrow()) << networkDeviceInfo;
 
-                QString title;
-                if (networkDeviceInfo.hostName().isEmpty()) {
-                    title = networkDeviceInfo.address().toString();
-                } else {
-                    title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
-                }
-
-                QString description;
-                if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
-                    description = networkDeviceInfo.macAddress();
-                } else {
-                    description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
-                }
-
-                ThingDescriptor descriptor(info->thingClassId(), title, description);
-                ParamList params;
-                params << Param(sungrowInverterTCPThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
-                descriptor.setParams(params);
+        // Create a discovery with the info as parent for auto deleting the object once the discovery info is done
+        SungrowDiscovery *discovery = new SungrowDiscovery(hardwareManager()->networkDeviceDiscovery(), 502, 1, info);
+        connect(discovery, &SungrowDiscovery::discoveryFinished, discovery, &SungrowDiscovery::deleteLater);
+        connect(discovery, &SungrowDiscovery::discoveryFinished, info, [=](){
+            foreach (const SungrowDiscovery::SungrowDiscoveryResult &result, discovery->discoveryResults()) {
+                QString name = supportedThings().findById(info->thingClassId()).displayName();
+                ThingDescriptor descriptor(sungrowInverterTCPThingClassId, name, result.networkDeviceInfo.address().toString() + " " + result.networkDeviceInfo.macAddress());
+                qCInfo(dcSungrow()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 // Check if we already have set up this device
-                Thing *existingThing = myThings().findByParams(descriptor.params());
-                if (existingThing) {
-                    qCDebug(dcSungrow()) << "Found already existing" << thingClass.name() << "inverter:" << existingThing->name() << networkDeviceInfo;
-                    descriptor.setThingId(existingThing->id());
-                } else {
-                    qCDebug(dcSungrow()) << "Found new" << thingClass.name() << "inverter";
+                Things existingThings = myThings().filterByParam(sungrowInverterTCPThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                if (existingThings.count() == 1) {
+                    qCDebug(dcSungrow()) << "This Sungrow inverter already exists in the system:" << result.networkDeviceInfo;
+                    descriptor.setThingId(existingThings.first()->id());
                 }
 
+                ParamList params;
+                params << Param(sungrowInverterTCPThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
                 info->addThingDescriptor(descriptor);
             }
+
             info->finish(Thing::ThingErrorNoError);
         });
+
+        // Start the discovery process
+        discovery->startDiscovery();
 
     } else if (info->thingClassId() == sungrowInverterRTUThingClassId) {
         qCDebug(dcSungrow()) << "Discovering modbus RTU resources...";
