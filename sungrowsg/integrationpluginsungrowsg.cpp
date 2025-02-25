@@ -201,10 +201,10 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             thing->setStateValue(sungrowInverterTCPCurrentPowerStateTypeId, -double(activePower));
         });
 
-        connect(connection, &SungrowModbusTcpConnection::deviceTypeCodeChanged, thing, [thing](quint16 deviceTypeCode){
-            qCDebug(dcSungrow()) << "Inverter device type code recieved" << deviceTypeCode;
-            Q_UNUSED(thing)
-        });
+        // connect(connection, &SungrowModbusTcpConnection::deviceTypeCodeChanged, thing, [thing](quint16 deviceTypeCode){
+        //     qCDebug(dcSungrow()) << "Inverter device type code recieved" << deviceTypeCode;
+        //     Q_UNUSED(thing)
+        // });
 
         connect(connection, &SungrowModbusTcpConnection::totalPowerYieldsChanged, thing, [thing](quint32 totalEnergyProduced){
             qCDebug(dcSungrow()) << "Inverter total energy produced changed" << totalEnergyProduced << "kWh";
@@ -253,10 +253,10 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             thing->setStateValue(sungrowInverterRTUConnectedStateTypeId, true);
         });
 
-        connect(connection, &SungrowModbusRtuConnection::deviceTypeCodeChanged, thing, [thing](quint16 deviceTypeCode){
-            qCDebug(dcSungrow()) << "Inverter device type code recieved" << deviceTypeCode;
-            Q_UNUSED(thing)
-        });
+        // connect(connection, &SungrowModbusRtuConnection::deviceTypeCodeChanged, thing, [thing](quint16 deviceTypeCode){
+        //     qCDebug(dcSungrow()) << "Inverter device type code recieved" << deviceTypeCode;
+        //     Q_UNUSED(thing)
+        // });
 
         connect(connection, &SungrowModbusRtuConnection::totalPowerYieldsChanged, thing, [thing](quint32 totalEnergyProduced){
             qCDebug(dcSungrow()) << "Inverter total energy produced changed" << totalEnergyProduced << "kWh";
