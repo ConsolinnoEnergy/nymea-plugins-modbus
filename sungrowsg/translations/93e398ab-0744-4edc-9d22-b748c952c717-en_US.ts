@@ -4,37 +4,37 @@
 <context>
     <name>IntegrationPluginSungrow</name>
     <message>
-        <location filename="../integrationpluginsungrowsg.cpp" line="67"/>
+        <location filename="../integrationpluginsungrowsg.cpp" line="68"/>
         <source>The network device discovery is not available.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsungrowsg.cpp" line="115"/>
+        <location filename="../integrationpluginsungrowsg.cpp" line="103"/>
         <source>No Modbus RTU interface available. Please set up a Modbus RTU interface first.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsungrowsg.cpp" line="121"/>
+        <location filename="../integrationpluginsungrowsg.cpp" line="109"/>
         <source>The Modbus slave address must be a value between 1 and 247.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsungrowsg.cpp" line="165"/>
+        <location filename="../integrationpluginsungrowsg.cpp" line="153"/>
         <source>The MAC address is not vaild. Please reconfigure the device to fix this.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsungrowsg.cpp" line="199"/>
+        <location filename="../integrationpluginsungrowsg.cpp" line="187"/>
         <source>Could not initialize the communication with the inverter.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsungrowsg.cpp" line="236"/>
+        <location filename="../integrationpluginsungrowsg.cpp" line="224"/>
         <source>The Modbus address not valid. It must be a value between 1 and 247.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginsungrowsg.cpp" line="243"/>
+        <location filename="../integrationpluginsungrowsg.cpp" line="231"/>
         <source>The Modbus RTU resource is not available.</source>
         <translation></translation>
     </message>
@@ -99,7 +99,7 @@ The name of the StateType ({c225c9d1-b714-4b94-9053-9b13fdc9fd43}) of ThingClass
         <location filename="../plugininfo.h" line="71"/>
         <location filename="../plugininfo.h" line="74"/>
         <source>Sungrow</source>
-        <extracomment>The name of the vendor ({c2ccee75-e82e-49c7-a7dd-54267c6044a6})
+        <extracomment>The name of the vendor ({cdc58e0d-bfdb-45d9-b961-9c0b036c35aa})
 ----------
 The name of the plugin Sungrow ({93e398ab-0744-4edc-9d22-b748c952c717})</extracomment>
         <translation></translation>
