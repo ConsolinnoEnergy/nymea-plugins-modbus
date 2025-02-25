@@ -116,8 +116,8 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
         QHostAddress address = m_monitors.value(thing)->networkDeviceInfo().address();
 
         qCInfo(dcVictron()) << "Setting up Victron on" << address.toString();
-        auto victronConnection = new VictronSystemModbusTcpConnection(address, m_modbusTcpPort , m_systemModbusSlaveAddress, this);
-        connect(info, &ThingSetupInfo::aborted, victronConnection, &VictronSystemModbusTcpConnection::deleteLater);
+        auto systemConnection = new VictronSystemModbusTcpConnection(address, m_modbusTcpPort , m_systemModbusSlaveAddress, this);
+        connect(info, &ThingSetupInfo::aborted, systemConnection, &VictronSystemModbusTcpConnection::deleteLater);
 
         auto vebusConnection = new VictronVebusModbusTcpConnection(address, m_modbusTcpPort , m_vebusModbusSlaveAddress, this); //JoOb
         connect(info, &ThingSetupInfo::aborted, vebusConnection, &VictronVebusModbusTcpConnection::deleteLater); // JoOb
@@ -129,20 +129,20 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
                 return;
 
             if (reachable && !thing->stateValue("connected").toBool()) {
-                victronConnection->setHostAddress(monitor->networkDeviceInfo().address());
-                victronConnection->reconnectDevice();
+                systemConnection->setHostAddress(monitor->networkDeviceInfo().address());
+                systemConnection->reconnectDevice();
             } else if (!reachable) {
                 // Note: Auto reconnect is disabled explicitly and
                 // the device will be connected once the monitor says it is reachable again
-                victronConnection->disconnectDevice();
+                systemConnection->disconnectDevice();
             }
         });
 
-        connect(victronConnection, &VictronSystemModbusTcpConnection::reachableChanged, thing, [this, thing, victronConnection](bool reachable){
+        connect(systemConnection, &VictronSystemModbusTcpConnection::reachableChanged, thing, [this, thing, systemConnection](bool reachable){
             qCInfo(dcVictron()) << "Reachable changed to" << reachable << "for" << thing;
             if (reachable) {
                 // Connected true will be set after successfull init
-                victronConnection->initialize();
+                systemConnection->initialize();
             } else {
                 thing->setStateValue("connected", false);
                 thing->setStateValue(victronInverterTcpCurrentPowerStateTypeId, 0);
@@ -166,7 +166,7 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(victronConnection, &VictronSystemModbusTcpConnection::initializationFinished, thing, [=](bool success){
+        connect(systemConnection, &VictronSystemModbusTcpConnection::initializationFinished, thing, [=](bool success){
             thing->setStateValue("connected", success);
 
             foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
@@ -175,73 +175,75 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
 
             if (!success) {
                 // Try once to reconnect the device
-                victronConnection->reconnectDevice();
+                systemConnection->reconnectDevice();
             } else {
                 qCInfo(dcVictron()) << "Connection initialized successfully for" << thing;
-                victronConnection->update();
+                systemConnection->update();
             }
         });
 
-        connect(victronConnection, &VictronSystemModbusTcpConnection::updateFinished, thing, [=](){
-            qCDebug(dcVictron()) << "Updated" << victronConnection;
+        connect(systemConnection, &VictronSystemModbusTcpConnection::updateFinished, thing, [=](){
+            qCDebug(dcVictron()) << "Updated" << systemConnection;
 
             if (myThings().filterByParentId(thing->id()).filterByThingClassId(victronMeterThingClassId).isEmpty()) {
-                qCDebug(dcVictron()) << "There is no meter set up for this inverter. Creating a meter for" << thing << victronConnection;
+                qCDebug(dcVictron()) << "There is no meter set up for this inverter. Creating a meter for" << thing << systemConnection;
                 ThingClass meterThingClass = thingClass(victronMeterThingClassId);
-                ThingDescriptor descriptor(victronMeterThingClassId, meterThingClass.displayName() + " " + victronConnection->serialNumber(), QString(), thing->id());
+                ThingDescriptor descriptor(victronMeterThingClassId, meterThingClass.displayName() + " " + systemConnection->serialNumber(), QString(), thing->id());
                 emit autoThingsAppeared(ThingDescriptors() << descriptor);
             }
 
             // Check if a battery is connected to this Victron inverter
-            if (victronConnection->batteryVoltage() != 0 &&
+            if (systemConnection->batteryVoltage() != 0 &&
                     myThings().filterByParentId(thing->id()).filterByThingClassId(victronBatteryThingClassId).isEmpty()) {
                 qCDebug(dcVictron()) << "There is a battery connected but not set up yet. Creating a battery.";
                 ThingClass batteryThingClass = thingClass(victronBatteryThingClassId);
-                ThingDescriptor descriptor(victronBatteryThingClassId, batteryThingClass.displayName() + " " + victronConnection->serialNumber(), QString(), thing->id());
+                ThingDescriptor descriptor(victronBatteryThingClassId, batteryThingClass.displayName() + " " + systemConnection->serialNumber(), QString(), thing->id());
                 emit autoThingsAppeared(ThingDescriptors() << descriptor);
             }
 
             // Update inverter states
-            double powerPV=victronConnection->inverterPowerPvOutA()+victronConnection->inverterPowerPvOutB()+victronConnection->inverterPowerPvOutC()\
-                +victronConnection->inverterPowerPvInpA()+victronConnection->inverterPowerPvInpB()+victronConnection->inverterPowerPvInpC();
+            double powerPV=systemConnection->inverterPowerPvOutA()+systemConnection->inverterPowerPvOutB()+systemConnection->inverterPowerPvOutC()\
+                +systemConnection->inverterPowerPvInpA()+systemConnection->inverterPowerPvInpB()+systemConnection->inverterPowerPvInpC();
             thing->setStateValue(victronInverterTcpCurrentPowerStateTypeId, powerPV * -1);
-            // thing->setStateValue(victronInverterTcpTemperatureStateTypeId, victronConnection->inverterTemperature());
-            //thing->setStateValue(victronInverterTcpFrequencyStateTypeId, victronConnection->meterFrequency());
-            // thing->setStateValue(victronInverterTcpTotalEnergyProducedStateTypeId, victronConnection->totalPVGeneration());
+            // thing->setStateValue(victronInverterTcpTemperatureStateTypeId, systemConnection->inverterTemperature());
+            //thing->setStateValue(victronInverterTcpFrequencyStateTypeId, systemConnection->meterFrequency());
+            // thing->setStateValue(victronInverterTcpTotalEnergyProducedStateTypeId, systemConnection->totalPVGeneration());
 
             // Update the meter if available
             Thing *meterThing = getMeterThing(thing);
             if (meterThing) {
-                double meterPower = victronConnection->meterPowerA()+victronConnection->meterPowerB()+victronConnection->meterPowerC();
+                double meterPower = systemConnection->meterPowerA()+systemConnection->meterPowerB()+systemConnection->meterPowerC();
                 meterThing->setStateValue(victronMeterCurrentPowerStateTypeId, meterPower);                
-                // meterThing->setStateValue(victronMeterTotalEnergyConsumedStateTypeId, victronConnection->meterTotalEnergyConsumed());
-                // meterThing->setStateValue(victronMeterTotalEnergyProducedStateTypeId, victronConnection->meterTotalEnergyProduced());
-                meterThing->setStateValue(victronMeterCurrentPowerPhaseAStateTypeId, victronConnection->meterPowerA());
-                meterThing->setStateValue(victronMeterCurrentPowerPhaseBStateTypeId, victronConnection->meterPowerB());
-                meterThing->setStateValue(victronMeterCurrentPowerPhaseCStateTypeId, victronConnection->meterPowerC());
-                // meterThing->setStateValue(victronMeterCurrentPhaseAStateTypeId, victronConnection->meterCurrentA());
-                // meterThing->setStateValue(victronMeterCurrentPhaseBStateTypeId, victronConnection->meterCurrentB());
-                // meterThing->setStateValue(victronMeterCurrentPhaseCStateTypeId, victronConnection->meterCurrentC());
-                // meterThing->setStateValue(victronMeterVoltagePhaseAStateTypeId, victronConnection->meterVoltageA());
-                // meterThing->setStateValue(victronMeterVoltagePhaseBStateTypeId, victronConnection->meterVoltageB());
-                // meterThing->setStateValue(victronMeterVoltagePhaseCStateTypeId, victronConnection->meterVoltageB());
-                // meterThing->setStateValue(victronMeterFrequencyStateTypeId, victronConnection->meterFrequency());
+                // meterThing->setStateValue(victronMeterTotalEnergyConsumedStateTypeId, systemConnection->meterTotalEnergyConsumed());
+                // meterThing->setStateValue(victronMeterTotalEnergyProducedStateTypeId, systemConnection->meterTotalEnergyProduced());
+                meterThing->setStateValue(victronMeterCurrentPowerPhaseAStateTypeId, systemConnection->meterPowerA());
+                meterThing->setStateValue(victronMeterCurrentPowerPhaseBStateTypeId, systemConnection->meterPowerB());
+                meterThing->setStateValue(victronMeterCurrentPowerPhaseCStateTypeId, systemConnection->meterPowerC());
+                // meterThing->setStateValue(victronMeterCurrentPhaseAStateTypeId, systemConnection->meterCurrentA());
+                // meterThing->setStateValue(victronMeterCurrentPhaseBStateTypeId, systemConnection->meterCurrentB());
+                // meterThing->setStateValue(victronMeterCurrentPhaseCStateTypeId, systemConnection->meterCurrentC());
+                // meterThing->setStateValue(victronMeterVoltagePhaseAStateTypeId, systemConnection->meterVoltageA());
+                // meterThing->setStateValue(victronMeterVoltagePhaseBStateTypeId, systemConnection->meterVoltageB());
+                // meterThing->setStateValue(victronMeterVoltagePhaseCStateTypeId, systemConnection->meterVoltageB());
+                // meterThing->setStateValue(victronMeterFrequencyStateTypeId, systemConnection->meterFrequency());
             }
 
             // Update the battery if available
             Thing *batteryThing = getBatteryThing(thing);
             if (batteryThing) {
-                batteryThing->setStateValue(victronBatteryVoltageStateTypeId, victronConnection->batteryVoltage());
-                // batteryThing->setStateValue(victronBatteryTemperatureStateTypeId, victronConnection->batteryTemperature());
-                batteryThing->setStateValue(victronBatteryBatteryLevelStateTypeId, victronConnection->batterySoc());
-                batteryThing->setStateValue(victronBatteryBatteryCriticalStateTypeId, victronConnection->batterySoc() < 5);
-                // batteryThing->setStateValue(victronBatteryCapacityStateTypeId, victronConnection->totalBatteryCapacity());
+                batteryThing->setStateValue(victronBatteryEnableForcePowerStateStateTypeId, systemConnection->essMode()==3);
+                
+                batteryThing->setStateValue(victronBatteryVoltageStateTypeId, systemConnection->batteryVoltage());
+                // batteryThing->setStateValue(victronBatteryTemperatureStateTypeId, systemConnection->batteryTemperature());
+                batteryThing->setStateValue(victronBatteryBatteryLevelStateTypeId, systemConnection->batterySoc());
+                batteryThing->setStateValue(victronBatteryBatteryCriticalStateTypeId, systemConnection->batterySoc() < 5);
+                // batteryThing->setStateValue(victronBatteryCapacityStateTypeId, systemConnection->totalBatteryCapacity());
 
-                // quint16 runningState = victronConnection->runningState();
-                double batteryPower = static_cast<double>(victronConnection->batteryPower());
-                if (victronConnection->batteryState()==1) {
+                // quint16 runningState = systemConnection->runningState();
+                double batteryPower = static_cast<double>(systemConnection->batteryPower());
+                if (systemConnection->batteryState()==1) {
                     batteryThing->setStateValue(victronBatteryChargingStateStateTypeId, "charging");
-                } else if(victronConnection->batteryState()==2) {
+                } else if(systemConnection->batteryState()==2) {
                     batteryThing->setStateValue(victronBatteryChargingStateStateTypeId, "discharging");
                 } else {
                     batteryThing->setStateValue(victronBatteryChargingStateStateTypeId, "idle");
@@ -262,16 +264,16 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
                 qCDebug(dcVictron()) << "State " <<  state << "; powerSetPhase " << powerSetPhase;
                 
                 // Write battery power cyclic if remote control is enabled
-                if (victronConnection->essMode()==3 && m_setpointTimer==0){
+                if (systemConnection->essMode()==3 && m_setpointTimer==0){
                     vebusConnection->writeSetpoints(powerSetPhase);
                 }
             }         
         });
-        m_systemTcpConnections.insert(thing, victronConnection);
+        m_systemTcpConnections.insert(thing, systemConnection);
         m_vebusTcpConnections.insert(thing, vebusConnection); //JoOb
         
         if (monitor->reachable())
-            victronConnection->connectDevice();
+            systemConnection->connectDevice();
 
         info->finish(Thing::ThingErrorNoError);
         return;
@@ -287,8 +289,8 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             return;
         }
 
-        VictronSystemModbusTcpConnection *victronConnection = m_systemTcpConnections.value(connectionThing);
-        if (!victronConnection) {
+        VictronSystemModbusTcpConnection *systemConnection = m_systemTcpConnections.value(connectionThing);
+        if (!systemConnection) {
             qCWarning(dcVictron()) << "Failed to set up victron energy meter because the connection for" << connectionThing << "does not exist.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
@@ -308,8 +310,8 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             return;
         }
 
-        VictronSystemModbusTcpConnection *victronConnection = m_systemTcpConnections.value(connectionThing);
-        if (!victronConnection) {
+        VictronSystemModbusTcpConnection *systemConnection = m_systemTcpConnections.value(connectionThing);
+        if (!systemConnection) {
             qCWarning(dcVictron()) << "Failed to set up victron battery because the connection for" << connectionThing << "does not exist.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
