@@ -212,14 +212,6 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             // Update the meter if available
             Thing *meterThing = getMeterThing(thing);
             if (meterThing) {
-                // auto runningState = victronConnection->runningState();
-                // qCDebug(dcVictron()) << "Power generated from PV:" << (runningState & (0x1 << 0) ? "true" : "false");
-                // qCDebug(dcVictron()) << "Battery charging:" << (runningState & (0x1 << 1) ? "true" : "false");
-                // qCDebug(dcVictron()) << "Battery discharging:" << (runningState & (0x1 << 2) ? "true" : "false");
-                // qCDebug(dcVictron()) << "Positive load power:" << (runningState & (0x1 << 3) ? "true" : "false");
-                // qCDebug(dcVictron()) << "Feed-in power:" << (runningState & (0x1 << 4) ? "true" : "false");
-                // qCDebug(dcVictron()) << "Import power from grid:" << (runningState & (0x1 << 5) ? "true" : "false");
-                // qCDebug(dcVictron()) << "Negative load power:" << (runningState & (0x1 << 7) ? "true" : "false");
                 double meterPower = victronConnection->meterPowerA()+victronConnection->meterPowerB()+victronConnection->meterPowerC();
                 meterThing->setStateValue(victronMeterCurrentPowerStateTypeId, meterPower);                
                 // meterThing->setStateValue(victronMeterTotalEnergyConsumedStateTypeId, victronConnection->meterTotalEnergyConsumed());
@@ -260,9 +252,30 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
 
         connect(vebusConnection, &VictronVebusModbusTcpConnection::updateFinished, thing, [=](){
             qCDebug(dcVictron()) << "Updated" << vebusConnection;
-            qCDebug(dcVictron()) << "Power Setpoint L1: " << vebusConnection->powerSetpointPhaseA();
-            qCDebug(dcVictron()) << "Power Setpoint L2: " << vebusConnection->powerSetpointPhaseB();
-            qCDebug(dcVictron()) << "Power Setpoint L3: " << vebusConnection->powerSetpointPhaseC();            
+
+            Thing *batteryThing = getBatteryThing(thing);
+            if (batteryThing ) {
+                bool state = batteryThing->stateValue(victronBatteryEnableForcePowerStateStateTypeId).toBool();
+                int powerToSet = batteryThing->stateValue(victronBatteryForcePowerStateTypeId).toInt();
+                int powerSetPhase = powerToSet/3;
+                
+                // Write battery power cyclic if remote control is enabled
+                if (state && victronConnection->essMode()==3){
+                    QModbusReply *replyBatterPower = vebusConnection->setPowerSetpointPhaseA(powerSetPhase); //currently only one phase control
+                    vebusConnection->setPowerSetpointPhaseB(powerSetPhase);
+                    vebusConnection->setPowerSetpointPhaseC(powerSetPhase);
+                    connect(replyBatterPower, &QModbusReply::finished, replyBatterPower, &QModbusReply::deleteLater);
+                    connect(replyBatterPower, &QModbusReply::finished, thing, [thing, replyBatterPower, powerToSet](){
+                        if (replyBatterPower->error() != QModbusDevice::NoError) {
+                            qCWarning(dcVictron()) << "setBatteryPower - Error setting battery power" << replyBatterPower->error() << replyBatterPower->errorString();
+                            //info->finish(Thing::ThingErrorHardwareFailure);
+                        } else {
+                            qCWarning(dcVictron()) << "setBatteryPower - Set battery power to" << powerToSet;
+                            //info->finish(Thing::ThingErrorNoError);
+                        }
+                    });
+                }
+            }         
         });
         m_systemTcpConnections.insert(thing, victronConnection);
         m_vebusTcpConnections.insert(thing, vebusConnection); //JoOb
@@ -344,7 +357,7 @@ void IntegrationPluginVictron::postSetupThing(Thing *thing)
                         connection->reconnectDevice();
                     }
 
-                    auto vebusConnection = m_vebusTcpConnections.value(thing); // JoOb: following lines should be nested into system connection reachable?
+                    auto vebusConnection = m_vebusTcpConnections.value(thing); // JoOb: following lines should be nested into system update finished for sequential order?
 
                     if (vebusConnection->reachable()) {
                         qCDebug(dcVictron()) << "Updating connection" << vebusConnection->hostAddress().toString();
@@ -383,28 +396,14 @@ void IntegrationPluginVictron::executeAction(ThingActionInfo *info)
 
         if (action.actionTypeId() == victronBatteryEnableForcePowerActionTypeId) {
             bool state = action.paramValue(victronBatteryEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
-            // uint batteryTimeout = thing->stateValue(victronBatteryForcePowerTimeoutStateTypeId).toUInt();
-            int powerToSet = thing->stateValue(victronBatteryForcePowerStateTypeId).toInt();
-
             qCWarning(dcVictron()) << "Battery manual mode is enabled?" << state;
-            if (state) {
-                setBatteryPower(inverterThing, powerToSet);
-            } else {
-                disableRemoteControl(inverterThing);
-            }
-
             thing->setStateValue(victronBatteryEnableForcePowerStateTypeId, state);
+
+            activateRemoteControl(inverterThing, state);
         } else if (action.actionTypeId() == victronBatteryForcePowerActionTypeId) {
             int batteryPower = action.paramValue(victronBatteryForcePowerActionForcePowerParamTypeId).toInt();
             qCWarning(dcVictron()) << "Battery power should be set to" << batteryPower;
             thing->setStateValue(victronBatteryForcePowerStateTypeId, batteryPower);
-
-            // uint timeout = thing->stateValue(victronBatteryForcePowerTimeoutCountdownStateTypeId).toUInt();
-            bool state = thing->stateValue(victronBatteryEnableForcePowerStateStateTypeId).toBool();
-            if (state)
-            {
-                setBatteryPower(inverterThing, batteryPower);
-            }   
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
@@ -430,54 +429,7 @@ void IntegrationPluginVictron::thingRemoved(Thing *thing)
     }
 }
 
-void IntegrationPluginVictron::setBatteryPower(Thing *thing, qint32 powerToSet)
-{
-    if (thing->thingClassId() == victronInverterTcpThingClassId) {
-        VictronVebusModbusTcpConnection *vebusConnection = m_vebusTcpConnections.value(thing);
-
-        VictronSystemModbusTcpConnection *systemConnection = m_systemTcpConnections.value(thing);
-        if (!vebusConnection) {
-            qCWarning(dcVictron()) << "setBatteryPower - VE.bus Modbus connection not available";
-            // info->finish(Thing::ThingErrorHardwareFailure);
-            return;
-        }
-        if (!systemConnection) {
-            qCWarning(dcVictron()) << "setBatteryPower - Victron GX Modbus connection not available";
-            // info->finish(Thing::ThingErrorHardwareFailure);
-            return;
-        }
-
-        quint16 modeTypeValue = 3;
-        QModbusReply *replyMode = systemConnection->setEssMode(modeTypeValue);
-        connect(replyMode, &QModbusReply::finished, replyMode, &QModbusReply::deleteLater);
-        connect(replyMode, &QModbusReply::finished, thing, [thing, replyMode, vebusConnection, powerToSet](){
-            if (replyMode->error() != QModbusDevice::NoError) {
-                qCWarning(dcVictron()) << "setBatteryPower - Error setting mode and type" << replyMode->error() << replyMode->errorString();
-                //info->finish(Thing::ThingErrorHardwareFailure);
-            } else {
-                qCWarning(dcVictron()) << "setBatteryPower - Mode set to 8, Type set to 1";
-                //info->finish(Thing::ThingErrorNoError);
-                // QModbusReply *replyBatterPower = vebusConnection->setPowerSetpointPhaseA(-1*powerToSet);
-                // vebusConnection->setPowerSetpointPhaseB(0);
-                // vebusConnection->setPowerSetpointPhaseC(0);
-                // connect(replyBatterPower, &QModbusReply::finished, replyBatterPower, &QModbusReply::deleteLater);
-                // connect(replyBatterPower, &QModbusReply::finished, thing, [thing, replyBatterPower, powerToSet](){
-                //     if (replyBatterPower->error() != QModbusDevice::NoError) {
-                //         qCWarning(dcVictron()) << "setBatteryPower - Error setting battery power" << replyBatterPower->error() << replyBatterPower->errorString();
-                //         //info->finish(Thing::ThingErrorHardwareFailure);
-                //     } else {
-                //         qCWarning(dcVictron()) << "setBatteryPower - Set battery power to" << powerToSet;
-                //         //info->finish(Thing::ThingErrorNoError);
-                //     }
-                // });
-            }
-        });
-    } else {
-        qCWarning(dcVictron()) << "setBatteryPower - Received incorrect thing";
-    }
-}
-
-void IntegrationPluginVictron::disableRemoteControl(Thing *thing)
+void IntegrationPluginVictron::activateRemoteControl(Thing *thing, bool activation)
 {
     if (thing->thingClassId() == victronInverterTcpThingClassId) {
         VictronSystemModbusTcpConnection *systemConnection = m_systemTcpConnections.value(thing);
@@ -488,7 +440,9 @@ void IntegrationPluginVictron::disableRemoteControl(Thing *thing)
             return;
         }
 
-        QModbusReply *replyMode = systemConnection->setEssMode(1);
+        // one time writing of ESS mode (register 2902)
+        quint16 essMode = (activation) ?3 : 1;
+        QModbusReply *replyMode = systemConnection->setEssMode(essMode);
         connect(replyMode, &QModbusReply::finished, replyMode, &QModbusReply::deleteLater);
         connect(replyMode, &QModbusReply::finished, thing, [thing, replyMode](){
             if (replyMode->error() != QModbusDevice::NoError) {

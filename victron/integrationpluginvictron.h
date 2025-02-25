@@ -67,8 +67,7 @@ private:
     QHash<Thing *, VictronVebusModbusTcpConnection *> m_vebusTcpConnections;
 
     void setupVictronConnection(ThingSetupInfo *info);
-    void disableRemoteControl(Thing *thing);
-    void setBatteryPower(Thing *thing, qint32 powerToSet);
+    void activateRemoteControl(Thing *thing, bool activation);
 
     Thing *getMeterThing(Thing *parentThing);
     Thing *getBatteryThing(Thing *parentThing);
