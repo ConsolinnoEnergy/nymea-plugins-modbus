@@ -61,6 +61,7 @@ private:
     const quint16 m_systemModbusSlaveAddress = 100;
     const quint16 m_vebusModbusSlaveAddress = 227;
     PluginTimer *m_refreshTimer = nullptr;
+    quint8 m_setpointTimer = 0;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, VictronSystemModbusTcpConnection *> m_systemTcpConnections;

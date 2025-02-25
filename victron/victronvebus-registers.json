@@ -1,6 +1,6 @@
 {
     "className": "VictronVebus",
-    "protocol": "TCP",
+    "protocol": "RTU",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 5,
     "checkReachableRegister": "powerSetpointPhaseA",

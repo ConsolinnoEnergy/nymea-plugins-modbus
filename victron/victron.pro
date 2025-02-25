@@ -7,8 +7,10 @@ include(../modbus.pri)
 
 HEADERS += \
     integrationpluginvictron.h \
-    victrondiscovery.h
+    victrondiscovery.h \
+    victronvebusmodbustcpconnection.h
 
 SOURCES += \
     integrationpluginvictron.cpp \
-    victrondiscovery.cpp
+    victrondiscovery.cpp \
+    victronvebusmodbustcpconnection.cpp
