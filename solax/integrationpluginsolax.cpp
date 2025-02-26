@@ -619,7 +619,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 qCDebug(dcSolax()) << "Battery power (batpowerCharge1) changed" << powerBat1 << "W";
 
                 double nominalPowerBattery = batteryThings.first()->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
-                if (qFabs(powerBat1) < nominalPowerBattery + 1000)
+                if (qFabs(powerBat1) < nominalPowerBattery + 5000)
                     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
 
                 if (powerBat1 < 0) {
