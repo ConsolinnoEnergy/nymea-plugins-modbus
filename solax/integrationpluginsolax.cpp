@@ -550,6 +550,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 float batMaxVoltage = connection->batMaxDischargeVolt();
                 float batMaxCurrent = connection->batMaxDischargeCurrent();
                 double batMaxPower = batMaxCurrent*batMaxVoltage;
+                // It seems batMaxVoltage and matMaxCurrent are not always provided by the system
+                if (batMaxPower == 0)
+                    batMaxPower = 10000;
+
                 batteryThings.first()->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, batMaxPower);
 
                 // check if manual is following the chosen setting
@@ -581,7 +585,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             double nominalPowerInverter = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
             double currentPower = powerDc1+powerDc2+2*powerDifference;
             if (qFabs(currentPower) < nominalPowerInverter + 5000)
-                thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+                thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+powerDifference/10));
 
             m_energyCheck = 10;
         });
@@ -940,6 +944,10 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 float batMaxVoltage = connection->batMaxDischargeVolt();
                 float batMaxCurrent = connection->batMaxDischargeCurrent();
                 double batMaxPower = batMaxCurrent*batMaxVoltage;
+                // It seems batMaxVoltage and matMaxCurrent are not always provided by the system
+                if (batMaxPower == 0)
+                    batMaxPower = 10000;
+
                 batteryThings.first()->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, batMaxPower);
 
                 // check if manual is following the chosen setting
@@ -971,7 +979,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             double nominalPowerInverter = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
             double currentPower = powerDc1+powerDc2+2*powerDifference;
             if (qFabs(currentPower) < nominalPowerInverter + 5000)
-                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+powerDifference/10));
 
             m_energyCheck = 10;
         });
@@ -1182,7 +1190,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 qCDebug(dcSolax()) << "Battery power (batpowerCharge1) changed" << powerBat1 << "W";
 
                 double nominalPowerBattery = batteryThings.first()->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
-                if (qFabs(powerBat1) < nominalPowerBattery + 1000)
+                if (qFabs(powerBat1) < nominalPowerBattery + 5000)
                     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
 
                 if (powerBat1 < 0) {
