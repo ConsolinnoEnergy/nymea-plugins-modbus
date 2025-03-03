@@ -58,7 +58,11 @@ VictronVebusModbusTcpConnection::VictronVebusModbusTcpConnection(const QHostAddr
             m_communicationWorking = false;
             m_communicationFailedCounter = 0;
             m_checkReachableRetriesCount = 0;
-            testReachability();
+            
+            // Checking which UnitID is used for vebus
+            QVector<quint16> m_vebusModbusSlaveAddresses = {227, 246, 242};
+            tryConnect(m_vebusModbusSlaveAddresses, 0); // Start search for slave adresses whith vebus connection
+            
         } else {
             qCWarning(dcVictronVebusModbusTcpConnection()) << "Modbus TCP connection diconnected from" << m_hostAddress.toString() << ". The connection is not reachable any more.";
             m_communicationWorking = false;
@@ -68,6 +72,36 @@ VictronVebusModbusTcpConnection::VictronVebusModbusTcpConnection(const QHostAddr
 
         evaluateReachableState();
     });
+}
+
+void VictronVebusModbusTcpConnection::tryConnect(QVector<quint16> adresses, int it)
+{    
+    if (it >= adresses.size()) {
+        qCWarning(dcVictronVebusModbusTcpConnection()) << "All attempts to connect failed.";
+        return; // Exit recursion if all addresses have been tried
+    }
+    
+    QModbusReply *reply = nullptr;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 37, 1);
+    reply = sendReadRequest(request, adresses.at(it));
+
+    if (reply) {
+        connect(reply, &QModbusReply::finished, this, [this, reply, &adresses, &it](){
+            qCDebug(dcVictronVebusModbusTcpConnection()) << "Test reply finished with " << reply->errorString();
+            
+            if(reply->error() == QModbusDevice::NoError) {
+                m_slaveId = adresses.at(it);
+                qCWarning(dcVictronVebusModbusTcpConnection()) << "Vebus connection available for SlaveID!" << adresses.at(it);
+                testReachability();
+            } else {
+                // Recursively try the next address if there is an error
+                tryConnect(adresses, it+1);
+            }
+            reply->deleteLater();              
+        });
+    }else {
+        qCWarning(dcVictronVebusModbusTcpConnection()) << "Failed to send request for SlaveID" << adresses.at(it);
+    }
 }
 
 bool VictronVebusModbusTcpConnection::reachable() const
