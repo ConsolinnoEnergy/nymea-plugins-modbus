@@ -465,7 +465,15 @@ void LambdaModbusTcpConnection::update4()
         m_pendingUpdateReplies.removeAll(reply);
         handleModbusError(reply->error());
         if (reply->error() != QModbusDevice::NoError) {
-            verifyUpdateFinished();
+            if (reply->error() == QModbusDevice::ProtocolError) {
+                QModbusResponse response = reply->rawResult();
+                if (response.isException()) {
+                    qCDebug(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading boiler temp" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                }
+            }
+            qCWarning(dcLambdaModbusTcpConnection()) << "Error during read boiler temp: Still continuing";
+            //verifyUpdateFinished();
+            update5();//JoOb-previous: verifyUpdateFinished();
             return;
         }
 
