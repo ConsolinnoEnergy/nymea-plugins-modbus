@@ -1,8 +1,10 @@
 nymea-plugins-modbus (1.7.013) jammy; urgency=medium
 
   * Sungrow SH: Support battery control and export limit
+  * Solax: Improve power calculation
+  * Sungrow SG: Only show inverter in discovery
 
- -- Luis Reber <l.reber@consolinno.de> Thu, 28 Nov 2024 13:49:00 +0100
+ -- Luis Reber <l.reber@consolinno.de> Wed, 26 Feb 2025 15:59:10 +0100
 
 nymea-plugins-modbus (1.7.012-1) jammy; urgency=medium
 
