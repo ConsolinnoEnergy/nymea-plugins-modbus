@@ -45,6 +45,9 @@ public:
     explicit VictronDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery, quint16 port = 502, quint16 modbusAddress = 100, QObject *parent = nullptr);
     typedef struct VictronDiscoveryResult {
         QString serialNumber;
+        quint16 unitIdSystem;
+        quint16 unitIdVebus;
+        quint16 unitIdGrid;
         NetworkDeviceInfo networkDeviceInfo;
     } VictronDiscoveryResult;
 

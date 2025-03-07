@@ -96,6 +96,9 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
             VictronDiscoveryResult result;
             result.networkDeviceInfo = networkDeviceInfo;
             result.serialNumber = connection->serialNumber();
+            result.unitIdSystem = 100;
+            result.unitIdVebus = 227;
+            result.unitIdGrid = 30;
             m_discoveryResults.append(result);
 
             connection->disconnectDevice();

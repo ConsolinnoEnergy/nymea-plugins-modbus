@@ -66,6 +66,9 @@ void IntegrationPluginVictron::discoverThings(ThingDiscoveryInfo *info)
 
             ParamList params;
             params << Param(victronInverterTcpThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+            params << Param(victronInverterTcpThingMacAddressParamTypeId, result.unitIdSystem);
+            params << Param(victronInverterTcpThingMacAddressParamTypeId, result.unitIdVebus);
+            params << Param(victronInverterTcpThingMacAddressParamTypeId, result.unitIdGrid);
             // Note: if we discover also the port and modbusaddress, we must fill them in from the discovery here, for now everywhere the defaults...
             descriptor.setParams(params);
             info->addThingDescriptor(descriptor);
@@ -96,6 +99,7 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
         }
 
         MacAddress macAddress = MacAddress(thing->paramValue(victronInverterTcpThingMacAddressParamTypeId).toString());
+        
         if (!macAddress.isValid()) {
             qCWarning(dcVictron()) << "The configured mac address is not valid" << thing->params();
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not known. Please reconfigure the thing."));
@@ -114,12 +118,15 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
         });
 
         QHostAddress address = m_monitors.value(thing)->networkDeviceInfo().address();
+        quint16 systemSlaveAddress = thing->paramValue(victronInverterTcpThingUnitIdSystemParamTypeId).toInt();
+        quint16 vebusSlaveAddress = thing->paramValue(victronInverterTcpThingUnitIdVebusParamTypeId).toInt();
+
 
         qCInfo(dcVictron()) << "Setting up Victron on" << address.toString();
-        auto systemConnection = new VictronSystemModbusTcpConnection(address, m_modbusTcpPort , m_systemModbusSlaveAddress, this);
+        auto systemConnection = new VictronSystemModbusTcpConnection(address, m_modbusTcpPort , systemSlaveAddress, this);
         connect(info, &ThingSetupInfo::aborted, systemConnection, &VictronSystemModbusTcpConnection::deleteLater);
 
-        auto vebusConnection = new VictronVebusModbusTcpConnection(address, m_modbusTcpPort , m_vebusModbusSlaveAddress, this); //JoOb
+        auto vebusConnection = new VictronVebusModbusTcpConnection(address, m_modbusTcpPort , vebusSlaveAddress, this); //JoOb
         connect(info, &ThingSetupInfo::aborted, vebusConnection, &VictronVebusModbusTcpConnection::deleteLater); // JoOb
 
         // Reconnect on monitor reachable changed

@@ -69,8 +69,6 @@ public:
     uint checkReachableRetries() const;
     void setCheckReachableRetries(uint checkReachableRetries);
 
-    void tryConnect(QVector<quint16> adresses, int it);
-
     /* ESS power setpoint phase 1 [W] - Address: 37, Size: 1 */
     qint16 powerSetpointPhaseA() const;
     QModbusReply *setPowerSetpointPhaseA(qint16 powerSetpointPhaseA);

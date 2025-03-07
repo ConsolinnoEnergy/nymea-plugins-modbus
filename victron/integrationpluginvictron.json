@@ -23,7 +23,34 @@
                             "type": "QString",
                             "inputType": "MacAddress",
                             "defaultValue": ""
-                        }
+                        },
+                        {
+                            "id": "13cdb10e-8a11-49a5-a0b3-ec48348d6150",
+                            "name":"unitIdSystem",
+                            "displayName": "UnitID System",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 248,
+                            "defaultValue": 100
+                        },
+                        {
+                            "id": "f67b2b37-938d-4683-a75f-db5d8396f0f3",
+                            "name":"unitIdVebus",
+                            "displayName": "UnitID VE.Bus",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 248,
+                            "defaultValue": 227
+                        },
+                        {
+                            "id": "aa633a0b-7463-404f-8e1d-f3ac86901c6a",
+                            "name":"unitIdGrid",
+                            "displayName": "UnitID Grid",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 248,
+                            "defaultValue": 30
+                        }                        
                     ],
                     "stateTypes": [
                         {
