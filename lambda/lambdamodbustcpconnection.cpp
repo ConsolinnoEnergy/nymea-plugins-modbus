@@ -359,7 +359,7 @@ bool LambdaModbusTcpConnection::update()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"actual PV surplus power\" register" << 102 << "size:" << 1 << unit.values();
         processActualPvSurplusRegisterValues(unit.values());
-        update2();//JoOb-previous: verifyUpdateFinished();
+        update2();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
@@ -398,7 +398,7 @@ void LambdaModbusTcpConnection::update2()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Accumulated electrical energy consumption of compressor unit since last statistic reset\" register" << 1020 << "size:" << 2 << unit.values();
         processTotalEnergyConsumedRegisterValues(unit.values());
-        update3();//JoOb-previous: verifyUpdateFinished();
+        update3();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
@@ -435,7 +435,7 @@ void LambdaModbusTcpConnection::update3()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Accumulated thermal energy output of compressor unit since last statistic reset\" register" << 1022 << "size:" << 2 << unit.values();
         processCompressorTotalHeatOutputRegisterValues(unit.values());
-        update4();//JoOb-previous: verifyUpdateFinished();
+        update4();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
@@ -473,14 +473,14 @@ void LambdaModbusTcpConnection::update4()
             }
             qCWarning(dcLambdaModbusTcpConnection()) << "Error during read boiler temp: Still continuing";
             //verifyUpdateFinished();
-            update5();//JoOb-previous: verifyUpdateFinished();
+            update5();
             return;
         }
 
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from \"Actual temperature boiler high sensor\" register" << 2002 << "size:" << 1 << unit.values();
         processHotWaterTemperatureRegisterValues(unit.values());
-        update5();//JoOb-previous: verifyUpdateFinished();
+        update5();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
@@ -522,7 +522,7 @@ void LambdaModbusTcpConnection::update5()
         processActualAmbientTemperatureRegisterValues(blockValues.mid(2, 1));
         processAverageAmbientTemperatureRegisterValues(blockValues.mid(3, 1));
         processOutdoorTemperatureRegisterValues(blockValues.mid(4, 1));
-        update6();//JoOb-previous: verifyUpdateFinished();
+        update6();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -562,7 +562,7 @@ void LambdaModbusTcpConnection::update6()
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"emanager\" register" << 100 << "size:" << 2 << blockValues;
         processEmanagerErrorNumberRegisterValues(blockValues.mid(0, 1));
         processEmanagerStateRegisterValues(blockValues.mid(1, 1));
-        update7();//JoOb-previous: verifyUpdateFinished();
+        update7();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -602,7 +602,7 @@ void LambdaModbusTcpConnection::update7()
         qCDebug(dcLambdaModbusTcpConnection()) << "<-- Response from reading block \"power\" register" << 103 << "size:" << 2 << blockValues;
         processCurrentPowerRegisterValues(blockValues.mid(0, 1));
         processPowerSetpointRegisterValues(blockValues.mid(1, 1));
-        update8();//JoOb-previous: verifyUpdateFinished();
+        update8();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -654,7 +654,7 @@ void LambdaModbusTcpConnection::update8()
         processActualHeatingCapacityRegisterValues(blockValues.mid(11, 1));
         processPowerActualInverterRegisterValues(blockValues.mid(12, 1));
         processCoefficientOfPerformanceRegisterValues(blockValues.mid(13, 1));
-        update9();//JoOb-previous: verifyUpdateFinished();
+        update9();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -685,7 +685,15 @@ void LambdaModbusTcpConnection::update9()
         m_pendingUpdateReplies.removeAll(reply);
         handleModbusError(reply->error());
         if (reply->error() != QModbusDevice::NoError) {
-            verifyUpdateFinished();
+            if (reply->error() == QModbusDevice::ProtocolError) {
+                QModbusResponse response = reply->rawResult();
+                if (response.isException()) {
+                    qCDebug(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading buffer block" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                }
+            }
+            qCWarning(dcLambdaModbusTcpConnection()) << "Error during read buffer block: Still continuing";
+            //verifyUpdateFinished();
+            update10();
             return;
         }
 
@@ -696,7 +704,7 @@ void LambdaModbusTcpConnection::update9()
         processBufferStateRegisterValues(blockValues.mid(1, 1));
         processBufferTemperatureHighRegisterValues(blockValues.mid(2, 1));
         processBufferTemperatureLowRegisterValues(blockValues.mid(3, 1));
-        update10();//JoOb-previous: verifyUpdateFinished();
+        update10();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
@@ -727,7 +735,15 @@ void LambdaModbusTcpConnection::update10()
         m_pendingUpdateReplies.removeAll(reply);
         handleModbusError(reply->error());
         if (reply->error() != QModbusDevice::NoError) {
-            verifyUpdateFinished();
+            if (reply->error() == QModbusDevice::ProtocolError) {
+                QModbusResponse response = reply->rawResult();
+                if (response.isException()) {
+                    qCDebug(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading heatcirc block" << hostAddress().toString() << exceptionToString(response.exceptionCode());
+                }
+            }
+            qCWarning(dcLambdaModbusTcpConnection()) << "Error during read heatcirc block: Still continuing";
+            //verifyUpdateFinished();
+            updateWrite();
             return;
         }
 
