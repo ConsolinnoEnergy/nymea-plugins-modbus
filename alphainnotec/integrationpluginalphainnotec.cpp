@@ -419,7 +419,8 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
                 aitShiConnection->reconnectDevice();
             } else {
                 qCInfo(dcAlphaInnotec()) << "Connection initialized successfully for" << thing;
-                writeOffsetTemperatures(thing);
+                writeHotWaterOffsetTemp(thing);
+                writeHeatingOffsetTemp(thing);
                 aitShiConnection->update();
             }
         });
@@ -527,6 +528,22 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
         connect(aitShiConnection, &aitShiModbusTcpConnection::minorVersionChanged, thing, [this, thing](quint16 version) {
             qCDebug(dcAlphaInnotec()) << "Minor version changed to" << version;
             updateFirmwareVersion(thing, version, "minor");
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::hotWaterOffsetTempChanged, thing, [this, thing](double temp) {
+            qCDebug(dcAlphaInnotec()) << "Hot water offset temp changed to" << temp;
+            double hotWaterTemp = thing->paramValue(aitSmartHomeThingHotWaterOffsetParamTypeId).toUInt();
+
+            if (temp != hotWaterTemp)
+                writeHotWaterOffsetTemp(thing);
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::heatingOffsetTempChanged, thing, [this, thing](double temp) {
+            qCDebug(dcAlphaInnotec()) << "Heating offset temp changed to" << temp;
+            double heatingTemp = thing->paramValue(aitSmartHomeThingHeatingOffsetParamTypeId).toUInt();
+
+            if (temp != heatingTemp)
+                writeHeatingOffsetTemp(thing);
         });
 
         m_aitShiConnections.insert(thing, aitShiConnection);
@@ -718,7 +735,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
         }
     }
 
-    if (thing->thingClassId() == alphaConnectThingClassId) {
+    if (thing->thingClassId() == aitSmartHomeThingClassId) {
         aitShiModbusTcpConnection *connection = m_aitShiConnections.value(thing);
 
         if (!connection->connected()) {
@@ -865,7 +882,40 @@ void IntegrationPluginAlphaInnotec::updateFirmwareVersion(Thing *thing, quint16 
     thing->setStateValue(aitSmartHomeFirmwareVersionStateTypeId, fwVersion);
 }
 
-void IntegrationPluginAlphaInnotec::writeOffsetTemperatures(Thing *thing)
+void IntegrationPluginAlphaInnotec::writeHotWaterOffsetTemp(Thing *thing)
+{
+    qCDebug(dcAlphaInnotec()) << "Writing hot water offset temperature to heat pump";
+
+    aitShiModbusTcpConnection *connection = m_aitShiConnections.value(thing);
+
+    if (!connection->connected()) {
+        qCWarning(dcAlphaInnotec()) << "Could not execute action. The modbus connection is currently not available.";
+        return;
+    }
+
+    // Hot water offset temperature
+    double hotWaterTemp = thing->paramValue(aitSmartHomeThingHotWaterOffsetParamTypeId).toDouble();
+    QModbusReply *hotWaterOffsetReply = connection->setHotWaterOffsetTemp(hotWaterTemp);
+    if (!hotWaterOffsetReply) {
+        qCWarning(dcAlphaInnotec()) << "setHotWaterOffsetTemp failed because the reply could not be created.";
+        return;
+    }
+
+    connect(hotWaterOffsetReply, &QModbusReply::finished, hotWaterOffsetReply, &QModbusReply::deleteLater);
+    connect(hotWaterOffsetReply, &QModbusReply::finished, this, [this, thing, hotWaterOffsetReply]{
+        if (hotWaterOffsetReply->error() != QModbusDevice::NoError) {
+            qCWarning(dcAlphaInnotec()) << "Set hot water offset temp finished with error" << hotWaterOffsetReply->errorString();
+            return;
+        }
+    });
+
+    connect(hotWaterOffsetReply, &QModbusReply::errorOccurred, this, [this, thing, hotWaterOffsetReply] (QModbusDevice::Error error){
+        qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while executing setHotWaterOffseTemp" << error << hotWaterOffsetReply->errorString();
+        return;
+    });
+}
+
+void IntegrationPluginAlphaInnotec::writeHeatingOffsetTemp(Thing *thing)
 {
     qCDebug(dcAlphaInnotec()) << "Writing offset temperature to heat pump";
 
@@ -876,36 +926,11 @@ void IntegrationPluginAlphaInnotec::writeOffsetTemperatures(Thing *thing)
         return;
     }
 
-    // Hot water offset temperature
-    double hotWaterTemp = thing->paramValue(aitSmartHomeThingHotWaterOffsetParamTypeId).toUInt();
-    QModbusReply *hotWaterOffsetReply = connection->setHotWaterOffsetTemp(hotWaterTemp);
-    if (!hotWaterOffsetReply) {
-        qCWarning(dcAlphaInnotec()) << "setHotWaterOffsetTemp failed because the reply could not be created.";
-        writeOffsetTemperatures(thing);
-        return;
-    }
-
-    connect(hotWaterOffsetReply, &QModbusReply::finished, hotWaterOffsetReply, &QModbusReply::deleteLater);
-    connect(hotWaterOffsetReply, &QModbusReply::finished, this, [this, thing, hotWaterOffsetReply]{
-        if (hotWaterOffsetReply->error() != QModbusDevice::NoError) {
-            qCWarning(dcAlphaInnotec()) << "Set hot water offset temp finished with error" << hotWaterOffsetReply->errorString();
-            writeOffsetTemperatures(thing);
-            return;
-        }
-    });
-
-    connect(hotWaterOffsetReply, &QModbusReply::errorOccurred, this, [this, thing, hotWaterOffsetReply] (QModbusDevice::Error error){
-        qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while executing setHotWaterOffseTemp" << error << hotWaterOffsetReply->errorString();
-        writeOffsetTemperatures(thing);
-        return;
-    });
-
     // Heating offset temperature
-    double heatingTemp = thing->paramValue(aitSmartHomeThingHeatingOffsetParamTypeId).toUInt();
+    double heatingTemp = thing->paramValue(aitSmartHomeThingHeatingOffsetParamTypeId).toDouble();
     QModbusReply *heatingOffsetReply = connection->setHeatingOffsetTemp(heatingTemp);
     if (!heatingOffsetReply) {
         qCWarning(dcAlphaInnotec()) << "setHeatingOffsetTemp failed because the reply could not be created.";
-        writeOffsetTemperatures(thing);
         return;
     }
 
