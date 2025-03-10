@@ -2,6 +2,7 @@ nymea-plugins-modbus (1.7.013) jammy; urgency=medium
 
   * Solax: Improve power calculation
   * Sungrow SG: Only show inverter in discovery
+  * Sax: fix current power meter
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 26 Feb 2025 15:59:10 +0100
 

@@ -478,10 +478,14 @@ void IntegrationPluginSax::setupTcpConnection(ThingSetupInfo *info)
         Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
         if (!meterThings.isEmpty()) {
             qint16 powerfactor = connection->powerFactorSmartmeter();
-            double powerConverted = powerPhase * qPow(10, powerfactor);
+            double powerConvertedA = powerPhase * qPow(10, powerfactor);
+            double powerConvertedB = connection->powerPhaseB() * qPow(10, powerfactor);
+            double powerConvertedC = connection->powerPhaseC() * qPow(10, powerfactor);
+            double powerTotal = powerConvertedA + powerConvertedB + powerConvertedC;
 
-            qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseA changed" << powerConverted << "W";
-            meterThings.first()->setStateValue(saxMeterCurrentPowerPhaseAStateTypeId, powerConverted);
+            qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseA changed" << powerConvertedA << "W";
+            meterThings.first()->setStateValue(saxMeterCurrentPowerPhaseAStateTypeId, powerConvertedA);
+            meterThings.first()->setStateValue(saxMeterCurrentPowerStateTypeId, -1.0*powerTotal);
         }
     });
 
@@ -490,10 +494,14 @@ void IntegrationPluginSax::setupTcpConnection(ThingSetupInfo *info)
         Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
         if (!meterThings.isEmpty()) {
             qint16 powerfactor = connection->powerFactorSmartmeter();
-            double powerConverted = powerPhase * qPow(10, powerfactor);
+            double powerConvertedA = connection->powerPhaseA() * qPow(10, powerfactor);
+            double powerConvertedB = powerPhase * qPow(10, powerfactor);
+            double powerConvertedC = connection->powerPhaseC() * qPow(10, powerfactor);
+            double powerTotal = powerConvertedA + powerConvertedB + powerConvertedC;
 
-            qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseB changed" << powerConverted << "W";
-            meterThings.first()->setStateValue(saxMeterCurrentPowerPhaseBStateTypeId, powerConverted);
+            qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseB changed" << powerConvertedB << "W";
+            meterThings.first()->setStateValue(saxMeterCurrentPowerPhaseBStateTypeId, powerConvertedB);
+            meterThings.first()->setStateValue(saxMeterCurrentPowerStateTypeId, -1.0*powerTotal);
         }
     });
 
@@ -502,10 +510,14 @@ void IntegrationPluginSax::setupTcpConnection(ThingSetupInfo *info)
         Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
         if (!meterThings.isEmpty()) {
             qint16 powerfactor = connection->powerFactorSmartmeter();
-            double powerConverted = powerPhase * qPow(10, powerfactor);
+            double powerConvertedA = connection->powerPhaseA() * qPow(10, powerfactor);
+            double powerConvertedB = connection->powerPhaseB() * qPow(10, powerfactor);
+            double powerConvertedC = powerPhase * qPow(10, powerfactor);
+            double powerTotal = powerConvertedA + powerConvertedB + powerConvertedC;
 
-            qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseC changed" << powerConverted << "W";
-            meterThings.first()->setStateValue(saxMeterCurrentPowerPhaseCStateTypeId, powerConverted);
+            qCDebug(dcSax()) << "Smartmeter currentPowerowerPhaseC changed" << powerConvertedC << "W";
+            meterThings.first()->setStateValue(saxMeterCurrentPowerPhaseCStateTypeId, powerConvertedC);
+            meterThings.first()->setStateValue(saxMeterCurrentPowerStateTypeId, -1.0*powerTotal);
         }
     });
 
