@@ -213,7 +213,6 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
                 +systemConnection->inverterPowerPvInpA()+systemConnection->inverterPowerPvInpB()+systemConnection->inverterPowerPvInpC();
             thing->setStateValue(victronInverterTcpCurrentPowerStateTypeId, powerPV * -1);
             // thing->setStateValue(victronInverterTcpTemperatureStateTypeId, systemConnection->inverterTemperature());
-            //thing->setStateValue(victronInverterTcpFrequencyStateTypeId, systemConnection->meterFrequency());
             // thing->setStateValue(victronInverterTcpTotalEnergyProducedStateTypeId, systemConnection->totalPVGeneration());
 
             // Update the meter if available
@@ -261,13 +260,17 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
 
         connect(vebusConnection, &VictronVebusModbusTcpConnection::updateFinished, thing, [=](){
             qCDebug(dcVictron()) << "Updated" << vebusConnection;
+            // update inverter values
+            thing->setStateValue(victronInverterTcpFrequencyStateTypeId, vebusConnection->inverterOutputFrequency());
 
             // writing setpoints if battery exists
             Thing *batteryThing = getBatteryThing(thing);
             if (batteryThing) {
                 bool state = batteryThing->stateValue(victronBatteryEnableForcePowerStateStateTypeId).toBool();
                 int16_t powerToSet = batteryThing->stateValue(victronBatteryForcePowerStateTypeId).toInt();
-                int16_t powerSetPhase = powerToSet/3;
+                int16_t powerInvOut = vebusConnection->inverterPowerOutputPhaseA().toInt()\
+                    +vebusConnection->inverterPowerOutputPhaseB().toInt()+vebusConnection->inverterPowerOutputPhaseC().toInt();
+                int16_t powerSetPhase = (powerToSet+powerInvOut)/3; // Victron control variable is the AC input power of the inverter, not the battery power
                 qCDebug(dcVictron()) << "State " <<  state << "; powerSetPhase " << powerSetPhase;
                 
                 // Write battery power cyclic if remote control is enabled

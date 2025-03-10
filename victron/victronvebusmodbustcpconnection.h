@@ -50,6 +50,15 @@ class VictronVebusModbusTcpConnection : public ModbusTCPMaster
     Q_OBJECT
 public:
     enum Registers {
+        RegisterInverterPowerInputPhaseA = 12,
+        RegisterInverterPowerInputPhaseB = 13,
+        RegisterInverterPowerInputPhaseC = 14,
+        RegisterDummy1 = 15,
+        RegisterInverterOutputFrequency = 21,
+        RegisterDummy2 = 22,
+        RegisterInverterPowerOutputPhaseA = 23,
+        RegisterInverterPowerOutputPhaseB = 24,
+        RegisterInverterPowerOutputPhaseC = 25,
         RegisterPowerSetpointPhaseA = 37,
         RegisterDisableCharge = 38,
         RegisterDisableFeedIn = 39,
@@ -68,6 +77,33 @@ public:
 
     uint checkReachableRetries() const;
     void setCheckReachableRetries(uint checkReachableRetries);
+
+    /* Inverter AC input power phase A [W] - Address: 12, Size: 1 */
+    float inverterPowerInputPhaseA() const;
+
+    /* Inverter AC input power phase B [W] - Address: 13, Size: 1 */
+    float inverterPowerInputPhaseB() const;
+
+    /* Inverter AC input power phase C [W] - Address: 14, Size: 1 */
+    float inverterPowerInputPhaseC() const;
+
+    /* none - Address: 15, Size: 6 */
+    QVector<quint16> dummy1() const;
+
+    /* Inverter output frequency [Hz] - Address: 21, Size: 1 */
+    float inverterOutputFrequency() const;
+
+    /* none - Address: 22, Size: 1 */
+    QVector<quint16> dummy2() const;
+
+    /* Inverter AC output power phase A [W] - Address: 23, Size: 1 */
+    float inverterPowerOutputPhaseA() const;
+
+    /* Inverter AC output power phase B [W] - Address: 24, Size: 1 */
+    float inverterPowerOutputPhaseB() const;
+
+    /* Inverter AC input power phase C [W] - Address: 25, Size: 1 */
+    float inverterPowerOutputPhaseC() const;
 
     /* ESS power setpoint phase 1 [W] - Address: 37, Size: 1 */
     qint16 powerSetpointPhaseA() const;
@@ -89,6 +125,19 @@ public:
     qint16 powerSetpointPhaseC() const;
     QModbusReply *setPowerSetpointPhaseC(qint16 powerSetpointPhaseC);
 
+    /* Read block from start addess 12 with size of 14 registers containing following 9 properties:
+      - Inverter AC input power phase A [W] - Address: 12, Size: 1
+      - Inverter AC input power phase B [W] - Address: 13, Size: 1
+      - Inverter AC input power phase C [W] - Address: 14, Size: 1
+      - none - Address: 15, Size: 6
+      - Inverter output frequency [Hz] - Address: 21, Size: 1
+      - none - Address: 22, Size: 1
+      - Inverter AC output power phase A [W] - Address: 23, Size: 1
+      - Inverter AC output power phase B [W] - Address: 24, Size: 1
+      - Inverter AC input power phase C [W] - Address: 25, Size: 1
+    */
+    void updateVebuspowerBlock();
+
     /* Read block from start addess 37 with size of 5 registers containing following 5 properties:
       - ESS power setpoint phase 1 [W] - Address: 37, Size: 1
       - disable charge flag [-] - Address: 38, Size: 1
@@ -99,17 +148,48 @@ public:
     void updateVebussetpBlock();
 
 
+    void updateInverterPowerInputPhaseA();
+    void updateInverterPowerInputPhaseB();
+    void updateInverterPowerInputPhaseC();
+    void updateDummy1();
+    void updateInverterOutputFrequency();
+    void updateDummy2();
+    void updateInverterPowerOutputPhaseA();
+    void updateInverterPowerOutputPhaseB();
+    void updateInverterPowerOutputPhaseC();
     void updatePowerSetpointPhaseA();
     void updateDisableCharge();
     void updateDisableFeedIn();
     void updatePowerSetpointPhaseB();
     void updatePowerSetpointPhaseC();
 
+    QModbusReply *readInverterPowerInputPhaseA();
+    QModbusReply *readInverterPowerInputPhaseB();
+    QModbusReply *readInverterPowerInputPhaseC();
+    QModbusReply *readDummy1();
+    QModbusReply *readInverterOutputFrequency();
+    QModbusReply *readDummy2();
+    QModbusReply *readInverterPowerOutputPhaseA();
+    QModbusReply *readInverterPowerOutputPhaseB();
+    QModbusReply *readInverterPowerOutputPhaseC();
     QModbusReply *readPowerSetpointPhaseA();
     QModbusReply *readDisableCharge();
     QModbusReply *readDisableFeedIn();
     QModbusReply *readPowerSetpointPhaseB();
     QModbusReply *readPowerSetpointPhaseC();
+
+    /* Read block from start addess 12 with size of 14 registers containing following 9 properties:
+     - Inverter AC input power phase A [W] - Address: 12, Size: 1
+     - Inverter AC input power phase B [W] - Address: 13, Size: 1
+     - Inverter AC input power phase C [W] - Address: 14, Size: 1
+     - none - Address: 15, Size: 6
+     - Inverter output frequency [Hz] - Address: 21, Size: 1
+     - none - Address: 22, Size: 1
+     - Inverter AC output power phase A [W] - Address: 23, Size: 1
+     - Inverter AC output power phase B [W] - Address: 24, Size: 1
+     - Inverter AC input power phase C [W] - Address: 25, Size: 1
+    */
+    QModbusReply *readBlockVebuspower();
 
     /* Read block from start addess 37 with size of 5 registers containing following 5 properties:
      - ESS power setpoint phase 1 [W] - Address: 37, Size: 1
@@ -136,6 +216,24 @@ signals:
     void endiannessChanged(ModbusDataUtils::ByteOrder endianness);
 
 
+    void inverterPowerInputPhaseAChanged(float inverterPowerInputPhaseA);
+    void inverterPowerInputPhaseAReadFinished(float inverterPowerInputPhaseA);
+    void inverterPowerInputPhaseBChanged(float inverterPowerInputPhaseB);
+    void inverterPowerInputPhaseBReadFinished(float inverterPowerInputPhaseB);
+    void inverterPowerInputPhaseCChanged(float inverterPowerInputPhaseC);
+    void inverterPowerInputPhaseCReadFinished(float inverterPowerInputPhaseC);
+    void dummy1Changed(QVector<quint16> dummy1);
+    void dummy1ReadFinished(QVector<quint16> dummy1);
+    void inverterOutputFrequencyChanged(float inverterOutputFrequency);
+    void inverterOutputFrequencyReadFinished(float inverterOutputFrequency);
+    void dummy2Changed(QVector<quint16> dummy2);
+    void dummy2ReadFinished(QVector<quint16> dummy2);
+    void inverterPowerOutputPhaseAChanged(float inverterPowerOutputPhaseA);
+    void inverterPowerOutputPhaseAReadFinished(float inverterPowerOutputPhaseA);
+    void inverterPowerOutputPhaseBChanged(float inverterPowerOutputPhaseB);
+    void inverterPowerOutputPhaseBReadFinished(float inverterPowerOutputPhaseB);
+    void inverterPowerOutputPhaseCChanged(float inverterPowerOutputPhaseC);
+    void inverterPowerOutputPhaseCReadFinished(float inverterPowerOutputPhaseC);
     void powerSetpointPhaseAChanged(qint16 powerSetpointPhaseA);
     void powerSetpointPhaseAReadFinished(qint16 powerSetpointPhaseA);
     void disableChargeChanged(quint16 disableCharge);
@@ -148,12 +246,31 @@ signals:
     void powerSetpointPhaseCReadFinished(qint16 powerSetpointPhaseC);
 
 protected:
+    float m_inverterPowerInputPhaseA = 0;
+    float m_inverterPowerInputPhaseB = 0;
+    float m_inverterPowerInputPhaseC = 0;
+    QVector<quint16> m_dummy1;
+    float m_inverterOutputFrequency = 0;
+    QVector<quint16> m_dummy2;
+    float m_inverterPowerOutputPhaseA = 0;
+    float m_inverterPowerOutputPhaseB = 0;
+    float m_inverterPowerOutputPhaseC = 0;
     qint16 m_powerSetpointPhaseA = 0;
     quint16 m_disableCharge = 0;
     quint16 m_disableFeedIn = 0;
     qint16 m_powerSetpointPhaseB = 0;
     qint16 m_powerSetpointPhaseC = 0;
 
+
+    void processInverterPowerInputPhaseARegisterValues(const QVector<quint16> values);
+    void processInverterPowerInputPhaseBRegisterValues(const QVector<quint16> values);
+    void processInverterPowerInputPhaseCRegisterValues(const QVector<quint16> values);
+    void processDummy1RegisterValues(const QVector<quint16> values);
+    void processInverterOutputFrequencyRegisterValues(const QVector<quint16> values);
+    void processDummy2RegisterValues(const QVector<quint16> values);
+    void processInverterPowerOutputPhaseARegisterValues(const QVector<quint16> values);
+    void processInverterPowerOutputPhaseBRegisterValues(const QVector<quint16> values);
+    void processInverterPowerOutputPhaseCRegisterValues(const QVector<quint16> values);
 
     void processPowerSetpointPhaseARegisterValues(const QVector<quint16> values);
     void processDisableChargeRegisterValues(const QVector<quint16> values);

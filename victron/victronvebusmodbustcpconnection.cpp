@@ -103,6 +103,51 @@ void VictronVebusModbusTcpConnection::setEndianness(ModbusDataUtils::ByteOrder e
     emit endiannessChanged(m_endianness);
 }
 
+float VictronVebusModbusTcpConnection::inverterPowerInputPhaseA() const
+{
+    return m_inverterPowerInputPhaseA;
+}
+
+float VictronVebusModbusTcpConnection::inverterPowerInputPhaseB() const
+{
+    return m_inverterPowerInputPhaseB;
+}
+
+float VictronVebusModbusTcpConnection::inverterPowerInputPhaseC() const
+{
+    return m_inverterPowerInputPhaseC;
+}
+
+QVector<quint16> VictronVebusModbusTcpConnection::dummy1() const
+{
+    return m_dummy1;
+}
+
+float VictronVebusModbusTcpConnection::inverterOutputFrequency() const
+{
+    return m_inverterOutputFrequency;
+}
+
+QVector<quint16> VictronVebusModbusTcpConnection::dummy2() const
+{
+    return m_dummy2;
+}
+
+float VictronVebusModbusTcpConnection::inverterPowerOutputPhaseA() const
+{
+    return m_inverterPowerOutputPhaseA;
+}
+
+float VictronVebusModbusTcpConnection::inverterPowerOutputPhaseB() const
+{
+    return m_inverterPowerOutputPhaseB;
+}
+
+float VictronVebusModbusTcpConnection::inverterPowerOutputPhaseC() const
+{
+    return m_inverterPowerOutputPhaseC;
+}
+
 qint16 VictronVebusModbusTcpConnection::powerSetpointPhaseA() const
 {
     return m_powerSetpointPhaseA;
@@ -196,6 +241,49 @@ bool VictronVebusModbusTcpConnection::update()
 
     QModbusReply *reply = nullptr;
 
+    // Read vebuspower
+    reply = readBlockVebuspower();
+    qCDebug(dcVictronVebusModbusTcpConnection()) << "--> Read block \"vebuspower\" registers from:" << 12 << "size:" << 14;
+    if (!reply) {
+        qCWarning(dcVictronVebusModbusTcpConnection()) << "Error occurred while reading block \"vebuspower\" registers";
+        return false;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return false;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        const QVector<quint16> blockValues = unit.values();
+        qCDebug(dcVictronVebusModbusTcpConnection()) << "<-- Response from reading block \"vebuspower\" register" << 12 << "size:" << 14 << blockValues;
+        processInverterPowerInputPhaseARegisterValues(blockValues.mid(0, 1));
+        processInverterPowerInputPhaseBRegisterValues(blockValues.mid(1, 1));
+        processInverterPowerInputPhaseCRegisterValues(blockValues.mid(2, 1));
+        processDummy1RegisterValues(blockValues.mid(3, 6));
+        processInverterOutputFrequencyRegisterValues(blockValues.mid(9, 1));
+        processDummy2RegisterValues(blockValues.mid(10, 1));
+        processInverterPowerOutputPhaseARegisterValues(blockValues.mid(11, 1));
+        processInverterPowerOutputPhaseBRegisterValues(blockValues.mid(12, 1));
+        processInverterPowerOutputPhaseCRegisterValues(blockValues.mid(13, 1));
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcVictronVebusModbusTcpConnection()) << "Modbus reply error occurred while updating block \"vebuspower\" registers" << error << reply->errorString();
+    });
+
+
     // Read vebussetp
     reply = readBlockVebussetp();
     qCDebug(dcVictronVebusModbusTcpConnection()) << "--> Read block \"vebussetp\" registers from:" << 37 << "size:" << 5;
@@ -237,6 +325,45 @@ bool VictronVebusModbusTcpConnection::update()
     return true;
 }
 
+void VictronVebusModbusTcpConnection::updateVebuspowerBlock()
+{
+    // Update register block "vebuspower"
+    qCDebug(dcVictronVebusModbusTcpConnection()) << "--> Read block \"vebuspower\" registers from:" << 12 << "size:" << 14;
+    QModbusReply *reply = readBlockVebuspower();
+    if (!reply) {
+        qCWarning(dcVictronVebusModbusTcpConnection()) << "Error occurred while reading block \"vebuspower\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            const QVector<quint16> blockValues = unit.values();
+            qCDebug(dcVictronVebusModbusTcpConnection()) << "<-- Response from reading block \"vebuspower\" register" << 12 << "size:" << 14 << blockValues;
+            processInverterPowerInputPhaseARegisterValues(blockValues.mid(0, 1));
+            processInverterPowerInputPhaseBRegisterValues(blockValues.mid(1, 1));
+            processInverterPowerInputPhaseCRegisterValues(blockValues.mid(2, 1));
+            processDummy1RegisterValues(blockValues.mid(3, 6));
+            processInverterOutputFrequencyRegisterValues(blockValues.mid(9, 1));
+            processDummy2RegisterValues(blockValues.mid(10, 1));
+            processInverterPowerOutputPhaseARegisterValues(blockValues.mid(11, 1));
+            processInverterPowerOutputPhaseBRegisterValues(blockValues.mid(12, 1));
+            processInverterPowerOutputPhaseCRegisterValues(blockValues.mid(13, 1));
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcVictronVebusModbusTcpConnection()) << "Modbus reply error occurred while updating block \"vebuspower\" registers" << error << reply->errorString();
+    });
+}
+
 void VictronVebusModbusTcpConnection::updateVebussetpBlock()
 {
     // Update register block "vebussetp"
@@ -270,6 +397,60 @@ void VictronVebusModbusTcpConnection::updateVebussetpBlock()
     connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
         qCWarning(dcVictronVebusModbusTcpConnection()) << "Modbus reply error occurred while updating block \"vebussetp\" registers" << error << reply->errorString();
     });
+}
+
+QModbusReply *VictronVebusModbusTcpConnection::readInverterPowerInputPhaseA()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *VictronVebusModbusTcpConnection::readInverterPowerInputPhaseB()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 13, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *VictronVebusModbusTcpConnection::readInverterPowerInputPhaseC()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 14, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *VictronVebusModbusTcpConnection::readDummy1()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 15, 6);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *VictronVebusModbusTcpConnection::readInverterOutputFrequency()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 21, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *VictronVebusModbusTcpConnection::readDummy2()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 22, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *VictronVebusModbusTcpConnection::readInverterPowerOutputPhaseA()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 23, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *VictronVebusModbusTcpConnection::readInverterPowerOutputPhaseB()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 24, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *VictronVebusModbusTcpConnection::readInverterPowerOutputPhaseC()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 25, 1);
+    return sendReadRequest(request, m_slaveId);
 }
 
 // MultipleWrite FC16 for vebus register 37 until 41
@@ -351,10 +532,115 @@ QModbusReply *VictronVebusModbusTcpConnection::readPowerSetpointPhaseC()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *VictronVebusModbusTcpConnection::readBlockVebuspower()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 12, 14);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *VictronVebusModbusTcpConnection::readBlockVebussetp()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 37, 5);
     return sendReadRequest(request, m_slaveId);
+}
+
+void VictronVebusModbusTcpConnection::processInverterPowerInputPhaseARegisterValues(const QVector<quint16> values)
+{
+    float receivedInverterPowerInputPhaseA = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, 1);
+    emit inverterPowerInputPhaseAReadFinished(receivedInverterPowerInputPhaseA);
+
+    if (m_inverterPowerInputPhaseA != receivedInverterPowerInputPhaseA) {
+        m_inverterPowerInputPhaseA = receivedInverterPowerInputPhaseA;
+        emit inverterPowerInputPhaseAChanged(m_inverterPowerInputPhaseA);
+    }
+}
+
+void VictronVebusModbusTcpConnection::processInverterPowerInputPhaseBRegisterValues(const QVector<quint16> values)
+{
+    float receivedInverterPowerInputPhaseB = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, 1);
+    emit inverterPowerInputPhaseBReadFinished(receivedInverterPowerInputPhaseB);
+
+    if (m_inverterPowerInputPhaseB != receivedInverterPowerInputPhaseB) {
+        m_inverterPowerInputPhaseB = receivedInverterPowerInputPhaseB;
+        emit inverterPowerInputPhaseBChanged(m_inverterPowerInputPhaseB);
+    }
+}
+
+void VictronVebusModbusTcpConnection::processInverterPowerInputPhaseCRegisterValues(const QVector<quint16> values)
+{
+    float receivedInverterPowerInputPhaseC = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, 1);
+    emit inverterPowerInputPhaseCReadFinished(receivedInverterPowerInputPhaseC);
+
+    if (m_inverterPowerInputPhaseC != receivedInverterPowerInputPhaseC) {
+        m_inverterPowerInputPhaseC = receivedInverterPowerInputPhaseC;
+        emit inverterPowerInputPhaseCChanged(m_inverterPowerInputPhaseC);
+    }
+}
+
+void VictronVebusModbusTcpConnection::processDummy1RegisterValues(const QVector<quint16> values)
+{
+    QVector<quint16> receivedDummy1 = values;
+    emit dummy1ReadFinished(receivedDummy1);
+
+    if (m_dummy1 != receivedDummy1) {
+        m_dummy1 = receivedDummy1;
+        emit dummy1Changed(m_dummy1);
+    }
+}
+
+void VictronVebusModbusTcpConnection::processInverterOutputFrequencyRegisterValues(const QVector<quint16> values)
+{
+    float receivedInverterOutputFrequency = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, -2);
+    emit inverterOutputFrequencyReadFinished(receivedInverterOutputFrequency);
+
+    if (m_inverterOutputFrequency != receivedInverterOutputFrequency) {
+        m_inverterOutputFrequency = receivedInverterOutputFrequency;
+        emit inverterOutputFrequencyChanged(m_inverterOutputFrequency);
+    }
+}
+
+void VictronVebusModbusTcpConnection::processDummy2RegisterValues(const QVector<quint16> values)
+{
+    QVector<quint16> receivedDummy2 = values;
+    emit dummy2ReadFinished(receivedDummy2);
+
+    if (m_dummy2 != receivedDummy2) {
+        m_dummy2 = receivedDummy2;
+        emit dummy2Changed(m_dummy2);
+    }
+}
+
+void VictronVebusModbusTcpConnection::processInverterPowerOutputPhaseARegisterValues(const QVector<quint16> values)
+{
+    float receivedInverterPowerOutputPhaseA = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, 1);
+    emit inverterPowerOutputPhaseAReadFinished(receivedInverterPowerOutputPhaseA);
+
+    if (m_inverterPowerOutputPhaseA != receivedInverterPowerOutputPhaseA) {
+        m_inverterPowerOutputPhaseA = receivedInverterPowerOutputPhaseA;
+        emit inverterPowerOutputPhaseAChanged(m_inverterPowerOutputPhaseA);
+    }
+}
+
+void VictronVebusModbusTcpConnection::processInverterPowerOutputPhaseBRegisterValues(const QVector<quint16> values)
+{
+    float receivedInverterPowerOutputPhaseB = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, 1);
+    emit inverterPowerOutputPhaseBReadFinished(receivedInverterPowerOutputPhaseB);
+
+    if (m_inverterPowerOutputPhaseB != receivedInverterPowerOutputPhaseB) {
+        m_inverterPowerOutputPhaseB = receivedInverterPowerOutputPhaseB;
+        emit inverterPowerOutputPhaseBChanged(m_inverterPowerOutputPhaseB);
+    }
+}
+
+void VictronVebusModbusTcpConnection::processInverterPowerOutputPhaseCRegisterValues(const QVector<quint16> values)
+{
+    float receivedInverterPowerOutputPhaseC = ModbusDataUtils::convertToInt16(values) * 1.0 * pow(10, 1);
+    emit inverterPowerOutputPhaseCReadFinished(receivedInverterPowerOutputPhaseC);
+
+    if (m_inverterPowerOutputPhaseC != receivedInverterPowerOutputPhaseC) {
+        m_inverterPowerOutputPhaseC = receivedInverterPowerOutputPhaseC;
+        emit inverterPowerOutputPhaseCChanged(m_inverterPowerOutputPhaseC);
+    }
 }
 
 void VictronVebusModbusTcpConnection::processPowerSetpointPhaseARegisterValues(const QVector<quint16> values)
@@ -525,6 +811,15 @@ void VictronVebusModbusTcpConnection::evaluateReachableState()
 QDebug operator<<(QDebug debug, VictronVebusModbusTcpConnection *victronVebusModbusTcpConnection)
 {
     debug.nospace().noquote() << "VictronVebusModbusTcpConnection(" << victronVebusModbusTcpConnection->hostAddress().toString() << ":" << victronVebusModbusTcpConnection->port() << ")" << "\n";
+    debug.nospace().noquote() << "    - Inverter AC input power phase A: " << victronVebusModbusTcpConnection->inverterPowerInputPhaseA() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - Inverter AC input power phase B: " << victronVebusModbusTcpConnection->inverterPowerInputPhaseB() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - Inverter AC input power phase C: " << victronVebusModbusTcpConnection->inverterPowerInputPhaseC() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - none: " << victronVebusModbusTcpConnection->dummy1() << "\n";
+    debug.nospace().noquote() << "    - Inverter output frequency: " << victronVebusModbusTcpConnection->inverterOutputFrequency() << " [Hz]" << "\n";
+    debug.nospace().noquote() << "    - none: " << victronVebusModbusTcpConnection->dummy2() << "\n";
+    debug.nospace().noquote() << "    - Inverter AC output power phase A: " << victronVebusModbusTcpConnection->inverterPowerOutputPhaseA() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - Inverter AC output power phase B: " << victronVebusModbusTcpConnection->inverterPowerOutputPhaseB() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - Inverter AC input power phase C: " << victronVebusModbusTcpConnection->inverterPowerOutputPhaseC() << " [W]" << "\n";
     debug.nospace().noquote() << "    - ESS power setpoint phase 1: " << victronVebusModbusTcpConnection->powerSetpointPhaseA() << " [W]" << "\n";
     debug.nospace().noquote() << "    - disable charge flag: " << victronVebusModbusTcpConnection->disableCharge() << " [-]" << "\n";
     debug.nospace().noquote() << "    - disable feed in flag: " << victronVebusModbusTcpConnection->disableFeedIn() << " [-]" << "\n";

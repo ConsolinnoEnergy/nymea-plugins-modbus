@@ -8,6 +8,114 @@
     ],
     "blocks": [
         {
+            "id": "vebuspower",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "inverterPowerInputPhaseA",
+                    "address": 12,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter AC input power phase A",
+                    "unit": "W",
+                    "staticScaleFactor": 1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerInputPhaseB",
+                    "address": 13,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter AC input power phase B",
+                    "unit": "W",
+                    "staticScaleFactor": 1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerInputPhaseC",
+                    "address": 14,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter AC input power phase C",
+                    "unit": "W",
+                    "staticScaleFactor": 1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 15,
+                    "size": 6,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterOutputFrequency",
+                    "address": 21,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter output frequency",
+                    "unit": "Hz",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 22,
+                    "size": 1,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerOutputPhaseA",
+                    "address": 23,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter AC output power phase A",
+                    "unit": "W",
+                    "staticScaleFactor": 1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerOutputPhaseB",
+                    "address": 24,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter AC output power phase B",
+                    "unit": "W",
+                    "staticScaleFactor": 1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerOutputPhaseC",
+                    "address": 25,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter AC input power phase C",
+                    "unit": "W",
+                    "staticScaleFactor": 1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
             "id": "vebussetp",
             "readSchedule": "update",
             "registers": [
