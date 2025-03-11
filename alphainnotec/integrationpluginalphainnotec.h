@@ -65,6 +65,15 @@ private:
     quint16 m_platformVersion = 0;
     quint16 m_majorVersion = 0;
     quint16 m_minorVersion = 0;
+    
+    enum Mode {
+        NOLIMIT = 0,
+        SOFTLIMIT = 1,
+        UNDEFINED = 3
+    };
+
+    enum Mode m_currentControlMode = Mode::NOLIMIT;
+
     void updateFirmwareVersion(Thing *thing, quint16 version, QString place);
 
     void writeHotWaterOffsetTemp(Thing *thing);
