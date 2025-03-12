@@ -1,5 +1,11 @@
 nymea-plugins-modbus (1.7.013) jammy; urgency=medium
 
+  * DvModbusIR: Fix current power sign
+
+ -- Luis Reber <l.reber@consolinno.de> Wed, 12 Mar 2025 15:59:10 +0100
+
+nymea-plugins-modbus (1.7.013) jammy; urgency=medium
+
   * Solax: Improve power calculation
   * Sungrow SG: Only show inverter in discovery
 
