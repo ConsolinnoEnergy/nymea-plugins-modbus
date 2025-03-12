@@ -1,7 +1,7 @@
 {
     "className": "VictronVebus",
     "protocol": "RTU",
-    "endianness": "LittleEndian",
+    "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 5,
     "checkReachableRegister": "powerSetpointPhaseA",
     "enums": [

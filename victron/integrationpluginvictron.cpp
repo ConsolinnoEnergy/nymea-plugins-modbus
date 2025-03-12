@@ -120,6 +120,7 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
         QHostAddress address = m_monitors.value(thing)->networkDeviceInfo().address();
         quint16 systemSlaveAddress = thing->paramValue(victronInverterTcpThingUnitIdSystemParamTypeId).toInt();
         quint16 vebusSlaveAddress = thing->paramValue(victronInverterTcpThingUnitIdVebusParamTypeId).toInt();
+        quint16 gridSlaveAddress = thing->paramValue(victronInverterTcpThingUnitIdGridParamTypeId).toInt();
 
 
         qCInfo(dcVictron()) << "Setting up Victron on" << address.toString();
@@ -128,6 +129,10 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
 
         auto vebusConnection = new VictronVebusModbusTcpConnection(address, m_modbusTcpPort , vebusSlaveAddress, this); //JoOb
         connect(info, &ThingSetupInfo::aborted, vebusConnection, &VictronVebusModbusTcpConnection::deleteLater); // JoOb
+
+        auto gridConnection = new VictronGridModbusTcpConnection(address, m_modbusTcpPort , gridSlaveAddress, this); //JoOb
+        connect(info, &ThingSetupInfo::aborted, gridConnection, &VictronGridModbusTcpConnection::deleteLater); // JoOb
+
 
         // Reconnect on monitor reachable changed
         connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
@@ -219,19 +224,10 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             Thing *meterThing = getMeterThing(thing);
             if (meterThing) {
                 double meterPower = systemConnection->meterPowerA()+systemConnection->meterPowerB()+systemConnection->meterPowerC();
-                meterThing->setStateValue(victronMeterCurrentPowerStateTypeId, meterPower);                
-                // meterThing->setStateValue(victronMeterTotalEnergyConsumedStateTypeId, systemConnection->meterTotalEnergyConsumed());
-                // meterThing->setStateValue(victronMeterTotalEnergyProducedStateTypeId, systemConnection->meterTotalEnergyProduced());
+                meterThing->setStateValue(victronMeterCurrentPowerStateTypeId, meterPower);
                 meterThing->setStateValue(victronMeterCurrentPowerPhaseAStateTypeId, systemConnection->meterPowerA());
                 meterThing->setStateValue(victronMeterCurrentPowerPhaseBStateTypeId, systemConnection->meterPowerB());
                 meterThing->setStateValue(victronMeterCurrentPowerPhaseCStateTypeId, systemConnection->meterPowerC());
-                // meterThing->setStateValue(victronMeterCurrentPhaseAStateTypeId, systemConnection->meterCurrentA());
-                // meterThing->setStateValue(victronMeterCurrentPhaseBStateTypeId, systemConnection->meterCurrentB());
-                // meterThing->setStateValue(victronMeterCurrentPhaseCStateTypeId, systemConnection->meterCurrentC());
-                // meterThing->setStateValue(victronMeterVoltagePhaseAStateTypeId, systemConnection->meterVoltageA());
-                // meterThing->setStateValue(victronMeterVoltagePhaseBStateTypeId, systemConnection->meterVoltageB());
-                // meterThing->setStateValue(victronMeterVoltagePhaseCStateTypeId, systemConnection->meterVoltageB());
-                // meterThing->setStateValue(victronMeterFrequencyStateTypeId, systemConnection->meterFrequency());
             }
 
             // Update the battery if available
@@ -267,10 +263,10 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             Thing *batteryThing = getBatteryThing(thing);
             if (batteryThing) {
                 bool state = batteryThing->stateValue(victronBatteryEnableForcePowerStateStateTypeId).toBool();
-                int16_t powerToSet = batteryThing->stateValue(victronBatteryForcePowerStateTypeId).toInt();
-                int16_t powerInvOut = vebusConnection->inverterPowerOutputPhaseA().toInt()\
-                    +vebusConnection->inverterPowerOutputPhaseB().toInt()+vebusConnection->inverterPowerOutputPhaseC().toInt();
-                int16_t powerSetPhase = (powerToSet+powerInvOut)/3; // Victron control variable is the AC input power of the inverter, not the battery power
+                float powerToSet = batteryThing->stateValue(victronBatteryForcePowerStateTypeId).toFloat();
+                float powerInvOut = vebusConnection->inverterPowerOutputPhaseA()\
+                    +vebusConnection->inverterPowerOutputPhaseB()+vebusConnection->inverterPowerOutputPhaseC();
+                int16_t powerSetPhase = static_cast<int16_t>((powerToSet+powerInvOut)/3); // Victron control variable is the AC input power of the inverter, not the battery power
                 qCDebug(dcVictron()) << "State " <<  state << "; powerSetPhase " << powerSetPhase;
                 
                 // Write battery power cyclic if remote control is enabled
@@ -279,8 +275,27 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
                 }
             }         
         });
+
+        connect(gridConnection, &VictronGridModbusTcpConnection::updateFinished, thing, [=](){
+            qCDebug(dcVictron()) << "Updated" << gridConnection;
+            // update grid values
+            Thing *meterThing = getMeterThing(thing);
+            if (meterThing) {
+                meterThing->setStateValue(victronMeterFrequencyStateTypeId, gridConnection->gridFrequency());                
+                meterThing->setStateValue(victronMeterTotalEnergyConsumedStateTypeId, 0.01*gridConnection->gridTotalEnergyConsumed());
+                meterThing->setStateValue(victronMeterTotalEnergyProducedStateTypeId, 0.01*gridConnection->gridTotalEnergyProduced());                
+                meterThing->setStateValue(victronMeterCurrentPhaseAStateTypeId, gridConnection->gridCurrentPhaseA());
+                meterThing->setStateValue(victronMeterCurrentPhaseBStateTypeId, gridConnection->gridCurrentPhaseB());
+                meterThing->setStateValue(victronMeterCurrentPhaseCStateTypeId, gridConnection->gridCurrentPhaseC());
+                meterThing->setStateValue(victronMeterVoltagePhaseAStateTypeId, gridConnection->gridVoltagePhaseA());
+                meterThing->setStateValue(victronMeterVoltagePhaseBStateTypeId, gridConnection->gridVoltagePhaseB());
+                meterThing->setStateValue(victronMeterVoltagePhaseCStateTypeId, gridConnection->gridVoltagePhaseC());
+                meterThing->setStateValue(victronMeterFrequencyStateTypeId, gridConnection->gridFrequency());
+            }               
+        });
         m_systemTcpConnections.insert(thing, systemConnection);
         m_vebusTcpConnections.insert(thing, vebusConnection); //JoOb
+        m_gridTcpConnections.insert(thing, gridConnection); //JoOb
         
         if (monitor->reachable())
             systemConnection->connectDevice();
@@ -365,7 +380,7 @@ void IntegrationPluginVictron::postSetupThing(Thing *thing)
                         connection->reconnectDevice();
                     }
 
-                    // triggering both updates at the same time should be fine due to different slave IDs
+                    // triggering multiple updates at the same time should be fine due to different slave IDs
                     auto vebusConnection = m_vebusTcpConnections.value(thing);
 
                     if (vebusConnection->reachable()) {
@@ -374,6 +389,17 @@ void IntegrationPluginVictron::postSetupThing(Thing *thing)
                     } else {
                         qCDebug(dcVictron()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
                         vebusConnection->reconnectDevice();
+                    }
+
+                    // triggering multiple updates at the same time should be fine due to different slave IDs
+                    auto gridConnection = m_gridTcpConnections.value(thing);
+
+                    if (gridConnection->reachable()) {
+                        qCDebug(dcVictron()) << "Updating connection" << gridConnection->hostAddress().toString();
+                        gridConnection->update();
+                    } else {
+                        qCDebug(dcVictron()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
+                        gridConnection->reconnectDevice();
                     }
                 }
             });

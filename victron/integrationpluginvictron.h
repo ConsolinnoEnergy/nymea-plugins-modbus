@@ -39,6 +39,7 @@
 
 #include "victronsystemmodbustcpconnection.h"
 #include "victronvebusmodbustcpconnection.h"
+#include "victrongridmodbustcpconnection.h"
 
 class IntegrationPluginVictron: public IntegrationPlugin
 {
@@ -66,6 +67,7 @@ private:
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, VictronSystemModbusTcpConnection *> m_systemTcpConnections;
     QHash<Thing *, VictronVebusModbusTcpConnection *> m_vebusTcpConnections;
+    QHash<Thing *, VictronGridModbusTcpConnection *> m_gridTcpConnections;
 
     void setupVictronConnection(ThingSetupInfo *info);
     void activateRemoteControl(Thing *thing, bool activation);
