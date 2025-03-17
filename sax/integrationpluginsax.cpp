@@ -474,7 +474,7 @@ void IntegrationPluginSax::setupTcpConnection(ThingSetupInfo *info)
     });
 
     /*smartmeter power phase A*/
-    connect(connection, &SaxModbusTcpConnection::powerPhaseAChanged, thing, [this, connection, thing](quint16 powerPhase){
+    connect(connection, &SaxModbusTcpConnection::powerPhaseAChanged, thing, [this, connection, thing](qint16 powerPhase){
         Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
         if (!meterThings.isEmpty()) {
             qint16 powerfactor = connection->powerFactorSmartmeter();
@@ -490,7 +490,7 @@ void IntegrationPluginSax::setupTcpConnection(ThingSetupInfo *info)
     });
 
     /*smartmeter power phase B*/
-    connect(connection, &SaxModbusTcpConnection::powerPhaseBChanged, thing, [this, connection, thing](quint16 powerPhase){
+    connect(connection, &SaxModbusTcpConnection::powerPhaseBChanged, thing, [this, connection, thing](qint16 powerPhase){
         Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
         if (!meterThings.isEmpty()) {
             qint16 powerfactor = connection->powerFactorSmartmeter();
@@ -506,7 +506,7 @@ void IntegrationPluginSax::setupTcpConnection(ThingSetupInfo *info)
     });
 
     /*smartmeter power phase C*/
-    connect(connection, &SaxModbusTcpConnection::powerPhaseCChanged, thing, [this, connection, thing](quint16 powerPhase){
+    connect(connection, &SaxModbusTcpConnection::powerPhaseCChanged, thing, [this, connection, thing](qint16 powerPhase){
         Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(saxMeterThingClassId);
         if (!meterThings.isEmpty()) {
             qint16 powerfactor = connection->powerFactorSmartmeter();
