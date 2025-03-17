@@ -288,7 +288,7 @@
         },
         {
             "id": "fwVersionBlock",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "registers": [
                 {
                     "id": "softwarePlatform",

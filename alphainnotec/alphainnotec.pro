@@ -6,7 +6,9 @@ MODBUS_CONNECTIONS += alphainnotec-registers.json ait-shi-registers.json
 include(../modbus.pri)
 
 SOURCES += \
-    integrationpluginalphainnotec.cpp
+    integrationpluginalphainnotec.cpp \
+    aitdiscovery.cpp
 
 HEADERS += \
-    integrationpluginalphainnotec.h
+    integrationpluginalphainnotec.h \
+    aitdiscovery.h

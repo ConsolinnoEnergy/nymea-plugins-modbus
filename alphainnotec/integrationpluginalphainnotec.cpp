@@ -30,6 +30,7 @@
 
 #include "integrationpluginalphainnotec.h"
 #include "plugininfo.h"
+#include "aitdiscovery.h"
 
 #include <network/networkdevicediscovery.h>
 #include <hardwaremanager.h>
@@ -92,46 +93,33 @@ void IntegrationPluginAlphaInnotec::discoverThings(ThingDiscoveryInfo *info)
         });
     }
     if (info->thingClassId() == aitSmartHomeThingClassId) {
-        NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, discoveryReply, &NetworkDeviceDiscoveryReply::deleteLater);
-        connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
+        AITDiscovery *discovery = new AITDiscovery(hardwareManager()->networkDeviceDiscovery(), 502, 1, info);
+        connect(discovery, &AITDiscovery::discoveryFinished, discovery, &AITDiscovery::deleteLater);
+        connect(discovery, &AITDiscovery::discoveryFinished, info, [=](){
+            foreach (const AITDiscovery::AitDiscoveryResult &result, discovery->discoveryResults()) {
+                QString title = "AlphaInnotec";
 
-            foreach (const NetworkDeviceInfo &networkDeviceInfo, discoveryReply->networkDeviceInfos()) {
-
-                qCDebug(dcAlphaInnotec()) << "Found" << networkDeviceInfo;
-
-                QString title;
-                if (networkDeviceInfo.hostName().isEmpty()) {
-                    title = networkDeviceInfo.address().toString();
-                } else {
-                    title = networkDeviceInfo.hostName() + " (" + networkDeviceInfo.address().toString() + ")";
-                }
-
-                QString description;
-                if (networkDeviceInfo.macAddressManufacturer().isEmpty()) {
-                    description = networkDeviceInfo.macAddress();
-                } else {
-                    description = networkDeviceInfo.macAddress() + " (" + networkDeviceInfo.macAddressManufacturer() + ")";
-                }
-
-                ThingDescriptor descriptor(aitSmartHomeThingClassId, title, description);
-                ParamList params;
-                params << Param(aitSmartHomeThingIpAddressParamTypeId, networkDeviceInfo.address().toString());
-                params << Param(aitSmartHomeThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
-                descriptor.setParams(params);
+                ThingDescriptor descriptor(aitSmartHomeThingClassId, title, result.networkDeviceInfo.address().toString() + " " + result.networkDeviceInfo.macAddress());
+                qCInfo(dcAlphaInnotec()) << "Discovered:" << descriptor.title() << descriptor.description();
 
                 // Check if we already have set up this device
-                Things existingThings = myThings().filterByParam(aitSmartHomeThingMacAddressParamTypeId, networkDeviceInfo.macAddress());
+                Things existingThings = myThings().filterByParam(aitSmartHomeThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
                 if (existingThings.count() == 1) {
-                    qCDebug(dcAlphaInnotec()) << "This connection already exists in the system:" << networkDeviceInfo;
+                    qCDebug(dcAlphaInnotec()) << "This AIT HP already exists in the system:" << result.networkDeviceInfo;
                     descriptor.setThingId(existingThings.first()->id());
                 }
 
+                ParamList params;
+                params << Param(aitSmartHomeThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
                 info->addThingDescriptor(descriptor);
             }
 
             info->finish(Thing::ThingErrorNoError);
         });
+
+        // Start the discovery process
+        discovery->startDiscovery();
     }
 }
 
