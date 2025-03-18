@@ -6,7 +6,7 @@ Connects to a Victron GX gateway
 
 * Victron GX devices like Cerbo GX, CCGX, Venus GX
 * Victron inverter connected via VE.bus like Multis or Quattros 
-* Victron Meters (only system registers)
+* Victron Meters
 * Connected batteries (only system registers)
 
 ## Tested connections
