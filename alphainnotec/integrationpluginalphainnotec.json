@@ -349,7 +349,8 @@
                             "displayName": "IP address",
                             "type": "QString",
                             "inputType": "IPv4Address",
-                            "defaultValue": "127.0.0.1"
+                            "defaultValue": "127.0.0.1",
+                            "readOnly": true
                         },
                         {
                             "id": "b1eeb237-4328-4fb3-8a1e-afdc7ea89896",
@@ -357,21 +358,8 @@
                             "displayName": "MAC address",
                             "type": "QString",
                             "inputType": "MacAddress",
-                            "defaultValue": ""
-                        },
-                        {
-                            "id": "aa8cdf0d-341f-48af-99be-ae710d116b13",
-                            "name": "port",
-                            "displayName": "Port",
-                            "type": "int",
-                            "defaultValue": 502
-                        },
-                        {
-                            "id": "6a7f5d6e-6214-43dc-b7fa-87ac9cd01a1e",
-                            "name": "slaveId",
-                            "displayName": "Modbus slave ID",
-                            "type": "int",
-                            "defaultValue": 1
+                            "defaultValue": "",
+                            "readOnly": true
                         },
                         {
                             "id": "74d52504-1ec3-4af0-a695-c2ceb36b3f1e",

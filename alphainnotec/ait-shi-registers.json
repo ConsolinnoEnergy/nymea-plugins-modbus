@@ -45,6 +45,17 @@
     ],
     "registers": [
         {
+            "id": "heatpumpState",
+            "address": 10000,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Heatpump state",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
             "id": "errorCode",
             "address": 10201,
             "size": 1,
@@ -66,6 +77,18 @@
             "defaultValue": "0",
             "staticScaleFactor": -1,
             "access": "RO"
+        },
+        {
+            "id": "outdoorTemperature",
+            "address": 10108,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Outdoor temperature",
+            "defaultValue": "0",
+            "staticScaleFactor": -1,
+            "access": "RO"
         }
     ],
     "blocks": [
@@ -73,25 +96,6 @@
             "id": "stateBlock",
             "readSchedule": "update",
             "registers": [
-                {
-                    "id": "heatpumpState",
-                    "address": 10000,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Heatpump state",
-                    "defaultValue": "0",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy0",
-                    "address": 10001,
-                    "size": 1,
-                    "type": "raw",
-                    "registerType": "inputRegister",
-                    "description": "Dummy 0",
-                    "access": "RO"
-                },
                 {
                     "id": "operatingState",
                     "address": 10002,
@@ -122,16 +126,13 @@
                     "registerType": "inputRegister",
                     "defaultValue": "0",
                     "access": "RO"
-                },
-                {
-                    "id": "dummy1",
-                    "address": 10005,
-                    "size": 1,
-                    "type": "raw",
-                    "registerType": "inputRegister",
-                    "description": "Dummy 1",
-                    "access": "RO"
-                },
+                }
+            ]
+        },
+        {
+            "id": "stateBlock2",
+            "readSchedule": "update",
+            "registers": [
                 {
                     "id": "coolingState",
                     "address": 10006,
@@ -204,26 +205,6 @@
                     "type": "uint16",
                     "registerType": "inputRegister",
                     "description": "Room temperature",
-                    "defaultValue": "0",
-                    "staticScaleFactor": -1,
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy6",
-                    "address": 10107,
-                    "size": 1,
-                    "type": "raw",
-                    "registerType": "inputRegister",
-                    "description": "Dummy 6",
-                    "access": "RO"
-                },
-                {
-                    "id": "outdoorTemperature",
-                    "address": 10108,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Outdoor temperature",
                     "defaultValue": "0",
                     "staticScaleFactor": -1,
                     "access": "RO"
@@ -357,17 +338,13 @@
                     "staticScaleFactor": -1,
                     "defaultValue": "0",
                     "access": "RW"
-                },
-                {
-                    "id": "dummy2",
-                    "address": 10003,
-                    "size": 2,
-                    "type": "uint32",
-                    "registerType": "holdingRegister",
-                    "description": "Dummy 2",
-                    "defaultValue": "0",
-                    "access": "RW"
-                },
+                }
+            ]
+        },
+        {
+            "id": "modeControlBlock2",
+            "readSchedule": "update",
+            "registers": [
                 {
                     "id": "hotWaterMode",
                     "address": 10005,
