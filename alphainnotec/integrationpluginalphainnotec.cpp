@@ -536,6 +536,27 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
                 writeHeatingOffsetTemp(thing);
         });
 
+        connect(aitShiConnection, &aitShiModbusTcpConnection::heatingModeChanged, thing, [this, thing](quint16 mode) {
+            qCDebug(dcAlphaInnotec()) << "Heating mode changed to" << mode;
+
+            if (m_currentControlMode == SOFTLIMIT && mode == 0)
+                m_resetMode = true;
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::hotWaterModeChanged, thing, [this, thing](quint16 mode) {
+            qCDebug(dcAlphaInnotec()) << "Hot water mode changed to" << mode;
+
+            if (m_currentControlMode == SOFTLIMIT && mode == 0)
+                m_resetMode = true;
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::lpcModeChanged, thing, [this, thing](quint16 mode) {
+            qCDebug(dcAlphaInnotec()) << "LPC mode changed to" << mode;
+
+            if (m_currentControlMode == SOFTLIMIT && mode == 0)
+                m_resetMode = true;
+        });
+
         m_aitShiConnections.insert(thing, aitShiConnection);
 
         if (monitor->reachable())
@@ -759,7 +780,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
 
             bool settingModeInProgress = false;
             QEventLoop loop;
-            if (modeChanged) {
+            if (modeChanged || m_resetMode) {
                 // Set LPC mode
                 settingModeInProgress = true;
                 QModbusReply *lpcModeReply = connection->setLpcMode(modeToSet);
@@ -768,7 +789,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                     info->finish(Thing::ThingErrorHardwareFailure);
                     return;
                 }
-                
+
                 connect(lpcModeReply, &QModbusReply::finished, lpcModeReply, &QModbusReply::deleteLater);
                 connect(lpcModeReply, &QModbusReply::finished, info, [this, info, lpcModeReply, connection, modeToSet, &settingModeInProgress, &loop] {
                     if (lpcModeReply->error() != QModbusDevice::NoError) {
@@ -779,7 +800,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                 
                     qCWarning(dcAlphaInnotec()) << "Execute setLpcMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
                     // Set Hot Water Mode
-                    QModbusReply *hotWaterModeReply = connection->setHotWaterMode(modeToSet); 
+                    QModbusReply *hotWaterModeReply = connection->setHotWaterMode((modeToSet == SOFTLIMIT) ? 2 : 0); 
                     if (!hotWaterModeReply) {
                         qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode failed because the reply could not be created.";
                         info->finish(Thing::ThingErrorHardwareFailure);
@@ -796,7 +817,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                     
                         qCWarning(dcAlphaInnotec()) << "Execute setHotWaterMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
                         // Set Heating Mode
-                        QModbusReply *heatingModeReply = connection->setHotWaterMode(modeToSet);
+                        QModbusReply *heatingModeReply = connection->setHeatingMode((modeToSet == SOFTLIMIT) ? 2 : 0);
                         if (!heatingModeReply) {
                             qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode failed because the reply could not be created.";
                             info->finish(Thing::ThingErrorHardwareFailure);
@@ -813,6 +834,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                         
                             qCWarning(dcAlphaInnotec()) << "Execute setHeatingMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
                             m_currentControlMode = modeToSet;
+                            m_resetMode = false;
                             settingModeInProgress = false;
                             loop.quit();
                         });

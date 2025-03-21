@@ -73,6 +73,7 @@ private:
     };
 
     enum Mode m_currentControlMode = Mode::NOLIMIT;
+    bool m_resetMode = false;
 
     void updateFirmwareVersion(Thing *thing, quint16 version, QString place);
 
