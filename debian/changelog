@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.014) jammy; urgency=medium
+
+  * Fix Solax X3 Energy readout
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 27 Mar 2025 13:49:00 +0100
+
 nymea-plugins-modbus (1.7.013) jammy; urgency=medium
 
   * Solax: Improve power calculation
@@ -20,8 +26,6 @@ nymea-plugins-modbus (1.7.012-1) jammy; urgency=medium
   * Solax: Updated power calculation
     Use correct EV Charger name
   * Added Kaco NH3
-
- -- Luis Reber <l.reber@consolinno.de> Thu, 28 Nov 2024 13:49:00 +0100
 
 nymea-plugins-modbus (1.7.011-1) jammy; urgency=medium
 
