@@ -37,6 +37,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--uuid_offset", type=int, help="Offset of uuids of new plugin ", default=1
     )
+    parser.add_argument(
+        "--vendor_uuid", help="Vendor UUID ", required=True
+    )
     args = parser.parse_args()
     with open(args.JSON, "r") as f:
         data = json.loads(f.read())
@@ -55,6 +58,8 @@ if __name__ == "__main__":
     # data['vendors'][0]['thingClasses'][0]['name'] = args.name
     data["vendors"][0]["thingClasses"][0]["displayName"] = args.display_name
     data["vendors"][0]["thingClasses"][0]["interfaces"] = args.interfaces
+
+    data["vendors"][0]["id"] = args.vendor_uuid
 
     with open(args.output, "w") as f:
         json.dump(data, f, indent=4)

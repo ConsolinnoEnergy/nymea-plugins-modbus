@@ -137,11 +137,38 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
         GrowattModbusRtuConnection *connection = new GrowattModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
         connect(connection, &GrowattModbusRtuConnection::reachableChanged, this, [=](bool reachable){
             thing->setStateValue(growattInverterRTUConnectedStateTypeId, reachable);
+            if (!reachable) {
+                thing->setStateValue(growattInverterRTUCurrentPowerStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPv1PowerStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPv1VoltageStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPv1CurrentStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPv2PowerStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPv2VoltageStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPv2CurrentStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPhaseACurrentStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPhaseBCurrentStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPhaseCCurrentStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUVoltagePhaseAStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUVoltagePhaseBStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUVoltagePhaseCStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUCurrentPowerPhaseAStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUCurrentPowerPhaseBStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUCurrentPowerPhaseCStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUFrequencyStateTypeId, 0);
+                thing->setStateValue(growattInverterRTUPowerAcOutStateTypeId, 0);
+            }
 
             // Set connected state for meter
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 meterThings.first()->setStateValue(growattMeterConnectedStateTypeId, reachable);
+                if (!reachable) {
+                    meterThings.first()->setStateValue(growattMeterCurrentPowerStateTypeId, 0);
+                    meterThings.first()->setStateValue(growattMeterCurrentPowerPhaseAStateTypeId, 0);
+                    meterThings.first()->setStateValue(growattMeterCurrentPowerPhaseBStateTypeId, 0);
+                    meterThings.first()->setStateValue(growattMeterCurrentPowerPhaseCStateTypeId, 0);
+                    meterThings.first()->setStateValue(growattMeterLoadPowerStateTypeId, 0);
+                }
             }
 
             // Set connected state for battery
@@ -152,6 +179,11 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
                     batteryThing->setStateValue(growattBatteryConnectedStateTypeId, reachable);
                     // capacity
                     batteryThing->setStateValue(growattBatteryCapacityStateTypeId, thing->paramValue(growattInverterRTUThingBatteryCapacityParamTypeId));
+                }
+                if (!reachable) {
+                    batteryThings.first()->setStateValue(growattBatteryCurrentPowerStateTypeId, 0);
+                    batteryThings.first()->setStateValue(growattBatteryVoltageStateTypeId, 0);
+                    batteryThings.first()->setStateValue(growattBatteryCurrentStateTypeId, 0);
                 }
             }
 

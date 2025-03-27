@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "amtronECU",
-                    "displayName": "AMTRON Charge Control/Professional",
+                    "displayName": "AMTRON Professional / Charge Control",
                     "id": "fb48e067-2237-4eaf-8d2c-681d406395fc",
                     "createMethods": ["discovery", "user"],
                     "interfaces": ["evcharger", "smartmeterconsumer", "connectable"],

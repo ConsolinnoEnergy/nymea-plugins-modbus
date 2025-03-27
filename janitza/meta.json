@@ -1,0 +1,13 @@
+{
+    "title": "Janitza",
+    "tagline": "Connect Janitza energy meters.",
+    "icon": "janitza.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "modbus"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

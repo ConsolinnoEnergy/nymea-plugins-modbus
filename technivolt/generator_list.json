@@ -1,0 +1,10 @@
+{
+  "Technivolt": {
+    "uuid": "8d0e2c6c-2776-403f-aff8-8b68753794bd",
+    "2200 smart": {
+      "filename": "technivolt2200",
+      "interfaces": "null",
+      "uuid_offset": 7
+    }
+  }
+}

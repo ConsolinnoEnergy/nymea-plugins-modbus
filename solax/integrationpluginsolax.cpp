@@ -256,6 +256,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
                 }
             }
 
@@ -267,6 +268,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                     batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, true);
                 } else {
                     batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
+                    batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
                 }
             }
 
@@ -548,6 +550,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 float batMaxVoltage = connection->batMaxDischargeVolt();
                 float batMaxCurrent = connection->batMaxDischargeCurrent();
                 double batMaxPower = batMaxCurrent*batMaxVoltage;
+                // It seems batMaxVoltage and matMaxCurrent are not always provided by the system
+                if (batMaxPower == 0)
+                    batMaxPower = 10000;
+
                 batteryThings.first()->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, batMaxPower);
 
                 // check if manual is following the chosen setting
@@ -570,17 +576,16 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             // If battery is currently charging, check if batteryPower is bigger than solaxpower
             // If yes, add that difference to solarpower
             qint16 powerDifference = 0;
-            if (currentBatPower > 0) {
+            if (currentBatPower > 0 && (powerDc1+powerDc2) > 0) {
                 powerDifference = currentBatPower - (powerDc1+powerDc2);
                 if (powerDifference < 0) {
                     powerDifference = 0;
                 }
             }
-            // TODO: abs(currentPower) < nominalPower + 5000 tolerance - DONE
             double nominalPowerInverter = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
             double currentPower = powerDc1+powerDc2+2*powerDifference;
             if (qFabs(currentPower) < nominalPowerInverter + 5000)
-                thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+                thing->setStateValue(solaxX3InverterRTUCurrentPowerStateTypeId, -(powerDc1+powerDc2+powerDifference/10));
 
             m_energyCheck = 10;
         });
@@ -613,9 +618,8 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Battery power (batpowerCharge1) changed" << powerBat1 << "W";
 
-                // TODO: check if abs(currentPower) < abs(nominalPower) - DONE
                 double nominalPowerBattery = batteryThings.first()->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
-                if (qFabs(powerBat1) < nominalPowerBattery + 1000)
+                if (qFabs(powerBat1) < nominalPowerBattery + 5000)
                     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
 
                 if (powerBat1 < 0) {
@@ -786,11 +790,13 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
                 if (!meterThings.isEmpty()) {
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
                 }
 
                 Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
                 if (!batteryThings.isEmpty()) {
                     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
+                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
                 }
             }
         });
@@ -938,6 +944,10 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 float batMaxVoltage = connection->batMaxDischargeVolt();
                 float batMaxCurrent = connection->batMaxDischargeCurrent();
                 double batMaxPower = batMaxCurrent*batMaxVoltage;
+                // It seems batMaxVoltage and matMaxCurrent are not always provided by the system
+                if (batMaxPower == 0)
+                    batMaxPower = 10000;
+
                 batteryThings.first()->setStateValue(solaxBatteryNominalPowerBatteryStateTypeId, batMaxPower);
 
                 // check if manual is following the chosen setting
@@ -960,7 +970,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             // If battery is currently charging, check if batteryPower is bigger than solaxpower
             // If yes, add that difference to solarpower
             qint16 powerDifference = 0;
-            if (currentBatPower > 0) {
+            if (currentBatPower > 0 && (powerDc1+powerDc2) > 0) {
                 powerDifference = currentBatPower - (powerDc1+powerDc2);
                 if (powerDifference < 0) {
                     powerDifference = 0;
@@ -968,9 +978,8 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             }
             double nominalPowerInverter = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
             double currentPower = powerDc1+powerDc2+2*powerDifference;
-            // TODO: abs(currentPower) < nominalPower - DONE
             if (qFabs(currentPower) < nominalPowerInverter + 5000)
-                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+2*powerDifference));
+                thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, -(powerDc1+powerDc2+powerDifference/10));
 
             m_energyCheck = 10;
         });
@@ -1003,7 +1012,6 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
-                // TODO: check if abs(MeterCurrentPower) < (InverterMaxPower + BatteryMaxPower) - DONE
                 if (qFabs(feedinPower) < (nominalPowerInverter + nominalPowerBattery + 1000))
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
             }
@@ -1181,9 +1189,8 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Battery power (batpowerCharge1) changed" << powerBat1 << "W";
 
-                // TODO: abs(currentPower) < nominalPower - DONE
                 double nominalPowerBattery = batteryThings.first()->stateValue(solaxBatteryNominalPowerBatteryStateTypeId).toDouble();
-                if (qFabs(powerBat1) < nominalPowerBattery + 1000)
+                if (qFabs(powerBat1) < nominalPowerBattery + 5000)
                     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
 
                 if (powerBat1 < 0) {

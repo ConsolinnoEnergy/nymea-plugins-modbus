@@ -29,6 +29,8 @@
 
 #include <QtMath>
 
+#include "kaconh3discovery.h"
+
 IntegrationPluginKacoSunSpec::IntegrationPluginKacoSunSpec()
 {
 
@@ -149,6 +151,40 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
         qCDebug(dcKacoSunSpec()) << "Found" << info->thingDescriptors().count() << " Kaco SunSpec inverters";
         
         info->finish(Thing::ThingErrorNoError);
+    } else if (info->thingClassId() == kaconh3ThingClassId) {
+        if (!hardwareManager()->networkDeviceDiscovery()->available()) {
+            qCWarning(dcKacoSunSpec()) << "The network discovery is not available on this platform.";
+            info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
+            return;
+        }
+        ThingClass thingClass = supportedThings().findById(info->thingClassId());
+        qCDebug(dcKacoSunSpec()) << "Starting network discovery...";
+        KacoNH3Discovery *discovery = new KacoNH3Discovery(hardwareManager()->networkDeviceDiscovery(), 502, 3, info);
+        connect(discovery, &KacoNH3Discovery::discoveryFinished, discovery, &KacoNH3Discovery::deleteLater);
+        connect(discovery, &KacoNH3Discovery::discoveryFinished, info, [=](){
+            qCDebug(dcKacoSunSpec()) << "Discovery finished. Found Kaco device.";
+            foreach (const KacoNH3Discovery::KacoNH3DiscoveryResult &result, discovery->discoveryResults()) {
+                QString description = result.networkDeviceInfo.macAddress() + " - " + result.networkDeviceInfo.address().toString();
+
+                ThingDescriptor descriptor(info->thingClassId(), "Kaco NH3", description);
+                ParamList params;
+                params << Param(kaconh3ThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                descriptor.setParams(params);
+
+                // Check if we already have set up this device
+                Thing *existingThing = myThings().findByParams(descriptor.params());
+                if (existingThing) {
+                    qCDebug(dcKacoSunSpec()) << "Found already existing" << thingClass.name() << "inverter:" << existingThing->name() << result.networkDeviceInfo;
+                    descriptor.setThingId(existingThing->id());
+                } else {
+                    qCDebug(dcKacoSunSpec()) << "Found new" << thingClass.name() << "inverter";
+                }
+
+                info->addThingDescriptor(descriptor);
+            }
+            info->finish(Thing::ThingErrorNoError);
+        });
+        discovery->startDiscovery();
     }
 }
 
@@ -259,9 +295,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
         connection->connectDevice();
 
         return;
-    }
-
-    if (thing->thingClassId() == kacosunspecInverterRTUThingClassId) {
+    } else if (thing->thingClassId() == kacosunspecInverterRTUThingClassId) {
 
         uint address = thing->paramValue(kacosunspecInverterRTUThingSlaveAddressParamTypeId).toUInt();
         if (address > 247 || address < 3) {
@@ -334,18 +368,285 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
         m_scalefactors.insert(thing, scalefactors);
 
         info->finish(Thing::ThingErrorNoError);
+    } else if (thing->thingClassId() == kaconh3ThingClassId) {
+        qCDebug(dcKacoSunSpec()) << "Setting up NH3";
+
+        // Handle reconfigure
+        if (m_nh3Connections.contains(thing)) {
+            qCDebug(dcKacoSunSpec()) << "Already have a Kaco SunSpec connection for this thing. Cleaning up old connection and initializing new one...";
+            delete m_nh3Connections.take(thing);
+        } else {
+            qCDebug(dcKacoSunSpec()) << "Setting up a new device:" << thing->params();
+        }
+
+        if (m_monitors.contains(thing))
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+
+        // Make sure we have a valid mac address, otherwise no monitor and not auto searching is possible
+        MacAddress macAddress = MacAddress(thing->paramValue(kaconh3ThingMacAddressParamTypeId).toString());
+        if (macAddress.isNull()) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco SunSpec inverter because the MAC address is not valid:" << thing->paramValue(kaconh3ThingMacAddressParamTypeId).toString() << macAddress.toString();
+            info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
+            return;
+        }
+
+        // Create the monitor
+        NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        m_monitors.insert(thing, monitor);
+        connect(info, &ThingSetupInfo::aborted, monitor, [=](){
+            // Clean up in case the setup gets aborted
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcKacoSunSpec()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
+        });
+
+        uint port = thing->paramValue(kaconh3ThingPortParamTypeId).toUInt();
+        quint16 slaveId = thing->paramValue(kaconh3ThingSlaveIdParamTypeId).toUInt();
+
+        KacoNH3ModbusTcpConnection *connection = new KacoNH3ModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
+        connection->setTimeout(4500);
+        connect(info, &ThingSetupInfo::aborted, connection, &KacoNH3ModbusTcpConnection::deleteLater);
+
+        connect(connection, &KacoNH3ModbusTcpConnection::initializationFinished, thing, [=](bool success){
+            thing->setStateValue("connected", success);
+
+            thing->setStateValue("deviceModel", connection->deviceModel());
+            thing->setStateValue("firmwareVersion", connection->firmware());
+            thing->setStateValue("serialNumber", connection->serialnumber());
+
+            // If no meter is setup, add one.
+            if (myThings().filterByParentId(thing->id()).filterByThingClassId(kacoNh3MeterThingClassId).isEmpty())
+            {
+                qCDebug(dcKacoSunSpec()) << "There is no meter set up for this inverter. Creating a meter for" << thing << connection;
+                ThingClass meterThingClass = thingClass(kacoNh3MeterThingClassId);
+                ThingDescriptor descriptor(kacoNh3MeterThingClassId, meterThingClass.displayName(), QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+
+            foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                childThing->setStateValue("connected", success);
+            }
+
+            if (!success) {
+                // Try once to reconnect the device
+                connection->reconnectDevice();
+            } else {
+                qCInfo(dcKacoSunSpec()) << "Connection initialized successfully for" << thing;
+                connection->update();
+            }
+        });
+
+        // Reconnect on monitor reachable changed
+        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
+            qCDebug(dcKacoSunSpec()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+            if (!thing->setupComplete())
+                return;
+
+            if (reachable && !thing->stateValue("connected").toBool()) {
+                connection->setHostAddress(monitor->networkDeviceInfo().address());
+                connection->reconnectDevice();
+            } else if (!reachable) {
+                // Note: Auto reconnect is disabled explicitly and
+                // the device will be connected once the monitor says it is reachable again
+                connection->disconnectDevice();
+            }
+        });
+
+        connect(connection, &KacoNH3ModbusTcpConnection::reachableChanged, thing, [this, thing, connection](bool reachable){
+            qCInfo(dcKacoSunSpec()) << "Reachable changed to" << reachable << "for" << thing;
+            if (reachable) {
+                // Connected true will be set after successfull init
+                connection->initialize();
+            } else {
+                thing->setStateValue("connected", false);
+                thing->setStateValue(kaconh3CurrentPowerStateTypeId, 0);
+
+                foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
+                    childThing->setStateValue("connected", false);
+                }
+
+                Thing *child = getMeterThing(thing);
+                if (child) {
+                    child->setStateValue(kacoNh3MeterCurrentPowerStateTypeId, 0);
+                }
+
+                child = getBatteryThing(thing);
+                if (child) {
+                    child->setStateValue(kacoNh3BatteryCurrentPowerStateTypeId, 0);
+                }
+            }
+        });
+
+        connect(connection, &KacoNH3ModbusTcpConnection::updateFinished, thing, [=](){
+            qCDebug(dcKacoSunSpec()) << "Updating Kaco NH3" << thing;
+
+            // Check if a battery thing is setup and a battery is connected
+            if (myThings().filterByParentId(thing->id()).filterByThingClassId(kacoNh3BatteryThingClassId).isEmpty() && 
+                connection->batType() != KacoNH3ModbusTcpConnection::BatteryTypeNoBattery)
+            {
+                qCDebug(dcKacoSunSpec()) << "There is no battery set up for this inverter. Creating a battery for" << thing << connection;
+                ThingClass batteryThingClass = thingClass(kacoNh3BatteryThingClassId);
+                ThingDescriptor descriptor(kacoNh3BatteryThingClassId, batteryThingClass.displayName(), QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+
+            // Set inverter states
+            qint16 currentPowerSf = connection->inverterCurrentPowerSf();
+            qint16 currentPower = connection->inverterCurrentPower();
+            double calculatedPower = -1 * qFabs(currentPower) * qPow(10, currentPowerSf);
+            thing->setStateValue("currentPower", calculatedPower);
+
+            quint16 producedEnergySf = connection->inverterProducedEnergySf();
+            quint32 producedEnergy = connection->inverterProducedEnergy();
+            double calculatedEnergy = (producedEnergy * qPow(10, producedEnergySf)) / 1000;
+            thing->setStateValue("totalEnergyProduced", calculatedEnergy);
+
+            setOperatingState(thing, connection->operatingState());
+
+
+            // Update the meter (should always be setup)
+            Thing *meterThing = getMeterThing(thing);
+            if (meterThing) {
+                qint16 meterFrequencySf = connection->meterFrequencySf();
+                qint16 meterFrequency = connection->meterFrequency();
+                double calculatedFrequency = meterFrequency * qPow(10, meterFrequencySf);
+                meterThing->setStateValue("frequency", calculatedFrequency);
+
+                qint16 meterPowerSf = connection->meterCurrentPowerSf();
+                qint16 meterPower = connection->meterCurrentPower();
+                double calculatedMeterPower = meterPower * qPow(10, meterPowerSf);
+                meterThing->setStateValue("currentPower", calculatedMeterPower);
+
+                quint16 meterEnergySf = connection->meterEnergySf();
+                quint32 meterProducedEnergy = connection->meterProducedEnergy();
+                quint32 meterConsumedEnergy = connection->meterConsumedEnergy();
+                double calculatedProducedEnergy = (meterProducedEnergy * qPow(10, meterEnergySf)) / 1000;
+                double calculatedConsumedEnergy = (meterConsumedEnergy * qPow(10, meterEnergySf)) / 1000;
+                meterThing->setStateValue("totalEnergyProduced", calculatedProducedEnergy);
+                meterThing->setStateValue("totalEnergyConsumed", calculatedConsumedEnergy);
+
+                qint16 meterCurrentSf = connection->meterCurrentSf();
+                qint16 meterCurrentA = connection->meterCurrentPhaseA();
+                qint16 meterCurrentB = connection->meterCurrentPhaseB();
+                qint16 meterCurrentC = connection->meterCurrentPhaseC();
+                double calculatedMeterCurrentA = meterCurrentA * qPow(10, meterCurrentSf);
+                double calculatedMeterCurrentB = meterCurrentB * qPow(10, meterCurrentSf);
+                double calculatedMeterCurrentC = meterCurrentC * qPow(10, meterCurrentSf);
+                meterThing->setStateValue("currentPhaseA", calculatedMeterCurrentA);
+                meterThing->setStateValue("currentPhaseB", calculatedMeterCurrentB);
+                meterThing->setStateValue("currentPhaseC", calculatedMeterCurrentC);
+
+                qint16 meterVoltageSf = connection->meterVoltageSf();
+                qint16 meterVoltageA = connection->meterVoltagePhaseA();
+                qint16 meterVoltageB = connection->meterVoltagePhaseB();
+                qint16 meterVoltageC = connection->meterVoltagePhaseC();
+                double calculatedMeterVoltageA = meterVoltageA * qPow(10, meterVoltageSf);
+                double calculatedMeterVoltageB = meterVoltageB * qPow(10, meterVoltageSf);
+                double calculatedMeterVoltageC = meterVoltageC * qPow(10, meterVoltageSf);
+                meterThing->setStateValue("voltagePhaseA", calculatedMeterVoltageA);
+                meterThing->setStateValue("voltagePhaseB", calculatedMeterVoltageB);
+                meterThing->setStateValue("voltagePhaseC", calculatedMeterVoltageC);
+            }
+
+            Thing *batteryThing = getBatteryThing(thing);
+            if (batteryThing) {
+                setBatteryState(batteryThing, connection->batState());
+                setChargingState(batteryThing, connection->batChargeStatus());
+
+                quint16 maxCapacity = connection->batMaxCapacity();
+                qint16 maxCapacitySf = connection->batMaxEnergySf();
+                double calculatedMaxCapacity = (maxCapacity * qPow(10, maxCapacitySf)) / 1000;
+                batteryThing->setStateValue("capacity", calculatedMaxCapacity);
+
+                quint16 maxChargeRate = connection->batMaxDischarge();
+                qint16 maxChargeRateSf = connection->batDisChargeSf();
+                double calculatedMaxRate = maxChargeRate * qPow(10, maxChargeRateSf);
+                batteryThing->setStateValue("maxDisChargeRate", calculatedMaxRate);
+
+                // quint16 maxSoC = connection->batSocMax();
+                // quint16 minSoC = connection->batSocMin();
+                // double calculatedSocMax = maxSoC * qPow(10, socSf);
+                // double calculatedSocMin = minSoC * qPow(10, socSf);
+                // batteryThing->setStateValue("minSoC", calculatedSocMin);
+                // batteryThing->setStateValue("maxSoC", calculatedSocMax);
+
+                quint16 currentSoc = connection->batCurrentSoc();
+                qint16 socSf = connection->batSoCSf();
+                double calculatedSocCurrent = currentSoc * qPow(10, socSf);
+                batteryThing->setStateValue("batteryLevel", calculatedSocCurrent);
+                batteryThing->setStateValue("batteryCritical", calculatedSocCurrent < 10);
+
+                qint16 batCurrentPower = connection->batCurrentPower();
+                qint16 batCurrentPowerSf = connection->batCurrentPowerSf();
+                double calculatedBatPower = batCurrentPower * qPow(10, batCurrentPowerSf);
+                batteryThing->setStateValue("currentPower", calculatedBatPower);
+            }
+        });
+
+        m_nh3Connections.insert(thing, connection);
+
+        if (monitor->reachable())
+            connection->connectDevice();
+
+        info->finish(Thing::ThingErrorNoError);
+    } else if (thing->thingClassId() == kacoNh3MeterThingClassId) {
+        Thing *connectionThing = myThings().findById(thing->parentId());
+        if (!connectionThing) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco energy meter because the parent thing with ID" << thing->parentId().toString() << "could not be found.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        auto connection = m_nh3Connections.value(connectionThing);
+        if (!connection) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco energy meter because the connection for" << connectionThing << "does not exist.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        // Note: The states will be handled in the parent inverter thing on updated
+        info->finish(Thing::ThingErrorNoError);
+    } else if (thing->thingClassId() == kacoNh3BatteryThingClassId) {
+        // Get the parent thing and the associated connection
+        Thing *connectionThing = myThings().findById(thing->parentId());
+        if (!connectionThing) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco battery because the parent thing with ID" << thing->parentId().toString() << "could not be found.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        auto connection = m_nh3Connections.value(connectionThing);
+        if (!connection) {
+            qCWarning(dcKacoSunSpec()) << "Failed to set up Kaco battery because the connection for" << connectionThing << "does not exist.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        // Note: The states will be handled in the parent inverter thing on updated
+        info->finish(Thing::ThingErrorNoError);
     }
 }
 
 void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
 {
-    if (thing->thingClassId() == kacosunspecInverterTCPThingClassId || thing->thingClassId() == kacosunspecInverterRTUThingClassId) {
+    if (thing->thingClassId() == kacosunspecInverterTCPThingClassId || 
+        thing->thingClassId() == kacosunspecInverterRTUThingClassId ||
+        thing->thingClassId() == kaconh3ThingClassId) {
         if (!m_pluginTimer) {
             qCDebug(dcKacoSunSpec()) << "Starting plugin timer...";
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(KacoSunSpecModbusTcpConnection *connection, m_tcpConnections) {
                     if (connection->connected()) {
+                        connection->update();
+                    }
+                }
+
+                foreach(KacoNH3ModbusTcpConnection *connection, m_nh3Connections) {
+                    qCDebug(dcKacoSunSpec()) << "NH3 connected for upate?";
+                    if (connection->connected()) {
+                        qCDebug(dcKacoSunSpec()) << "Updating NH3";
                         connection->update();
                     }
                 }
@@ -358,26 +659,51 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
             m_pluginTimer->start();
         }
     }
+
+    if (thing->thingClassId() == kacoNh3MeterThingClassId ||
+        thing->thingClassId() == kacoNh3BatteryThingClassId) {
+        
+        Thing *connectionThing = myThings().findById(thing->parentId());
+        if (connectionThing) {
+            thing->setStateValue("connected", connectionThing->stateValue("connected"));
+        }
+    }
 }
 
 void IntegrationPluginKacoSunSpec::thingRemoved(Thing *thing)
 {
-    if (m_monitors.contains(thing)) {
-        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+    if (thing->thingClassId() == kacosunspecInverterTCPThingClassId && m_tcpConnections.contains(thing)) {
+        qCDebug(dcKacoSunSpec()) << "Removing tcp connection";
+        auto connection = m_tcpConnections.take(thing);
+        connection->disconnectDevice();
+        delete connection;
     }
 
-    if (m_tcpConnections.contains(thing)) {
-        m_tcpConnections.take(thing)->deleteLater();
+    if (thing->thingClassId() == kaconh3ThingClassId &&m_nh3Connections.contains(thing)) {
+        qCDebug(dcKacoSunSpec()) << "Removing nh3 connection";
+        auto connection = m_nh3Connections.take(thing);
+        connection->disconnectDevice();
+        delete connection;
     }
 
-    if (m_scalefactors.contains(thing))
+    if ((thing->thingClassId() == kacosunspecInverterTCPThingClassId ||
+         thing->thingClassId() == kacosunspecInverterRTUThingClassId) && m_scalefactors.contains(thing)) {
+        qCDebug(dcKacoSunSpec()) << "Removing scale factors";
         m_scalefactors.remove(thing);
+    }
 
-    if (m_rtuConnections.contains(thing)) {
+    if (thing->thingClassId() == kacosunspecInverterRTUThingClassId && m_rtuConnections.contains(thing)) {
+        qCDebug(dcKacoSunSpec()) << "Removing rtu connection";
         m_rtuConnections.take(thing)->deleteLater();
     }
 
+    if (m_monitors.contains(thing)) {
+        qCDebug(dcKacoSunSpec()) << "Removing monitor";
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+    }
+
     if (myThings().isEmpty() && m_pluginTimer) {
+        qCDebug(dcKacoSunSpec()) << "Deleting plugin timer";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;
     }
@@ -442,4 +768,106 @@ void IntegrationPluginKacoSunSpec::setOperatingState(Thing *thing, KacoSunSpecMo
             thing->setStateValue(kacosunspecInverterRTUOperatingStateStateTypeId, "Standby");
             break;
     }
+}
+
+void IntegrationPluginKacoSunSpec::setOperatingState(Thing *thing, KacoNH3ModbusTcpConnection::OperatingState state)
+{
+    switch (state) {
+        case KacoNH3ModbusTcpConnection::OperatingStateOff:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Off");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateSleeping:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Sleeping");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateStarting:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Starting");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateMppt:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "MPPT");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateThrottled:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Throttled");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateShuttingDown:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "ShuttingDown");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateFault:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Fault");
+            break;
+        case KacoNH3ModbusTcpConnection::OperatingStateStandby:
+            thing->setStateValue(kaconh3OperatingStateStateTypeId, "Standby");
+            break;
+    }
+}
+
+void IntegrationPluginKacoSunSpec::setChargingState(Thing *thing, KacoNH3ModbusTcpConnection::ChargeStatus state)
+{
+    switch (state) {
+        case KacoNH3ModbusTcpConnection::ChargeStatusOff:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusEmpty:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusDischarging:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "discharging");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusCharging:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "charging");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusFull:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusHolding:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+        case KacoNH3ModbusTcpConnection::ChargeStatusTesting:
+            thing->setStateValue(kacoNh3BatteryChargingStateStateTypeId, "idle");
+            break;
+    }
+}
+
+void IntegrationPluginKacoSunSpec::setBatteryState(Thing *thing, KacoNH3ModbusTcpConnection::BatteryStatus state)
+{
+    switch (state) {
+        case KacoNH3ModbusTcpConnection::BatteryStatusDisconnected:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Disconnected");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusInitializing:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Initializing");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusConnected:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Connected");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusStandby:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Standby");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusSocProtection:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "SoC Protection");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusSuspending:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Suspending");
+            break;
+        case KacoNH3ModbusTcpConnection::BatteryStatusFault:
+            thing->setStateValue(kacoNh3BatteryBatteryStateStateTypeId, "Fault");
+            break;
+    }
+}
+
+Thing *IntegrationPluginKacoSunSpec::getMeterThing(Thing *parentThing)
+{
+    Things meterThings = myThings().filterByParentId(parentThing->id()).filterByThingClassId(kacoNh3MeterThingClassId);
+    if (meterThings.isEmpty())
+        return nullptr;
+
+    return meterThings.first();
+}
+
+Thing *IntegrationPluginKacoSunSpec::getBatteryThing(Thing *parentThing)
+{
+    Things batteryThings = myThings().filterByParentId(parentThing->id()).filterByThingClassId(kacoNh3BatteryThingClassId);
+    if (batteryThings.isEmpty())
+        return nullptr;
+
+    return batteryThings.first();
 }

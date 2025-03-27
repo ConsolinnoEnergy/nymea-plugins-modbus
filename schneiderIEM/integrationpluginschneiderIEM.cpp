@@ -114,6 +114,26 @@ void IntegrationPluginSchneiderIEM::setupThing(ThingSetupInfo *info)
         }
     });
 
+    connect(iemConnection, &SchneiderIEMModbusRtuConnection::reachableChanged, thing, [iemConnection, thing](bool reachable){
+            thing->setStateValue(iemConnectedStateTypeId, reachable);
+            if (reachable) {
+                qCDebug(dcSchneiderIEM()) << "Modbus RTU device " << thing << "connected on" << iemConnection->modbusRtuMaster()->serialPort() << "is sending data.";
+            } else {
+                qCDebug(dcSchneiderIEM()) << "Modbus RTU device " << thing << "connected on" << iemConnection->modbusRtuMaster()->serialPort() << "is not responding.";
+                thing->setStateValue(iemCurrentPowerStateTypeId, 0);
+                thing->setStateValue(iemCurrentPhaseAStateTypeId, 0);
+                thing->setStateValue(iemCurrentPhaseBStateTypeId, 0);
+                thing->setStateValue(iemCurrentPhaseCStateTypeId, 0);
+                thing->setStateValue(iemVoltagePhaseAStateTypeId, 0);
+                thing->setStateValue(iemVoltagePhaseBStateTypeId, 0);
+                thing->setStateValue(iemVoltagePhaseCStateTypeId, 0);
+                thing->setStateValue(iemCurrentPowerPhaseAStateTypeId, 0);
+                thing->setStateValue(iemCurrentPowerPhaseBStateTypeId, 0);
+                thing->setStateValue(iemCurrentPowerPhaseCStateTypeId, 0);
+                thing->setStateValue(iemFrequencyStateTypeId, 0);
+            }
+        });
+
     connect(iemConnection, &SchneiderIEMModbusRtuConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
         thing->setStateValue(iemCurrentPhaseAStateTypeId, currentPhaseA);
         thing->setStateValue(iemConnectedStateTypeId, true);
