@@ -55,7 +55,7 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
         connect(discovery, &SolaxEvcTCPDiscovery::discoveryFinished, info, [=]() {
             foreach (const SolaxEvcTCPDiscovery::Result &result, discovery->discoveryResults()) {
 
-                ThingDescriptor descriptor(solaxEvcThingClassId, "Solax X3 EVCharger",
+                ThingDescriptor descriptor(solaxEvcThingClassId, supportedThings().findById(solaxEvcThingClassId).displayName(),
                                            result.networkDeviceInfo.address().toString());
                 qCInfo(dcSolaxEvc())
                         << "Discovered:" << descriptor.title() << descriptor.description();
@@ -261,18 +261,18 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
             });
 
     // connect total energy consumption
-    connect(connection, &SolaxEvcModbusTcpConnection::totalEnergyChanged, thing,
-            [thing](double totalEnergy) {
+    connect(connection, &SolaxEvcModbusTcpConnection::totalEnergyChanged, thing, [thing](double totalEnergy) {
                 qCDebug(dcSolaxEvc()) << "Total energy changed" << totalEnergy << "kWh";
-                double oldEnergy =
-                        thing->stateValue(solaxEvcTotalEnergyConsumedStateTypeId).toDouble();
-                if (((totalEnergy - oldEnergy) > 100) || (totalEnergy == 0 && oldEnergy != 0)) {
+                double oldEnergy = thing->stateValue(solaxEvcTotalEnergyConsumedStateTypeId).toDouble();
+                double diffEnergy = totalEnergy - oldEnergy;
+                
+                if (oldEnergy == 0 || (diffEnergy >= 0 && diffEnergy <= 100)) {
+                    thing->setStateValue(solaxEvcTotalEnergyConsumedStateTypeId, totalEnergy);
+                } else {
                     qCWarning(dcSolaxEvc()) << "Old total Energy: " << oldEnergy;
                     qCWarning(dcSolaxEvc()) << "New total Energy: " << totalEnergy;
                     qCWarning(dcSolaxEvc()) << "Difference to previous energy is to high; or new "
                                                "energy is 0, when is previously was not.";
-                } else {
-                    thing->setStateValue(solaxEvcTotalEnergyConsumedStateTypeId, totalEnergy);
                 }
             });
 
