@@ -1,8 +1,8 @@
-nymea-plugins-modbus (1.7.013) jammy; urgency=medium
+nymea-plugins-modbus (1.7.014) jammy; urgency=medium
 
   * DvModbusIR: Fix current power sign
 
- -- Luis Reber <l.reber@consolinno.de> Wed, 12 Mar 2025 15:59:10 +0100
+ -- Luis Reber <l.reber@consolinno.de> Thu, 27 Mar 2025 13:49:00 +0100
 
 nymea-plugins-modbus (1.7.013) jammy; urgency=medium
 
