@@ -73,7 +73,6 @@ public:
         RegisterMainBreakerLimit = 4116,
         RegisterElectronicLock = 4117,
         RegisterCardActivateSwitch = 4118,
-        RegisterTotalEnergy = 4121,
         RegisterTempPcb = 4124,
         RegisterState = 4125,
         RegisterFaultCode = 4126,
@@ -126,8 +125,7 @@ public:
     };
     Q_ENUM(ChargePhase)
 
-    explicit SolaxEvcModbusTcpConnection(const QHostAddress &hostAddress, uint port,
-                                         quint16 slaveId, QObject *parent = nullptr);
+    explicit SolaxEvcModbusTcpConnection(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent = nullptr);
     ~SolaxEvcModbusTcpConnection() = default;
 
     bool reachable() const;
@@ -143,9 +141,6 @@ public:
 
     /* Device type - Address: 4108, Size: 1 */
     quint16 deviceType() const;
-
-    /* Accumulated charging energy [kWh] - Address: 4121, Size: 2 */
-    float totalEnergy() const;
 
     /* Data hub charge current [A] - Address: 4132, Size: 1 */
     float DataHubChargeCurrent() const;
@@ -223,6 +218,9 @@ public:
     /* Single charge energy [kWh] - Address: 4111, Size: 1 */
     float sessionEnergy() const;
 
+    /* Accumulated charging energy [kWh] - Address: 4112, Size: 2 */
+    float totalEnergy() const;
+
     /* PCB temperature [°C] - Address: 4124, Size: 1 */
     qint16 tempPcb() const;
 
@@ -287,8 +285,7 @@ public:
     quint16 CardActivateSwitch() const;
     QModbusReply *setCardActivateSwitch(quint16 CardActivateSwitch);
 
-    /* Read block from start addess 4096 with size of 16 registers containing following 16
-      properties:
+    /* Read block from start addess 4096 with size of 18 registers containing following 17 properties:
       - Voltage phase A [V] - Address: 4096, Size: 1
       - Voltage phase B [V] - Address: 4097, Size: 1
       - Voltage phase C [V] - Address: 4098, Size: 1
@@ -305,6 +302,7 @@ public:
       - Frequency phase B [Hz] - Address: 4109, Size: 1
       - Frequency phase C [Hz] - Address: 4110, Size: 1
       - Single charge energy [kWh] - Address: 4111, Size: 1
+      - Accumulated charging energy [kWh] - Address: 4112, Size: 2
     */
     void updateMeterValuesBlock();
 
@@ -320,8 +318,7 @@ public:
     */
     void updateWallboxStatusBlock();
 
-    /* Read block from start addess 4109 with size of 10 registers containing following 10
-      properties:
+    /* Read block from start addess 4109 with size of 10 registers containing following 10 properties:
       - Device mode - Address: 4109, Size: 1
       - ECO gear - Address: 4110, Size: 1
       - Green gear - Address: 4111, Size: 1
@@ -335,7 +332,6 @@ public:
     */
     void updateDeviceSettingsBlock();
 
-    void updateTotalEnergy();
     void updateDataHubChargeCurrent();
     void updateControlCommand();
     void updateMaxCurrent();
@@ -360,6 +356,7 @@ public:
     void updateFrequencyPhaseB();
     void updateFrequencyPhaseC();
     void updateSessionEnergy();
+    void updateTotalEnergy();
     void updateTempPcb();
     void updateState();
     void updateFaultCode();
@@ -381,7 +378,6 @@ public:
 
     QModbusReply *readSerialNumber();
     QModbusReply *readDeviceType();
-    QModbusReply *readTotalEnergy();
     QModbusReply *readDataHubChargeCurrent();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readControlCommand();
@@ -406,6 +402,7 @@ public:
     QModbusReply *readFrequencyPhaseB();
     QModbusReply *readFrequencyPhaseC();
     QModbusReply *readSessionEnergy();
+    QModbusReply *readTotalEnergy();
     QModbusReply *readTempPcb();
     QModbusReply *readState();
     QModbusReply *readFaultCode();
@@ -425,8 +422,7 @@ public:
     QModbusReply *readElectronicLock();
     QModbusReply *readCardActivateSwitch();
 
-    /* Read block from start addess 4096 with size of 16 registers containing following 16
-     properties:
+    /* Read block from start addess 4096 with size of 18 registers containing following 17 properties:
      - Voltage phase A [V] - Address: 4096, Size: 1
      - Voltage phase B [V] - Address: 4097, Size: 1
      - Voltage phase C [V] - Address: 4098, Size: 1
@@ -443,6 +439,7 @@ public:
      - Frequency phase B [Hz] - Address: 4109, Size: 1
      - Frequency phase C [Hz] - Address: 4110, Size: 1
      - Single charge energy [kWh] - Address: 4111, Size: 1
+     - Accumulated charging energy [kWh] - Address: 4112, Size: 2
     */
     QModbusReply *readBlockMeterValues();
 
@@ -458,8 +455,7 @@ public:
     */
     QModbusReply *readBlockWallboxStatus();
 
-    /* Read block from start addess 4109 with size of 10 registers containing following 10
-     properties:
+    /* Read block from start addess 4109 with size of 10 registers containing following 10 properties:
      - Device mode - Address: 4109, Size: 1
      - ECO gear - Address: 4110, Size: 1
      - Green gear - Address: 4111, Size: 1
@@ -477,7 +473,6 @@ public:
     virtual void initialize1();
     virtual void initialize2();
     virtual bool update();
-    virtual void update1();
     virtual void update2();
     virtual void update3();
     virtual void update4();
@@ -500,8 +495,6 @@ signals:
     void serialNumberReadFinished(const QString &serialNumber);
     void deviceTypeChanged(quint16 deviceType);
     void deviceTypeReadFinished(quint16 deviceType);
-    void totalEnergyChanged(float totalEnergy);
-    void totalEnergyReadFinished(float totalEnergy);
     void DataHubChargeCurrentChanged(float DataHubChargeCurrent);
     void DataHubChargeCurrentReadFinished(float DataHubChargeCurrent);
     void firmwareVersionChanged(quint16 firmwareVersion);
@@ -551,6 +544,8 @@ signals:
     void frequencyPhaseCReadFinished(float frequencyPhaseC);
     void sessionEnergyChanged(float sessionEnergy);
     void sessionEnergyReadFinished(float sessionEnergy);
+    void totalEnergyChanged(float totalEnergy);
+    void totalEnergyReadFinished(float totalEnergy);
     void tempPcbChanged(qint16 tempPcb);
     void tempPcbReadFinished(qint16 tempPcb);
     void stateChanged(State state);
@@ -591,7 +586,6 @@ signals:
 protected:
     QString m_serialNumber = 0;
     quint16 m_deviceType = 0;
-    float m_totalEnergy = 0;
     float m_DataHubChargeCurrent = 0;
     quint16 m_firmwareVersion = 0;
     ControlCommand m_controlCommand = ControlCommandUndefined;
@@ -616,6 +610,7 @@ protected:
     float m_frequencyPhaseB = 0;
     float m_frequencyPhaseC = 0;
     float m_sessionEnergy = 0;
+    float m_totalEnergy = 0;
     qint16 m_tempPcb = 0;
     State m_state = StateAvailable;
     quint32 m_faultCode = 0;
@@ -637,7 +632,6 @@ protected:
 
     void processSerialNumberRegisterValues(const QVector<quint16> values);
     void processDeviceTypeRegisterValues(const QVector<quint16> values);
-    void processTotalEnergyRegisterValues(const QVector<quint16> values);
     void processDataHubChargeCurrentRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processControlCommandRegisterValues(const QVector<quint16> values);
@@ -663,6 +657,7 @@ protected:
     void processFrequencyPhaseBRegisterValues(const QVector<quint16> values);
     void processFrequencyPhaseCRegisterValues(const QVector<quint16> values);
     void processSessionEnergyRegisterValues(const QVector<quint16> values);
+    void processTotalEnergyRegisterValues(const QVector<quint16> values);
 
     void processTempPcbRegisterValues(const QVector<quint16> values);
     void processStateRegisterValues(const QVector<quint16> values);
@@ -710,6 +705,7 @@ private:
 
     void onReachabilityCheckFailed();
     void evaluateReachableState();
+
 };
 
 QDebug operator<<(QDebug debug, SolaxEvcModbusTcpConnection *solaxEvcModbusTcpConnection);
