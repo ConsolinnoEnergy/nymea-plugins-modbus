@@ -1,6 +1,7 @@
 nymea-plugins-modbus (1.7.014) jammy; urgency=medium
 
   * Fix Solax X3 Energy readout
+  * Add PV-Kit to Solax X3
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 27 Mar 2025 13:49:00 +0100
 
