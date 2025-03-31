@@ -196,7 +196,7 @@
                     "id": "currentPower",
                     "address": 43,
                     "size": 2,
-                    "type": "uint32",
+                    "type": "int32",
                     "registerType": "holdingRegister",
                     "description": "Current power without comma.",
                     "defaultValue": 0,
