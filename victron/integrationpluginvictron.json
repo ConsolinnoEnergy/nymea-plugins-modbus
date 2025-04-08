@@ -236,6 +236,18 @@
                     "id": "27d2e69c-b1a2-4316-b1c7-45c117c7cd32",
                     "createMethods": ["auto"],
                     "interfaces": [ "energystorage", "connectable"],
+                    "settingsTypes": [
+                        {
+                            "id": "36b8455c-d92b-482f-8136-45fb2f8b7bdf",
+                            "name": "capacity",
+                            "displayName": "Battery capacity",
+                            "type": "uint",
+                            "unit": "KiloWattHour",
+                            "minValue": 0,
+                            "maxValue": 10000,
+                            "defaultValue": 0
+                        }
+                    ],
                     "paramTypes": [
                     ],
                     "stateTypes": [

@@ -345,6 +345,18 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
         // Note: The states will be handled in the parent inverter thing on updated
 
         info->finish(Thing::ThingErrorNoError);
+
+        // Set battery capacity from settings on restart.
+        thing->setStateValue(victronBatteryCapacityStateTypeId, thing->setting(victronBatterySettingsCapacityParamTypeId).toUInt());
+
+        // Set battery capacity on settings change.
+        connect(thing, &Thing::settingChanged, this, [this, thing] (const ParamTypeId &paramTypeId, const QVariant &value) {
+            if (paramTypeId == victronBatterySettingsCapacityParamTypeId) {
+                qCDebug(dcVictron()) << "Battery capacity changed to" << value.toInt() << "kWh";
+                thing->setStateValue(victronBatteryCapacityStateTypeId, value.toInt());
+            }
+        });
+        
         return;
     }
 }
