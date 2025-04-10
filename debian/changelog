@@ -1,5 +1,6 @@
 nymea-plugins-modbus (1.7.014) jammy; urgency=medium
 
+  * DvModbusIR: Fix current power sign
   * Fix Solax X3 Energy readout
   * Add PV-Kit to Solax X3
 
