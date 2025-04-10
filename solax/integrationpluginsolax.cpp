@@ -657,7 +657,12 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+
+                quint16 oldBatteryLevel = batteryThings.first()->stateValue(solaxBatteryBatteryLevelStateTypeId).toUInt();
+                quint16 batteryLevelDiff = qFabs(socBat1-oldBatteryLevel);
+                if (batteryLevelDiff <= 10)
+                    batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+
                 batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
                 int minBatteryLevel = batteryThings.first()->stateValue(solaxBatteryMinBatteryLevelStateTypeId).toInt();
                 bool batManualMode = batteryThings.first()->stateValue(solaxBatteryEnableForcePowerStateStateTypeId).toBool();
@@ -1324,7 +1329,12 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+
+                quint16 oldBatteryLevel = batteryThings.first()->stateValue(solaxBatteryBatteryLevelStateTypeId).toUInt();
+                quint16 batteryLevelDiff = qFabs(socBat1-oldBatteryLevel);
+                if (batteryLevelDiff <= 10)
+                    batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+
                 batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
                 int minBatteryLevel = batteryThings.first()->stateValue(solaxBatteryMinBatteryLevelStateTypeId).toInt();
                 bool batManualMode = batteryThings.first()->stateValue(solaxBatteryEnableForcePowerStateStateTypeId).toBool();
