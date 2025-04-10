@@ -739,7 +739,9 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
             if (!meterThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
-                meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, -1 * static_cast<double>(feedinPower));
+                double power = qFabs(static_cast<double>(feedinPower));
+                if (power <= 20000)
+                    meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, -1 * power);
             }
         });
 
