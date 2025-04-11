@@ -539,22 +539,7 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(action.actionTypeId().toString()).toUtf8());
         }
 
-    } else if (thing->thingClassId() == solarEdgeBatteryThingClassId) {
-        SolarEdgeBattery *battery = qobject_cast<SolarEdgeBattery*>(m_sunSpecThings.value(info->thing()));
-        
-        if (info->action().actionTypeId() == solarEdgeBatteryEnableForcePowerActionTypeId) {
-            bool enable = info->action().param(solarEdgeBatteryEnableForcePowerStateTypeId).value().toBool();
-            QModbusReply *reply = battery->activateRemoteControl(enable);
-            handleModbusReply(info, reply);
-        }
-        else if (info->action().actionTypeId() == solarEdgeBatteryForcePowerActionTypeId) {
-            double power = info->action().param(solarEdgeBatteryForcePowerStateTypeId).value().toDouble();
-            int duration = info->action().param(solarEdgeBatteryForcePowerTimeoutStateTypeId).value().toInt();
-            QModbusReply *reply = battery->manualChargeDischarge(power, duration);
-            handleModbusReply(info, reply);
-        }
-    }
-    else {
+    } else {
         qCWarning(dcSunSpec()) << "Unhandled thing class:" << thing->thingClassId();
         info->finish(Thing::ThingErrorThingClassNotFound);
     }
