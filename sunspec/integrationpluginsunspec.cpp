@@ -515,13 +515,61 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
                 }
                 info->finish(Thing::ThingErrorNoError);
             });
+        } if (thing->thingClassId() == solarEdgeBatteryThingClassId) {
+            SolarEdgeBattery *battery = qobject_cast<SolarEdgeBattery*>(m_sunSpecThings.value(thing));
+
+            if (!battery) {
+                qCWarning(dcSunSpec()) << "Battery instance not found for" << thing;
+                info->finish(Thing::ThingErrorHardwareNotAvailable);
+                return;
+            }
+            
+            if (action.actionTypeId() == solarEdgeBatteryEnableForcePowerActionTypeId) {
+                bool enable = action.param(solarEdgeBatteryEnableForcePowerStateTypeId).value().toBool();
+                QModbusReply *reply = battery->activateRemoteControl(enable);
+                handleModbusReply(info, reply);
+            }
+            else if (action.actionTypeId() == solarEdgeBatteryForcePowerActionTypeId) {
+                double power = action.param(solarEdgeBatteryForcePowerStateTypeId).value().toDouble();
+                int timeout = action.param(solarEdgeBatteryForcePowerTimeoutStateTypeId).value().toInt();
+                QModbusReply *reply = battery->manualChargeDischarge(power, timeout);
+                handleModbusReply(info, reply);
+            }
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(action.actionTypeId().toString()).toUtf8());
         }
 
-    } else {
-        Q_ASSERT_X(false, "executeAction", QString("Unhandled thingClassId: %1").arg(info->thing()->thingClassId().toString()).toUtf8());
+    } else if (thing->thingClassId() == solarEdgeBatteryThingClassId) {
+        SolarEdgeBattery *battery = qobject_cast<SolarEdgeBattery*>(m_sunSpecThings.value(info->thing()));
+        
+        if (info->action().actionTypeId() == solarEdgeBatteryEnableForcePowerActionTypeId) {
+            bool enable = info->action().param(solarEdgeBatteryEnableForcePowerStateTypeId).value().toBool();
+            QModbusReply *reply = battery->activateRemoteControl(enable);
+            handleModbusReply(info, reply);
+        }
+        else if (info->action().actionTypeId() == solarEdgeBatteryForcePowerActionTypeId) {
+            double power = info->action().param(solarEdgeBatteryForcePowerStateTypeId).value().toDouble();
+            int duration = info->action().param(solarEdgeBatteryForcePowerTimeoutStateTypeId).value().toInt();
+            QModbusReply *reply = battery->manualChargeDischarge(power, duration);
+            handleModbusReply(info, reply);
+        }
     }
+    else {
+        qCWarning(dcSunSpec()) << "Unhandled thing class:" << thing->thingClassId();
+        info->finish(Thing::ThingErrorThingClassNotFound);
+    }
+}
+void IntegrationPluginSunSpec::handleModbusReply(ThingActionInfo *info, QModbusReply *reply)
+{
+    connect(reply, &QModbusReply::finished, this, [=](){
+        if (reply->error() == QModbusDevice::NoError) {
+            info->finish(Thing::ThingErrorNoError);
+        } else {
+            qCWarning(dcSunSpec()) << "Modbus error:" << reply->errorString();
+            info->finish(Thing::ThingErrorHardwareFailure);
+        }
+        reply->deleteLater();
+    });
 }
 
 Thing *IntegrationPluginSunSpec::getThingForSunSpecModel(uint modelId, uint modbusAddress, const ThingId &parentId)
@@ -744,24 +792,45 @@ SunSpecConnection *IntegrationPluginSunSpec::createConnection(Thing *thing)
 void IntegrationPluginSunSpec::setupSolarEdgeBattery(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
+    
+    // 1. Modbus Parameter auslesen
     int modbusStartRegister = thing->paramValue(solarEdgeBatteryThingModbusAddressParamTypeId).toUInt();
+    
+    // 2. Parent-Connection prüfen
     SunSpecConnection *connection = m_sunSpecConnections.value(thing->parentId());
     if (!connection) {
-        qCWarning(dcSunSpec()) << "Could not find SunSpec parent connection for sunspec battery" << thing;
+        qCWarning(dcSunSpec()) << "SunSpec connection nicht gefunden für Battery" << thing->name();
         info->finish(Thing::ThingErrorHardwareNotAvailable);
         return;
     }
 
-    qCDebug(dcSunSpec()) << "Setting up SolarEdge battery...";
-    SolarEdgeBattery *battery = new SolarEdgeBattery(thing, connection, modbusStartRegister, connection);
-
+    // 3. Battery-Instanz erstellen
+    SolarEdgeBattery *battery = new SolarEdgeBattery(thing, connection, modbusStartRegister, this);
     m_sunSpecThings.insert(thing, battery);
-    connect(battery, &SolarEdgeBattery::blockDataUpdated, this, &IntegrationPluginSunSpec::onSolarEdgeBatteryBlockUpdated);
-    info->finish(Thing::ThingErrorNoError);
 
-    // Start initializing battery data
-    if (connection->connected())
+    // 5. Status-Signale verbinden
+    connect(battery, &SolarEdgeBattery::manualModeChanged, thing, [thing](bool active) {
+        thing->setStateValue(solarEdgeBatteryCapacityStateTypeId, active);
+    });
+
+    connect(battery, &SolarEdgeBattery::chargeDischargePowerChanged, thing, [thing](double power) {
+        thing->setStateValue(solarEdgeBatteryForcePowerStateTypeId, power);
+    });
+    
+    connect(battery, &SolarEdgeBattery::chargeDischargeDurationChanged, thing, [thing](int duration) {
+        thing->setStateValue(solarEdgeBatteryForcePowerTimeoutStateTypeId, duration);
+    });
+
+    // 6. Initialisierung starten
+    if (connection->connected()) {
         battery->init();
+    } else {
+        connect(connection, &SunSpecConnection::connectedChanged, battery, [battery](bool connected) {
+            if (connected) battery->init();
+        });
+    }
+
+    info->finish(Thing::ThingErrorNoError);
 }
 
 void IntegrationPluginSunSpec::searchSolarEdgeBatteries(SunSpecConnection *connection)
