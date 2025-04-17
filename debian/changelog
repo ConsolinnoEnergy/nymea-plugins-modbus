@@ -1,9 +1,14 @@
+nymea-plugins-modbus (1.7.015) jammy; urgency=medium
+
+  * Solax X3 EVC: Fix charging interruption
+  * Solax X3: Add maxChargingCurrent write
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
+
 nymea-plugins-modbus (1.7.014) jammy; urgency=medium
 
   * DvModbusIR: Fix current power sign
-  * Solax X3
-    - Fix Energy readout
-    - Add maxChargingCurrent write
+  * Fix Solax X3 Energy readout
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 27 Mar 2025 13:49:00 +0100
 
