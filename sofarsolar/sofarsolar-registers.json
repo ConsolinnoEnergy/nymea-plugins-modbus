@@ -378,27 +378,14 @@
         {
             "id": "powerControl",
             "address": 4357,
-            "size": 1,
-            "type": "uint16",
+            "size": 2,
+            "type": "uint32",
             "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "Power control (0x1105)",
-            "defaultValue": "0",
+            "description": "Power control (0x1105) and Active power export limit (0x1106)",
+            "defaultValue": "0x00000064",
             "unit": "",
-            "staticScaleFactor": 1,
-            "access": "RW"
-        },
-        {
-            "id": "activePowerExportLimit",
-            "address": 4358,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Active power export limit (0x1106)",
-            "defaultValue": "100",
-            "unit": "%",
-            "staticScaleFactor": -1,
+            "staticScaleFactor": 0,
             "access": "RW"
         }
     ]

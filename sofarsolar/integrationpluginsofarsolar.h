@@ -25,6 +25,7 @@
 
 #include "extern-plugininfo.h"
 #include "sofarsolarmodbusrtuconnection.h"
+#include "powercontrolsofarsolar.h"
 
 #include <QObject>
 #include <QTimer>
@@ -49,7 +50,10 @@ private:
     bool isOutlier(const QList<float> &list);
     PluginTimer *m_pluginTimer = nullptr;
     int m_windowLength{7};
+    PowerControlSofarsolar *m_powerControl;
 
+    void executeExportLimitAction(ThingActionInfo *info, bool &retFlag);
+    bool exportPowerControl(SofarsolarModbusRtuConnection *sofarsolarmodbusrtuconnection, quint32 value);
     bool handleReply(ModbusRtuReply *reply);
 
     QHash<Thing *, QList<float>> m_pvEnergyProducedValues;
