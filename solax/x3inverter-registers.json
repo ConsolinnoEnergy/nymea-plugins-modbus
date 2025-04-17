@@ -596,6 +596,19 @@
             "access": "RO"
         },
         {
+            "id": "writeChargeMaxCurrent",
+            "address": 36,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Write BMS charge max current (0x24)",
+            "unit": "A",
+            "defaultValue": "0",
+            "staticScaleFactor": -1,
+            "access": "RW"
+        },
+        {
             "id": "bmsWarningLsb",
             "address": 68,
             "size": 1,

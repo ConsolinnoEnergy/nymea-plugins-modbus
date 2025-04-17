@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2024, nymea GmbH
+* Copyright 2013 - 2025, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This fileDescriptor is part of nymea.
@@ -115,6 +115,15 @@ QModbusReply *SolaxModbusTcpConnection::setUnlockPassword(quint16 unlockPassword
 quint16 SolaxModbusTcpConnection::batteryCapacity() const
 {
     return m_batteryCapacity;
+}
+
+QModbusReply *SolaxModbusTcpConnection::setWriteChargeMaxCurrent(float writeChargeMaxCurrent)
+{
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(static_cast<quint16>(writeChargeMaxCurrent  * 1.0 / pow(10, -1)));
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Write BMS charge max current (0x24)\" register:" << 36 << "size:" << 1 << values;
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 36, values.count());
+    request.setValues(values);
+    return sendWriteRequest(request, m_slaveId);
 }
 
 quint16 SolaxModbusTcpConnection::bmsWarningLsb() const

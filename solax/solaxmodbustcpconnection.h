@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2024, nymea GmbH
+* Copyright 2013 - 2025, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This fileDescriptor is part of nymea.
@@ -69,6 +69,7 @@ public:
         RegisterBmsConnectState = 23,
         RegisterTemperatureBat = 24,
         RegisterBatteryCapacity = 28,
+        RegisterWriteChargeMaxCurrent = 36,
         RegisterInverterFaultBits = 64,
         RegisterWriteExportLimit = 66,
         RegisterBmsWarningLsb = 68,
@@ -134,6 +135,10 @@ public:
 
     /* Battery state of charge (0x1C) [%] - Address: 28, Size: 1 */
     quint16 batteryCapacity() const;
+
+    /* Write BMS charge max current (0x24) [A] - Address: 36, Size: 1 */
+   
+    QModbusReply *setWriteChargeMaxCurrent(float writeChargeMaxCurrent);
 
     /* BMS warning bits lsb (0x44) - Address: 68, Size: 1 */
     quint16 bmsWarningLsb() const;
@@ -356,7 +361,7 @@ public:
     */
     void updateBatMaxInfoBlock();
 
-    void updateBatteryCapacity();
+    void updateBatteryCapacity();   
     void updateBmsWarningLsb();
     void updateBmsWarningMsb();
     void updateInverterFaultBits();
@@ -658,6 +663,7 @@ signals:
 protected:
     quint16 m_unlockPassword;
     quint16 m_batteryCapacity = 0;
+    float m_writeChargeMaxCurrent = 0;
     quint16 m_bmsWarningLsb = 0;
     quint16 m_bmsWarningMsb = 0;
     quint32 m_inverterFaultBits = 0;

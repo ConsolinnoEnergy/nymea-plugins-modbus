@@ -829,6 +829,28 @@
                             "unit": "Seconds",
                             "defaultValue": 500,
                             "cached": true
+                        },
+                        {
+                            "id": "e32f0808-1c1c-4dc0-8269-5969faff0bee",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Battery max charging current",
+                            "displayNameEvent": "Battery max charging current changed",
+                            "displayNameAction": "Battery max charging current set",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "d320a001-46f3-4201-8c70-82bdd676d2a2",
+                            "name": "enableMaxChargingCurrent",
+                            "displayName": "enable setting of battery max charging current",
+                            "displayNameEvent": "Battery enable max charging current changed",
+                            "displayNameAction": "Battery set max charging current enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
                         }
                     ],
                     "actionTypes": [ ]
