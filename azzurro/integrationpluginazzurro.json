@@ -1,8 +1,8 @@
 {
     "name": "Azzurro",
-        "displayName": "Azzurro",
-        "id": "6fd8582b-cfd3-42e2-b5e0-28301d93921d",
-        "vendors": [
+    "displayName": "Azzurro",
+    "id": "6fd8582b-cfd3-42e2-b5e0-28301d93921d",
+    "vendors": [
         {
             "name": "azzurro",
             "displayName": "Azzurro",
@@ -12,9 +12,18 @@
                     "name": "azzurroInverterRTU",
                     "displayName": "Azzurro HYD Inverter",
                     "id": "72346dd7-42cb-4a58-ad21-94f93fd523d2",
-                    "createMethods": ["discovery"],
-                    "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": [ "solarinverter", "energymeter", "energystorage"],
+                    "createMethods": [
+                        "discovery"
+                    ],
+                    "interfaces": [
+                        "solarinverter",
+                        "connectable"
+                    ],
+                    "providedInterfaces": [
+                        "solarinverter",
+                        "energymeter",
+                        "energystorage"
+                    ],
                     "discoveryParamTypes": [
                         {
                             "id": "f50f8b5e-2311-4ba4-84fb-99f8054e4ff5",
@@ -43,6 +52,15 @@
                             "minValue": 1,
                             "maxValue": 247,
                             "defaultValue": 1
+                        },
+                        {
+                            "id": "429e8b00-da88-40ed-8b01-f6d2b45e2fbe",
+                            "name": "nominalPower",
+                            "displayName": "Inverter Nominal power (Watt)",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "minValue": 1,
+                            "defaultValue": 5000
                         }
                     ],
                     "stateTypes": [
@@ -93,18 +111,43 @@
                             "defaultValue": "Waiting",
                             "displayNameEvent": "System Status changed",
                             "cached": false
+                        },
+                        {
+                            "id": "153c74a2-39fc-43ea-9be1-43b314847fd2",
+                            "name": "exportLimitEnable",
+                            "displayName": "Export Limit enabled",
+                            "displayNameAction": "export limit enabled",
+                            "type": "bool",
+                            "writable": true,
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "87fd3358-a333-4e2c-91f3-c7d05c6c5e24",
+                            "name": "exportLimit",
+                            "displayName": "Export Limit",
+                            "displayNameAction": "Set export limit",
+                            "type": "double",
+                            "unit": "Watt",
+                            "writable": true,
+                            "defaultValue": 0,
+                            "minValue": 0,
+                            "maxValue": 100
                         }
                     ],
-                    "actionTypes": [ ]
+                    "actionTypes": []
                 },
                 {
                     "name": "azzurroMeter",
                     "displayName": "Azzurro Meter",
                     "id": "7bd62f7c-0ca3-4c54-9bc4-da5f966673e8",
-                    "createMethods": ["auto"],
-                    "interfaces": [ "energymeter", "connectable"],
-                    "paramTypes": [
+                    "createMethods": [
+                        "auto"
                     ],
+                    "interfaces": [
+                        "energymeter",
+                        "connectable"
+                    ],
+                    "paramTypes": [],
                     "stateTypes": [
                         {
                             "id": "806ad550-39e5-4f00-a5ce-e529b206ca41",
@@ -246,14 +289,19 @@
                             "cached": false
                         }
                     ],
-                    "actionTypes": [ ]
+                    "actionTypes": []
                 },
                 {
                     "name": "azzurroBattery",
                     "displayName": "Azzurro Battery",
                     "id": "064d2805-3130-41cf-8ea8-98806af044b6",
-                    "createMethods": ["auto"],
-                    "interfaces": [ "energystorage", "connectable"],
+                    "createMethods": [
+                        "auto"
+                    ],
+                    "interfaces": [
+                        "energystorage",
+                        "connectable"
+                    ],
                     "settingsTypes": [
                         {
                             "id": "9c661517-d7bb-4545-93ef-cbf843a7bec7",
@@ -268,7 +316,7 @@
                     "paramTypes": [
                         {
                             "id": "16c0c9f1-2641-4ced-9948-b39ab664a81a",
-                            "name":"unit",
+                            "name": "unit",
                             "displayName": "Unit",
                             "type": "uint",
                             "defaultValue": 0
@@ -319,7 +367,11 @@
                             "displayName": "Charging state",
                             "displayNameEvent": "Charging state changed",
                             "type": "QString",
-                            "possibleValues": ["idle", "charging", "discharging"],
+                            "possibleValues": [
+                                "idle",
+                                "charging",
+                                "discharging"
+                            ],
                             "defaultValue": "idle"
                         },
                         {
@@ -376,10 +428,9 @@
                             "defaultValue": 0
                         }
                     ],
-                    "actionTypes": [ ]
+                    "actionTypes": []
                 }
             ]
         }
     ]
 }
-

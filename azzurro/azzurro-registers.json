@@ -374,7 +374,19 @@
             "unit": "kWh",
             "staticScaleFactor": -1,
             "access": "RO"
+        },
+        {
+            "id": "powerControl",
+            "address": 4357,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Power control (0x1105) and Active power export limit (0x1106)",
+            "defaultValue": "0x00000064",
+            "unit": "",
+            "staticScaleFactor": 1,
+            "access": "RW"
         }
     ]
 }
-

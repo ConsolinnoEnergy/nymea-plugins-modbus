@@ -6,7 +6,9 @@ MODBUS_CONNECTIONS += azzurro-registers.json
 include(../modbus.pri)
 
 HEADERS += \
-    integrationpluginazzurro.h
+    integrationpluginazzurro.h \
+    powercontrolazzurro.h
 
 SOURCES += \
-    integrationpluginazzurro.cpp
+    integrationpluginazzurro.cpp \
+    powercontrolazzurro.cpp
