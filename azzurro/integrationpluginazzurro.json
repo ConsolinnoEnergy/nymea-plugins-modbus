@@ -56,7 +56,7 @@
                         {
                             "id": "429e8b00-da88-40ed-8b01-f6d2b45e2fbe",
                             "name": "nominalPower",
-                            "displayName": "Inverter Nominal power (Watt)",
+                            "displayName": "Nominal power",
                             "type": "uint",
                             "unit": "Watt",
                             "minValue": 1,
@@ -116,7 +116,7 @@
                             "id": "153c74a2-39fc-43ea-9be1-43b314847fd2",
                             "name": "exportLimitEnable",
                             "displayName": "Export Limit enabled",
-                            "displayNameAction": "export limit enabled",
+                            "displayNameAction": "Export limit enabled",
                             "type": "bool",
                             "writable": true,
                             "defaultValue": false
