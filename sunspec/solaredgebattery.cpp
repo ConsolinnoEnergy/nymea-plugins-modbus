@@ -233,34 +233,6 @@ void SolarEdgeBattery::readBlockData()
         return;
     }
 }
-QModbusReply* SolarEdgeBattery::activateRemoteControl(bool activate)
-{
-    quint16 mode = activate ? RemoteControl : MaximizeSelfConsumption;
-    QModbusDataUnit request(QModbusDataUnit::HoldingRegisters, StorageControlModeRegister, 1);
-    request.setValue(0, mode);
-    return m_connection->modbusTcpClient()->sendWriteRequest(request, m_connection->slaveId());
-}
-
-QModbusReply* SolarEdgeBattery::manualChargeDischarge(double power, int timeout)
-{
-    // Timeout setzen
-    QModbusDataUnit timeoutRequest(QModbusDataUnit::HoldingRegisters, RemoteControlCommandTimeoutRegister, 1);
-    timeoutRequest.setValue(0, static_cast<quint16>(timeout));
-    QModbusReply* timeoutReply = m_connection->modbusTcpClient()->sendWriteRequest(timeoutRequest, m_connection->slaveId());
-    
-    // Power setzen
-    QModbusDataUnit powerRequest(QModbusDataUnit::HoldingRegisters, RemoteControlChargeLimitRegister, 2);
-    QVector<quint16> values = SunSpecDataPoint::convertFromFloat32(power);
-    powerRequest.setValues(values);
-    QModbusReply* powerReply = m_connection->modbusTcpClient()->sendWriteRequest(powerRequest, m_connection->slaveId());
-
-    // Kombinierte Replies verwalten
-    connect(timeoutReply, &QModbusReply::finished, [this, timeout]() {
-        emit chargeDischargeDurationChanged(timeout);
-    });
-    
-    return powerReply; // Nur den letzten Reply zurückgeben
-}
 
 QDebug operator<<(QDebug debug, const SolarEdgeBattery::BatteryData &batteryData)
 {

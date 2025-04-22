@@ -59,7 +59,6 @@ public:
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
     void executeAction(ThingActionInfo *info) override;
-    void handleModbusReply(ThingActionInfo *info, QModbusReply *reply);
 
 private:
     // SunSpec Connection params map

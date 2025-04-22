@@ -1,4 +1,4 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
 * Copyright 2013 - 2020, nymea GmbH
 * Contact: contact@nymea.io
@@ -83,34 +83,6 @@ public:
     };
     Q_ENUM(BatteryStatus)
 
-    enum StorageAcChargePolicy {
-        Disable = 0,
-        AlwaysAllowed = 1,
-        FixedEnergyLimit = 2,
-        PercentOfProduction = 3
-    };
-    Q_ENUM(StorageAcChargePolicy)
-
-    enum BatteryControlMode {
-        ControlDisabled = 0,
-        MaximizeSelfConsumption = 1,
-        TimeOfUse = 2,
-        BackupOnly = 3,
-        RemoteControl = 4
-    };
-    Q_ENUM(BatteryControlMode)
-
-    enum StorageChargeDischargeMode {
-        ChargeDischargeOff = 0,
-        ChargeExcessPvPowerOnly = 1,
-        ChargeFromPvFirst = 2,
-        ChargeFromPvAndAc = 3,
-        MaximizeExport = 4,
-        DischargeToMeetLoads = 5,
-        MaximizeSelfConsumptionMode = 7
-    };
-    Q_ENUM(StorageChargeDischargeMode)
-
     struct BatteryData {
         QString manufacturerName;
         QString model;
@@ -147,17 +119,9 @@ public:
     void init();
     void readBlockData() override;
 
-    QModbusReply* activateRemoteControl(bool activate);
-    QModbusReply* manualChargeDischarge(double power, int timeout);
-
 signals:
     void initFinished(bool success);
     void blockDataUpdated();
-    void manualModeChanged(bool active);
-    void chargePowerChanged(double power);
-    void timeoutChanged(int seconds);
-    void chargeDischargePowerChanged(double power);
-    void chargeDischargeDurationChanged(int duration);
 
 private:
     QTimer m_timer;
@@ -165,21 +129,7 @@ private:
     int m_modbusStartRegister;
     bool m_initFinishedSuccess = false;
     BatteryData m_batteryData;
-    StorageAcChargePolicy m_defaultAcChargePolicy = AlwaysAllowed;
-    BatteryControlMode m_controlMode = MaximizeSelfConsumption;
-    StorageChargeDischargeMode m_defaultChargeDischargeMode = MaximizeSelfConsumptionMode;
-    quint32 m_remoteControlTimeout = 3600;
-    float m_remoteControlChargePower = 1000; // Replaced qfloat32 with float
-    float m_remoteControlDischargePower = 1000; // Replaced qfloat32 with float
-    const quint16 StorageControlModeRegister = 0xE004;
-    const quint16 StorageAcChargePolicyRegister = 0xE005;
-    const quint16 StorageAcChargeLimitRegister = 0xE006;
-    const quint16 StorageBackupReservedSettingRegister = 0xE008;
-    const quint16 StorageChargeDischargeDefaultModeRegister = 0xE00A;
-    const quint16 RemoteControlCommandTimeoutRegister = 0xE00B;
-    const quint16 RemoteControlCommandModeRegister = 0xE00D;
-    const quint16 RemoteControlChargeLimitRegister = 0xE00E;
-    const quint16 RemoteControlCommandDischargeLimitRegister = 0xE010;
+
 };
 
 QDebug operator<<(QDebug debug, const SolarEdgeBattery::BatteryData &batteryData);

@@ -1500,7 +1500,7 @@
                     "displayName": "SolarEdge battery",
                     "id": "7900471a-da3f-4f03-98be-3e3d9c841546",
                     "createMethods": [ "Auto" ],
-                    "interfaces": ["energystorage", "connectable", "controllablebattery"],
+                    "interfaces": ["energystorage", "connectable"],
                     "paramTypes": [
                         {
                             "id": "7413cce6-48c1-4924-89bc-915beed67b57",
@@ -1667,84 +1667,6 @@
                             "displayNameEvent": "Version changed",
                             "type": "QString",
                             "defaultValue": ""
-                        },
-                        {
-                            "id": "8806455a-280a-4063-aa6c-5b1acb59b897",
-                            "name": "enableForcePower",
-                            "displayName": "Manual Mode",
-                            "displayNameEvent": "Manual mode changed",
-                            "displayNameAction": "Set manual mode",
-                            "type": "bool",
-                            "defaultValue": false,
-                            "writable": true
-                        },
-                        {
-                            "id": "4cd7a11a-3cf1-4254-9a36-fd836b19fba7",
-                            "name": "enableForcePowerState",
-                            "displayName": "Manual Mode State",
-                            "displayNameEvent": "Manual mode state changed",
-                            "type": "bool",
-                            "defaultValue": false
-                        },
-                        {
-                            "id": "868ba45f-1f1d-4444-bd19-a258db509a23",
-                            "name": "forcePower",
-                            "displayName": "Charge/Discharge Power",
-                            "displayNameEvent": "Power setpoint changed",
-                            "displayNameAction": "Set power level",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0.0,
-                            "writable": true
-                        },
-                        {
-                            "id": "9523ae17-1919-4e18-9c50-534dd0ea9ff2",
-                            "name": "forcePowerTimeout",
-                            "displayName": "Control Timeout",
-                            "displayNameEvent": "Control timeout changed",
-                            "displayNameAction": "Set timeout",
-                            "type": "uint",
-                            "unit": "Seconds",
-                            "minValue": 0,
-                            "maxValue": 86400,
-                            "defaultValue": 3600,
-                            "writable": true
-                        }
-                    ],
-                    "actionTypes": [
-                        {
-                            "id": "d3e4f5a6-b7c8-4d9e-8f0a-1b2c3d4e5f6f",
-                            "name": "enableForcePower",
-                            "displayName": "Enable manual control",
-                            "paramTypes": [
-                                {
-                                    "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
-                                    "name": "enable",
-                                    "displayName": "Enable",
-                                    "type": "bool"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "e4f5a6b7-c8d9-4e8f-0a1b-2c3d4e5f6a7b",
-                            "name": "forcePower",
-                            "displayName": "Set charge/discharge power",
-                            "paramTypes": [
-                                {
-                                    "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
-                                    "name": "power",
-                                    "displayName": "Power",
-                                    "type": "double",
-                                    "unit": "Watt"
-                                },
-                                {
-                                    "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
-                                    "name": "timeout",
-                                    "displayName": "Timeout",
-                                    "type": "uint",
-                                    "unit": "Seconds"
-                                }
-                            ]
                         }
                     ]
                 }
