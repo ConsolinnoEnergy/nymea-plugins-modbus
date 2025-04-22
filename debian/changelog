@@ -1,5 +1,11 @@
 nymea-plugins-modbus (1.7.014) jammy; urgency=medium
 
+  * PhoenixConnect: Add currentPower states to all wallboxes
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 27 Mar 2025 13:49:00 +0100
+
+nymea-plugins-modbus (1.7.014) jammy; urgency=medium
+
   * DvModbusIR: Fix current power sign
   * Fix Solax X3 Energy readout
 
