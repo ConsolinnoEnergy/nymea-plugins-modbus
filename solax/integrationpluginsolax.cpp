@@ -1048,7 +1048,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
             // TODO: does this reliably create the secondary meter?
             Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
-            if (secondaryMeterThings.isEmpty() && (connection->feedinEnergyTotalMeter2() != 0 || connection->consumEnergyTotalMeter2() != 0)) {
+            if (secondaryMeterThings.isEmpty() && (connection->meter2CommunicationState() != 0)) {
                 qCDebug(dcSolax()) << "Create the secondary meter thing";
                 QString name = supportedThings().findById(solaxMeterSecondaryThingClassId).displayName();
                 ThingDescriptor descriptor(solaxMeterSecondaryThingClassId, name, QString(), thing->id());

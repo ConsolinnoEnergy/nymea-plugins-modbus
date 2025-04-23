@@ -683,6 +683,17 @@
             "access": "RO"
         },
         {
+            "id": "meter2CommunicationState",
+            "address": 185,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Meter 2 communication status (0xB9)",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
             "id": "readExportLimit",
             "address": 182,
             "size": 1,

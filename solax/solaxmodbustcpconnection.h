@@ -102,6 +102,7 @@ public:
         RegisterConsumEnergyTotalMeter2 = 172,
         RegisterReadExportLimit = 182,
         RegisterMeter1CommunicationState = 184,
+        RegisterMeter2CommunicationState = 185,
         RegisterInverterType = 186,
         RegisterModbusPowerControl = 256
     };
@@ -149,6 +150,9 @@ public:
 
     /* Meter 1 communication status (0xB8) - Address: 184, Size: 1 */
     quint16 meter1CommunicationState() const;
+
+    /* Meter 2 communication status (0xB8) - Address: 184, Size: 1 */
+    quint16 meter2CommunicationState() const;
 
     /* Read grid export limit (0xB6) [W] - Address: 182, Size: 1 */
     float readExportLimit() const;
@@ -380,6 +384,7 @@ public:
     void updateBmsWarningMsb();
     void updateInverterFaultBits();
     void updateMeter1CommunicationState();
+    void updateMeter2CommunicationState();
     void updateReadExportLimit();
     void updateModbusPowerControl();
 
@@ -432,6 +437,7 @@ public:
     QModbusReply *readBmsWarningMsb();
     QModbusReply *readInverterFaultBits();
     QModbusReply *readMeter1CommunicationState();
+    QModbusReply *readMeter2CommunicationState();
     QModbusReply *readReadExportLimit();
     QModbusReply *readFirmwareVersion();
     QModbusReply *readInverterType();
@@ -594,6 +600,8 @@ signals:
     void inverterFaultBitsReadFinished(quint32 inverterFaultBits);
     void meter1CommunicationStateChanged(quint16 meter1CommunicationState);
     void meter1CommunicationStateReadFinished(quint16 meter1CommunicationState);
+    void meter2CommunicationStateChanged(quint16 meter2CommunicationState);
+    void meter2CommunicationStateReadFinished(quint16 meter2CommunicationState);
     void readExportLimitChanged(float readExportLimit);
     void readExportLimitReadFinished(float readExportLimit);
     void firmwareVersionChanged(quint16 firmwareVersion);
@@ -701,6 +709,7 @@ protected:
     quint16 m_bmsWarningMsb = 0;
     quint32 m_inverterFaultBits = 0;
     quint16 m_meter1CommunicationState = 0;
+    quint16 m_meter2CommunicationState = 0;
     float m_readExportLimit = 0;
     float m_writeExportLimit = 0;
     quint16 m_firmwareVersion = 0;
@@ -757,6 +766,7 @@ protected:
     void processBmsWarningMsbRegisterValues(const QVector<quint16> values);
     void processInverterFaultBitsRegisterValues(const QVector<quint16> values);
     void processMeter1CommunicationStateRegisterValues(const QVector<quint16> values);
+    void processMeter2CommunicationStateRegisterValues(const QVector<quint16> values);
     void processReadExportLimitRegisterValues(const QVector<quint16> values);
     void processFirmwareVersionRegisterValues(const QVector<quint16> values);
     void processInverterTypeRegisterValues(const QVector<quint16> values);
