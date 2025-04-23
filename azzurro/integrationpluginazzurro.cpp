@@ -94,6 +94,16 @@ void IntegrationPluginAzzurro::discoverThings(ThingDiscoveryInfo *info)
             params << Param(azzurroInverterRTUThingSlaveAddressParamTypeId, slaveAddress);
             params << Param(azzurroInverterRTUThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
             descriptor.setParams(params);
+
+            // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+            // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+            // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
+            Things existingThings = myThings().filterByThingClassId(azzurroInverterRTUThingClassId);
+            if (!existingThings.isEmpty())
+            {
+                descriptor.setThingId(existingThings.first()->id());
+            }
+
             info->addThingDescriptor(descriptor);
         }
 

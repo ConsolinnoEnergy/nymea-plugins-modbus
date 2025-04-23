@@ -94,6 +94,16 @@ void IntegrationPluginSofarsolar::discoverThings(ThingDiscoveryInfo *info)
             params << Param(sofarsolarInverterRTUThingSlaveAddressParamTypeId, slaveAddress);
             params << Param(sofarsolarInverterRTUThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
             descriptor.setParams(params);
+
+            // Check if this device has already been configured. If yes, take it's ThingId. This does two things:
+            // - During normal configure, the discovery won't display devices that have a ThingId that already exists. So this prevents a device from beeing added twice.
+            // - During reconfigure, the discovery only displays devices that have a ThingId that already exists. For reconfigure to work, we need to set an already existing ThingId.
+            Things existingThings = myThings().filterByThingClassId(sofarsolarInverterRTUThingClassId);
+            if (!existingThings.isEmpty())
+            {
+                descriptor.setThingId(existingThings.first()->id());
+            }
+
             info->addThingDescriptor(descriptor);
         }
 
@@ -309,9 +319,9 @@ void IntegrationPluginSofarsolar::setupThing(ThingSetupInfo *info)
                     qCDebug(dcSofarsolar()) << "powerControlChanged: " << value;
                     m_powerControl->setCombinedRegisters(value);
 
-                    qCDebug(dcSofarsolar()) << "Export limit changed to: Enabled: " << m_powerControl->powerLimitEnabled() << " Limit: " << m_powerControl->absolutePowerLimit();
-                    thing->setStateValue(sofarsolarInverterRTUExportLimitEnableStateTypeId, m_powerControl->powerLimitEnabled());
-                    thing->setStateValue(sofarsolarInverterRTUExportLimitStateTypeId, m_powerControl->absolutePowerLimit()); });
+                    qCDebug(dcSofarsolar()) << "Export limit changed to: Enabled: " << m_powerControl->activePowerLimitEnabled() << " Limit: " << m_powerControl->activePowerOutputLimit();
+                    thing->setStateValue(sofarsolarInverterRTUExportLimitEnableStateTypeId, m_powerControl->activePowerLimitEnabled());
+                    thing->setStateValue(sofarsolarInverterRTUExportLimitStateTypeId, m_powerControl->activePowerOutputLimit()); });
 
         // Meter
         connect(connection, &SofarsolarModbusRtuConnection::activePowerPccChanged, thing, [this, thing](float currentPower)
@@ -646,15 +656,15 @@ void IntegrationPluginSofarsolar::executeAction(ThingActionInfo *info)
         if (actionTypeId == sofarsolarInverterRTUExportLimitEnableActionTypeId)
         {
             bool powerLimitEnabled = info->action().paramValue(sofarsolarInverterRTUExportLimitEnableActionExportLimitEnableParamTypeId).toBool();
-            m_powerControl->setPowerLimitEnable(powerLimitEnabled);
+            m_powerControl->setActivePowerLimitEnable(powerLimitEnabled);
             success = exportPowerControl(sofarsolarmodbusrtuconnection, m_powerControl->combinedRegisters());
         }
         else if (actionTypeId == sofarsolarInverterRTUExportLimitActionTypeId)
         {
             uint powerLimit = info->action().paramValue(sofarsolarInverterRTUExportLimitActionExportLimitParamTypeId).toUInt();
-            m_powerControl->setAbsolutePowerLimit(powerLimit);
+            m_powerControl->setActivePowerOutputLimit(powerLimit);
 
-            qCDebug(dcSofarsolar()) << "activePowerLimit: " << m_powerControl->absolutePowerLimit() << "W (" << m_powerControl->relativePowerLimit() << "%)";
+            qCDebug(dcSofarsolar()) << "activePowerLimit: " << m_powerControl->activePowerOutputLimit() << "W (" << m_powerControl->relativePowerLimit() << "%)";
             success = exportPowerControl(sofarsolarmodbusrtuconnection, m_powerControl->combinedRegisters());
         }
         else
