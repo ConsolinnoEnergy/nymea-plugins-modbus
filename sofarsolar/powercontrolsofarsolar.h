@@ -22,15 +22,15 @@ class PowerControlSofarsolar
 public:
     PowerControlSofarsolar();
 
-    bool powerLimitEnabled();
-    unsigned short absolutePowerLimit();
+    bool activePowerLimitEnabled();
+    unsigned short activePowerOutputLimit();
     double relativePowerLimit();
     unsigned long combinedRegisters();
     void setCombinedRegisters(unsigned long value);
     void setNominalPower(unsigned short value);
     unsigned short nominalPower();
-    void setAbsolutePowerLimit(unsigned short value);
-    void setPowerLimitEnable(bool value);
+    void setActivePowerOutputLimit(unsigned short value);
+    void setActivePowerLimitEnable(bool value);
 
 private:
     unsigned short m_nominalPower;

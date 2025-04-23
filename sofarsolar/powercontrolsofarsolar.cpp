@@ -12,12 +12,12 @@ unsigned short PowerControlSofarsolar::nominalPower()
     return m_nominalPower;
 }
 
-void PowerControlSofarsolar::setAbsolutePowerLimit(unsigned short value)
+void PowerControlSofarsolar::setActivePowerOutputLimit(unsigned short value)
 {
     m_limitRegister = value * 1000 / m_nominalPower;
 }
 
-void PowerControlSofarsolar::setPowerLimitEnable(bool value)
+void PowerControlSofarsolar::setActivePowerLimitEnable(bool value)
 {
     if (value)
         m_controlRegister |= 0x01;
@@ -30,12 +30,12 @@ void PowerControlSofarsolar::setNominalPower(unsigned short value)
     m_nominalPower = value;
 }
 
-bool PowerControlSofarsolar::powerLimitEnabled()
+bool PowerControlSofarsolar::activePowerLimitEnabled()
 {
     return (bool)(m_controlRegister & 0x0001);
 }
 
-unsigned short PowerControlSofarsolar::absolutePowerLimit()
+unsigned short PowerControlSofarsolar::activePowerOutputLimit()
 {
     return (unsigned short)(m_nominalPower * m_limitRegister / 1000);
 }
