@@ -579,6 +579,7 @@ public:
     virtual void update11();
     virtual void update12();
     virtual void update13();
+    virtual void update14();
 
 signals:
     void reachableChanged(bool reachable);
