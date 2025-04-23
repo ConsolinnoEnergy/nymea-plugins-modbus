@@ -83,6 +83,34 @@ public:
     };
     Q_ENUM(BatteryStatus)
 
+    enum StorageControlMode {
+        Disabled = 0,
+        StorageControlModeMaximizeSelfConsumption = 1,
+        TimeOfUse = 2,
+        BackupOnly = 3,
+        RemoteControl = 4
+    };
+    Q_ENUM(StorageControlMode)
+
+    enum StorageAcChargePolicy {
+        Disable = 0,
+        AlwaysAllowed = 1,
+        FixedEnergyLimit = 2,
+        PercentOfProduction = 3
+    };
+    Q_ENUM(StorageAcChargePolicy)
+
+    enum ChargeDischargeMode {
+        ChargeDischargeModeOff = 0,
+        ChargeExcessPV = 1,
+        ChargeFromPVFirst = 2,
+        ChargeFromPVAndAC = 3,
+        MaximizeExport = 4,
+        DischargeToMeetLoad = 5,
+        MaximizeSelfConsumption = 7
+    };
+    Q_ENUM(ChargeDischargeMode)
+
     struct BatteryData {
         QString manufacturerName;
         QString model;
@@ -106,6 +134,15 @@ public:
         float stateOfHealth;
         float stateOfEnergy;
         BatteryStatus batteryStatus;
+        quint16 storageControlMode;
+        quint16 storageAcChargePolicy;
+        float storageAcChargeLimit;
+        float storageBackupReservedSetting;
+        quint16 storageChargeDischargeDefaultMode;
+        quint32 remoteControlCommandTimeout;
+        quint16 remoteControlCommandMode;
+        float remoteControlChargeLimit;
+        float remoteControlCommandDischargeLimit;
     };
 
     explicit SolarEdgeBattery(Thing *thing, SunSpecConnection *connection, int modbusStartRegister, QObject *parent = nullptr);
@@ -118,6 +155,8 @@ public:
 
     void init();
     void readBlockData() override;
+    void setForcePowerEnabled(bool enableForcePower);
+    void setChargeDischargePower(int power, uint timeout);
 
 signals:
     void initFinished(bool success);
