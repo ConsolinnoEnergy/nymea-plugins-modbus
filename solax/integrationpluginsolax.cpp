@@ -684,7 +684,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
                 quint16 oldBatteryLevel = batteryThings.first()->stateValue(solaxBatteryBatteryLevelStateTypeId).toUInt();
                 quint16 batteryLevelDiff = qFabs(socBat1-oldBatteryLevel);
-                if (batteryLevelDiff <= 10)
+                if (oldBatteryLevel == 0 || batteryLevelDiff <= 10)
                     batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
 
                 batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
@@ -1380,7 +1380,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
                 quint16 oldBatteryLevel = batteryThings.first()->stateValue(solaxBatteryBatteryLevelStateTypeId).toUInt();
                 quint16 batteryLevelDiff = qFabs(socBat1-oldBatteryLevel);
-                if (batteryLevelDiff <= 10)
+                if (oldBatteryLevel == 0 || batteryLevelDiff <= 10)
                     batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
 
                 batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
