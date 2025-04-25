@@ -570,7 +570,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
 
             quint16 meter2CommState = connection->meter2CommunicationState();
-            if (meter2CommState == m_secondMeterCheck) {
+            if (meter2CommState == 1 && meter2CommState == m_secondMeterCheck) {
                 m_secondMeterCounter++;
             } else {
                 m_secondMeterCounter = 0;
@@ -1074,7 +1074,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
 
             quint16 meter2CommState = connection->meter2CommunicationState();
-            if (meter2CommState == m_secondMeterCheck) {
+            if (meter2CommState == 1 && meter2CommState == m_secondMeterCheck) {
                 m_secondMeterCounter++;
             } else {
                 m_secondMeterCounter = 0;
