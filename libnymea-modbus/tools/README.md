@@ -197,6 +197,7 @@ Earch register will be defined as a property in the resulting class modbus TCP c
 * `defaultValue`: Optional. The value for initializing the property.
 
 # Register blocks
+## Read register blocks
 
 On many device it is possible to read multiple registers in one modbus call. This can improve speed significantly when reading many register addresses which are in a row. 
 
@@ -221,7 +222,7 @@ Example block:
                     "id": "registerOne",
                     "address": 0,
                     "size": 2,
-                    ...
+                    "..."
                 },
                 {
                     "id": "registerTwo",
@@ -239,6 +240,40 @@ Example block:
         }
     ]
 
+## Write register blocks
+On certain devices, multiple registers need to be written simultaneously to be considered valid. For instance, activating a feature in one register and configuring it in the next. To meet this requirement, the keyword `writable` can be included in the block definition.
+Example block:
+
+    "blocks": [
+        {
+            "id": "superDuperFeature",
+            "readSchedule": "update",
+            "writable": true,
+            "registers": [
+                {
+                    "id": "enableFeature",
+                    "address": 0,
+                    "size": 1,
+                    "access": "RO"
+                    "..."
+                },
+                {
+                    "id": "FeatureConfig",
+                    "address": 1,
+                    "size": 1,
+                    "access": "RO",
+                    ...
+                }
+            ]
+        }
+    ]
+            
+
+The example above defines a method called `setBlockSuperDuperFeature`, allowing the block to be written in a single request. Since the `access` key in the registers is set to `RO`, write methods for individual registers will not be generated. If you require these methods, change the `access` key for all block registers to `RW`.
+
+**Caveats:**
+- Currently, the block-write feature is only implemented for holding registers.
+- The `access` key for all block registers must be uniform, either all `RO` or all `RW`.
 
 # Autogenerate modbus classes
 
