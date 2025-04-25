@@ -98,7 +98,7 @@ def writeTcpHeaderFile():
             writeInternalPropertyReadMethodDeclarationsTcp(headerFile, blockDefinition['registers'])
 
         writeLine(headerFile)
-        writeInternalBlockReadMethodDeclarationsTcp(headerFile, registerJson['blocks'])
+        writeInternalBlockReadWriteMethodDeclarationsTcp(headerFile, registerJson['blocks'])
 
     writeLine(headerFile)
 
@@ -288,7 +288,7 @@ def writeTcpSourceFile():
         for blockDefinition in registerJson['blocks']:
             writeInternalPropertyReadMethodImplementationsTcp(sourceFile, className, blockDefinition['registers'])
 
-        writeInternalBlockReadMethodImplementationsTcp(sourceFile, className, registerJson['blocks'])
+        writeInternalBlockReadWriteMethodImplementationsTcp(sourceFile, className, registerJson['blocks'])
 
     # Write internal processors of properties
     writePropertyProcessMethodImplementations(sourceFile, className, registerJson['registers'])
@@ -469,7 +469,7 @@ def writeRtuHeaderFile():
             writeInternalPropertyReadMethodDeclarationsRtu(headerFile, blockDefinition['registers'])
 
         writeLine(headerFile)
-        writeInternalBlockReadMethodDeclarationsRtu(headerFile, registerJson['blocks'])
+        writeInternalBlockReadWriteMethodDeclarationsRtu(headerFile, registerJson['blocks'])
 
     # Write init and update method declarations
     writeLine(headerFile, '    virtual bool initialize();')
@@ -676,7 +676,7 @@ def writeRtuSourceFile():
         for blockDefinition in registerJson['blocks']:
             writeInternalPropertyReadMethodImplementationsRtu(sourceFile, className, blockDefinition['registers'])
 
-        writeInternalBlockReadMethodImplementationsRtu(sourceFile, className, registerJson['blocks'])
+        writeInternalBlockReadWriteMethodImplementationsRtu(sourceFile, className, registerJson['blocks'])
 
     # Write internal processors of properties
     writePropertyProcessMethodImplementations(sourceFile, className, registerJson['registers'])
