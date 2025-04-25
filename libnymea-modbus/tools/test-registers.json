@@ -77,6 +77,36 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "writableBlockName",
+            "readSchedule": "update",
+            "writable": true,
+            "registers": [
+                {
+                    "id": "writableBlockRegisterOne",
+                    "address": 300,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "writable block register one",
+                    "staticScaleFactor": 0,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "writableBlockRegisterTwo",
+                    "address": 301,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "writable block register two",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         }
     ],
     "registers": [
