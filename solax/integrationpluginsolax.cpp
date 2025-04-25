@@ -394,6 +394,21 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
         });
 
+        connect(connection, &SolaxModbusRtuConnection::meter2CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
+            bool commStatusBool = (commStatus != 0);
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                m_meterstates.find(meterThings.first())->meterCommStatus = commStatusBool;
+                qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
+                if (commStatusBool && m_meterstates.value(meterThings.first()).modbusReachable) {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
+                } else {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
+                    meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, 0);
+                }
+            }
+        });
+
         connect(connection, &SolaxModbusRtuConnection::feedinPowerChanged, thing, [this, thing](qint32 feedinPower){
             // Get max power of the inverter
             double nominalPowerInverter = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
@@ -553,7 +568,16 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
             // TODO: does this reliably create the secondary meter?
             Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
-            if (secondaryMeterThings.isEmpty() && (connection->feedinEnergyTotalMeter2() != 0 || connection->consumEnergyTotalMeter2() != 0)) {
+
+            quint16 meter2CommState = connection->meter2CommunicationState();
+            if (meter2CommState == m_secondMeterCheck) {
+                m_secondMeterCounter++;
+            } else {
+                m_secondMeterCounter = 0;
+            }
+            m_secondMeterCheck = meter2CommState;
+
+            if (secondaryMeterThings.isEmpty() && m_secondMeterCounter == 3) {
                 qCDebug(dcSolax()) << "Create the secondary meter thing";
                 QString name = supportedThings().findById(solaxMeterSecondaryThingClassId).displayName();
                 ThingDescriptor descriptor(solaxMeterSecondaryThingClassId, name, QString(), thing->id());
@@ -711,7 +735,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 if (oldEnergyValue == 0 ||
                     (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
                 {
-                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId, consumEnergyTotal);
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId, 0);
                 } else {
                     qCWarning(dcSolax()) << "RTU Meter 2 Consumed - Old Energy value is" << oldEnergyValue;
                     qCWarning(dcSolax()) << "RTU Meter 2 Consumed - New energy value is" << consumEnergyTotal;
@@ -1048,7 +1072,16 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
             // TODO: does this reliably create the secondary meter?
             Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
-            if (secondaryMeterThings.isEmpty() && (connection->meter2CommunicationState() != 0  && connection->consumEnergyTotalMeter2() == 0)) {
+
+            quint16 meter2CommState = connection->meter2CommunicationState();
+            if (meter2CommState == m_secondMeterCheck) {
+                m_secondMeterCounter++;
+            } else {
+                m_secondMeterCounter = 0;
+            }
+            m_secondMeterCheck = meter2CommState;
+
+            if (secondaryMeterThings.isEmpty() && m_secondMeterCounter == 3) {
                 qCDebug(dcSolax()) << "Create the secondary meter thing";
                 QString name = supportedThings().findById(solaxMeterSecondaryThingClassId).displayName();
                 ThingDescriptor descriptor(solaxMeterSecondaryThingClassId, name, QString(), thing->id());
@@ -1118,6 +1151,21 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::meter2CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
+            bool commStatusBool = (commStatus != 0);
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                m_meterstates.find(meterThings.first())->meterCommStatus = commStatusBool;
+                qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
+                if (commStatusBool && m_meterstates.value(meterThings.first()).modbusReachable) {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
+                } else {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
+                    meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, 0);
                 }
             }
         });
@@ -1383,7 +1431,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 if (oldEnergyValue == 0 ||
                     (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
                 {
-                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId, consumEnergyTotal);
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId, 0);
                 } else {
                     qCWarning(dcSolax()) << "TCP Meter 2 Consumed - Old Energy value is" << oldEnergyValue;
                     qCWarning(dcSolax()) << "TCP Meter 2 Consumed - New energy value is" << consumEnergyTotal;
