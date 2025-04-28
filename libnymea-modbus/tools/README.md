@@ -272,8 +272,9 @@ Example block:
 The example above defines a method called `setBlockSuperDuperFeature`, allowing the block to be written in a single request. Since the `access` key in the registers is set to `RO`, write methods for individual registers will not be generated. If you require these methods, change the `access` key for all block registers to `RW`.
 
 **Caveats:**
-- Currently, the block-write feature is only implemented for holding registers.
-- The `access` key for all block registers must be uniform, either all `RO` or all `RW`.
+- Currently the block-write feature is only implemented for holding registers.
+- If `writable` is set, all block registers must be writable. Therefore the key `access` of all block registers must be `RW`.
+- Curently the `access` type `WO` is not supported.
 
 # Autogenerate modbus classes
 
