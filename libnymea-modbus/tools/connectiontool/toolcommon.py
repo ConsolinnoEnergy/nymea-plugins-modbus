@@ -374,7 +374,7 @@ def validateBlocks(blockDefinitions):
     for blockDefinition in blockDefinitions:
         blockName = blockDefinition['id']
         blockRegisters = blockDefinition['registers']
-        blockWritable = blockDefinition['writable']
+        blockWritable = blockDefinition.setdefault('writable', False)
         
         blockStartAddress = 0
         registerCount = 0
