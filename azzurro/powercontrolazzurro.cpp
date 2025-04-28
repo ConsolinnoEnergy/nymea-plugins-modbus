@@ -22,6 +22,11 @@ void PowerControlAzzurro::setRelativePowerOutputLimit(unsigned short value)
 void PowerControlAzzurro::setActivePowerOutputLimit(unsigned short value)
 {
     m_limitRegister = value * 1000 / m_nominalPower;
+
+    if (value < m_nominalPower)
+        setActivePowerLimitEnable(true);
+    else
+        setActivePowerLimitEnable(false);
 }
 
 void PowerControlAzzurro::setActivePowerLimitEnable(bool value)

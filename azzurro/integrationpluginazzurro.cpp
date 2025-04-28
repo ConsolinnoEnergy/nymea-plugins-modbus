@@ -319,7 +319,7 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             quint16 powerControl = value;
             // unsigned long ulValue = value;
             qCDebug(dcAzzurro()) << "Power control changed " << powerControl;
-            thing->setStateValue(azzurroInverterRTUExportLimitEnableStateTypeId, powerControl); });
+            m_powerControl->setActivePowerLimitEnable(powerControl & 0x0001); });
 
         connect(connection, &AzzurroModbusRtuConnection::activePowerOutputLimitChanged, this, [this, thing](float value)
                 {
@@ -657,13 +657,7 @@ void IntegrationPluginAzzurro::executeAction(ThingActionInfo *info)
             return;
         }
 
-        if (actionTypeId == azzurroInverterRTUExportLimitEnableActionTypeId)
-        {
-            bool powerLimitEnabled = info->action().paramValue(azzurroInverterRTUExportLimitEnableActionExportLimitEnableParamTypeId).toBool();
-            m_powerControl->setActivePowerLimitEnable(powerLimitEnabled);
-            success = executePowerControl(azzurromodbusrtuconnection);
-        }
-        else if (actionTypeId == azzurroInverterRTUExportLimitActionTypeId)
+        if (actionTypeId == azzurroInverterRTUExportLimitActionTypeId)
         {
             uint powerLimit = info->action().paramValue(azzurroInverterRTUExportLimitActionExportLimitParamTypeId).toUInt();
             m_powerControl->setActivePowerOutputLimit(powerLimit);
