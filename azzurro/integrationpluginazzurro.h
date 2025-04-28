@@ -53,7 +53,7 @@ private:
     PowerControlAzzurro *m_powerControl;
 
     void executeExportLimitAction(ThingActionInfo *info, bool &retFlag);
-    bool exportPowerControl(AzzurroModbusRtuConnection *azzurromodbusrtuconnection, quint32 value);
+    bool executePowerControl(AzzurroModbusRtuConnection *azzurromodbusrtuconnection);
     bool handleReply(ModbusRtuReply *reply);
 
     QHash<Thing *, QList<float>> m_pvEnergyProducedValues;
