@@ -234,6 +234,7 @@
         {
             "id": "powerControl",
             "readSchedule": "update",
+            "writable": true,
             "registers": [
                 {
                     "id": "powerControl",
