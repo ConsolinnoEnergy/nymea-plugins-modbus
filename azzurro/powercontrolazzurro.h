@@ -26,14 +26,12 @@ public:
     bool activePowerLimitEnabled();
     unsigned short activePowerOutputLimit();
     double relativePowerLimit();
-    unsigned long combinedRegisters();
-    void setCombinedRegisters(unsigned long value);
     void setNominalPower(unsigned short value);
     unsigned short nominalPower();
     void setRelativePowerOutputLimit(unsigned short value);
     void setActivePowerOutputLimit(unsigned short value);
     void setActivePowerLimitEnable(bool value);
-    QVector<quint16> getAllRegisters();
+    QVector<quint16> Registers();
 
 private:
     unsigned short m_nominalPower;

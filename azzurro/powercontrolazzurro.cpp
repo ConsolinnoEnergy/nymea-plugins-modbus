@@ -32,7 +32,7 @@ void PowerControlAzzurro::setActivePowerLimitEnable(bool value)
         m_controlRegister &= 0xFFFE;
 }
 
-QVector<quint16> PowerControlAzzurro::getAllRegisters()
+QVector<quint16> PowerControlAzzurro::Registers()
 {
     return QVector<quint16>{m_controlRegister, m_limitRegister};
 }
@@ -55,15 +55,4 @@ unsigned short PowerControlAzzurro::activePowerOutputLimit()
 double PowerControlAzzurro::relativePowerLimit()
 {
     return m_limitRegister / 10.0;
-}
-
-unsigned long PowerControlAzzurro::combinedRegisters()
-{
-    return (((unsigned long)m_controlRegister) << 16) + m_limitRegister;
-}
-
-void PowerControlAzzurro::setCombinedRegisters(unsigned long value)
-{
-    m_limitRegister = (unsigned short)value;
-    m_controlRegister = (unsigned short)(value >> 16);
 }

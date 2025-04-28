@@ -32,7 +32,7 @@ void PowerControlSofarsolar::setActivePowerLimitEnable(bool value)
         m_controlRegister &= 0xFFFE;
 }
 
-QVector<quint16> PowerControlSofarsolar::getAllRegisters()
+QVector<quint16> PowerControlSofarsolar::Registers()
 {
     return QVector<quint16>{m_controlRegister, m_limitRegister};
 }
@@ -55,15 +55,4 @@ unsigned short PowerControlSofarsolar::activePowerOutputLimit()
 double PowerControlSofarsolar::relativePowerLimit()
 {
     return m_limitRegister / 10.0;
-}
-
-unsigned long PowerControlSofarsolar::combinedRegisters()
-{
-    return (((unsigned long)m_controlRegister) << 16) + m_limitRegister;
-}
-
-void PowerControlSofarsolar::setCombinedRegisters(unsigned long value)
-{
-    m_limitRegister = (unsigned short)value;
-    m_controlRegister = (unsigned short)(value >> 16);
 }
