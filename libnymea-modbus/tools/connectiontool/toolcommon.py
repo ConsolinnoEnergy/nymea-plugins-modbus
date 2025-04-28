@@ -374,17 +374,24 @@ def validateBlocks(blockDefinitions):
     for blockDefinition in blockDefinitions:
         blockName = blockDefinition['id']
         blockRegisters = blockDefinition['registers']
+        blockWritable = blockDefinition['writable']
         
         blockStartAddress = 0
         registerCount = 0
         blockSize = 0
-        registerAccess = ""
         registerType = ""
 
         for i, blockRegister in enumerate(blockRegisters):
+            if not 'R' in blockRegister['access']:
+                logger.warning('Error: block %s has invalid register access in register %s. The block registers must be readable.' % (blockName, blockRegister['id']))
+                exit(1)
+        
+            if not 'W' in blockRegister['access'] and blockWritable:
+                logger.warning('Error: block %s has invalid register access in register %s. The block registers must be writable.' % (blockName, blockRegister['id']))
+                exit(1)
+
             if i == 0:
                 blockStartAddress = blockRegister['address']
-                registerAccess = blockRegister['access']
                 registerType = blockRegister['registerType']
             else:
                 previouseRegisterAddress = blockRegisters[i - 1]['address']
@@ -392,10 +399,6 @@ def validateBlocks(blockDefinitions):
                 previouseRegisterType = blockRegisters[i - 1]['registerType']
                 if previouseRegisterAddress + previouseRegisterSize != blockRegister['address']:
                     logger.warning('Error: block %s has invalid register order in register %s. There seems to be a gap between the registers.' % (blockName, blockRegister['id']))
-                    exit(1)
-
-                if blockRegister['access'] != registerAccess:
-                    logger.warning('Error: block %s has inconsistent register access in register %s. The block registers dont seem to have the same access rights.' % (blockName, blockRegister['id']))
                     exit(1)
 
                 if blockRegister['registerType'] != registerType:
