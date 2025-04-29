@@ -350,9 +350,10 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
                     } });
         connect(connection, &GrowattModbusRtuConnection::ExportLimitPowerRateChanged, this, [this, thing](double value)
                 {
-            qCDebug(dcGrowatt()) << "Export limit power rate changed to" << value;
-            thing->setStateValue(growattInverterRTUExportLimitRateStateTypeId, value);            
-            thing->setStateValue(growattInverterRTUExportLimitPowerStateTypeId, powerRate2AbsolutePower(thing, value)); });
+                    qCDebug(dcGrowatt()) << "Export limit power rate changed to" << value << "%";
+                    double exportLimitWatt = powerRate2AbsolutePower(thing, value);
+                    qCDebug(dcGrowatt()) << "Export limit power changed to" << exportLimitWatt << "W";
+                    thing->setStateValue(growattInverterRTUExportLimitStateTypeId, exportLimitWatt); });
 
         // meter values
         // power total
@@ -611,21 +612,11 @@ void IntegrationPluginGrowatt::executeAction(ThingActionInfo *info)
             ModbusRtuReply *reply = growattmodbusrtuconnection->setExportLimit_En_dis(state);
             success = handleReply(reply);
         }
-        else if (info->action().actionTypeId() == growattInverterRTUExportLimitRateActionTypeId)
+        else if (info->action().actionTypeId() == growattInverterRTUExportLimitActionTypeId)
         {
-            uint valuePercent = info->action().paramValue(growattInverterRTUExportLimitRateActionExportLimitRateParamTypeId).toInt();
-            std::cout << "valuePercent: " << valuePercent << std::endl;
+            double value = info->action().paramValue(growattInverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
+            double valuePercent = absolutePower2PowerRate(thing, value);
 
-            ModbusRtuReply *reply = growattmodbusrtuconnection->setExportLimitPowerRate(valuePercent);
-            success = handleReply(reply);
-            success = true;
-        }
-        else if (info->action().actionTypeId() == growattInverterRTUExportLimitPowerActionTypeId)
-        {
-            uint absoluteValue = info->action().paramValue(growattInverterRTUExportLimitPowerActionExportLimitPowerParamTypeId).toInt();
-            std::cout << "absoluteValue: " << absoluteValue << std::endl;
-            // convert to percent
-            double valuePercent = absolutePower2PowerRate(thing, absoluteValue);
             std::cout << "valuePercent: " << valuePercent << std::endl;
 
             ModbusRtuReply *reply = growattmodbusrtuconnection->setExportLimitPowerRate(valuePercent);
