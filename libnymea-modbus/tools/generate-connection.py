@@ -507,6 +507,7 @@ def writeRtuHeaderFile():
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
             writePropertyProcessMethodDeclaration(headerFile, blockDefinition['registers'])
+            writePropertyBlockScalingDeclaration(headerFile, blockDefinition)
 
         writeLine(headerFile)
 
@@ -595,6 +596,12 @@ def writeRtuSourceFile():
     writeLine(sourceFile, '    } else {')
     writeLine(sourceFile, '        evaluateReachableState();')
     writeLine(sourceFile, '    }')
+    writeLine(sourceFile)
+
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyBlockScalingImplementation(sourceFile, blockDefinition)
+
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -784,6 +791,7 @@ def writeRtuSourceFile():
 
     sourceFile.close()
 
+        
 
 ############################################################################################
 # Main

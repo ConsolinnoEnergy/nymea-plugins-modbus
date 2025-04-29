@@ -490,6 +490,30 @@ def writePropertyProcessMethodDeclaration(fileDescriptor, registerDefinitions):
 
     writeLine(fileDescriptor)
     
+def writePropertyBlockScalingDeclaration(headerFile, blockDefinition):
+    if not blockDefinition.setdefault('writable', False):
+        return
+    blockName = blockDefinition['id']
+    scaling = []
+    for register in blockDefinition['registers']:
+        if 'staticScaleFactor' in register:
+            scaling.append(register['staticScaleFactor'])
+        else:
+            scaling.append(0)
+    writeLine(headerFile, f'    QVector<qint16> m_block{blockName[0].upper() + blockName[1:]}Scaling;')
+
+
+def writePropertyBlockScalingImplementation(sourceFile, blockDefinition):
+    if not blockDefinition.setdefault('writable', False):
+        return
+    blockName = blockDefinition['id']
+    scaling = []
+    for register in blockDefinition['registers']:
+        if 'staticScaleFactor' in register:
+            scaling.append(register['staticScaleFactor'])
+        else:
+            scaling.append(0)
+    writeLine(sourceFile, '    m_block%sScaling = {%s};' % (blockName[0].upper() + blockName[1:], ','.join(map(str,scaling))))
 
 def writePropertyProcessMethodImplementations(fileDescriptor, className, registerDefinitions):
     propertyVariables = []
