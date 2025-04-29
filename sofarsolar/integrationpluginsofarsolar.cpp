@@ -315,12 +315,16 @@ void IntegrationPluginSofarsolar::setupThing(ThingSetupInfo *info)
         // control values
         connect(connection, &SofarsolarModbusRtuConnection::powerControlChanged, this, [this, thing](float value)
                 {
-                    // unsigned long ulValue = value;
-                    qCDebug(dcSofarsolar()) << "powerControlChanged: " << value;
-                    m_powerControl->setCombinedRegisters(value);
+            quint16 powerControl = value;
+            // unsigned long ulValue = value;
+            qCDebug(dcSofarsolar()) << "Power control changed " << powerControl;
+            m_powerControl->setActivePowerLimitEnable(powerControl & 0x0001); });
 
-                    qCDebug(dcSofarsolar()) << "Export limit changed to: Enabled: " << m_powerControl->activePowerLimitEnabled() << " Limit: " << m_powerControl->activePowerOutputLimit();
-                    thing->setStateValue(sofarsolarInverterRTUExportLimitEnableStateTypeId, m_powerControl->activePowerLimitEnabled());
+        connect(connection, &SofarsolarModbusRtuConnection::activePowerOutputLimitChanged, this, [this, thing](float value)
+                {
+                    quint16 activePowerOutputLimit = value;
+                    m_powerControl->setRelativePowerOutputLimit(activePowerOutputLimit);
+                    qCDebug(dcSofarsolar()) << "Active power output limit changed " << m_powerControl->activePowerOutputLimit() << "W (" << activePowerOutputLimit/10 << "%)";
                     thing->setStateValue(sofarsolarInverterRTUExportLimitStateTypeId, m_powerControl->activePowerOutputLimit()); });
 
         // Meter
@@ -653,19 +657,13 @@ void IntegrationPluginSofarsolar::executeAction(ThingActionInfo *info)
             return;
         }
 
-        if (actionTypeId == sofarsolarInverterRTUExportLimitEnableActionTypeId)
-        {
-            bool powerLimitEnabled = info->action().paramValue(sofarsolarInverterRTUExportLimitEnableActionExportLimitEnableParamTypeId).toBool();
-            m_powerControl->setActivePowerLimitEnable(powerLimitEnabled);
-            success = exportPowerControl(sofarsolarmodbusrtuconnection, m_powerControl->combinedRegisters());
-        }
-        else if (actionTypeId == sofarsolarInverterRTUExportLimitActionTypeId)
+        if (actionTypeId == sofarsolarInverterRTUExportLimitActionTypeId)
         {
             uint powerLimit = info->action().paramValue(sofarsolarInverterRTUExportLimitActionExportLimitParamTypeId).toUInt();
             m_powerControl->setActivePowerOutputLimit(powerLimit);
 
             qCDebug(dcSofarsolar()) << "activePowerLimit: " << m_powerControl->activePowerOutputLimit() << "W (" << m_powerControl->relativePowerLimit() << "%)";
-            success = exportPowerControl(sofarsolarmodbusrtuconnection, m_powerControl->combinedRegisters());
+            success = executePowerControl(sofarsolarmodbusrtuconnection);
         }
         else
         {
@@ -683,10 +681,11 @@ void IntegrationPluginSofarsolar::executeAction(ThingActionInfo *info)
     }
 }
 
-bool IntegrationPluginSofarsolar::exportPowerControl(SofarsolarModbusRtuConnection *sofarsolarmodbusrtuconnection, quint32 value)
+bool IntegrationPluginSofarsolar::executePowerControl(SofarsolarModbusRtuConnection *sofarsolarmodbusrtuconnection)
 {
-    qCDebug(dcSofarsolar()) << "Sending Power control value " << QString::number(value, 16).toUpper();
-    ModbusRtuReply *reply = sofarsolarmodbusrtuconnection->setPowerControl(value);
+    QVector<quint16> values = m_powerControl->Registers();
+
+    ModbusRtuReply *reply = sofarsolarmodbusrtuconnection->setBlockPowerControl(values);
     return handleReply(reply);
 }
 

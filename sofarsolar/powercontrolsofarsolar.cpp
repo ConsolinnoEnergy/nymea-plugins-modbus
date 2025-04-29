@@ -1,4 +1,6 @@
 #include "powercontrolsofarsolar.h"
+#include <QObject>
+#include <QVector>
 
 PowerControlSofarsolar::PowerControlSofarsolar()
 {
@@ -12,9 +14,19 @@ unsigned short PowerControlSofarsolar::nominalPower()
     return m_nominalPower;
 }
 
+void PowerControlSofarsolar::setRelativePowerOutputLimit(unsigned short value)
+{
+    m_limitRegister = value;
+}
+
 void PowerControlSofarsolar::setActivePowerOutputLimit(unsigned short value)
 {
     m_limitRegister = value * 1000 / m_nominalPower;
+
+    if (value < m_nominalPower)
+        setActivePowerLimitEnable(true);
+    else
+        setActivePowerLimitEnable(false);
 }
 
 void PowerControlSofarsolar::setActivePowerLimitEnable(bool value)
@@ -23,6 +35,11 @@ void PowerControlSofarsolar::setActivePowerLimitEnable(bool value)
         m_controlRegister |= 0x01;
     else
         m_controlRegister &= 0xFFFE;
+}
+
+QVector<quint16> PowerControlSofarsolar::Registers()
+{
+    return QVector<quint16>{m_controlRegister, m_limitRegister};
 }
 
 void PowerControlSofarsolar::setNominalPower(unsigned short value)
@@ -43,15 +60,4 @@ unsigned short PowerControlSofarsolar::activePowerOutputLimit()
 double PowerControlSofarsolar::relativePowerLimit()
 {
     return m_limitRegister / 10.0;
-}
-
-unsigned long PowerControlSofarsolar::combinedRegisters()
-{
-    return (((unsigned long)m_controlRegister) << 16) + m_limitRegister;
-}
-
-void PowerControlSofarsolar::setCombinedRegisters(unsigned long value)
-{
-    m_limitRegister = (unsigned short)value;
-    m_controlRegister = (unsigned short)(value >> 16);
 }

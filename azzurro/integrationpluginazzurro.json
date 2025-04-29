@@ -113,15 +113,6 @@
                             "cached": false
                         },
                         {
-                            "id": "153c74a2-39fc-43ea-9be1-43b314847fd2",
-                            "name": "exportLimitEnable",
-                            "displayName": "Export Limit enabled",
-                            "displayNameAction": "Export limit enabled",
-                            "type": "bool",
-                            "writable": true,
-                            "defaultValue": false
-                        },
-                        {
                             "id": "87fd3358-a333-4e2c-91f3-c7d05c6c5e24",
                             "name": "exportLimit",
                             "displayName": "Export Limit",

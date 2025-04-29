@@ -113,20 +113,11 @@
                             "cached": false
                         },
                         {
-                            "id": "a3545770-78ca-4eb7-a678-8f2b8dad76c6",
-                            "name": "exportLimitEnable",
-                            "displayName": "Export Limit enabled",
-                            "displayNameAction": "Export limit enabled",
-                            "type": "bool",
-                            "writable": true,
-                            "defaultValue": false
-                        },
-                        {
                             "id": "9b88cf03-8e3c-4748-84b5-44235efe94c5",
                             "name": "exportLimit",
                             "displayName": "Export Limit",
                             "displayNameAction": "Set export limit",
-                            "type": "uint",
+                            "type": "double",
                             "unit": "Watt",
                             "writable": true,
                             "defaultValue": 0,

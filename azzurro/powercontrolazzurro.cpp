@@ -1,4 +1,6 @@
 #include "powercontrolazzurro.h"
+#include <QObject>
+#include <QVector>
 
 PowerControlAzzurro::PowerControlAzzurro()
 {
@@ -12,12 +14,22 @@ unsigned short PowerControlAzzurro::nominalPower()
     return m_nominalPower;
 }
 
-void PowerControlAzzurro::setAbsolutePowerLimit(unsigned short value)
+void PowerControlAzzurro::setRelativePowerOutputLimit(unsigned short value)
 {
-    m_limitRegister = value * 1000 / m_nominalPower;
+    m_limitRegister = value;
 }
 
-void PowerControlAzzurro::setPowerLimitEnable(bool value)
+void PowerControlAzzurro::setActivePowerOutputLimit(unsigned short value)
+{
+    m_limitRegister = value * 1000 / m_nominalPower;
+
+    if (value < m_nominalPower)
+        setActivePowerLimitEnable(true);
+    else
+        setActivePowerLimitEnable(false);
+}
+
+void PowerControlAzzurro::setActivePowerLimitEnable(bool value)
 {
     if (value)
         m_controlRegister |= 0x01;
@@ -25,17 +37,22 @@ void PowerControlAzzurro::setPowerLimitEnable(bool value)
         m_controlRegister &= 0xFFFE;
 }
 
+QVector<quint16> PowerControlAzzurro::Registers()
+{
+    return QVector<quint16>{m_controlRegister, m_limitRegister};
+}
+
 void PowerControlAzzurro::setNominalPower(unsigned short value)
 {
     m_nominalPower = value;
 }
 
-bool PowerControlAzzurro::powerLimitEnabled()
+bool PowerControlAzzurro::activePowerLimitEnabled()
 {
     return (bool)(m_controlRegister & 0x0001);
 }
 
-unsigned short PowerControlAzzurro::absolutePowerLimit()
+unsigned short PowerControlAzzurro::activePowerOutputLimit()
 {
     return (unsigned short)(m_nominalPower * m_limitRegister / 1000);
 }
@@ -43,15 +60,4 @@ unsigned short PowerControlAzzurro::absolutePowerLimit()
 double PowerControlAzzurro::relativePowerLimit()
 {
     return m_limitRegister / 10.0;
-}
-
-unsigned long PowerControlAzzurro::combinedRegisters()
-{
-    return (((unsigned long)m_controlRegister) << 16) + m_limitRegister;
-}
-
-void PowerControlAzzurro::setCombinedRegisters(unsigned long value)
-{
-    m_limitRegister = (unsigned short)value;
-    m_controlRegister = (unsigned short)(value >> 16);
 }

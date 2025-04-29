@@ -230,6 +230,39 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "powerControl",
+            "readSchedule": "update",
+            "writable": true,
+            "registers": [
+                {
+                    "id": "powerControl",
+                    "address": 4357,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "bit-coded control register (0x1105)",
+                    "defaultValue": "0",
+                    "unit": "",
+                    "staticScaleFactor": 0,
+                    "access": "RW"
+                },
+                {
+                    "id": "activePowerOutputLimit",
+                    "address": 4358,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Active power export limit (0x1106)",
+                    "defaultValue": "0",
+                    "unit": "W",
+                    "staticScaleFactor": 0,
+                    "access": "RW"
+                }
+            ]
         }
     ],
     "registers": [
@@ -374,19 +407,6 @@
             "unit": "kWh",
             "staticScaleFactor": -1,
             "access": "RO"
-        },
-        {
-            "id": "powerControl",
-            "address": 4357,
-            "size": 2,
-            "type": "uint32",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Power control (0x1105) and Active power export limit (0x1106)",
-            "defaultValue": "0x00000064",
-            "unit": "",
-            "staticScaleFactor": 0,
-            "access": "RW"
         }
     ]
 }

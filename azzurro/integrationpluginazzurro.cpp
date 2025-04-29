@@ -316,12 +316,17 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
         // control values
         connect(connection, &AzzurroModbusRtuConnection::powerControlChanged, this, [this, thing](float value)
                 {
-                    qCDebug(dcAzzurro()) << "powerControlChanged: " << value;
-                    m_powerControl->setCombinedRegisters(value);
+            quint16 powerControl = value;
+            // unsigned long ulValue = value;
+            qCDebug(dcAzzurro()) << "Power control changed " << powerControl;
+            m_powerControl->setActivePowerLimitEnable(powerControl & 0x0001); });
 
-                    qCDebug(dcAzzurro()) << "Export limit changed to: Enabled: " << m_powerControl->powerLimitEnabled() << " Limit: " << m_powerControl->absolutePowerLimit();
-                    thing->setStateValue(azzurroInverterRTUExportLimitEnableStateTypeId, m_powerControl->powerLimitEnabled());
-                    thing->setStateValue(azzurroInverterRTUExportLimitStateTypeId, m_powerControl->absolutePowerLimit()); });
+        connect(connection, &AzzurroModbusRtuConnection::activePowerOutputLimitChanged, this, [this, thing](float value)
+                {
+                    quint16 activePowerOutputLimit = value;
+                    m_powerControl->setRelativePowerOutputLimit(activePowerOutputLimit);
+                    qCDebug(dcAzzurro()) << "Active power output limit changed " << m_powerControl->activePowerOutputLimit() << "W (" << activePowerOutputLimit/10 << "%)";
+                    thing->setStateValue(azzurroInverterRTUExportLimitStateTypeId, m_powerControl->activePowerOutputLimit()); });
 
         // Meter
         connect(connection, &AzzurroModbusRtuConnection::activePowerPccChanged, thing, [this, thing](float currentPower)
@@ -652,25 +657,13 @@ void IntegrationPluginAzzurro::executeAction(ThingActionInfo *info)
             return;
         }
 
-        /*if (!azzurromodbusrtuconnection->connected()) {
-            qCWarning(dcAzzurro()) << "Could not execute action. The modbus connection is currently not available.";
-            info->finish(Thing::ThingErrorHardwareNotAvailable);
-            return;
-        }*/
-
-        if (actionTypeId == azzurroInverterRTUExportLimitEnableActionTypeId)
-        {
-            bool powerLimitEnabled = info->action().paramValue(azzurroInverterRTUExportLimitEnableActionExportLimitEnableParamTypeId).toBool();
-            m_powerControl->setPowerLimitEnable(powerLimitEnabled);
-            success = exportPowerControl(azzurromodbusrtuconnection, m_powerControl->combinedRegisters());
-        }
-        else if (actionTypeId == azzurroInverterRTUExportLimitActionTypeId)
+        if (actionTypeId == azzurroInverterRTUExportLimitActionTypeId)
         {
             uint powerLimit = info->action().paramValue(azzurroInverterRTUExportLimitActionExportLimitParamTypeId).toUInt();
-            m_powerControl->setAbsolutePowerLimit(powerLimit);
+            m_powerControl->setActivePowerOutputLimit(powerLimit);
 
-            qCDebug(dcAzzurro()) << "activePowerLimit: " << m_powerControl->absolutePowerLimit() << "W (" << m_powerControl->relativePowerLimit() << "%)";
-            success = exportPowerControl(azzurromodbusrtuconnection, m_powerControl->combinedRegisters());
+            qCDebug(dcAzzurro()) << "activePowerLimit: " << m_powerControl->activePowerOutputLimit() << "W (" << m_powerControl->relativePowerLimit() << "%)";
+            success = executePowerControl(azzurromodbusrtuconnection);
         }
         else
         {
@@ -688,9 +681,10 @@ void IntegrationPluginAzzurro::executeAction(ThingActionInfo *info)
     }
 }
 
-bool IntegrationPluginAzzurro::exportPowerControl(AzzurroModbusRtuConnection *azzurromodbusrtuconnection, quint32 value)
+bool IntegrationPluginAzzurro::executePowerControl(AzzurroModbusRtuConnection *azzurromodbusrtuconnection)
 {
-    ModbusRtuReply *reply = azzurromodbusrtuconnection->setPowerControl(value);
+    QVector<quint16> values = m_powerControl->Registers();
+    ModbusRtuReply *reply = azzurromodbusrtuconnection->setBlockPowerControl(values);
     return handleReply(reply);
 }
 

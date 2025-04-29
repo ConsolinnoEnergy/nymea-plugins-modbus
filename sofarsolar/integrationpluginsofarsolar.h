@@ -53,7 +53,7 @@ private:
     PowerControlSofarsolar *m_powerControl;
 
     void executeExportLimitAction(ThingActionInfo *info, bool &retFlag);
-    bool exportPowerControl(SofarsolarModbusRtuConnection *sofarsolarmodbusrtuconnection, quint32 value);
+    bool executePowerControl(SofarsolarModbusRtuConnection *sofarsolarmodbusrtuconnection);
     bool handleReply(ModbusRtuReply *reply);
 
     QHash<Thing *, QList<float>> m_pvEnergyProducedValues;

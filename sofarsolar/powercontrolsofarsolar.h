@@ -1,6 +1,7 @@
 #ifndef POWERCONTROLSOFARSOLAR_H
 #define POWERCONTROLSOFARSOLAR_H
 
+#include <QObject>
 /**
  * @brief Class for managing power control settings of Sofar Solar inverters.
  *
@@ -18,19 +19,18 @@
  */
 class PowerControlSofarsolar
 {
-
 public:
     PowerControlSofarsolar();
 
     bool activePowerLimitEnabled();
     unsigned short activePowerOutputLimit();
     double relativePowerLimit();
-    unsigned long combinedRegisters();
-    void setCombinedRegisters(unsigned long value);
     void setNominalPower(unsigned short value);
     unsigned short nominalPower();
+    void setRelativePowerOutputLimit(unsigned short value);
     void setActivePowerOutputLimit(unsigned short value);
     void setActivePowerLimitEnable(bool value);
+    QVector<quint16> Registers();
 
 private:
     unsigned short m_nominalPower;
