@@ -1,0 +1,149 @@
+{
+    "name": "siemens",
+    "displayName": "Siemens",
+    "id": "2a7b1c56-d5cd-4e3b-9a8f-5f3c2d9e8fba",
+    "paramTypes": [],
+    "vendors": [
+        {
+            "name": "siemens",
+            "displayName": "Siemens",
+            "id": "3f8c5b92-1a83-4db4-bc29-15fe05e73542",
+            "thingClasses": [
+                {
+                    "name": "energymeter",
+                    "displayName": "Siemens PAC Energymeter",
+                    "id": "5a1e77dd-2d4e-471e-8ef8-ee255a09a7db",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["energymeter", "connectable"],
+                    "discoveryParamTypes": [
+                        {
+                            "id": "bf834dd7-ff4c-4f49-b997-79b860af10ad",
+                            "name": "slaveAddress",
+                            "displayName": "Slave address",
+                            "type": "int",
+                            "defaultValue": 1
+                        }
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "43cd887e-dd1e-462f-9872-f358d57f9d53",
+                            "name": "slaveAddress",
+                            "displayName": "Modbus slave address",
+                            "type": "uint",
+                            "defaultValue": 1
+                        },
+                        {
+                            "id": "e8f96554-f594-4966-bfd8-fe9b7ad2bc96",
+                            "name": "modbusMasterUuid",
+                            "displayName": "Modbus RTU master",
+                            "type": "QUuid",
+                            "defaultValue": "",
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "597f2f16-38f6-4a02-97c5-5b611e6738f8",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "cached": false,
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "99d83e9f-e572-4b9c-9f7d-5c6e2f8a9c7e",
+                            "name": "voltagePhaseA",
+                            "displayName": "Voltage phase A",
+                            "displayNameEvent": "Voltage phase A changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "a1f4c999-bd19-4b8d-9c8f-6d7f3e9a8c8f",
+                            "name": "voltagePhaseB",
+                            "displayName": "Voltage phase B",
+                            "displayNameEvent": "Voltage phase B changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "b2f5d111-ce2a-4c9e-9d9f-7e8f4e9b9d9f",
+                            "name": "voltagePhaseC",
+                            "displayName": "Voltage phase C",
+                            "displayNameEvent": "Voltage phase C changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "c3f6e222-df3b-4da0-9eaf-8f9f5e9c9eaf",
+                            "name": "currentPhaseA",
+                            "displayName": "Current phase A",
+                            "displayNameEvent": "Current phase A changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "d4f7f333-ef4c-4eb1-9fbf-9f0f6f9d9fbf",
+                            "name": "currentPhaseB",
+                            "displayName": "Current phase B",
+                            "displayNameEvent": "Current phase B changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "e5f8f444-f05d-4fc2-9fcf-af1f7f0f9fcf",
+                            "name": "currentPhaseC",
+                            "displayName": "Current phase C",
+                            "displayNameEvent": "Current phase C changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "f6f9f555-015e-50d3-9fdf-bf2f8f1f9fdf",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Current power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "07f0f666-125f-60e4-9fef-cf3f9f2f9fef",
+                            "name": "frequency",
+                            "displayName": "Frequency",
+                            "displayNameEvent": "Frequency changed",
+                            "type": "double",
+                            "unit": "Hertz",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "18f1f777-2360-71f5-9fff-df4f0f3f9fff",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumed changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "29f2f888-3471-82f6-af0f-ef5f1f4fafff",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

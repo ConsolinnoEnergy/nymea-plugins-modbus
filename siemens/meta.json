@@ -1,0 +1,15 @@
+{
+    "title": "Siemens",
+    "tagline": "Connect to Siemens industrial equipment.",
+    "icon": "siemens.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "modbus",
+        "network"
+    ],
+    "categories": [
+        "industrial",
+        "automation"
+    ]
+}
