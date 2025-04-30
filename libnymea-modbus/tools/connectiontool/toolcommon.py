@@ -496,10 +496,7 @@ def writePropertyBlockScalingDeclaration(headerFile, blockDefinition):
     blockName = blockDefinition['id']
     scaling = []
     for register in blockDefinition['registers']:
-        if 'staticScaleFactor' in register:
-            scaling.append(register['staticScaleFactor'])
-        else:
-            scaling.append(0)
+        scaling.append(register.setdefault('staticScaleFactor', 0))
     writeLine(headerFile, f'    QVector<qint16> m_block{blockName[0].upper() + blockName[1:]}Scaling;')
 
 
