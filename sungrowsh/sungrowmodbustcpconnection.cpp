@@ -1588,7 +1588,7 @@ void SungrowModbusTcpConnection::processTotalImportEnergyRegisterValues(const QV
 
 void SungrowModbusTcpConnection::processTotalBatteryCapacityRegisterValues(const QVector<quint16> values)
 {
-    float receivedTotalBatteryCapacity = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -2);
+    float receivedTotalBatteryCapacity = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, -1);
     emit totalBatteryCapacityReadFinished(receivedTotalBatteryCapacity);
 
     if (m_totalBatteryCapacity != receivedTotalBatteryCapacity) {
