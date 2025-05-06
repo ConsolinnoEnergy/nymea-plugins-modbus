@@ -1470,7 +1470,8 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             qCWarning(dcSolax()) << "Battery max current is enabled?" << enableMaxCurrent;
 
             if (!enableMaxCurrent) {
-                setMaxCurrent(inverterThing, 30.0); //hardcoded to default value 30A
+                setMaxCurrent(inverterThing, 30.0); //reset to default value 30A
+                thing->setStateValue(solaxBatteryMaxChargingCurrentStateTypeId, 30.0);
             } else if (enableMaxCurrent && maxCurrent >= 0 && maxCurrent <= 30)
             {
                 setMaxCurrent(inverterThing, maxCurrent);
