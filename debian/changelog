@@ -1,6 +1,7 @@
 nymea-plugins-modbus (1.7.015) jammy; urgency=medium
 
   * Fix Sungrow SH battery capacity
+  * Kaco NH3: Fix PV and Bat power
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 27 Mar 2025 13:49:00 +0100
 
