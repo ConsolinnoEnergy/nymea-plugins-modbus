@@ -670,8 +670,94 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "batteryControl",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "emsModeSelection",
+                    "address": 13049,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "EMS mode (0/2/3/4)",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "chargeCommand",
+                    "address": 13050,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Force charge or discharge",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "chargePower",
+                    "address": 13051,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Set batter power",
+                    "defaultValue": "0",
+                    "access": "RW"
+                }
+            ]
         }
     ],
     "registers": [
+        {
+            "id": "batteryNominalPower",
+            "address": 33046,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Battery nominal power",
+            "readSchedule": "init",
+            "unit": "W",
+            "defaultValue": "0",
+            "staticScaleFactor": 1,
+            "access": "RO"
+        },
+        {
+            "id": "exportLimit",
+            "address": 13073,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Inverter export limit",
+            "defaultValue": "0",
+            "access": "RW"
+        },
+        {
+            "id": "exportLimitMode",
+            "address": 13086,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Inverter export mode",
+            "unit": "V",
+            "defaultValue": "0",
+            "access": "RW"
+        },
+        {
+            "id": "batteryMinLevel",
+            "address": 13058,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Battery min SOC",
+            "unit": "%",
+            "staticScaleFactor": -1,
+            "defaultValue": "0",
+            "access": "RW"
+        }
+
     ]
 }
