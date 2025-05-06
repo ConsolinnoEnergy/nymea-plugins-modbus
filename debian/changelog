@@ -1,5 +1,6 @@
 nymea-plugins-modbus (1.7.015) jammy; urgency=medium
 
+  * Fix Sungrow SH battery capacity
   * Solax X3 EVC: Fix charging interruption
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
