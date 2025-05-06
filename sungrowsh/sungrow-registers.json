@@ -605,7 +605,7 @@
                     "description": "Total battery capacity",
                     "unit": "kWh",
                     "defaultValue": "0",
-                    "staticScaleFactor": -2,
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 },
                 {
