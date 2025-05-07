@@ -69,8 +69,8 @@
         {
             "id": "totalEnergyConsumed",
             "address": 10310,
-            "size": 1,
-            "type": "uint16",
+            "size": 2,
+            "type": "int32",
             "registerType": "inputRegister",
             "readSchedule": "update",
             "description": "Total energy consumed",

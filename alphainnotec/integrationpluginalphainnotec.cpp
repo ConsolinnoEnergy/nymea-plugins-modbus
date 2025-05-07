@@ -113,6 +113,7 @@ void IntegrationPluginAlphaInnotec::discoverThings(ThingDiscoveryInfo *info)
 
                 ParamList params;
                 params << Param(aitSmartHomeThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+                params << Param(aitSmartHomeThingIpAddressParamTypeId, result.networkDeviceInfo.address().toString());
                 descriptor.setParams(params);
                 info->addThingDescriptor(descriptor);
             }
@@ -467,7 +468,7 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
         });
 
         connect(aitShiConnection, &aitShiModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](float energy) {
-            qCDebug(dcAlphaInnotec()) << "Total energy consumed changed to" << energy;
+            qCWarning(dcAlphaInnotec()) << "Total energy consumed changed to" << energy;
             thing->setStateValue(aitSmartHomeTotalEnergyConsumedStateTypeId, energy);
         });
 
