@@ -301,6 +301,18 @@
                     "defaultValue": 0,
                     "staticScaleFactor": -1,
                     "access": "RO"
+                },
+                {
+                    "id": "totalEnergy",
+                    "address": 4112,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "description": "Accumulated charging energy",
+                    "unit": "kWh",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
                 }
             ]
         },
@@ -526,25 +538,13 @@
             "access": "RO"
         },
         {
-            "id": "totalEnergy",
-            "address": 4121,
-            "size": 2,
-            "type": "uint32",
-            "readSchedule": "update",
-            "registerType": "holdingRegister",
-            "description": "Accumulated charging energy",
-            "unit": "kWh",
-            "defaultValue": 0,
-            "staticScaleFactor": -1,
-            "access": "RO"
-        },
-        {
             "id": "DataHubChargeCurrent",
             "address": 4132,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
             "description": "Data hub charge current",
+            "readSchedule": "init",
             "unit": "A",
             "staticScaleFactor": -2,
             "defaultValue": 0,
@@ -604,6 +604,7 @@
             "size": 1,
             "type": "uint16",
             "registerType": "inputRegister",
+            "readSchedule": "init",
             "description": "Wallbox phase configuration",
             "enum": "ChargePhase",
             "defaultValue": "ChargePhaseThreePhase",
