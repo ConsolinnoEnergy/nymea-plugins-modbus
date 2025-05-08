@@ -387,10 +387,6 @@ def validateBlocks(blockDefinitions):
                 logger.warning('Error: block %s has invalid register access in register %s. The block registers must be readable.' % (blockName, blockRegister['id']))
                 exit(1)
         
-            if not 'W' in blockRegister['access'] and blockWritable:
-                logger.warning('Error: block %s has invalid register access in register %s. The block registers must be writable.' % (blockName, blockRegister['id']))
-                exit(1)
-
             if i == 0:
                 blockStartAddress = blockRegister['address']
                 registerAccess = blockRegister['access']
