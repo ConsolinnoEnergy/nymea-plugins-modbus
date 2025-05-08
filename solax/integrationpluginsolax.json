@@ -712,7 +712,7 @@
                     "displayName": "Solax Battery",
                     "id": "fb017a49-0a2e-4ae6-8277-3da0142cbbd2",
                     "createMethods": ["auto"],
-                    "interfaces": ["controllablebattery", "connectable"],
+                    "interfaces": ["controllablebattery", "limitablebattery", "connectable"],
                     "paramTypes": [ ],
                     "stateTypes": [
                         {
