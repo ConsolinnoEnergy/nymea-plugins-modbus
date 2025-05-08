@@ -246,7 +246,7 @@ void IntegrationPluginDvModbusIR::setupThing(ThingSetupInfo *info)
 
             qCDebug(dcDvModbusIR()) << "dvModbusIR - Set current power";
             qint16 currentPowerExpReg = connection->currentPowerExponent();
-            quint32 currentPowerReg = connection->currentPower();
+            qint32 currentPowerReg = connection->currentPower();
             double currentPower = currentPowerReg*qPow(10, currentPowerExpReg);
             thing->setStateValue(dvModbusIRCurrentPowerStateTypeId, currentPower);
         });
