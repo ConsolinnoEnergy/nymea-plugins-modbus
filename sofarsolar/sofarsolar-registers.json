@@ -247,7 +247,7 @@
                     "defaultValue": "0",
                     "unit": "",
                     "staticScaleFactor": 0,
-                    "access": "RW"
+                    "access": "RO"
                 },
                 {
                     "id": "activePowerOutputLimit",
@@ -258,9 +258,9 @@
                     "readSchedule": "update",
                     "description": "Active power export limit (0x1106)",
                     "defaultValue": "0",
-                    "unit": "W",
-                    "staticScaleFactor": 0,
-                    "access": "RW"
+                    "unit": "%",
+                    "staticScaleFactor": -1,
+                    "access": "RO"
                 }
             ]
         }
