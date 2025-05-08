@@ -888,6 +888,8 @@
                             "displayNameAction": "Battery max charging current set",
                             "type": "double",
                             "unit": "Ampere",
+                            "minValue": 0,
+                            "maxValue": 30,
                             "defaultValue": 30.0,
                             "writable": true,
                             "cached": true
