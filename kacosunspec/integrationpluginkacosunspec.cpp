@@ -585,6 +585,8 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             double calculatedPower = -1 * qFabs(currentPower) * qPow(10, currentPowerSf);
             if (calculatedPower != 0) {
                 calculatedPower = calculatedPower - calculatedBatPower;
+                if (calculatedPower > 0)
+                    calculatedPower = 0;
             }
             thing->setStateValue("currentPower", calculatedPower);
         });
