@@ -7,6 +7,7 @@ nymea-plugins-modbus (1.7.015) jammy; urgency=medium
   * Sungrow SH: Support battery control and export limit
   * Sax: fix current power meter
   * Lambda: Support not available modules
+  * Victron GX: Initial Support
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
 
@@ -21,7 +22,6 @@ nymea-plugins-modbus (1.7.013) jammy; urgency=medium
 
   * Solax: Improve power calculation
   * Sungrow SG: Only show inverter in discovery
-  * added Victron GX
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 26 Feb 2025 15:59:10 +0100
 
