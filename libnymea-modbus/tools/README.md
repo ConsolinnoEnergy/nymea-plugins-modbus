@@ -273,7 +273,6 @@ The example above defines a method called `setBlockSuperDuperFeature`, allowing 
 
 **Caveats:**
 - Currently the block-write feature is only implemented for holding registers.
-- If `writable` is set, all block registers must be writable. Therefore the key `access` of all block registers must be `RW`.
 - Curently the `access` type `WO` is not supported.
 
 # Autogenerate modbus classes
