@@ -11,7 +11,7 @@ nymea-plugins-modbus (1.7.015) jammy; urgency=medium
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
 
- nymea-plugins-modbus (1.7.014) jammy; urgency=medium
+nymea-plugins-modbus (1.7.014) jammy; urgency=medium
  
   * DvModbusIR: Fix current power sign
   * Fix Solax X3 Energy readout
