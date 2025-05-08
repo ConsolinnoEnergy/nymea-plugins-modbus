@@ -132,11 +132,11 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
             params << Param(kacosunspecInverterRTUThingModbusMasterUuidParamTypeId, modbusMaster->modbusUuid());
             descriptor.setParams(params);
 
-            // Reconfigure not working when changing modbus ID right now. 
+            // Reconfigure not working when changing modbus ID right now.
             // The existing device should be detected by checking a hardware serial (analog to MAC address in the TCP case)
             // This is not possible right now, as the serial is only available when the device is connected
             // --> Only practical when a real Modbus RTU discovery is implemented
-            // However, this correctly prevents the user from adding the same device twice, as the UI will 
+            // However, this correctly prevents the user from adding the same device twice, as the UI will
             // not show descriptors for already configured devices in the discovery list (they are only shown when using reconfigure)
             Thing *existingThing = myThings().findByParams(descriptor.params());
                if (existingThing) {
@@ -149,7 +149,7 @@ void IntegrationPluginKacoSunSpec::discoverThings(ThingDiscoveryInfo *info)
             info->addThingDescriptor(descriptor);
         }
         qCDebug(dcKacoSunSpec()) << "Found" << info->thingDescriptors().count() << " Kaco SunSpec inverters";
-        
+
         info->finish(Thing::ThingErrorNoError);
     } else if (info->thingClassId() == kaconh3ThingClassId) {
         if (!hardwareManager()->networkDeviceDiscovery()->available()) {
@@ -482,7 +482,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             qCDebug(dcKacoSunSpec()) << "Updating Kaco NH3" << thing;
 
             // Check if a battery thing is setup and a battery is connected
-            if (myThings().filterByParentId(thing->id()).filterByThingClassId(kacoNh3BatteryThingClassId).isEmpty() && 
+            if (myThings().filterByParentId(thing->id()).filterByThingClassId(kacoNh3BatteryThingClassId).isEmpty() &&
                 connection->batType() != KacoNH3ModbusTcpConnection::BatteryTypeNoBattery)
             {
                 qCDebug(dcKacoSunSpec()) << "There is no battery set up for this inverter. Creating a battery for" << thing << connection;
@@ -490,12 +490,6 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 ThingDescriptor descriptor(kacoNh3BatteryThingClassId, batteryThingClass.displayName(), QString(), thing->id());
                 emit autoThingsAppeared(ThingDescriptors() << descriptor);
             }
-
-            // Set inverter states
-            qint16 currentPowerSf = connection->inverterCurrentPowerSf();
-            qint16 currentPower = connection->inverterCurrentPower();
-            double calculatedPower = -1 * qFabs(currentPower) * qPow(10, currentPowerSf);
-            thing->setStateValue("currentPower", calculatedPower);
 
             quint16 producedEnergySf = connection->inverterProducedEnergySf();
             quint32 producedEnergy = connection->inverterProducedEnergy();
@@ -549,6 +543,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 meterThing->setStateValue("voltagePhaseC", calculatedMeterVoltageC);
             }
 
+            double calculatedBatPower = 0;
             Thing *batteryThing = getBatteryThing(thing);
             if (batteryThing) {
                 setBatteryState(batteryThing, connection->batState());
@@ -579,9 +574,19 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
 
                 qint16 batCurrentPower = connection->batCurrentPower();
                 qint16 batCurrentPowerSf = connection->batCurrentPowerSf();
-                double calculatedBatPower = batCurrentPower * qPow(10, batCurrentPowerSf);
+                calculatedBatPower = -1 * batCurrentPower * qPow(10, batCurrentPowerSf);
                 batteryThing->setStateValue("currentPower", calculatedBatPower);
             }
+
+            // Set inverter states
+            qint16 currentPowerSf = connection->inverterCurrentPowerSf();
+            qint16 currentPower = connection->inverterCurrentPower();
+
+            double calculatedPower = -1 * qFabs(currentPower) * qPow(10, currentPowerSf);
+            if (calculatedPower != 0) {
+                calculatedPower = calculatedPower - calculatedBatPower;
+            }
+            thing->setStateValue("currentPower", calculatedPower);
         });
 
         m_nh3Connections.insert(thing, connection);
@@ -630,7 +635,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
 
 void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
 {
-    if (thing->thingClassId() == kacosunspecInverterTCPThingClassId || 
+    if (thing->thingClassId() == kacosunspecInverterTCPThingClassId ||
         thing->thingClassId() == kacosunspecInverterRTUThingClassId ||
         thing->thingClassId() == kaconh3ThingClassId) {
         if (!m_pluginTimer) {
@@ -662,7 +667,7 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
 
     if (thing->thingClassId() == kacoNh3MeterThingClassId ||
         thing->thingClassId() == kacoNh3BatteryThingClassId) {
-        
+
         Thing *connectionThing = myThings().findById(thing->parentId());
         if (connectionThing) {
             thing->setStateValue("connected", connectionThing->stateValue("connected"));

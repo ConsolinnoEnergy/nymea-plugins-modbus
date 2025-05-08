@@ -1,6 +1,7 @@
 nymea-plugins-modbus (1.7.015) jammy; urgency=medium
 
   * Fix Sungrow SH battery capacity
+  * Kaco NH3: Fix PV and Bat power
   * Solax X3 EVC: Fix charging interruption
   * Add PV-Kit to Solax X3 G4 and Qcells G3
   * Sungrow SH: Support battery control and export limit
