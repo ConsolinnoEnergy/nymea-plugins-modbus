@@ -1,10 +1,18 @@
 nymea-plugins-modbus (1.7.015) jammy; urgency=medium
 
+  * Fix Sungrow SH battery capacity
+  * Kaco NH3: Fix PV and Bat power
+  * Solax X3 EVC: Fix charging interruption
+  * Add PV-Kit to Solax X3 G4 and Qcells G3
+  * Sungrow SH: Support battery control and export limit
+  * Sax: fix current power meter
+  * Lambda: Support not available modules
   * SolarEdge: Add battery control for solaredge hybrid inverter
 
- -- Leonid Verhovskij <l.verhovskij@consolinno.de> Wed, 23 Apr 2025 10:08:10 +0100
+ -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
 
  nymea-plugins-modbus (1.7.014) jammy; urgency=medium
+ 
   * DvModbusIR: Fix current power sign
   * Fix Solax X3 Energy readout
 
