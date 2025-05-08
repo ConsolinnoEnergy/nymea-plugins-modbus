@@ -2,11 +2,12 @@ nymea-plugins-modbus (1.7.015) jammy; urgency=medium
 
   * Fix Sungrow SH battery capacity
   * Solax X3 EVC: Fix charging interruption
-  * Add PV-Kit to Solax X3 G4 and Qcells G3
+  * Solax X3 / Qcells G4:
+    - Add second meter as PV-Kit
+    - Add control for max charging current
   * Sungrow SH: Support battery control and export limit
   * Sax: fix current power meter
   * Lambda: Support not available modules
-  * Solax X3: Add maxChargingCurrent write
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
 
