@@ -1,12 +1,7 @@
-nymea-plugins-modbus (1.7.016) jammy; urgency=medium
-
-  * Added block write
-
- -- Oliver Wieland <o.wieland@consolinno.de>  Mon, 28 Apr 2025 10:37:04 +0200
-
 nymea-plugins-modbus (1.7.015) jammy; urgency=medium
 
   * Fix Sungrow SH battery capacity
+  * Added block write to modbus generator
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 27 Mar 2025 13:49:00 +0100
 
