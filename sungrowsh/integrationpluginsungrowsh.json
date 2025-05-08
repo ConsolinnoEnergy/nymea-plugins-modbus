@@ -15,7 +15,7 @@
                     "createMethods": ["discovery"],
                     "discoveryType": "weak",
                     "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": [ "energymeter", "energystorage"],
+                    "providedInterfaces": [ "energymeter", "controllablebattery"],
                     "paramTypes": [
                         {
                             "id": "62137142-da07-11ee-9522-2f74f3b1fc5d",
@@ -71,6 +71,43 @@
                             "unit": "Hertz",
                             "defaultValue": 0.00,
                             "cached": false
+                        },
+                        {
+                            "id": "50861a64-557d-4235-a61d-665944fc42ab",
+                            "name": "nominalPower",
+                            "displayName": "Nominal power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "629ab8ef-755b-4741-94df-2899703504d3",
+                            "name": "exportLimit",
+                            "displayName": "Export power limit",
+                            "displayNameEvent": "Export power limit changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0
+                        }
+                    ],
+                    "actionTypes": [ 
+                        {
+                            "id": "5ea0f808-f6b8-44f4-8099-ee1e7a14d60c",
+                            "name": "setExportLimit",
+                            "displayName": "Set Grid export limit",
+                            "paramTypes": [
+                                {
+                                    "id": "0afa8777-615c-4927-9581-6500e0bc5346",
+                                    "name": "exportLimit",
+                                    "displayName": "Grid Export Limit (percent of inverter nominal power)",
+                                    "type": "int",
+                                    "unit": "Percentage",
+                                    "defaultValue": 100,
+                                    "minValue": 0,
+                                    "maxValue": 100
+                                }
+                            ]
                         }
                     ]
                 },
@@ -186,7 +223,7 @@
                     "displayName": "Sungrow Battery",
                     "id": "0aea1b90-da08-11ee-9195-afc9f857a324",
                     "createMethods": ["auto"],
-                    "interfaces": ["energystorage", "connectable"],
+                    "interfaces": ["controllablebattery", "connectable"],
                     "stateTypes": [
                         {
                             "id": "0ff3c834-da08-11ee-bac7-0f1044f86ea3",
@@ -257,6 +294,59 @@
                             "possibleValues": ["idle", "charging", "discharging"],
                             "defaultValue": "idle",
                             "cached": false
+                        },
+                        {
+                            "id": "1885eec9-7875-48c9-a5cc-6db68b89f738",
+                            "name": "nominalPowerBattery",
+                            "displayName": "Nominal Power for control",
+                            "displayNameEvent": "Nominal power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 10000
+                        },
+                        {
+                            "id": "87c4a86c-11a9-4cf8-ab90-d93dc0f3c497",
+                            "name": "enableForcePower",
+                            "displayName": "Battery manual mode",
+                            "displayNameEvent": "Battery manual mode",
+                            "displayNameAction": "Battery manual mode enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
+                        },
+                        {
+                            "id": "3b3381b2-372f-45d2-9bb6-af3e0c61ed83",
+                            "name": "enableForcePowerState",
+                            "displayName": "Battery manual mode enabled",
+                            "displayNameEvent": "Battery manual mode state changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "d592d654-afcd-4097-bb46-ab9f9af2c8a0",
+                            "name": "forcePower",
+                            "displayName": "Battery force power (+:charge, -:discharge)",
+                            "displayNameEvent": "Battery force power changed",
+                            "displayNameAction": "Battery force power enabled",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "a36b9145-8a23-45c4-87cc-89fdeed5ec67",
+                            "name": "minBatteryLevel",
+                            "displayName": "min. Battery level",
+                            "displayNameEvent": "min Battery level changed",
+                            "displayNameAction": "min Battery level set",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 5,
+                            "maxValue": 50,
+                            "defaultValue": 5,
+                            "writable": true,
+                            "cached": true
                         }
                     ]
                 }
