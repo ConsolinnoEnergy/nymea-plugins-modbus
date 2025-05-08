@@ -658,6 +658,56 @@
                     "actionTypes": [ ]
                 },
                 {
+                    "name": "solaxMeterSecondary",
+                    "displayName": "Solax Meter  2",
+                    "id": "397378ae-bf2a-49b6-89ea-3a7e07a37bf4",
+                    "createMethods": ["auto"],
+                    "interfaces": ["solarinverter", "connectable"],
+                    "paramTypes": [ ],
+                    "stateTypes": [
+                        {
+                            "id": "bc555893-9040-40be-ae38-d5941ddfeab1",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "bdbccf16-0178-478e-9d68-ef8e26d35f6a",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "b38d017d-9be0-441f-9ae3-7988ce0ed440",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        },
+                        {
+                            "id": "8c16bea4-acac-4005-ab5d-2dcb58f1d987",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumed changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        }
+                    ],
+                    "actionTypes": [ ]
+                },
+                {
                     "name": "solaxBattery",
                     "displayName": "Solax Battery",
                     "id": "fb017a49-0a2e-4ae6-8277-3da0142cbbd2",

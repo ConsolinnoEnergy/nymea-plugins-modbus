@@ -358,67 +358,6 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 }
             });
 
-    // connect current state of evcharger
-    // connect(connection, &SolaxEvcModbusTcpConnection::stateChanged, thing, [thing](quint16 state) {
-    //     qCDebug(dcSolaxEvc()) << "State changed" << state;
-    //     // thing->setStateValue(solaxEvcStateStateTypeId, state);
-
-    //     switch (state) {
-    //     case SolaxEvcModbusTcpConnection::StateAvailable:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "Available");
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
-    //         thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StatePreparing:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "Preparing");
-    //         thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StateCharging:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "Charging");
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, true);
-    //         thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StateFinishing:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "Plugged In");
-    //         thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StateFaulted:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "Faulted");
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
-    //         // thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StateUnavailable:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "Unavailable");
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StateReserved:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "Reserved");
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StateSuspendedEV:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEV");
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StateSuspendedEVSE:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEVSE");
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StateUpdate:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "Update");
-    //         thing->setStateValue(solaxEvcChargingStateTypeId, false);
-    //         break;
-    //     case SolaxEvcModbusTcpConnection::StateCardActivation:
-    //         thing->setStateValue(solaxEvcStateStateTypeId, "Card Activation");
-    //         break;
-    //     default:
-    //         qCWarning(dcSolaxEvc()) << "State changed to unknown value";
-    //         // thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
-    //         break;
-    //     }
-    // });
-
     // connect fault code
     connect(connection, &SolaxEvcModbusTcpConnection::faultCodeChanged, thing,
             [thing](quint32 code) {
@@ -446,7 +385,17 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                 qCDebug(dcSolaxEvc()) << "Updated finished.";
 
                 quint16 state = connection->state();
-                if (m_lastState == 255 || m_lastState == state) {
+                qCDebug(dcSolaxEvc()) << "Received state" << state;
+
+                if (state <= 10 && (m_lastState == 255 || m_lastState == state)) {
+                    m_stateCounter++;
+                    qCDebug(dcSolaxEvc()) << "m_stateCounter is" << m_stateCounter;
+                } else if (state > 10 || m_lastState != state) {
+                    m_stateCounter = 0;
+                }
+
+                if (m_stateCounter == 5) {
+                    qCDebug(dcSolaxEvc()) << "m_stateCounter reached" << m_stateCounter;
                     switch (state) {
                     case SolaxEvcModbusTcpConnection::StateAvailable:
                         thing->setStateValue(solaxEvcStateStateTypeId, "Available");
@@ -501,6 +450,9 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                         // thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
                         break;
                     }
+
+                    qCDebug(dcSolaxEvc()) << "Resetting m_stateCounter to 0";
+                    m_stateCounter = 0;
                 }
                 m_lastState = state;
 

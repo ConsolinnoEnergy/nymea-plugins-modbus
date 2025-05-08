@@ -65,6 +65,7 @@ private:
     void setupTcpConnection(ThingSetupInfo *info);
 
     quint16 m_lastState = 255;
+    quint16 m_stateCounter = 0;
 };
 
 #endif // INTEGRATIONPLUGINSOLAXEVC_H
