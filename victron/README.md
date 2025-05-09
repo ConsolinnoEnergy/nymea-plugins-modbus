@@ -7,7 +7,7 @@ Connects to a Victron GX gateway
 * Victron GX devices like Cerbo GX, CCGX, Venus GX
 * Victron inverter connected via VE.bus like Multis or Quattros 
 * Victron Meters
-* Connected batteries (only system registers)
+* Connected batteries
 
 ## Tested connections
 * modpoll cmd
@@ -17,6 +17,7 @@ Connects to a Victron GX gateway
 
 ## Requirements
 
+* During discovery the user must enter the UnitIDs (SlaveIDs) for VE.bus and grid connection according to his setup
 * For remote battery control the Victron inverter needs to be connected via VE.bus to the Victron GX gateway
 
 
