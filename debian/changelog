@@ -12,6 +12,7 @@ nymea-plugins-modbus (1.7.015) jammy; urgency=medium
   * Lambda: Support not available modules
   * SolarEdge: Add battery control for solaredge hybrid inverter
   * Victron GX: Initial plugin added
+  * Sofarsolar HYD / Azzurro hybrid inverters: LPP added
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
 
