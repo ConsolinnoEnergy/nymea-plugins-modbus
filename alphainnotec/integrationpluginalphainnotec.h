@@ -57,6 +57,7 @@ public:
 
 private:
     PluginTimer *m_pluginTimer = nullptr;
+    qint64 m_turnOffHysteresis = -1;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, AlphaInnotecModbusTcpConnection *> m_connections;
