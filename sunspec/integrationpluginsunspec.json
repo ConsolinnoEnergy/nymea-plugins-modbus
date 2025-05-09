@@ -1500,7 +1500,7 @@
                     "displayName": "SolarEdge battery",
                     "id": "7900471a-da3f-4f03-98be-3e3d9c841546",
                     "createMethods": [ "Auto" ],
-                    "interfaces": ["energystorage", "connectable"],
+                    "interfaces": ["energystorage", "connectable", "controllablebattery"],
                     "paramTypes": [
                         {
                             "id": "7413cce6-48c1-4924-89bc-915beed67b57",
@@ -1667,7 +1667,55 @@
                             "displayNameEvent": "Version changed",
                             "type": "QString",
                             "defaultValue": ""
+                        },
+                        {
+                            "id": "1d33a4c7-ebd2-461a-a6f4-c6abbbd48324",
+                            "name": "enableForcePower",
+                            "displayName": "Enable Force power",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true,
+                            "displayNameAction": "Enable force power"
+                        },
+                        {
+                            "id": "c39f14b7-e43d-4a86-bd1b-f2b8ab33ce45",
+                            "name": "enableForcePowerState",
+                            "displayName": "Force power state",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "6edd8052-52d0-4027-889f-c30e220e009c",
+                            "name": "forcePower",
+                            "displayName": "Force power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "writable": true,
+                            "cached": true,
+                            "displayNameAction": "Set force power"
+                        },
+                        {
+                            "id": "10537ba1-6bc3-449b-ac58-ee8a9a2162e8",
+                            "name": "forcePowerTimeout",
+                            "displayName": "Force power timeout",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "defaultValue": 500,
+                            "writable": true,
+                            "displayNameAction": "Set force power timeout",
+                            "cached": true
+                        },
+                        {
+                            "id": "57a41ce8-92fb-45c3-96f3-35a50bd39f31",
+                            "name": "forcePowerTimeoutCountdown",
+                            "displayName": "Force power timeout countdown",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "defaultValue": 500,
+                            "cached": true
                         }
+                
                     ]
                 }
             ]

@@ -98,7 +98,7 @@ def writeTcpHeaderFile():
             writeInternalPropertyReadMethodDeclarationsTcp(headerFile, blockDefinition['registers'])
 
         writeLine(headerFile)
-        writeInternalBlockReadMethodDeclarationsTcp(headerFile, registerJson['blocks'])
+        writeInternalBlockReadWriteMethodDeclarationsTcp(headerFile, registerJson['blocks'])
 
     writeLine(headerFile)
 
@@ -158,6 +158,12 @@ def writeTcpHeaderFile():
     writeLine(headerFile, '    quint8 m_communicationFailedMax = %s;' % (errorLimitUntilNotReachable))
     writeLine(headerFile, '    quint8 m_communicationFailedCounter = 0;')
     writeLine(headerFile)
+
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyBlockScalingDeclaration(headerFile, blockDefinition)
+    writeLine(headerFile)
+
     writeLine(headerFile, '    QVector<QModbusReply *> m_pendingInitReplies;')
     writeLine(headerFile, '    QVector<QModbusReply *> m_pendingUpdateReplies;')
     writeLine(headerFile)
@@ -218,6 +224,12 @@ def writeTcpSourceFile():
     writeLine(sourceFile)
     writeLine(sourceFile, '        evaluateReachableState();')
     writeLine(sourceFile, '    });')
+    writeLine(sourceFile)
+
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyBlockScalingImplementation(sourceFile, blockDefinition)
+
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -288,7 +300,7 @@ def writeTcpSourceFile():
         for blockDefinition in registerJson['blocks']:
             writeInternalPropertyReadMethodImplementationsTcp(sourceFile, className, blockDefinition['registers'])
 
-        writeInternalBlockReadMethodImplementationsTcp(sourceFile, className, registerJson['blocks'])
+        writeInternalBlockReadWriteMethodImplementationsTcp(sourceFile, className, registerJson['blocks'])
 
     # Write internal processors of properties
     writePropertyProcessMethodImplementations(sourceFile, className, registerJson['registers'])
@@ -469,7 +481,7 @@ def writeRtuHeaderFile():
             writeInternalPropertyReadMethodDeclarationsRtu(headerFile, blockDefinition['registers'])
 
         writeLine(headerFile)
-        writeInternalBlockReadMethodDeclarationsRtu(headerFile, registerJson['blocks'])
+        writeInternalBlockReadWriteMethodDeclarationsRtu(headerFile, registerJson['blocks'])
 
     # Write init and update method declarations
     writeLine(headerFile, '    virtual bool initialize();')
@@ -528,6 +540,12 @@ def writeRtuHeaderFile():
     writeLine(headerFile, '    quint8 m_communicationFailedMax = %s;' % (errorLimitUntilNotReachable))
     writeLine(headerFile, '    quint8 m_communicationFailedCounter = 0;')
     writeLine(headerFile)
+
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyBlockScalingDeclaration(headerFile, blockDefinition)
+    writeLine(headerFile)
+
     writeLine(headerFile, '    QVector<ModbusRtuReply *> m_pendingInitReplies;')
     writeLine(headerFile, '    QVector<ModbusRtuReply *> m_pendingUpdateReplies;')
     writeLine(headerFile)
@@ -595,6 +613,12 @@ def writeRtuSourceFile():
     writeLine(sourceFile, '    } else {')
     writeLine(sourceFile, '        evaluateReachableState();')
     writeLine(sourceFile, '    }')
+    writeLine(sourceFile)
+
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyBlockScalingImplementation(sourceFile, blockDefinition)
+
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -676,7 +700,7 @@ def writeRtuSourceFile():
         for blockDefinition in registerJson['blocks']:
             writeInternalPropertyReadMethodImplementationsRtu(sourceFile, className, blockDefinition['registers'])
 
-        writeInternalBlockReadMethodImplementationsRtu(sourceFile, className, registerJson['blocks'])
+        writeInternalBlockReadWriteMethodImplementationsRtu(sourceFile, className, registerJson['blocks'])
 
     # Write internal processors of properties
     writePropertyProcessMethodImplementations(sourceFile, className, registerJson['registers'])
@@ -784,6 +808,7 @@ def writeRtuSourceFile():
 
     sourceFile.close()
 
+        
 
 ############################################################################################
 # Main
