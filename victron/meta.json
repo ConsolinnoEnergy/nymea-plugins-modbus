@@ -1,0 +1,13 @@
+{
+    "title": "Victron energy",
+    "tagline": "Connect to victron energy inverters.",
+    "icon": "victron.png",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}

@@ -1,5 +1,22 @@
-nymea-plugins-modbus (1.7.014) jammy; urgency=medium
+nymea-plugins-modbus (1.7.015) jammy; urgency=medium
 
+  * Fix Sungrow SH battery capacity
+  * Added block write to modbus generator
+  * Kaco NH3: Fix PV and Bat power
+  * Solax X3 EVC: Fix charging interruption
+  * Solax X3 / Qcells G4:
+    - Add second meter as PV-Kit
+    - Add control for max charging current
+  * Sungrow SH: Support battery control and export limit
+  * Sax: fix current power meter
+  * Lambda: Support not available modules
+  * SolarEdge: Add battery control for solaredge hybrid inverter
+  * Victron GX: Initial plugin added
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
+
+nymea-plugins-modbus (1.7.014) jammy; urgency=medium
+ 
   * DvModbusIR: Fix current power sign
   * Fix Solax X3 Energy readout
 
