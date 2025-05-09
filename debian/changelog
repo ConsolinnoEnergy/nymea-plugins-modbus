@@ -11,6 +11,7 @@ nymea-plugins-modbus (1.7.015) jammy; urgency=medium
   * Sax: fix current power meter
   * Lambda: Support not available modules
   * SolarEdge: Add battery control for solaredge hybrid inverter
+  * Victron GX: Initial plugin added
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
 
