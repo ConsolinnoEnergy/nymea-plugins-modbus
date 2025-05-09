@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2024, nymea GmbH
+* Copyright 2013 - 2025, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This fileDescriptor is part of nymea.
@@ -135,6 +135,11 @@ quint32 SolaxModbusTcpConnection::inverterFaultBits() const
 quint16 SolaxModbusTcpConnection::meter1CommunicationState() const
 {
     return m_meter1CommunicationState;
+}
+
+quint16 SolaxModbusTcpConnection::meter2CommunicationState() const
+{
+    return m_meter2CommunicationState;
 }
 
 float SolaxModbusTcpConnection::readExportLimit() const
@@ -382,6 +387,21 @@ float SolaxModbusTcpConnection::batMaxChargeCurrent() const
 float SolaxModbusTcpConnection::batMaxDischargeCurrent() const
 {
     return m_batMaxDischargeCurrent;
+}
+
+qint32 SolaxModbusTcpConnection::currentPowerMeter2() const
+{
+    return m_currentPowerMeter2;
+}
+
+float SolaxModbusTcpConnection::feedinEnergyTotalMeter2() const
+{
+    return m_feedinEnergyTotalMeter2;
+}
+
+float SolaxModbusTcpConnection::consumEnergyTotalMeter2() const
+{
+    return m_consumEnergyTotalMeter2;
 }
 
 bool SolaxModbusTcpConnection::initialize()
@@ -1052,11 +1072,90 @@ void SolaxModbusTcpConnection::update12()
         const QModbusDataUnit unit = reply->result();
         qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Modbus power control read-only (0x89)\" register" << 256 << "size:" << 1 << unit.values();
         processModbusPowerControlRegisterValues(unit.values());
-        verifyUpdateFinished();
+        update13();
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
         qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"Modbus power control read-only (0x89)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::update13()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read secondaryMeterData
+    reply = readBlockSecondaryMeterData();
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read block \"secondaryMeterData\" registers from:" << 168 << "size:" << 6;
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading block \"secondaryMeterData\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        const QVector<quint16> blockValues = unit.values();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"secondaryMeterData\" register" << 168 << "size:" << 6 << blockValues;
+        processCurrentPowerMeter2RegisterValues(blockValues.mid(0, 2));
+        processFeedinEnergyTotalMeter2RegisterValues(blockValues.mid(2, 2));
+        processConsumEnergyTotalMeter2RegisterValues(blockValues.mid(4, 2));
+        update14();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"secondaryMeterData\" registers" << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::update14()
+{
+    QModbusReply *reply = nullptr;
+
+    // Read Meter 1 communication status (0xB8)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Meter 1 communication status (0xB8)\" register:" << 185 << "size:" << 1;
+    reply = readMeter2CommunicationState();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Meter 1 communication status (0xB8)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    m_pendingUpdateReplies.append(reply);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        m_pendingUpdateReplies.removeAll(reply);
+        handleModbusError(reply->error());
+        if (reply->error() != QModbusDevice::NoError) {
+            verifyUpdateFinished();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Meter 1 communication status (0xB8)\" register" << 184 << "size:" << 1 << unit.values();
+        processMeter2CommunicationStateRegisterValues(unit.values());
+        verifyUpdateFinished();
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while reading \"Meter 1 communication status (0xB8)\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 
@@ -1202,6 +1301,36 @@ void SolaxModbusTcpConnection::updateMeter1CommunicationState()
             const QModbusDataUnit unit = reply->result();
             qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Meter 1 communication status (0xB8)\" register" << 184 << "size:" << 1 << unit.values();
             processMeter1CommunicationStateRegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"Meter 1 communication status (0xB8)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::updateMeter2CommunicationState()
+{
+    // Update registers from Meter 1 communication status (0xB8)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Meter 1 communication status (0xB8)\" register:" << 184 << "size:" << 1;
+    QModbusReply *reply = readMeter2CommunicationState();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Meter 1 communication status (0xB8)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Meter 1 communication status (0xB8)\" register" << 184 << "size:" << 1 << unit.values();
+            processMeter2CommunicationStateRegisterValues(unit.values());
         }
     });
 
@@ -1750,6 +1879,66 @@ void SolaxModbusTcpConnection::updateSolarEnergyToday()
     });
 }
 
+void SolaxModbusTcpConnection::updateFeedinEnergyTotalMeter2()
+{
+    // Update registers from Exported energy, meter 2, total (0xAA)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Exported energy, meter 2, total (0xAA)\" register:" << 170 << "size:" << 2;
+    QModbusReply *reply = readFeedinEnergyTotalMeter2();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Exported energy, meter 2, total (0xAA)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Exported energy, meter 2, total (0xAA)\" register" << 170 << "size:" << 2 << unit.values();
+            processFeedinEnergyTotalMeter2RegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"Exported energy, meter 2, total (0xAA)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
+void SolaxModbusTcpConnection::updateConsumEnergyTotalMeter2()
+{
+    // Update registers from Consumed energy, meter 2, total (0xAC)
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read \"Consumed energy, meter 2, total (0xAC)\" register:" << 172 << "size:" << 2;
+    QModbusReply *reply = readConsumEnergyTotalMeter2();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading \"Consumed energy, meter 2, total (0xAC)\" registers from" << hostAddress().toString() << errorString();
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from \"Consumed energy, meter 2, total (0xAC)\" register" << 172 << "size:" << 2 << unit.values();
+            processConsumEnergyTotalMeter2RegisterValues(unit.values());
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating \"Consumed energy, meter 2, total (0xAC)\" registers from" << hostAddress().toString() << error << reply->errorString();
+    });
+}
+
 void SolaxModbusTcpConnection::updateIdentificationBlock()
 {
     // Update register block "identification"
@@ -2000,6 +2189,39 @@ void SolaxModbusTcpConnection::updateBatMaxInfoBlock()
     });
 }
 
+void SolaxModbusTcpConnection::updateSecondaryMeterDataBlock()
+{
+    // Update register block "secondaryMeterData"
+    qCDebug(dcSolaxModbusTcpConnection()) << "--> Read block \"secondaryMeterData\" registers from:" << 168 << "size:" << 6;
+    QModbusReply *reply = readBlockSecondaryMeterData();
+    if (!reply) {
+        qCWarning(dcSolaxModbusTcpConnection()) << "Error occurred while reading block \"secondaryMeterData\" registers";
+        return;
+    }
+
+    if (reply->isFinished()) {
+        reply->deleteLater(); // Broadcast reply returns immediatly
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        handleModbusError(reply->error());
+        if (reply->error() == QModbusDevice::NoError) {
+            const QModbusDataUnit unit = reply->result();
+            const QVector<quint16> blockValues = unit.values();
+            qCDebug(dcSolaxModbusTcpConnection()) << "<-- Response from reading block \"secondaryMeterData\" register" << 168 << "size:" << 6 << blockValues;
+            processCurrentPowerMeter2RegisterValues(blockValues.mid(0, 2));
+            processFeedinEnergyTotalMeter2RegisterValues(blockValues.mid(2, 2));
+            processConsumEnergyTotalMeter2RegisterValues(blockValues.mid(4, 2));
+        }
+    });
+
+    connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
+        qCWarning(dcSolaxModbusTcpConnection()) << "Modbus reply error occurred while updating block \"secondaryMeterData\" registers" << error << reply->errorString();
+    });
+}
+
 QModbusReply *SolaxModbusTcpConnection::readBatteryCapacity()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 28, 1);
@@ -2027,6 +2249,12 @@ QModbusReply *SolaxModbusTcpConnection::readInverterFaultBits()
 QModbusReply *SolaxModbusTcpConnection::readMeter1CommunicationState()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 184, 1);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readMeter2CommunicationState()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 185, 1);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -2294,6 +2522,24 @@ QModbusReply *SolaxModbusTcpConnection::readBatMaxDischargeCurrent()
     return sendReadRequest(request, m_slaveId);
 }
 
+QModbusReply *SolaxModbusTcpConnection::readCurrentPowerMeter2()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 168, 2);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readFeedinEnergyTotalMeter2()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 170, 2);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readConsumEnergyTotalMeter2()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 172, 2);
+    return sendReadRequest(request, m_slaveId);
+}
+
 QModbusReply *SolaxModbusTcpConnection::readBlockIdentification()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 7, 14);
@@ -2333,6 +2579,12 @@ QModbusReply *SolaxModbusTcpConnection::readBlockSolarEnergy()
 QModbusReply *SolaxModbusTcpConnection::readBlockBatMaxInfo()
 {
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 142, 4);
+    return sendReadRequest(request, m_slaveId);
+}
+
+QModbusReply *SolaxModbusTcpConnection::readBlockSecondaryMeterData()
+{
+    QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, 168, 6);
     return sendReadRequest(request, m_slaveId);
 }
 
@@ -2388,6 +2640,17 @@ void SolaxModbusTcpConnection::processMeter1CommunicationStateRegisterValues(con
     if (m_meter1CommunicationState != receivedMeter1CommunicationState) {
         m_meter1CommunicationState = receivedMeter1CommunicationState;
         emit meter1CommunicationStateChanged(m_meter1CommunicationState);
+    }
+}
+
+void SolaxModbusTcpConnection::processMeter2CommunicationStateRegisterValues(const QVector<quint16> values)
+{
+    quint16 receivedMeter2CommunicationState = ModbusDataUtils::convertToUInt16(values);
+    emit meter2CommunicationStateReadFinished(receivedMeter2CommunicationState);
+
+    if (m_meter2CommunicationState != receivedMeter2CommunicationState) {
+        m_meter2CommunicationState = receivedMeter2CommunicationState;
+        emit meter2CommunicationStateChanged(m_meter2CommunicationState);
     }
 }
 
@@ -2875,6 +3138,39 @@ void SolaxModbusTcpConnection::processBatMaxDischargeCurrentRegisterValues(const
     }
 }
 
+void SolaxModbusTcpConnection::processCurrentPowerMeter2RegisterValues(const QVector<quint16> values)
+{
+    qint32 receivedCurrentPowerMeter2 = ModbusDataUtils::convertToInt32(values, m_endianness);
+    emit currentPowerMeter2ReadFinished(receivedCurrentPowerMeter2);
+
+    if (m_currentPowerMeter2 != receivedCurrentPowerMeter2) {
+        m_currentPowerMeter2 = receivedCurrentPowerMeter2;
+        emit currentPowerMeter2Changed(m_currentPowerMeter2);
+    }
+}
+
+void SolaxModbusTcpConnection::processFeedinEnergyTotalMeter2RegisterValues(const QVector<quint16> values)
+{
+    float receivedFeedinEnergyTotalMeter2 = ModbusDataUtils::convertToUInt32(values, m_endianness) * 1.0 * pow(10, -2);
+    emit feedinEnergyTotalMeter2ReadFinished(receivedFeedinEnergyTotalMeter2);
+
+    if (m_feedinEnergyTotalMeter2 != receivedFeedinEnergyTotalMeter2) {
+        m_feedinEnergyTotalMeter2 = receivedFeedinEnergyTotalMeter2;
+        emit feedinEnergyTotalMeter2Changed(m_feedinEnergyTotalMeter2);
+    }
+}
+
+void SolaxModbusTcpConnection::processConsumEnergyTotalMeter2RegisterValues(const QVector<quint16> values)
+{
+    float receivedConsumEnergyTotalMeter2 = ModbusDataUtils::convertToUInt32(values, m_endianness) * 1.0 * pow(10, -2);
+    emit consumEnergyTotalMeter2ReadFinished(receivedConsumEnergyTotalMeter2);
+
+    if (m_consumEnergyTotalMeter2 != receivedConsumEnergyTotalMeter2) {
+        m_consumEnergyTotalMeter2 = receivedConsumEnergyTotalMeter2;
+        emit consumEnergyTotalMeter2Changed(m_consumEnergyTotalMeter2);
+    }
+}
+
 void SolaxModbusTcpConnection::handleModbusError(QModbusDevice::Error error)
 {
     if (error == QModbusDevice::NoError) {
@@ -2993,6 +3289,7 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - BMS warning bits msb (0x45): " << solaxModbusTcpConnection->bmsWarningMsb() << "\n";
     debug.nospace().noquote() << "    - Inverter fault bits (0x40): " << solaxModbusTcpConnection->inverterFaultBits() << "\n";
     debug.nospace().noquote() << "    - Meter 1 communication status (0xB8): " << solaxModbusTcpConnection->meter1CommunicationState() << "\n";
+    debug.nospace().noquote() << "    - Meter 2 communication status (0xB8): " << solaxModbusTcpConnection->meter2CommunicationState() << "\n";
     debug.nospace().noquote() << "    - Read grid export limit (0xB6): " << solaxModbusTcpConnection->readExportLimit() << " [W]" << "\n";
     debug.nospace().noquote() << "    - Firmware version (0x7D): " << solaxModbusTcpConnection->firmwareVersion() << "\n";
     debug.nospace().noquote() << "    - Inverter rated power (0xBA): " << solaxModbusTcpConnection->inverterType() << " [W]" << "\n";
@@ -3037,6 +3334,9 @@ QDebug operator<<(QDebug debug, SolaxModbusTcpConnection *solaxModbusTcpConnecti
     debug.nospace().noquote() << "    - Battery max discharge voltage (0x8F): " << solaxModbusTcpConnection->batMaxDischargeVolt() << " [V]" << "\n";
     debug.nospace().noquote() << "    - Battery max charge current (0x90): " << solaxModbusTcpConnection->batMaxChargeCurrent() << " [A]" << "\n";
     debug.nospace().noquote() << "    - Battery max discharge current (0x91): " << solaxModbusTcpConnection->batMaxDischargeCurrent() << " [A]" << "\n";
+    debug.nospace().noquote() << "    - Meter 2 feedin power (0xA8): " << solaxModbusTcpConnection->currentPowerMeter2() << " [W]" << "\n";
+    debug.nospace().noquote() << "    - Exported energy, meter 2, total (0xAA): " << solaxModbusTcpConnection->feedinEnergyTotalMeter2() << " [kWh]" << "\n";
+    debug.nospace().noquote() << "    - Consumed energy, meter 2, total (0xAC): " << solaxModbusTcpConnection->consumEnergyTotalMeter2() << " [kWh]" << "\n";
     return debug.quote().space();
 }
 
