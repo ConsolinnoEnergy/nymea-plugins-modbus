@@ -1,6 +1,7 @@
 nymea-plugins-modbus (1.7.015) jammy; urgency=medium
 
   * Fix Sungrow SH battery capacity
+  * Kaco NH3: Fix PV and Bat power
   * Solax X3 EVC: Fix charging interruption
   * Solax X3 / Qcells G4:
     - Add second meter as PV-Kit
