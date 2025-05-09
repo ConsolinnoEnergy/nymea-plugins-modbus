@@ -570,6 +570,49 @@
                     "access": "RO"
                 }
             ]
+        },
+        {
+            "id": "secondaryMeterData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currentPowerMeter2",
+                    "address": 168,
+                    "size": 2,
+                    "type": "int32",
+                    "registerType": "inputRegister",
+                    "description": "Meter 2 feedin power (0xA8)",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "feedinEnergyTotalMeter2",
+                    "address": 170,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Exported energy, meter 2, total (0xAA)",
+                    "unit": "kWh",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "consumEnergyTotalMeter2",
+                    "address": 172,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "readSchedule": "update",
+                    "description": "Consumed energy, meter 2, total (0xAC)",
+                    "unit": "kWh",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
         }
     ],
     "registers": [
@@ -594,6 +637,19 @@
             "unit": "%",
             "defaultValue": "0",
             "access": "RO"
+        },
+        {
+            "id": "writeChargeMaxCurrent",
+            "address": 36,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Write BMS charge max current (0x24)",
+            "unit": "A",
+            "defaultValue": "0",
+            "staticScaleFactor": -1,
+            "access": "RW"
         },
         {
             "id": "bmsWarningLsb",
@@ -636,6 +692,17 @@
             "registerType": "inputRegister",
             "readSchedule": "update",
             "description": "Meter 1 communication status (0xB8)",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
+            "id": "meter2CommunicationState",
+            "address": 185,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Meter 2 communication status (0xB9)",
             "defaultValue": "0",
             "access": "RO"
         },

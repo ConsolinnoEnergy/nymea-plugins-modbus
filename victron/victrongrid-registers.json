@@ -1,0 +1,143 @@
+{
+    "className": "VictronGrid",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 5,
+    "checkReachableRegister": "gridVoltagePhaseA",
+    "enums": [
+    ],
+    "blocks": [
+        {
+            "id": "grid",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "gridVoltagePhaseA",
+                    "address": 2616,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Grid voltage on L1",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridCurrentPhaseA",
+                    "address": 2617,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Grid current on L1",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridVoltagePhaseB",
+                    "address": 2618,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Grid voltage on L2",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridCurrentPhaseB",
+                    "address": 2619,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Grid current on L2",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridVoltagePhaseC",
+                    "address": 2620,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Grid voltage on L3",
+                    "unit": "V",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridCurrentPhaseC",
+                    "address": 2621,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Grid current on L3",
+                    "unit": "A",
+                    "staticScaleFactor": -1,
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 2622,
+                    "size": 12,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridTotalEnergyConsumed",
+                    "address": 2634,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Total energy from grid",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridTotalEnergyProduced",
+                    "address": 2636,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Total energy to grid",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 2638,
+                    "size": 6,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "gridFrequency",
+                    "address": 2644,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Grid frequency",
+                    "unit": "Hz",
+                    "staticScaleFactor": -2,
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+    ]
+}
