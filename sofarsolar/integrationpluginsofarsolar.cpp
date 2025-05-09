@@ -685,7 +685,7 @@ bool IntegrationPluginSofarsolar::executePowerControl(SofarsolarModbusRtuConnect
 {
     QVector<quint16> values = m_powerControl->Registers();
 
-    ModbusRtuReply *reply = sofarsolarmodbusrtuconnection->setBlockPowerControl(values);
+    ModbusRtuReply *reply = sofarsolarmodbusrtuconnection->writeBlockPowerControl(values);
     return handleReply(reply);
 }
 

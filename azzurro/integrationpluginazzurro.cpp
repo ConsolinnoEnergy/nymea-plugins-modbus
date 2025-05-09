@@ -684,7 +684,7 @@ void IntegrationPluginAzzurro::executeAction(ThingActionInfo *info)
 bool IntegrationPluginAzzurro::executePowerControl(AzzurroModbusRtuConnection *azzurromodbusrtuconnection)
 {
     QVector<quint16> values = m_powerControl->Registers();
-    ModbusRtuReply *reply = azzurromodbusrtuconnection->setBlockPowerControl(values);
+    ModbusRtuReply *reply = azzurromodbusrtuconnection->writeBlockPowerControl(values);
     return handleReply(reply);
 }
 

@@ -379,7 +379,7 @@ def validateBlocks(blockDefinitions):
         blockStartAddress = 0
         registerCount = 0
         blockSize = 0
-        registerAccess = ""^
+        registerAccess = ""
         registerType = ""
 
         for i, blockRegister in enumerate(blockRegisters):
@@ -389,6 +389,7 @@ def validateBlocks(blockDefinitions):
         
             if i == 0:
                 blockStartAddress = blockRegister['address']
+                registerAccess = blockRegister['access']
                 registerType = blockRegister['registerType']
             else:
                 previouseRegisterAddress = blockRegisters[i - 1]['address']
@@ -396,6 +397,10 @@ def validateBlocks(blockDefinitions):
                 previouseRegisterType = blockRegisters[i - 1]['registerType']
                 if previouseRegisterAddress + previouseRegisterSize != blockRegister['address']:
                     logger.warning('Error: block %s has invalid register order in register %s. There seems to be a gap between the registers.' % (blockName, blockRegister['id']))
+                    exit(1)
+
+                if blockRegister['access'] != registerAccess:
+                    logger.warning('Error: block %s has inconsistent register access in register %s. The block registers dont seem to have the same access rights.' % (blockName, blockRegister['id']))
                     exit(1)
 
                 if blockRegister['registerType'] != registerType:
@@ -406,6 +411,7 @@ def validateBlocks(blockDefinitions):
             blockSize += blockRegister['size']
 
         logger.debug('Define valid block \"%s\" starting at %s with length %s containing %s properties to read.' % (blockName, blockStartAddress, blockSize, registerCount))
+
 
 
 def writeBlocksUpdateMethodDeclarations(fileDescriptor, blockDefinitions):
