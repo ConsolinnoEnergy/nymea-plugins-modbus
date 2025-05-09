@@ -66,9 +66,7 @@ void IntegrationPluginVictron::discoverThings(ThingDiscoveryInfo *info)
 
             ParamList params;
             params << Param(victronInverterTcpThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
-            params << Param(victronInverterTcpThingMacAddressParamTypeId, result.unitIdSystem);
-            params << Param(victronInverterTcpThingMacAddressParamTypeId, result.unitIdVebus);
-            params << Param(victronInverterTcpThingMacAddressParamTypeId, result.unitIdGrid);
+            // FIXME: UnitID Params entered by user also needed here?
             // Note: if we discover also the port and modbusaddress, we must fill them in from the discovery here, for now everywhere the defaults...
             descriptor.setParams(params);
             info->addThingDescriptor(descriptor);
@@ -90,12 +88,20 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
 
         // Handle reconfigure
         if (m_systemTcpConnections.contains(thing)) {
-            qCDebug(dcVictron()) << "Reconfiguring existing thing" << thing->name();
+            qCDebug(dcVictron()) << "System: Reconfiguring existing thing" << thing->name();
             m_systemTcpConnections.take(thing)->deleteLater();
 
             if (m_monitors.contains(thing)) {
                 hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
             }
+        }
+        if (m_vebusTcpConnections.contains(thing)) {
+            qCDebug(dcVictron()) << "Vebus: Reconfiguring existing thing" << thing->name();
+            m_vebusTcpConnections.take(thing)->deleteLater();
+        }
+        if (m_gridTcpConnections.contains(thing)) {
+            qCDebug(dcVictron()) << "Grid: Reconfiguring existing thing" << thing->name();
+            m_gridTcpConnections.take(thing)->deleteLater();
         }
 
         MacAddress macAddress = MacAddress(thing->paramValue(victronInverterTcpThingMacAddressParamTypeId).toString());
@@ -143,15 +149,21 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             if (reachable && !thing->stateValue("connected").toBool()) {
                 systemConnection->setHostAddress(monitor->networkDeviceInfo().address());
                 systemConnection->reconnectDevice();
+                vebusConnection->setHostAddress(monitor->networkDeviceInfo().address());
+                vebusConnection->reconnectDevice();
+                gridConnection->setHostAddress(monitor->networkDeviceInfo().address());
+                gridConnection->reconnectDevice();
             } else if (!reachable) {
                 // Note: Auto reconnect is disabled explicitly and
                 // the device will be connected once the monitor says it is reachable again
                 systemConnection->disconnectDevice();
+                vebusConnection->disconnectDevice();
+                gridConnection->disconnectDevice();
             }
         });
 
         connect(systemConnection, &VictronSystemModbusTcpConnection::reachableChanged, thing, [this, thing, systemConnection](bool reachable){
-            qCInfo(dcVictron()) << "Reachable changed to" << reachable << "for" << thing;
+            qCInfo(dcVictron()) << "System reachable changed to" << reachable << "for" << thing;
             if (reachable) {
                 // Connected true will be set after successfull init
                 systemConnection->initialize();
@@ -178,6 +190,22 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
             }
         });
 
+        connect(vebusConnection, &VictronVebusModbusTcpConnection::reachableChanged, thing, [this, thing, vebusConnection](bool reachable){
+            qCInfo(dcVictron()) << "Vebus reachable changed to" << reachable << "for" << thing;
+            if (reachable) {
+                // Connected true will be set after successfull init
+                vebusConnection->initialize();
+            }
+        });
+
+        connect(gridConnection, &VictronGridModbusTcpConnection::reachableChanged, thing, [this, thing, gridConnection](bool reachable){
+            qCInfo(dcVictron()) << "Grid reachable changed to" << reachable << "for" << thing;
+            if (reachable) {
+                // Connected true will be set after successfull init
+                gridConnection->initialize();
+            }
+        });
+
         connect(systemConnection, &VictronSystemModbusTcpConnection::initializationFinished, thing, [=](bool success){
             thing->setStateValue("connected", success);
 
@@ -189,8 +217,26 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
                 // Try once to reconnect the device
                 systemConnection->reconnectDevice();
             } else {
-                qCInfo(dcVictron()) << "Connection initialized successfully for" << thing;
+                qCInfo(dcVictron()) << "System: Connection initialized successfully for" << thing;
                 systemConnection->update();
+            }
+        });
+
+        connect(vebusConnection, &VictronVebusModbusTcpConnection::initializationFinished, thing, [=](bool success){
+            if (!success) {
+                // Try once to reconnect the device
+                vebusConnection->reconnectDevice();
+            } else {
+                qCInfo(dcVictron()) << "Vebus: Connection initialized successfully for" << thing;
+            }
+        });
+
+        connect(gridConnection, &VictronGridModbusTcpConnection::initializationFinished, thing, [=](bool success){
+            if (!success) {
+                // Try once to reconnect the device
+                gridConnection->reconnectDevice();
+            } else {
+                qCInfo(dcVictron()) << "Grid: Connection initialized successfully for" << thing;
             }
         });
 
@@ -385,33 +431,24 @@ void IntegrationPluginVictron::postSetupThing(Thing *thing)
                     auto connection = m_systemTcpConnections.value(thing);
 
                     if (connection->reachable()) {
-                        qCDebug(dcVictron()) << "Updating connection" << connection->hostAddress().toString();
+                        qCDebug(dcVictron()) << "System: Updating connection" << connection->hostAddress().toString();
                         connection->update();
-                    } else {
-                        qCDebug(dcVictron()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
-                        connection->reconnectDevice();
                     }
 
                     // triggering multiple updates at the same time should be fine due to different slave IDs
                     auto vebusConnection = m_vebusTcpConnections.value(thing);
 
                     if (vebusConnection->reachable()) {
-                        qCDebug(dcVictron()) << "Updating connection" << vebusConnection->hostAddress().toString();
+                        qCDebug(dcVictron()) << "Vebus: Updating connection" << vebusConnection->hostAddress().toString();
                         vebusConnection->update();
-                    } else {
-                        qCDebug(dcVictron()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
-                        vebusConnection->reconnectDevice();
                     }
 
                     // triggering multiple updates at the same time should be fine due to different slave IDs
                     auto gridConnection = m_gridTcpConnections.value(thing);
 
                     if (gridConnection->reachable()) {
-                        qCDebug(dcVictron()) << "Updating connection" << gridConnection->hostAddress().toString();
+                        qCDebug(dcVictron()) << "Grid: Updating connection" << gridConnection->hostAddress().toString();
                         gridConnection->update();
-                    } else {
-                        qCDebug(dcVictron()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
-                        gridConnection->reconnectDevice();
                     }
                 }
             });
@@ -460,10 +497,24 @@ void IntegrationPluginVictron::executeAction(ThingActionInfo *info)
 
 void IntegrationPluginVictron::thingRemoved(Thing *thing)
 {
-    if (thing->thingClassId() == victronInverterTcpThingClassId && m_systemTcpConnections.contains(thing)) {
-        auto connection = m_systemTcpConnections.take(thing);
-        connection->disconnectDevice();
-        delete connection;
+    if (thing->thingClassId() == victronInverterTcpThingClassId) {
+        if (m_systemTcpConnections.contains(thing)) {
+            auto connection = m_systemTcpConnections.take(thing);
+            connection->disconnectDevice();
+            delete connection;
+        }
+
+        if (m_vebusTcpConnections.contains(thing)) {
+            auto connection = m_vebusTcpConnections.take(thing);
+            connection->disconnectDevice();
+            delete connection;
+        }
+
+        if (m_gridTcpConnections.contains(thing)) {
+            auto connection = m_gridTcpConnections.take(thing);
+            connection->disconnectDevice();
+            delete connection;
+        }
     }
 
     // Unregister related hardware resources
