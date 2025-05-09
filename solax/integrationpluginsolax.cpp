@@ -1679,6 +1679,29 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             {
                 setBatteryPower(inverterThing, batteryPower, timeout);
             }
+        } else if (action.actionTypeId() == solaxBatteryMaxChargingCurrentActionTypeId) {
+            double maxCurrent = action.paramValue(solaxBatteryMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toDouble();
+            bool enableMaxCurrent = thing->stateValue(solaxBatteryEnableMaxChargingCurrentStateTypeId).toBool();
+            qCWarning(dcSolax()) << "Battery max current should be set to" << maxCurrent << "A";
+            
+            if (enableMaxCurrent && maxCurrent >= 0 && maxCurrent <= 30)
+            {
+                thing->setStateValue(solaxBatteryMaxChargingCurrentStateTypeId, maxCurrent);
+                setMaxCurrent(inverterThing, maxCurrent);
+            }            
+        } else if (action.actionTypeId() == solaxBatteryEnableMaxChargingCurrentActionTypeId) {
+            bool enableMaxCurrent = action.paramValue(solaxBatteryEnableMaxChargingCurrentActionEnableMaxChargingCurrentParamTypeId).toBool();
+            double maxCurrent = thing->stateValue(solaxBatteryMaxChargingCurrentStateTypeId).toDouble();
+            qCWarning(dcSolax()) << "Battery max current is enabled?" << enableMaxCurrent;
+
+            if (!enableMaxCurrent) {
+                setMaxCurrent(inverterThing, 30.0); //reset to default value 30A
+                thing->setStateValue(solaxBatteryMaxChargingCurrentStateTypeId, 30.0);
+            } else if (enableMaxCurrent && maxCurrent >= 0 && maxCurrent <= 30)
+            {
+                setMaxCurrent(inverterThing, maxCurrent);
+            }
+            thing->setStateValue(solaxBatteryEnableMaxChargingCurrentStateTypeId, enableMaxCurrent);                 
         } else if (action.actionTypeId() == solaxBatteryMinBatteryLevelActionTypeId) {
             int minBatteryLevel = action.paramValue(solaxBatteryMinBatteryLevelActionMinBatteryLevelParamTypeId).toInt();
             qCWarning(dcSolax()) << "Min battery level set to" << minBatteryLevel;
@@ -1905,6 +1928,51 @@ void IntegrationPluginSolax::setBatteryPower(Thing *thing, qint32 powerToSet, qu
                         //info->finish(Thing::ThingErrorNoError);
                     }
                 });
+            }
+        });
+    } else {
+        qCWarning(dcSolax()) << "setBatteryPower - Received incorrect thing";
+    }
+}
+
+void IntegrationPluginSolax::setMaxCurrent(Thing *thing, double maxCurrent)
+{
+    if (thing->thingClassId() == solaxX3InverterTCPThingClassId) {
+        SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
+        if (!connection) {
+            qCWarning(dcSolax()) << "setBatteryPower - Modbus connection not available";
+            // info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+
+        QModbusReply *reply = connection->setWriteChargeMaxCurrent(float(maxCurrent));
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, thing, [thing, reply](){
+            if (reply->error() != QModbusDevice::NoError) {
+                qCWarning(dcSolax()) << "setMaxChargingCurrent: Error during setting" << reply->error() << reply->errorString();
+                //info->finish(Thing::ThingErrorHardwareFailure);
+            } else {
+                qCWarning(dcSolax()) << "setMaxChargingCurrent: set successfully ";
+                //info->finish(Thing::ThingErrorNoError);
+            }
+        });
+    } else if (thing->thingClassId() == solaxX3InverterRTUThingClassId) {
+        SolaxModbusRtuConnection *connection = m_rtuConnections.value(thing);
+        if (!connection) {
+            qCWarning(dcSolax()) << "setBatteryPower - Modbus connection not available";
+            // info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+
+        ModbusRtuReply *reply = connection->setWriteChargeMaxCurrent(float(maxCurrent));
+        connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
+        connect(reply, &ModbusRtuReply::finished, thing, [thing, reply](){
+            if (reply->error() != ModbusRtuReply::NoError) {
+                qCWarning(dcSolax()) << "setMaxChargingCurrent: Error during setting" << reply->error() << reply->errorString();
+                //info->finish(Thing::ThingErrorHardwareFailure);
+            } else {
+                qCWarning(dcSolax()) << "setMaxChargingCurrent: set successfully ";
+                //info->finish(Thing::ThingErrorNoError);
             }
         });
     } else {
