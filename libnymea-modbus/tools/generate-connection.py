@@ -158,6 +158,12 @@ def writeTcpHeaderFile():
     writeLine(headerFile, '    quint8 m_communicationFailedMax = %s;' % (errorLimitUntilNotReachable))
     writeLine(headerFile, '    quint8 m_communicationFailedCounter = 0;')
     writeLine(headerFile)
+
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyBlockScalingDeclaration(headerFile, blockDefinition)
+    writeLine(headerFile)
+
     writeLine(headerFile, '    QVector<QModbusReply *> m_pendingInitReplies;')
     writeLine(headerFile, '    QVector<QModbusReply *> m_pendingUpdateReplies;')
     writeLine(headerFile)
@@ -218,6 +224,12 @@ def writeTcpSourceFile():
     writeLine(sourceFile)
     writeLine(sourceFile, '        evaluateReachableState();')
     writeLine(sourceFile, '    });')
+    writeLine(sourceFile)
+
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyBlockScalingImplementation(sourceFile, blockDefinition)
+
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -528,6 +540,12 @@ def writeRtuHeaderFile():
     writeLine(headerFile, '    quint8 m_communicationFailedMax = %s;' % (errorLimitUntilNotReachable))
     writeLine(headerFile, '    quint8 m_communicationFailedCounter = 0;')
     writeLine(headerFile)
+
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyBlockScalingDeclaration(headerFile, blockDefinition)
+    writeLine(headerFile)
+
     writeLine(headerFile, '    QVector<ModbusRtuReply *> m_pendingInitReplies;')
     writeLine(headerFile, '    QVector<ModbusRtuReply *> m_pendingUpdateReplies;')
     writeLine(headerFile)
@@ -595,6 +613,12 @@ def writeRtuSourceFile():
     writeLine(sourceFile, '    } else {')
     writeLine(sourceFile, '        evaluateReachableState();')
     writeLine(sourceFile, '    }')
+    writeLine(sourceFile)
+
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyBlockScalingImplementation(sourceFile, blockDefinition)
+
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -784,6 +808,7 @@ def writeRtuSourceFile():
 
     sourceFile.close()
 
+        
 
 ############################################################################################
 # Main

@@ -235,7 +235,7 @@ def writeInternalBlockReadWriteMethodDeclarationsRtu(fileDescriptor, blockDefini
 
         if blockWritable and registerType == 'holdingRegister':
             # Currently only holding registers are supported for writing
-            writeLine(fileDescriptor, '    ModbusRtuReply *setBlock%s(QVector<quint16> values);' % (blockName[0].upper() + blockName[1:]))
+            writeLine(fileDescriptor, '    ModbusRtuReply *writeBlock%s(QVector<quint16> values);' % (blockName[0].upper() + blockName[1:]))
         writeLine(fileDescriptor)
 
 
@@ -283,11 +283,16 @@ def writeInternalBlockReadWriteMethodImplementationsRtu(fileDescriptor, classNam
         if  registerType != 'holdingRegister':
             continue
         
-        writeLine(fileDescriptor, 'ModbusRtuReply *%s::setBlock%s(QVector<quint16> values)' % (className, blockName[0].upper() + blockName[1:]))
+        writeLine(fileDescriptor, 'ModbusRtuReply *%s::writeBlock%s(QVector<quint16> values)' % (className, blockName[0].upper() + blockName[1:]))
         writeLine(fileDescriptor, '{')
         writeLine(fileDescriptor, '    // Write register block \"%s\"' % blockName)
         writeLine(fileDescriptor, '    qCDebug(dc%s()) << "--> Write block \\"%s\\" registers from:" << %s << "size:" << %s;' % (className, blockName, blockStartAddress, blockSize))
-        writeLine(fileDescriptor, '    return m_modbusRtuMaster->writeHoldingRegisters(m_slaveId, %s, values);' % (blockStartAddress))
+        writeLine(fileDescriptor, '    QVector<quint16> scaledValues;')
+        writeLine(fileDescriptor, '    scaledValues.resize(values.size());')
+        writeLine(fileDescriptor, '    for (int i = 0; i < values.size(); i++) {')
+        writeLine(fileDescriptor, '         scaledValues[i] = values[i] * 1.0 / pow(10, m_block%sScaling[i]);' % (blockName[0].upper() + blockName[1:]))
+        writeLine(fileDescriptor, '    }')
+        writeLine(fileDescriptor, '    return m_modbusRtuMaster->writeHoldingRegisters(m_slaveId, %s, scaledValues);' % (blockStartAddress))
         writeLine(fileDescriptor, '}')
         writeLine(fileDescriptor)
 
