@@ -340,14 +340,15 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
         connect(connection, &GrowattModbusRtuConnection::ExportLimit_En_disChanged, this, [this, thing](uint value)
                 {
                     qCDebug(dcGrowatt()) << "Export limit enabled changed to" << value;
-                    if (value == 0)
-                    {
-                        thing->setStateValue(growattInverterRTUExportLimitEnableStateTypeId, false);
-                    }
-                    else
-                    {
-                        thing->setStateValue(growattInverterRTUExportLimitEnableStateTypeId, true);
-                    } });
+                    // if (value == 0)
+                    // {
+                    //     thing->setStateValue(growattInverterRTUExportLimitEnableStateTypeId, false);
+                    // }
+                    // else
+                    // {
+                    //     thing->setStateValue(growattInverterRTUExportLimitEnableStateTypeId, true);
+                    // }
+                });
         connect(connection, &GrowattModbusRtuConnection::ExportLimitPowerRateChanged, this, [this, thing](double value)
                 {
                     qCDebug(dcGrowatt()) << "Export limit power rate changed to" << value << "%";
@@ -591,41 +592,29 @@ void IntegrationPluginGrowatt::executeAction(ThingActionInfo *info)
         }*/
 
         bool success = false;
-        if (info->action().actionTypeId() == growattInverterRTUExportLimitEnableActionTypeId)
+
+        if (info->action().actionTypeId() == growattInverterRTUExportLimitActionTypeId)
         {
-            // enable/disable export limit
-            bool toggle = info->action().paramValue(growattInverterRTUExportLimitEnableActionExportLimitEnableParamTypeId).toBool();
-            uint state;
+            double value = info->action().paramValue(growattInverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
+            double valuePercent = absolutePower2PowerRate(thing, value);
+
             /* states
             0: Disable exportLimit;
             1: Enable 485 exportLimit; -> this is the correct option
             2: Enable 232 exportLimit;
             3: Enable CT exportLimit;*/
-            if (toggle)
-            {
-                state = 1;
-            }
-            else
-            {
-                state = 0;
-            }
-            ModbusRtuReply *reply = growattmodbusrtuconnection->setExportLimit_En_dis(state);
-            success = handleReply(reply);
-        }
-        else if (info->action().actionTypeId() == growattInverterRTUExportLimitActionTypeId)
-        {
-            double value = info->action().paramValue(growattInverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
-            double valuePercent = absolutePower2PowerRate(thing, value);
+            quint16 state = 1; // enable export limit
 
             std::cout << "valuePercent: " << valuePercent << std::endl;
 
-            ModbusRtuReply *reply = growattmodbusrtuconnection->setExportLimitPowerRate(valuePercent);
+            QVector<quint16> values = {state, quint16(valuePercent)};
+            ModbusRtuReply *reply = growattmodbusrtuconnection->writeBlockPowerControl(values);
             success = handleReply(reply);
             success = true;
         }
         else
         {
-            Q_ASSERT_X(false, "executeAction", QString("Unhandled actionTypeId: %1").arg(action.actionTypeId().toString()).toUtf8());
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled actionTypeId: %1").arg(info->action.actionTypeId().toString()).toUtf8());
         }
 
         if (success)
@@ -671,6 +660,10 @@ void IntegrationPluginGrowatt::postSetupThing(Thing *thing)
             qCDebug(dcGrowatt()) << "Set up Growatt battery for" << thing;
             emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(growattBatteryThingClassId, "Growatt Battery", QString(), thing->id()));
         }
+
+        // Set the maximum power limit to the nominal power
+        uint nominalPower = thing->paramValue(growattInverterRTUThingNominalPowerParamTypeId).toUInt();
+        thing->setStateMaxValue(growattInverterRTUExportLimitStateTypeId, nominalPower);
     }
 }
 
