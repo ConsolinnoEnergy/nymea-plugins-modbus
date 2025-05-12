@@ -84,18 +84,25 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
                 cleanupConnection(connection);
                 return;
             }
+            qCDebug(dcSiemens()) << "Initialization success! Reading frequency";
 
             QModbusReply *reply = connection->readFrequency();
             if (!reply) {
                 qCWarning(dcSiemens()) << "Error occurred while reading Mains frequency registers.";
+                // Done with this connection
+                cleanupConnection(connection);
             }
 
             if (reply->isFinished()) {
+                qCDebug(dcSiemens()) << "Broadcast replay returned. Quit";
                 reply->deleteLater(); // Broadcast reply returns immediatly
+                // Done with this connection
+                cleanupConnection(connection);
             }
 
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, this, [this, reply, networkDeviceInfo]() {
+            connect(reply, &QModbusReply::finished, this, [this, reply, networkDeviceInfo, connection]() {
+                qCDebug(dcSiemens()) << "Reply finished";
                 if (reply->error() == QModbusDevice::NoError) {
                     const QModbusDataUnit unit = reply->result();
                     qCDebug(dcSiemens()) << "Response from Mains frequency register" << 55 << "size:" << 2 << unit.values();
@@ -109,14 +116,15 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
                         qCDebug(dcSiemens()) << "This does not seem like a siemens energy meter";
                     }
                 }
+                // Done with this connection
+                cleanupConnection(connection);
             });
 
-            connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (){
+            connect(reply, &QModbusReply::errorOccurred, this, [this, reply, connection] (){
                 qCWarning(dcSiemens()) << "Modbus reply error occurred while reading Mains frequency registers from";
+                // Done with this connection
+                cleanupConnection(connection);
             });
-
-            // Done with this connection
-            cleanupConnection(connection);
         });
 
         if (!connection->initialize()) {

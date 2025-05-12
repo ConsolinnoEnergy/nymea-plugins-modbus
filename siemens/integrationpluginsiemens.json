@@ -9,7 +9,7 @@
             "id": "3f8c5b92-1a83-4db4-bc29-15fe05e73542",
             "thingClasses": [
                 {
-                    "name": "energymeter",
+                    "name": "pac2200",
                     "displayName": "Siemens PAC Energymeter",
                     "id": "5a1e77dd-2d4e-471e-8ef8-ee255a09a7db",
                     "createMethods": ["discovery"],

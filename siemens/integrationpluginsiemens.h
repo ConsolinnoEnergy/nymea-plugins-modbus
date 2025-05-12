@@ -2,13 +2,16 @@
 #define INTEGRATIONPLUGINSIEMENS_H
 
 #include <integrations/integrationplugin.h>
+#include <network/networkdevicemonitor.h>
+#include <plugintimer.h>
+
+#include "siemenspac2200modbustcpconnection.h"
 #include "extern-plugininfo.h"
 
 #include <QObject>
 #include <QHostAddress>
+#include <QTimer>
 
-class NetworkDeviceMonitor;
-class PluginTimer;
 
 class IntegrationPluginSiemens : public IntegrationPlugin
 {
@@ -19,24 +22,19 @@ class IntegrationPluginSiemens : public IntegrationPlugin
 
 public:
     explicit IntegrationPluginSiemens();
+    void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
 
 private:
-    QHash<Thing*, NetworkDeviceMonitor*> m_monitors;
+    bool m_setupTcpConnectionRunning = false;
+
     PluginTimer *m_pluginTimer = nullptr;
 
-    void updateMeasurements(Thing *thing);
-    void setDeviceStatus(Thing *thing, quint32 status);
-    void setVoltagePhaseA(Thing *thing, double voltage);
-    void setCurrentPhaseA(Thing *thing, double current);
-    void setCurrentPower(Thing *thing, double power);
-    void setTotalEnergy(Thing *thing, double energy);
-    void setFrequency(Thing *thing, double frequency);
-    void handleConnectionError(Thing *thing);
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    QHash<Thing *, SiemensPAC2200ModbusTcpConnection *> m_pac220TcpConnections;
 };
 
 #endif // INTEGRATIONPLUGINSIEMENS_H

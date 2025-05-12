@@ -30,163 +30,224 @@
 
 #include "integrationpluginsiemens.h"
 #include "plugininfo.h"
-
-#include <network/networkdevicediscovery.h>
-#include <types/param.h>
-#include <plugintimer.h>
-
-#include <QDebug>
-#include <QStringList>
-#include <QJsonDocument>
+#include "discoverytcp.h"
 
 IntegrationPluginSiemens::IntegrationPluginSiemens()
 {
 }
 
+void IntegrationPluginSiemens::init()
+{
+}
+
 void IntegrationPluginSiemens::discoverThings(ThingDiscoveryInfo *info)
 {
-    if (info->thingClassId() == siemensPAC2200ThingClassId) {
-        info->finish(Thing::ThingErrorNoError, QT_TR_NOOP("Manually add the device using IP address and Modbus settings."));
+    if (!hardwareManager()->networkDeviceDiscovery()->available()) {
+        qCWarning(dcSiemens()) << "The network discovery is not available on this platform.";
+        info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
+        return;
     }
+    DiscoveryTcp *discovery = new DiscoveryTcp(hardwareManager()->networkDeviceDiscovery(), info);
+    connect(discovery, &DiscoveryTcp::discoveryFinished, info, [=](){
+        foreach (const DiscoveryTcp::Result &result, discovery->discoveryResults()) {
+            QString name = supportedThings().findById(info->thingClassId()).displayName();
+            ThingDescriptor descriptor(pac2200ThingClassId, name);
+            qCInfo(dcSiemens()) << "Discovered:" << descriptor.title() << descriptor.description();
+            // Check if we already have set up this device
+            Things existingThings = myThings().filterByParam(pac2200ThingClassId, result.networkDeviceInfo.macAddress());
+            if (existingThings.count() >= 1) {
+                qCDebug(dcSiemens()) << "This SiemensPAC2200 energy meter already exists in the system:" << result.networkDeviceInfo;
+                descriptor.setThingId(existingThings.first()->id());
+            }
+            ParamList params;
+            params << Param(pac2200ThingIpAddressParamTypeId, result.networkDeviceInfo.address().toString());
+            params << Param(pac2200ThingMacAddressParamTypeId, result.networkDeviceInfo.macAddress());
+            descriptor.setParams(params);
+            info->addThingDescriptor(descriptor);
+        }
+        info->finish(Thing::ThingErrorNoError);
+    });
+    discovery->startDiscovery();
 }
 
 void IntegrationPluginSiemens::setupThing(ThingSetupInfo *info)
 {
     Thing *thing = info->thing();
+    qCDebug(dcSiemens()) << "Setup thing" << thing << thing->params();
 
-    if (m_siemensDevices.contains(thing)) {
-        qCDebug(dcSiemens()) << "Reconfiguring existing device" << thing->name();
-        m_siemensDevices.take(thing)->deleteLater();
+    // Handle reconfigure
+    if (m_pac220TcpConnections.contains(thing)) {
+        qCDebug(dcSiemens()) << "Already have a Siemens connection for this thing. Cleaning up old connection and initializing new one...";
+        delete m_pac220TcpConnections.take(thing);
     } else {
-        qCDebug(dcSiemens()) << "Setting up new Siemens PAC2200:" << thing->params();
+        qCDebug(dcSiemens()) << "Setting up a new device:" << thing->params();
+    }
+    if (m_monitors.contains(thing))
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+
+    // Make sure we have a valid mac address, otherwise no monitor and not auto searching is possible
+    MacAddress macAddress = MacAddress(thing->paramValue(pac2200ThingMacAddressParamTypeId).toString());
+    if (macAddress.isNull()) {
+        qCWarning(dcSiemens()) << "Failed to set up Siemens meter because the MAC address is not valid:" << thing->paramValue(pac2200ThingMacAddressParamTypeId).toString() << macAddress.toString();
+        info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
+        return;
     }
 
-    QHostAddress address = QHostAddress(thing->paramValue(siemensPAC2200ThingIpParamTypeId).toString());
-    uint port = thing->paramValue(siemensPAC2200ThingPortParamTypeId).toUInt();
-    quint16 slaveId = thing->paramValue(siemensPAC2200ThingSlaveIdParamTypeId).toUInt();
-
-    SiemensPAC2200ModbusTcpConnection *connection = new SiemensPAC2200ModbusTcpConnection(address, port, slaveId, this);
-    SiemensPAC2200 *pac2200 = new SiemensPAC2200(connection, this);
-
-    connect(info, &ThingSetupInfo::aborted, pac2200, &SiemensPAC2200::deleteLater);
-
-    NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(address);
-    connect(info, &ThingSetupInfo::aborted, monitor, [monitor](){ hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor); });
-
-    // Connection handlers
-    connect(connection, &SiemensPAC2200ModbusTcpConnection::reachableChanged, thing, [thing, connection](bool reachable){
-        qCDebug(dcSiemens()) << "Device reachable changed to" << reachable;
-        thing->setStateValue(siemensPAC2200ConnectedStateTypeId, reachable);
-        if (reachable) connection->initialize();
-    });
-
-    // Initialization
-    connect(connection, &SiemensPAC2200ModbusTcpConnection::initializationFinished, info, [this, thing, pac2200, monitor, info](bool success){
-        if (success) {
-            qCDebug(dcSiemens()) << "Device initialized successfully";
-            m_siemensDevices.insert(thing, pac2200);
-            m_monitors.insert(thing, monitor);
-            info->finish(Thing::ThingErrorNoError);
-        } else {
-            qCWarning(dcSiemens()) << "Failed to initialize device";
-            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
-            pac2200->deleteLater();
-            info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Error initializing Modbus connection"));
+    // Create the monitor
+    NetworkDeviceMonitor *monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+    m_monitors.insert(thing, monitor);
+    connect(info, &ThingSetupInfo::aborted, monitor, [=](){
+        // Clean up in case the setup gets aborted
+        if (m_monitors.contains(thing)) {
+            qCDebug(dcSiemens()) << "Unregister monitor because the setup has been aborted.";
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         }
     });
 
-    // Data handlers
-    connect(pac2200, &SiemensPAC2200::voltagePhaseAChanged, this, [thing](float voltage){
-        thing->setStateValue(siemensPAC2200VoltagePhaseAStateTypeId, voltage);
+    qCInfo(dcSiemens()) << "Setting up Siemens PAC2200";
+    SiemensPAC2200ModbusTcpConnection *connection = new SiemensPAC2200ModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, this);
+
+    connect(info, &ThingSetupInfo::aborted, connection, &SiemensPAC2200ModbusTcpConnection::deleteLater);
+
+    // Initialization has finished
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::initializationFinished, thing, [info, this, connection, thing](bool success) {
+        thing->setStateValue(pac2200ConnectedStateTypeId, success);
+        if (success) {
+             // Set basic info about device
+             qCDebug(dcSiemens()) << "Siemens energy meter initialized.";
+             connection->update();
+        } else {
+            qCDebug(dcSiemens()) << "Siemens energy meter initialization failed.";
+            // Try to reconnect to device
+            connection->reconnectDevice();
+        }
     });
 
-    connect(pac2200, &SiemensPAC2200::currentPhaseAChanged, this, [thing](float current){
-        thing->setStateValue(siemensPAC2200CurrentPhaseAStateTypeId, current);
+    // Reconnect on monitor reachable changed
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable){
+        qCDebug(dcSiemens()) << "Network device monitor reachable changed for" << thing->name() << reachable;
+        if (!thing->setupComplete())
+            return;
+
+        if (reachable && !thing->stateValue("connected").toBool()) {
+            connection->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->reconnectDevice();
+        } else if (!reachable) {
+            // Note: Auto reconnect is disabled explicitly and
+            // the device will be connected once the monitor says it is reachable again
+            connection->disconnectDevice();
+        }
     });
 
-    connect(pac2200, &SiemensPAC2200::totalEnergyConsumedChanged, this, [thing](float energy){
-        thing->setStateValue(siemensPAC2200TotalEnergyConsumedStateTypeId, energy);
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::reachableChanged, thing, [this, thing, connection](bool reachable){
+        qCInfo(dcSiemens()) << "Reachable changed to" << reachable << "for" << thing;
+        if (reachable) {
+            // Connected true will be set after successfull init
+            connection->initialize();
+        } else {
+            thing->setStateValue("connected", false);
+            thing->setStateValue(pac2200VoltagePhaseAStateTypeId, 0);
+            thing->setStateValue(pac2200VoltagePhaseBStateTypeId, 0);
+            thing->setStateValue(pac2200VoltagePhaseCStateTypeId, 0);
+            thing->setStateValue(pac2200CurrentPhaseAStateTypeId, 0);
+            thing->setStateValue(pac2200CurrentPhaseBStateTypeId, 0);
+            thing->setStateValue(pac2200CurrentPhaseCStateTypeId, 0);
+            thing->setStateValue(pac2200CurrentPowerStateTypeId, 0);
+        }
     });
 
-    connect(pac2200, &SiemensPAC2200::currentPowerChanged, this, [thing](float power){
-        thing->setStateValue(siemensPAC2200CurrentPowerStateTypeId, power);
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::currentPhaseAChanged, this, [thing](float currentPhaseA){
+        qCDebug(dcSiemens()) << "Curren phase A" << currentPhaseA;
+        thing->setStateValue(pac2200CurrentPhaseAStateTypeId, currentPhaseA);
+    });
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::currentPhaseBChanged, this, [thing](float currentPhaseB){
+        qCDebug(dcSiemens()) << "Curren phase B" << currentPhaseB;
+        thing->setStateValue(pac2200CurrentPhaseBStateTypeId, currentPhaseB);
+    });
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::currentPhaseCChanged, this, [thing](float currentPhaseC){
+        qCDebug(dcSiemens()) << "Curren phase C" << currentPhaseC;
+        thing->setStateValue(pac2200CurrentPhaseCStateTypeId, currentPhaseC);
+    });
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::voltagePhaseAChanged, this, [thing](float voltagePhaseA){
+        qCDebug(dcSiemens()) << "Volage phase A" << voltagePhaseA;
+        thing->setStateValue(pac2200VoltagePhaseAStateTypeId, voltagePhaseA);
+    });
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::voltagePhaseBChanged, this, [thing](float voltagePhaseB){
+        qCDebug(dcSiemens()) << "Volage phase B" << voltagePhaseB;
+        thing->setStateValue(pac2200VoltagePhaseBStateTypeId, voltagePhaseB);
+    });
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::voltagePhaseCChanged, this, [thing](float voltagePhaseC){
+        qCDebug(dcSiemens()) << "Volage phase C" << voltagePhaseC;
+        thing->setStateValue(pac2200VoltagePhaseCStateTypeId, voltagePhaseC);
+    });
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::currentPowerChanged, this, [thing](float currentPower){
+        qCDebug(dcSiemens()) << "Current power" << currentPower;
+        thing->setStateValue(pac2200CurrentPowerStateTypeId, currentPower);
+    });
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::frequencyChanged, this, [thing](float frequency){
+        qCDebug(dcSiemens()) << "Frequency" << frequency;
+        thing->setStateValue(pac2200FrequencyStateTypeId, frequency);
+    });
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::totalEnergyConsumedChanged, this, [thing](float consumedEnergy){
+        thing->setStateValue(pac2200TotalEnergyConsumedStateTypeId, consumedEnergy);
+    });
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::totalEnergyProducedChanged, this, [thing](float producedEnergy){
+        thing->setStateValue(pac2200TotalEnergyProducedStateTypeId, producedEnergy);
     });
 
-    connect(pac2200, &SiemensPAC2200::frequencyChanged, this, [thing](float frequency){
-        thing->setStateValue(siemensPAC2200FrequencyStateTypeId, frequency);
-    });
+    m_pac220TcpConnections.insert(thing, connection);
 
-    connect(pac2200, &SiemensPAC2200::deviceStatusChanged, this, [this, thing](quint32 status){
-        setDeviceStatus(thing, status);
-    });
+    if (monitor->reachable())
+        connection->connectDevice();
 
-    // Error handling
-    connect(connection, &SiemensPAC2200ModbusTcpConnection::connectionErrorOccurred, this, [this, thing](){
-        handleConnectionError(thing);
-    });
-
-    // Start connection
-    connection->connectDevice();
+    info->finish(Thing::ThingErrorNoError);
 }
 
 void IntegrationPluginSiemens::postSetupThing(Thing *thing)
 {
-    Q_UNUSED(thing)
+    qCDebug(dcSiemens()) << "Post setup thing" << thing->name();
     if (!m_pluginTimer) {
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
-        connect(m_pluginTimer, &PluginTimer::timeout, this, [this](){
-            foreach (Thing *thing, m_siemensDevices.keys()) {
-                if (m_monitors.value(thing)->reachable()) {
-                    m_siemensDevices.value(thing)->update();
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+
+        connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
+            foreach(auto thing, myThings().filterByThingClassId(pac2200ThingClassId)) {
+                auto monitor = m_monitors.value(thing);
+                if (!monitor->reachable()) {
+                    continue;
+                }
+
+                auto connection = m_pac220TcpConnections.value(thing);
+                if (connection->reachable()) {
+                    qCDebug(dcSiemens()) << "Updating connection";
+                    connection->update();
+                } else {
+                    qCDebug(dcSiemens()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
+                    connection->reconnectDevice();
                 }
             }
         });
+
+        qCDebug(dcSiemens()) << "Starting plugin timer...";
+        m_pluginTimer->start();
     }
 }
 
 void IntegrationPluginSiemens::thingRemoved(Thing *thing)
 {
-    if (m_siemensDevices.contains(thing)) {
-        SiemensPAC2200 *device = m_siemensDevices.take(thing);
-        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-        device->deleteLater();
+    qCDebug(dcSiemens()) << "Thing removed" << thing->name();
+
+    if (m_pac220TcpConnections.contains(thing)) {
+        auto connection = m_pac220TcpConnections.take(thing);
+        connection->disconnectDevice();
+        delete connection;
     }
 
+    if (m_monitors.contains(thing))
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+
     if (myThings().isEmpty() && m_pluginTimer) {
+        qCDebug(dcSiemens()) << "Stopping plugin timer";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;
     }
-}
-
-void IntegrationPluginSiemens::executeAction(ThingActionInfo *info)
-{
-    // No writable actions in basic implementation
-    info->finish(Thing::ThingErrorActionNotSupported);
-}
-
-void IntegrationPluginSiemens::setDeviceStatus(Thing *thing, quint32 status)
-{
-    QString statusMessage;
-    quint8 globalState = status & 0xFF;
-    
-    switch (globalState) {
-    case 0:
-        statusMessage = "Bootloader";
-        break;
-    case 1:
-        statusMessage = "Device Ready";
-        break;
-    case 2:
-        statusMessage = "Device Error";
-        break;
-    default:
-        statusMessage = "Unknown State";
-    }
-    thing->setStateValue(siemensPAC2200DeviceStatusStateTypeId, statusMessage);
-}
-
-void IntegrationPluginSiemens::handleConnectionError(Thing *thing)
-{
-    thing->setStateValue(siemensPAC2200ConnectedStateTypeId, false);
-    qCWarning(dcSiemens()) << "Connection error for device" << thing->name();
 }
