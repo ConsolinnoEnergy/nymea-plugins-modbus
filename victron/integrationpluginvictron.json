@@ -1,35 +1,60 @@
 {
-    "name": "Sungrow",
-    "displayName": "Sungrow",
-    "id": "250c9b83-1127-4013-bbd0-11e7ea482057",
-    "vendors": [
+    "name": "Victron",
+        "displayName": "Victron",
+        "id": "e5e49b03-c1a9-4bf9-a6f4-733bb19d98ac",
+        "vendors": [
         {
-            "name": "sungrow",
-            "displayName": "Sungrow",
-            "id": "cdc58e0d-bfdb-45d9-b961-9c0b036c35aa",
+            "name": "victron",
+            "displayName": "VICTRON Solar Electric",
+            "id": "d6cc8099-a92c-4aec-ad0c-af96f874c2cf",
             "thingClasses": [
                 {
-                    "name": "sungrowInverterTcp",
-                    "displayName": "Sungrow SH Inverter",
-                    "id": "59cb2da4-da07-11ee-adea-7397f8a9afe9",
+                    "name": "victronInverterTcp",
+                    "displayName": "VICTRON Inverter",
+                    "id": "96a232b3-1d24-4bc6-9be4-23996e80c8c5",
                     "createMethods": ["discovery"],
-                    "discoveryType": "weak",
                     "interfaces": ["solarinverter", "connectable"],
-                    "providedInterfaces": [ "energymeter", "controllablebattery"],
+                    "providedInterfaces": [ "energymeter", "energystorage"],
                     "paramTypes": [
                         {
-                            "id": "62137142-da07-11ee-9522-2f74f3b1fc5d",
+                            "id": "4977a11c-35e7-4cb8-b993-9db4ee454ada",
                             "name":"macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
                             "inputType": "MacAddress",
-                            "defaultValue": "",
-                            "readOnly": true
-                        }
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "13cdb10e-8a11-49a5-a0b3-ec48348d6150",
+                            "name":"unitIdSystem",
+                            "displayName": "UnitID System",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 248,
+                            "defaultValue": 100
+                        },
+                        {
+                            "id": "f67b2b37-938d-4683-a75f-db5d8396f0f3",
+                            "name":"unitIdVebus",
+                            "displayName": "UnitID VE.Bus",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 248,
+                            "defaultValue": 227
+                        },
+                        {
+                            "id": "aa633a0b-7463-404f-8e1d-f3ac86901c6a",
+                            "name":"unitIdGrid",
+                            "displayName": "UnitID Grid",
+                            "type": "uint",
+                            "minValue": 1,
+                            "maxValue": 248,
+                            "defaultValue": 40
+                        }                        
                     ],
                     "stateTypes": [
                         {
-                            "id": "6c68b170-da07-11ee-9891-3335ced0ad72",
+                            "id": "9d6edc96-46da-4d95-accc-fb827f9cb983",
                             "name": "connected",
                             "displayName": "Connected",
                             "type": "bool",
@@ -37,7 +62,7 @@
                             "cached": false
                         },
                         {
-                            "id": "6fb11fe8-da07-11ee-b77f-8393cc11be21",
+                            "id": "0c8d0201-5036-4536-a6c0-d7c809f3afdb",
                             "name": "currentPower",
                             "displayName": "Active power",
                             "type": "double",
@@ -46,7 +71,7 @@
                             "cached": false
                         },
                         {
-                            "id": "7bf092a2-da07-11ee-abe9-138e66e6f2a5",
+                            "id": "9d127145-a1e7-42cb-819e-fb39727f1c57",
                             "name": "totalEnergyProduced",
                             "displayName": "Total energy produced",
                             "type": "double",
@@ -55,79 +80,37 @@
                             "cached": true
                         },
                         {
-                            "id": "80b35fc2-da07-11ee-a73d-5774b082c92b",
-                            "name": "temperature",
-                            "displayName": "Temperature",
-                            "type": "double",
-                            "unit": "DegreeCelsius",
-                            "defaultValue": 0.00,
-                            "cached": false
-                        },
-                        {
-                            "id": "84bcbc58-da07-11ee-b94d-a39792ee6f59",
+                            "id": "7675f1ed-334c-4f1d-8983-be7e69558496",
                             "name": "frequency",
                             "displayName": "Frequency",
                             "type": "double",
                             "unit": "Hertz",
                             "defaultValue": 0.00,
                             "cached": false
-                        },
-                        {
-                            "id": "50861a64-557d-4235-a61d-665944fc42ab",
-                            "name": "nominalPower",
-                            "displayName": "Nominal power",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "629ab8ef-755b-4741-94df-2899703504d3",
-                            "name": "exportLimit",
-                            "displayName": "Export power limit",
-                            "displayNameEvent": "Export power limit changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0.0
                         }
                     ],
-                    "actionTypes": [ 
-                        {
-                            "id": "5ea0f808-f6b8-44f4-8099-ee1e7a14d60c",
-                            "name": "setExportLimit",
-                            "displayName": "Set Grid export limit",
-                            "paramTypes": [
-                                {
-                                    "id": "0afa8777-615c-4927-9581-6500e0bc5346",
-                                    "name": "exportLimit",
-                                    "displayName": "Grid Export Limit (percent of inverter nominal power)",
-                                    "type": "int",
-                                    "unit": "Percentage",
-                                    "defaultValue": 100,
-                                    "minValue": 0,
-                                    "maxValue": 100
-                                }
-                            ]
-                        }
-                    ]
+                    "actionTypes": [ ]
                 },
                 {
-                    "name": "sungrowMeter",
-                    "displayName": "Sungrow Meter",
-                    "id": "a935e49c-da07-11ee-bd11-3fcf27dc6373",
+                    "name": "victronMeter",
+                    "displayName": "VICTRON Meter",
+                    "id": "9acc2570-32e2-4183-9beb-253a532f9347",
                     "createMethods": ["auto"],
                     "interfaces": [ "energymeter", "connectable"],
+                    "paramTypes": [
+                    ],
                     "stateTypes": [
                         {
-                            "id": "d26b59dc-da07-11ee-b494-3781cc3081a7",
+                            "id": "673ceae5-13f8-4370-a32f-736c5aea4b1b",
                             "name": "connected",
                             "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
                             "type": "bool",
                             "defaultValue": false,
                             "cached": false
                         },
                         {
-                            "id": "d777530e-da07-11ee-a526-c7d23dd34f57",
+                            "id": "fdf4033a-f69e-4092-a3a3-87de1d2d1428",
                             "name": "currentPower",
                             "displayName": "Current power",
                             "type": "double",
@@ -136,61 +119,7 @@
                             "cached": false
                         },
                         {
-                            "id": "e80bb836-da07-11ee-afd1-dbff8484ba11",
-                            "name": "voltagePhaseA",
-                            "displayName": "Voltage phase A",
-                            "type": "double",
-                            "unit": "Volt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "ebefd252-da07-11ee-a8a4-c7ea9df0b6f9",
-                            "name": "voltagePhaseB",
-                            "displayName": "Voltage phase B",
-                            "type": "double",
-                            "unit": "Volt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "efd82b30-da07-11ee-9668-7b523696940d",
-                            "name": "voltagePhaseC",
-                            "displayName": "Voltage phase C",
-                            "type": "double",
-                            "unit": "Volt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "f3d850c0-da07-11ee-883f-4ff8b7e55bdc",
-                            "name": "currentPhaseA",
-                            "displayName": "Current phase A",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "f82603de-da07-11ee-93bc-6b9f9f333c30",
-                            "name": "currentPhaseB",
-                            "displayName": "Current phase B",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "fcf77988-da07-11ee-99da-3b2415014506",
-                            "name": "currentPhaseC",
-                            "displayName": "Current phase C",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "00eb83c2-da08-11ee-b67d-1f74a41e6218",
+                            "id": "64b479ce-c70a-4cb5-8b5d-3c24d3e77bee",
                             "name": "totalEnergyProduced",
                             "displayName": "Total returned energy",
                             "type": "double",
@@ -199,7 +128,7 @@
                             "cached": true
                         },
                         {
-                            "id": "03ef972a-da08-11ee-9a1f-d741d1e276be",
+                            "id": "788849e9-b367-4f3c-b8d6-bfdbfd560dcc",
                             "name": "totalEnergyConsumed",
                             "displayName": "Total imported energy",
                             "type": "double",
@@ -208,7 +137,89 @@
                             "cached": true
                         },
                         {
-                            "id": "07b526ea-da08-11ee-ab24-ab0d1ca8555d",
+                            "id": "8246f30f-d534-409a-abb6-110b60648ac2",
+                            "name": "currentPhaseA",
+                            "displayName": "Phase A current",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "d996e884-70d6-41b2-8330-8495f7728851",
+                            "name": "currentPhaseB",
+                            "displayName": "Phase B current",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "7bd46082-5137-4be1-a2a9-7b35c07ee4c3",
+                            "name": "currentPhaseC",
+                            "displayName": "Phase C current",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "298e7918-4320-4621-b270-ed74a5839ebe",
+                            "name": "currentPowerPhaseA",
+                            "displayName": "Current power phase A",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "2b51006f-7e0d-448b-b434-5932332df6a9",
+                            "name": "currentPowerPhaseB",
+                            "displayName": "Current power phase B",
+                            "displayNameEvent": "Current power phase B changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "29479958-61f5-459e-9cf6-75542857b56c",
+                            "name": "currentPowerPhaseC",
+                            "displayName": "Current power phase C",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "f01e2e3b-e58f-4c81-aa5a-14b0c46fd3aa",
+                            "name": "voltagePhaseA",
+                            "displayName": "Voltage phase A",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "6e436538-4567-4fd6-8b6f-aaf95cdb6f72",
+                            "name": "voltagePhaseB",
+                            "displayName": "Voltage phase B",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "16ca0ab7-f12d-4d44-b5a3-e65ea6164b38",
+                            "name": "voltagePhaseC",
+                            "displayName": "Voltage phase C",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "02798ddb-4ae3-4cec-b1da-4521fae520a3",
                             "name": "frequency",
                             "displayName": "Frequency",
                             "type": "double",
@@ -216,17 +227,32 @@
                             "defaultValue": 0.00,
                             "cached": false
                         }
-                    ]
+                    ],
+                    "actionTypes": [ ]
                 },
                 {
-                    "name": "sungrowBattery",
-                    "displayName": "Sungrow Battery",
-                    "id": "0aea1b90-da08-11ee-9195-afc9f857a324",
+                    "name": "victronBattery",
+                    "displayName": "VICTRON Battery",
+                    "id": "27d2e69c-b1a2-4316-b1c7-45c117c7cd32",
                     "createMethods": ["auto"],
-                    "interfaces": ["controllablebattery", "connectable"],
+                    "interfaces": [ "controllablebattery", "connectable"],
+                    "settingsTypes": [
+                        {
+                            "id": "36b8455c-d92b-482f-8136-45fb2f8b7bdf",
+                            "name": "capacity",
+                            "displayName": "Battery capacity",
+                            "type": "uint",
+                            "unit": "KiloWattHour",
+                            "minValue": 0,
+                            "maxValue": 10000,
+                            "defaultValue": 0
+                        }
+                    ],
+                    "paramTypes": [
+                    ],
                     "stateTypes": [
                         {
-                            "id": "0ff3c834-da08-11ee-bac7-0f1044f86ea3",
+                            "id": "cd3c9cef-4693-48ea-aabf-2590e94207d3",
                             "name": "connected",
                             "displayName": "Connected",
                             "type": "bool",
@@ -234,25 +260,24 @@
                             "cached": false
                         },
                         {
-                            "id": "13f48cde-da08-11ee-81c8-3362a92b58c8",
+                            "id": "3550bcd4-5cde-4557-a598-95f16ae074e7",
                             "name": "batteryCritical",
                             "displayName": "Battery critical",
                             "type": "bool",
                             "defaultValue": false
                         },
                         {
-                            "id": "1738bcf8-da08-11ee-b1d0-a3e1183dabba",
+                            "id": "642b2aa3-5e97-48cb-8d93-70b1594bad43",
                             "name": "batteryLevel",
                             "displayName": "Battery level",
                             "type": "int",
                             "unit": "Percentage",
                             "minValue": 0,
                             "maxValue": 100,
-                            "defaultValue": 0,
-                            "cached": false
+                            "defaultValue": 0
                         },
                         {
-                            "id": "1aa8cf86-da08-11ee-9697-3b0a8023db88",
+                            "id": "41dd0031-82a8-4d5b-8b68-cfe0d247eb77",
                             "name": "currentPower",
                             "displayName": "Total real power",
                             "type": "double",
@@ -261,7 +286,7 @@
                             "cached": false
                         },
                         {
-                            "id": "1e6bf760-da08-11ee-ba39-c31ecdbb8fc9",
+                            "id": "f33a8266-7b15-44fe-b2b2-20a673f35c1d",
                             "name": "voltage",
                             "displayName": "Voltage",
                             "type": "double",
@@ -270,7 +295,7 @@
                             "cached": false
                         },
                         {
-                            "id": "221ccae2-da08-11ee-9e4d-4b6abbf9e564",
+                            "id": "0519beed-8003-4cc3-9238-33ece4e18a77",
                             "name": "temperature",
                             "displayName": "Temperature",
                             "type": "double",
@@ -279,7 +304,7 @@
                             "cached": false
                         },
                         {
-                            "id": "264ac092-da08-11ee-ad8d-9f0751d6c499",
+                            "id": "e146b5af-12f8-4f14-aacc-663737d71b6e",
                             "name": "capacity",
                             "displayName": "Capacity",
                             "type": "double",
@@ -287,25 +312,15 @@
                             "defaultValue": 0.00
                         },
                         {
-                            "id": "29e8a6d8-da08-11ee-87ba-539307b7d2ee",
+                            "id": "b715e1fa-f550-4d35-9858-2cf5f819286a",
                             "name": "chargingState",
                             "displayName": "Charging state",
                             "type": "QString",
                             "possibleValues": ["idle", "charging", "discharging"],
-                            "defaultValue": "idle",
-                            "cached": false
+                            "defaultValue": "idle"
                         },
                         {
-                            "id": "1885eec9-7875-48c9-a5cc-6db68b89f738",
-                            "name": "nominalPowerBattery",
-                            "displayName": "Nominal Power for control",
-                            "displayNameEvent": "Nominal power changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 10000
-                        },
-                        {
-                            "id": "87c4a86c-11a9-4cf8-ab90-d93dc0f3c497",
+                            "id": "2ae3094f-bfb7-442d-9714-474fb419414f",
                             "name": "enableForcePower",
                             "displayName": "Battery manual mode",
                             "displayNameEvent": "Battery manual mode",
@@ -315,7 +330,7 @@
                             "writable": true
                         },
                         {
-                            "id": "3b3381b2-372f-45d2-9bb6-af3e0c61ed83",
+                            "id": "80d5852a-c770-4803-9d1c-0013974e1246",
                             "name": "enableForcePowerState",
                             "displayName": "Battery manual mode enabled",
                             "displayNameEvent": "Battery manual mode state changed",
@@ -323,7 +338,7 @@
                             "defaultValue": false
                         },
                         {
-                            "id": "d592d654-afcd-4097-bb46-ab9f9af2c8a0",
+                            "id": "e4501a2d-d148-49e0-9195-3b28ea66a53e",
                             "name": "forcePower",
                             "displayName": "Battery force power (+:charge, -:discharge)",
                             "displayNameEvent": "Battery force power changed",
@@ -333,22 +348,9 @@
                             "defaultValue": 0.0,
                             "writable": true,
                             "cached": true
-                        },
-                        {
-                            "id": "a36b9145-8a23-45c4-87cc-89fdeed5ec67",
-                            "name": "minBatteryLevel",
-                            "displayName": "min. Battery level",
-                            "displayNameEvent": "min Battery level changed",
-                            "displayNameAction": "min Battery level set",
-                            "type": "int",
-                            "unit": "Percentage",
-                            "minValue": 5,
-                            "maxValue": 50,
-                            "defaultValue": 5,
-                            "writable": true,
-                            "cached": true
                         }
-                    ]
+                    ],
+                    "actionTypes": [ ]
                 }
             ]
         }

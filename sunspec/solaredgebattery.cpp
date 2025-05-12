@@ -195,7 +195,6 @@ void SolarEdgeBattery::readBlockData()
                                 emit initFinished(true);
                             }
 
-                            emit blockDataUpdated();
                         });
 
                         connect(reply, &QModbusReply::errorOccurred, this, [] (QModbusDevice::Error error) {
@@ -232,6 +231,222 @@ void SolarEdgeBattery::readBlockData()
         qCWarning(dcSunSpec()) << "SolarEdgeBattery: Read error: " << m_connection->modbusTcpClient()->errorString();
         return;
     }
+    //Read Global StorEdge Control Block
+    QModbusDataUnit requestSEControlBlock = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE004, 0xE);
+    if (QModbusReply *reply = m_connection->modbusTcpClient()->sendReadRequest(request, m_connection->slaveId())) {
+        if (!reply->isFinished()) {
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [=]() {
+                if (reply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSunSpec()) << "SolarEdgeBattery: Read response error:" << reply->error();
+                    if (!m_initFinishedSuccess) {
+                        m_timer.stop();
+                        emit initFinished(false);
+                    }
+                    return;
+                }
+
+                const QModbusDataUnit unit = reply->result();
+                QVector<quint16> values = unit.values();
+                qCDebug(dcSunSpec()) << "SolarEdgeBattery: Received control block data" << values.count();
+                qCDebug(dcSunSpec()) << "SolarEdgeBattery:" << SunSpecDataPoint::registersToString(values);
+
+                m_batteryData.storageControlMode = values[0];
+                m_batteryData.storageAcChargePolicy = values[1];
+                m_batteryData.storageAcChargeLimit = SunSpecDataPoint::convertToFloat32(values.mid(2, 2));
+                m_batteryData.storageBackupReservedSetting = SunSpecDataPoint::convertToFloat32(values.mid(4, 2));
+                m_batteryData.storageChargeDischargeDefaultMode = values[6];
+                m_batteryData.remoteControlCommandTimeout = SunSpecDataPoint::convertToUInt32(values.mid(7, 2));
+                m_batteryData.remoteControlCommandMode = values[9];
+                m_batteryData.remoteControlChargeLimit = SunSpecDataPoint::convertToFloat32(values.mid(10, 2));
+                m_batteryData.remoteControlCommandDischargeLimit = SunSpecDataPoint::convertToFloat32(values.mid(12, 2));
+
+                emit blockDataUpdated();
+            });
+
+            connect(reply, &QModbusReply::errorOccurred, this, [] (QModbusDevice::Error error) {
+                qCWarning(dcSunSpec()) << "SolarEdgeBattery: Modbus reply error:" << error;
+            });
+        } else {
+            qCWarning(dcSunSpec()) << "SolarEdgeBattery: Read error: " << m_connection->modbusTcpClient()->errorString();
+            reply->deleteLater(); // broadcast replies return immediately
+            if (!m_initFinishedSuccess) {
+                m_timer.stop();
+                emit initFinished(false);
+            }
+            return;
+        }
+    } else {
+        qCWarning(dcSunSpec()) << "SolarEdgeBattery: Read error: " << m_connection->modbusTcpClient()->errorString();
+        return;
+    }
+}
+
+void SolarEdgeBattery::setForcePowerEnabled(bool enableForcePower)
+{
+    qCDebug(dcSunSpec()) << "SolarEdgeBattery: Setting Force Power Enabled to" << enableForcePower;
+
+    QVector<quint16> values;
+    values.append(enableForcePower ? 4 : 1); // 4 for remote control, 1 for false
+
+    QModbusDataUnit writeRequest = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE004, values.size());
+    writeRequest.setValues(values);
+
+    if (QModbusReply *reply = m_connection->modbusTcpClient()->sendWriteRequest(writeRequest, m_connection->slaveId())) {
+        if (!reply->isFinished()) {
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [=]() {
+                if (reply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write response error:" << reply->error();
+                } else {
+                    qCDebug(dcSunSpec()) << "SolarEdgeBattery: Force Power Enabled successfully set to" << enableForcePower;
+                }
+            });
+
+            connect(reply, &QModbusReply::errorOccurred, this, [] (QModbusDevice::Error error) {
+                qCWarning(dcSunSpec()) << "SolarEdgeBattery: Modbus reply error:" << error;
+            });
+        } else {
+            qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write error: " << m_connection->modbusTcpClient()->errorString();
+            reply->deleteLater(); // broadcast replies return immediately
+        }
+    } else {
+        qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write error: " << m_connection->modbusTcpClient()->errorString();
+    }
+}
+
+void SolarEdgeBattery::setChargeDischargePower(int power, uint timeout)
+{
+    qCDebug(dcSunSpec()) << "SolarEdgeBattery: Setting charge/discharge power to" << power << "with timeout" << timeout;
+
+    QVector<quint16> values;
+
+    // Initial configuration
+    values.append(0); // ExportConf_Ctrl (0xE000) to 0
+    QModbusDataUnit exportConfRequest = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE000, values.size());
+    exportConfRequest.setValues(values);
+    if (QModbusReply *reply = m_connection->modbusTcpClient()->sendWriteRequest(exportConfRequest, m_connection->slaveId())) {
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, this, [=]() {
+            if (reply->error() != QModbusDevice::NoError) {
+                qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write response error for ExportConf_Ctrl:" << reply->error();
+            } else {
+                qCDebug(dcSunSpec()) << "SolarEdgeBattery: Successfully set ExportConf_Ctrl to 0";
+            }
+        });
+    }
+
+    values.clear();
+    values.append(4); // StorageConf_CtrlMode (0xE004) to 4 "Remote"
+    QModbusDataUnit ctrlModeRequest = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE004, values.size());
+    ctrlModeRequest.setValues(values);
+    if (QModbusReply *reply = m_connection->modbusTcpClient()->sendWriteRequest(ctrlModeRequest, m_connection->slaveId())) {
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, this, [=]() {
+            if (reply->error() != QModbusDevice::NoError) {
+            qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write response error for StorageConf_CtrlMode:" << reply->error();
+            } else {
+            qCDebug(dcSunSpec()) << "SolarEdgeBattery: Successfully set StorageConf_CtrlMode to 4 (Remote)";
+            }
+        });
+    }
+
+    values.clear();
+    values.append(1); // StorageConf_AcChargePolicy (0xE005) to 1 "Always Allowed"
+    QModbusDataUnit acChargePolicyRequest = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE005, values.size());
+    acChargePolicyRequest.setValues(values);
+    if (QModbusReply *reply = m_connection->modbusTcpClient()->sendWriteRequest(acChargePolicyRequest, m_connection->slaveId())) {
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, this, [=]() {
+            if (reply->error() != QModbusDevice::NoError) {
+                qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write response error for StorageConf_AcChargePolicy:" << reply->error();
+            } else {
+                qCDebug(dcSunSpec()) << "SolarEdgeBattery: Successfully set StorageConf_AcChargePolicy to 1 (Always Allowed)";
+            }
+        });
+    }
+
+    values.clear();
+    values.append(timeout); // StorageRemoteCtrl_CommandTimeout (0xE00B)
+    QModbusDataUnit timeoutRequest = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE00B, values.size());
+    timeoutRequest.setValues(values);
+    if (QModbusReply *reply = m_connection->modbusTcpClient()->sendWriteRequest(timeoutRequest, m_connection->slaveId())) {
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, this, [=]() {
+            if (reply->error() != QModbusDevice::NoError) {
+                qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write response error for StorageRemoteCtrl_CommandTimeout:" << reply->error();
+            } else {
+                qCDebug(dcSunSpec()) << "SolarEdgeBattery: Successfully set StorageRemoteCtrl_CommandTimeout to" << timeout;
+            }
+        });
+    }
+
+    values.clear();
+    if (power > 0) {
+        values.append(3); // StorageRemoteCtrl_CommandMode (0xE00D) to 3 "Charge full from AC+PV"
+        QModbusDataUnit commandModeRequest = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE00D, values.size());
+        commandModeRequest.setValues(values);
+        if (QModbusReply *reply = m_connection->modbusTcpClient()->sendWriteRequest(commandModeRequest, m_connection->slaveId())) {
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [=]() {
+                if (reply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write response error for StorageRemoteCtrl_CommandMode:" << reply->error();
+                } else {
+                    qCDebug(dcSunSpec()) << "SolarEdgeBattery: Successfully set StorageRemoteCtrl_CommandMode to 3 (Charge full from AC+PV)";
+                }
+            });
+        }
+
+        values.clear();
+        QVector<quint16> chargeLimitRegisters = SunSpecDataPoint::convertFromFloat32(static_cast<float>(power)); // Power in watts
+        values.append(chargeLimitRegisters); // Append the float32 value directly
+        QModbusDataUnit chargeLimitRequest = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE00E, chargeLimitRegisters.size());
+        chargeLimitRequest.setValues(values);
+        if (QModbusReply *reply = m_connection->modbusTcpClient()->sendWriteRequest(chargeLimitRequest, m_connection->slaveId())) {
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [=]() {
+            if (reply->error() != QModbusDevice::NoError) {
+                qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write response error for StorageRemoteCtrl_ChargeLimit:" << reply->error();
+            } else {
+                qCDebug(dcSunSpec()) << "SolarEdgeBattery: Successfully set StorageRemoteCtrl_ChargeLimit to" << power << "W";
+            }
+            });
+        } else {
+            qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write error for StorageRemoteCtrl_ChargeLimit:" << m_connection->modbusTcpClient()->errorString();
+        }
+    } else {
+        values.append(4); // StorageRemoteCtrl_CommandMode (0xE00D) to 4 "Discharge"
+        QModbusDataUnit commandModeRequest = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE00D, values.size());
+        commandModeRequest.setValues(values);
+        if (QModbusReply *reply = m_connection->modbusTcpClient()->sendWriteRequest(commandModeRequest, m_connection->slaveId())) {
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [=]() {
+                if (reply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write response error for StorageRemoteCtrl_CommandMode:" << reply->error();
+                } else {
+                    qCDebug(dcSunSpec()) << "SolarEdgeBattery: Successfully set StorageRemoteCtrl_CommandMode to 4 (Discharge)";
+                }
+            });
+        }
+
+        values.clear();
+        QVector<quint16> dischargeLimitRegisters = SunSpecDataPoint::convertFromFloat32(static_cast<float>(std::abs(power))); // Convert absolute power to float32
+        values.append(dischargeLimitRegisters); // Append the float32 value directly
+        QModbusDataUnit dischargeLimitRequest = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 0xE010, dischargeLimitRegisters.size());
+        dischargeLimitRequest.setValues(values);
+        if (QModbusReply *reply = m_connection->modbusTcpClient()->sendWriteRequest(dischargeLimitRequest, m_connection->slaveId())) {
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [=]() {
+            if (reply->error() != QModbusDevice::NoError) {
+                qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write response error for StorageRemoteCtrl_DischargeLimit:" << reply->error();
+            } else {
+                qCDebug(dcSunSpec()) << "SolarEdgeBattery: Successfully set StorageRemoteCtrl_DischargeLimit to" << std::abs(power) << "W";
+            }
+            });
+        } else {
+            qCWarning(dcSunSpec()) << "SolarEdgeBattery: Write error for StorageRemoteCtrl_DischargeLimit:" << m_connection->modbusTcpClient()->errorString();
+        }
+    }
 }
 
 QDebug operator<<(QDebug debug, const SolarEdgeBattery::BatteryData &batteryData)
@@ -255,5 +470,14 @@ QDebug operator<<(QDebug debug, const SolarEdgeBattery::BatteryData &batteryData
     debug << "    - State of health" << batteryData.stateOfHealth << "%" << endl;
     debug << "    - State of energy" << batteryData.stateOfEnergy << "%" << endl;
     debug << "    - Battery status" << batteryData.batteryStatus << endl;
+    debug << "    - Storage Control Mode" << batteryData.storageControlMode << endl;
+    debug << "    - Storage AC Charge Policy" << batteryData.storageAcChargePolicy << endl;
+    debug << "    - Storage AC Charge Limit" << batteryData.storageAcChargeLimit << "W" << endl;
+    debug << "    - Storage Backup Reserved Setting" << batteryData.storageBackupReservedSetting << "%" << endl;
+    debug << "    - Storage Charge/Discharge Default Mode" << batteryData.storageChargeDischargeDefaultMode << endl;
+    debug << "    - Remote Control Command Timeout" << batteryData.remoteControlCommandTimeout << "s" << endl;
+    debug << "    - Remote Control Command Mode" << batteryData.remoteControlCommandMode << endl;
+    debug << "    - Remote Control Charge Limit" << batteryData.remoteControlChargeLimit << "W" << endl;
+    debug << "    - Remote Control Command Discharge Limit" << batteryData.remoteControlCommandDischargeLimit << "W" << endl;
     return debug;
 }
