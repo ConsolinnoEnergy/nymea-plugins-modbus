@@ -173,8 +173,8 @@
             "registers": [
                 {
                     "id": "totalEnergyConsumed",
-                    "address": 549,
-                    "size": 2,
+                    "address": 801,
+                    "size": 4,
                     "type": "float",
                     "registerType": "holdingRegister",
                     "description": "Total energy consumed",
@@ -184,8 +184,8 @@
                 },
                 {
                     "id": "dummy3",
-                    "address": 551,
-                    "size": 2,
+                    "address": 805,
+                    "size": 4,
                     "type": "raw",
                     "registerType": "holdingRegister",
                     "description": "Dummy 3",
@@ -193,8 +193,8 @@
                 },
                 {
                     "id": "totalEnergyProduced",
-                    "address": 553,
-                    "size": 2,
+                    "address": 809,
+                    "size": 4,
                     "type": "float",
                     "registerType": "holdingRegister",
                     "description": "Total energy produced",
