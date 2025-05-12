@@ -598,13 +598,18 @@ void IntegrationPluginGrowatt::executeAction(ThingActionInfo *info)
             double value = info->action().paramValue(growattInverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
             double valuePercent = absolutePower2PowerRate(thing, value);
 
+            quint16 state;
             /* states
             0: Disable exportLimit;
             1: Enable 485 exportLimit; -> this is the correct option
             2: Enable 232 exportLimit;
             3: Enable CT exportLimit;*/
-            quint16 state = 1; // enable export limit
+            if (valuePercent <= 99.9)
+                state = 1;
+            else
+                state = 0;
 
+            std::cout << "Enable: " << state << std::endl;
             std::cout << "valuePercent: " << valuePercent << std::endl;
 
             QVector<quint16> values = {state, quint16(valuePercent)};
@@ -683,7 +688,7 @@ void IntegrationPluginGrowatt::thingRemoved(Thing *thing)
 
 double IntegrationPluginGrowatt::powerRate2AbsolutePower(Thing *thing, double value)
 {
-    double nominalPower = thing->stateValue(growattInverterRTUPowerAcOutStateTypeId).toDouble();
+    double nominalPower = thing->stateValue(growattInverterRTUNominalPowerStateTypeId).toDouble();
 
     if (nominalPower > 0)
     {
@@ -695,7 +700,7 @@ double IntegrationPluginGrowatt::powerRate2AbsolutePower(Thing *thing, double va
 
 double IntegrationPluginGrowatt::absolutePower2PowerRate(Thing *thing, double absoluteValue)
 {
-    double nominalPower = thing->stateValue(growattInverterRTUPowerAcOutStateTypeId).toDouble();
+    double nominalPower = thing->stateValue(growattInverterRTUNominalPowerStateTypeId).toDouble();
     if (nominalPower > 0)
     {
         return absoluteValue * 100 / nominalPower;
