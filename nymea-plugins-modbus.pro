@@ -47,6 +47,7 @@ PLUGIN_DIRS = \
     sungrowsg               \
     sungrowsh               \
     sunspec                 \
+    siemens                 \
     technivolt              \
     unipi                   \
     vestel                  \

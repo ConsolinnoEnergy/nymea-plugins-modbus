@@ -1,13 +1,12 @@
 include(../plugins.pri)
 
-MODBUS_CONNECTIONS += pac-registers.json
+MODBUS_CONNECTIONS += pac2200-register.json
 include(../modbus.pri)
 
 HEADERS += \
-    integrationpluginsiemens.h
-    siemenspac2200.h
+    integrationpluginsiemens.h \
+    discoverytcp.h
 
 SOURCES += \
     integrationpluginsiemens.cpp
-    siemenspac2200.cpp
-
+    discoverytcp.cpp
