@@ -207,7 +207,7 @@ void IntegrationPluginSiemens::postSetupThing(Thing *thing)
 {
     qCDebug(dcSiemens()) << "Post setup thing" << thing->name();
     if (!m_pluginTimer) {
-        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+        m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(3);
 
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             foreach(auto thing, myThings().filterByThingClassId(pac2200ThingClassId)) {

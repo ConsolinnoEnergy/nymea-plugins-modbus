@@ -5,54 +5,6 @@
     "errorLimitUntilNotReachable": 20,
     "checkReachableRegister": "frequency",
     "registers": [
-        {
-            "id": "currentPower",
-            "address": 65,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Total active power consumption",
-            "unit": "Watt",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "frequency",
-            "address": 55,
-            "size": 2,
-            "type": "float",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Mains frequency",
-            "unit": "Hertz",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "totalEnergyConsumed",
-            "address": 549,
-            "size": 4,
-            "type": "float",
-            "registerType": "inputRegister",
-            "readSchedule": "update",
-            "description": "Total energy consumed",
-            "unit": "kWh",
-            "defaultValue": "0",
-            "access": "RO"
-        },
-        {
-            "id": "totalEnergyProduced",
-            "address": 553,
-            "size": 4,
-            "type": "float",
-            "registerType": "inputRegister",
-            "readSchedule": "update",
-            "description": "Total energy produced",
-            "unit": "kWh",
-            "defaultValue": "0",
-            "access": "RO"
-        }
     ],
     "blocks": [
         {
@@ -173,6 +125,80 @@
                     "registerType": "holdingRegister",
                     "description": "Active power phase C",
                     "unit": "Watt",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "freqAndPower",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "frequency",
+                    "address": 55,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "description": "Mains frequency",
+                    "unit": "Hertz",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 57,
+                    "size": 8,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy 2",
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPower",
+                    "address": 65,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "description": "Total active power consumption",
+                    "unit": "Watt",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "energyValues",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "totalEnergyConsumed",
+                    "address": 549,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "description": "Total energy consumed",
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy3",
+                    "address": 551,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy 3",
+                    "access": "RO"
+                },
+                {
+                    "id": "totalEnergyProduced",
+                    "address": 553,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "holdingRegister",
+                    "description": "Total energy produced",
+                    "unit": "kWh",
                     "defaultValue": "0",
                     "access": "RO"
                 }
