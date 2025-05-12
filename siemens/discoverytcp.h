@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2023, nymea GmbH
+* Copyright 2013 - 2025, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -37,7 +37,7 @@
 #include <network/networkdevicediscovery.h>
 #include <modbusdatautils.h>
 
-#include "umg604modbustcpconnection.h"
+#include "siemenspac2200modbustcpconnection.h"
 
 class DiscoveryTcp : public QObject
 {
@@ -45,7 +45,6 @@ class DiscoveryTcp : public QObject
 public:
     explicit DiscoveryTcp(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
     struct Result {
-        quint32 serialNumber;
         NetworkDeviceInfo networkDeviceInfo;
     };
 
@@ -61,12 +60,12 @@ private:
 
     QDateTime m_startDateTime;
 
-    QList<umg604ModbusTcpConnection *> m_connections;
+    QList<SiemensPAC2200ModbusTcpConnection *> m_connections;
 
     QList<Result> m_discoveryResults;
 
     void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
-    void cleanupConnection(umg604ModbusTcpConnection *connection);
+    void cleanupConnection(SiemensPAC2200ModbusTcpConnection *connection);
 
     void finishDiscovery();
 };

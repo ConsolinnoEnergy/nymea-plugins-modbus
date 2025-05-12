@@ -15,28 +15,23 @@
                     "createMethods": ["discovery"],
                     "interfaces": ["energymeter", "connectable"],
                     "discoveryParamTypes": [
-                        {
-                            "id": "bf834dd7-ff4c-4f49-b997-79b860af10ad",
-                            "name": "slaveAddress",
-                            "displayName": "Slave address",
-                            "type": "int",
-                            "defaultValue": 1
-                        }
                     ],
                     "paramTypes": [
                         {
-                            "id": "43cd887e-dd1e-462f-9872-f358d57f9d53",
-                            "name": "slaveAddress",
-                            "displayName": "Modbus slave address",
-                            "type": "uint",
-                            "defaultValue": 1
+                            "id": "5ee36391-ec42-4874-8db7-f2b2ce649185",
+                            "name": "ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "inputType": "IPv4Address",
+                            "defaultValue": "127.0.0.1",
+                            "readOnly": true
                         },
                         {
-                            "id": "e8f96554-f594-4966-bfd8-fe9b7ad2bc96",
-                            "name": "modbusMasterUuid",
-                            "displayName": "Modbus RTU master",
-                            "type": "QUuid",
-                            "defaultValue": "",
+                            "id": "5111322d-b258-456c-90a7-4130db9d989f",
+                            "name": "macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "defaultValue": "00:00:00:00:00:00",
                             "readOnly": true
                         }
                     ],
@@ -49,6 +44,42 @@
                             "type": "bool",
                             "cached": false,
                             "defaultValue": false
+                        },
+                        {
+                            "id": "f6f9f555-015e-50d3-9fdf-bf2f8f1f9fdf",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Current power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "18f1f777-2360-71f5-9fff-df4f0f3f9fff",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumed changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "29f2f888-3471-82f6-af0f-ef5f1f4fafff",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        },
+                        {
+                            "id": "07f0f666-125f-60e4-9fef-cf3f9f2f9fef",
+                            "name": "frequency",
+                            "displayName": "Frequency",
+                            "displayNameEvent": "Frequency changed",
+                            "type": "double",
+                            "unit": "Hertz",
+                            "defaultValue": 0.00
                         },
                         {
                             "id": "99d83e9f-e572-4b9c-9f7d-5c6e2f8a9c7e",
@@ -103,42 +134,6 @@
                             "type": "double",
                             "unit": "Ampere",
                             "defaultValue": 0
-                        },
-                        {
-                            "id": "f6f9f555-015e-50d3-9fdf-bf2f8f1f9fdf",
-                            "name": "currentPower",
-                            "displayName": "Current power",
-                            "displayNameEvent": "Current power changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "07f0f666-125f-60e4-9fef-cf3f9f2f9fef",
-                            "name": "frequency",
-                            "displayName": "Frequency",
-                            "displayNameEvent": "Frequency changed",
-                            "type": "double",
-                            "unit": "Hertz",
-                            "defaultValue": 0.00
-                        },
-                        {
-                            "id": "18f1f777-2360-71f5-9fff-df4f0f3f9fff",
-                            "name": "totalEnergyConsumed",
-                            "displayName": "Total energy consumed",
-                            "displayNameEvent": "Total energy consumed changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0.00
-                        },
-                        {
-                            "id": "29f2f888-3471-82f6-af0f-ef5f1f4fafff",
-                            "name": "totalEnergyProduced",
-                            "displayName": "Total energy produced",
-                            "displayNameEvent": "Total energy produced changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0.00
                         }
                     ]
                 }

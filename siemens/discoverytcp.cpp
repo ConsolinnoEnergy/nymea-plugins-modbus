@@ -39,15 +39,15 @@ DiscoveryTcp::DiscoveryTcp(NetworkDeviceDiscovery *networkDeviceDiscovery, QObje
 
 void DiscoveryTcp::startDiscovery()
 {
-    qCInfo(dcJanitza()) << "Discovery: Searching for Janitza energy meter in the network...";
+    qCInfo(dcSiemens()) << "Discovery: Searching for Siemens energy meter in the network...";
     NetworkDeviceDiscoveryReply *discoveryReply = m_networkDeviceDiscovery->discover();
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::networkDeviceInfoAdded, this, &DiscoveryTcp::checkNetworkDevice);
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
-        qCDebug(dcJanitza()) << "Discovery: Network discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "network devices";
+        qCDebug(dcSiemens()) << "Discovery: Network discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "network devices";
 
         // Give the last connections added right before the network discovery finished a chance to check the device...
         QTimer::singleShot(3000, this, [this](){
-            qCDebug(dcJanitza()) << "Discovery: Grace period timer triggered.";
+            qCDebug(dcSiemens()) << "Discovery: Grace period timer triggered.";
             finishDiscovery();
         });
         discoveryReply->deleteLater();
@@ -63,14 +63,14 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
 {
     int port = 502;     // Default modbus port.
     int modbusId = 1;    // The meter responds to any modbus ID on modbus TCP. So the ID does not matter.
-    qCDebug(dcJanitza()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << modbusId;
+    qCDebug(dcSiemens()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << modbusId;
 
     // This can be improved by first checking if port 502 is open. If that port is not open, it is not a modbus device.
 
-    umg604ModbusTcpConnection *connection = new umg604ModbusTcpConnection(networkDeviceInfo.address(), port, modbusId, this);
+    SiemensPAC2200ModbusTcpConnection *connection = new SiemensPAC2200ModbusTcpConnection(networkDeviceInfo.address(), port, modbusId, this);
     m_connections.append(connection);
 
-    connect(connection, &umg604ModbusTcpConnection::reachableChanged, this, [=](bool reachable){
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::reachableChanged, this, [=](bool reachable){
         if (!reachable) {
             // Disconnected ... done with this connection
             cleanupConnection(connection);
@@ -78,43 +78,56 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
         }
 
         // Modbus TCP connected...ok, let's try to initialize it!
-        connect(connection, &umg604ModbusTcpConnection::initializationFinished, this, [=](bool success){
+        connect(connection, &SiemensPAC2200ModbusTcpConnection::initializationFinished, this, [=](bool success){
             if (!success) {
-                qCDebug(dcJanitza()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString();
+                qCDebug(dcSiemens()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString();
                 cleanupConnection(connection);
                 return;
             }
 
-            bool firmwareIsCorrect = false;
-            QString firmware = connection->firmwareVersion();
-            if (firmware == "5.029") {
-                qCDebug(dcJanitza()) << "Received firmware version" << firmware << "is correct";
-                firmwareIsCorrect = true;
+            QModbusReply *reply = connection->readFrequency();
+            if (!reply) {
+                qCWarning(dcSiemens()) << "Error occurred while reading Mains frequency registers.";
             }
 
-            if (firmwareIsCorrect) {
-                Result result;
-                result.serialNumber = connection->serialNumber();
-                result.networkDeviceInfo = networkDeviceInfo;
-                m_discoveryResults.append(result);
-                qCDebug(dcJanitza()) << "Discovery: --> Found" << result.networkDeviceInfo;
-            } else {
-                qCDebug(dcJanitza()) << QString("This does not seem like a Janitza energy meter.");
+            if (reply->isFinished()) {
+                reply->deleteLater(); // Broadcast reply returns immediatly
             }
+
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, this, [this, reply, networkDeviceInfo]() {
+                if (reply->error() == QModbusDevice::NoError) {
+                    const QModbusDataUnit unit = reply->result();
+                    qCDebug(dcSiemens()) << "Response from Mains frequency register" << 55 << "size:" << 2 << unit.values();
+                    float receivedFrequency = ModbusDataUtils::convertToFloat32(unit.values(), ModbusDataUtils::ByteOrderBigEndian);
+                    if (receivedFrequency >= 45 && receivedFrequency <= 65) {
+                        Result result;
+                        result.networkDeviceInfo = networkDeviceInfo;
+                        m_discoveryResults.append(result);
+                        qCDebug(dcSiemens()) << "Discovery: ----> Found" << result.networkDeviceInfo;
+                    } else {
+                        qCDebug(dcSiemens()) << "This does not seem like a siemens energy meter";
+                    }
+                }
+            });
+
+            connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (){
+                qCWarning(dcSiemens()) << "Modbus reply error occurred while reading Mains frequency registers from";
+            });
 
             // Done with this connection
             cleanupConnection(connection);
         });
 
         if (!connection->initialize()) {
-            qCDebug(dcJanitza()) << "Discovery: Unable to initialize connection on" << networkDeviceInfo.address().toString();
+            qCDebug(dcSiemens()) << "Discovery: Unable to initialize connection on" << networkDeviceInfo.address().toString();
             cleanupConnection(connection);
         }
     });
 
     // If check reachability failed...skip this host...
-    connect(connection, &umg604ModbusTcpConnection::checkReachabilityFailed, this, [=](){
-        qCDebug(dcJanitza()) << "Discovery: Checking reachability failed on" << networkDeviceInfo.address().toString();
+    connect(connection, &SiemensPAC2200ModbusTcpConnection::checkReachabilityFailed, this, [=](){
+        qCDebug(dcSiemens()) << "Discovery: Checking reachability failed on" << networkDeviceInfo.address().toString();
         cleanupConnection(connection);
     });
 
@@ -122,7 +135,7 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
     connection->connectDevice();
 }
 
-void DiscoveryTcp::cleanupConnection(umg604ModbusTcpConnection *connection)
+void DiscoveryTcp::cleanupConnection(SiemensPAC2200ModbusTcpConnection *connection)
 {
     m_connections.removeAll(connection);
     connection->disconnectDevice();
@@ -134,11 +147,11 @@ void DiscoveryTcp::finishDiscovery()
     qint64 durationMilliSeconds = QDateTime::currentMSecsSinceEpoch() - m_startDateTime.toMSecsSinceEpoch();
 
     // Cleanup any leftovers...we don't care any more
-    foreach (umg604ModbusTcpConnection *connection, m_connections)
+    foreach (SiemensPAC2200ModbusTcpConnection *connection, m_connections)
         cleanupConnection(connection);
 
-    qCInfo(dcJanitza()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count()
-                       << "Janitza meter in" << QTime::fromMSecsSinceStartOfDay(durationMilliSeconds).toString("mm:ss.zzz");
+    qCInfo(dcSiemens()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count()
+                       << "Siemens meter in" << QTime::fromMSecsSinceStartOfDay(durationMilliSeconds).toString("mm:ss.zzz");
 
     emit discoveryFinished();
 }
