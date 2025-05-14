@@ -1,17 +1,17 @@
 {
     "name": "chint",
-    "displayName": "Zhejiang Chint",
+    "displayName": "Zhejiang Chint Instrument & Meter Co.",
     "id": "f9aef1e1-21b4-45ed-8d65-a2d1470c6d06",
     "paramTypes":[ ],
     "vendors": [
         {
             "name": "chint",
-            "displayName": "Zhejiang Chint",
+            "displayName": "Zhejiang Chint Instrument & Meter Co.",
             "id": "68044cad-4926-42d5-9ccb-09280a8e6d10",
             "thingClasses": [
                 {
                     "name": "dtsu666",
-                    "displayName": "DTSU666",
+                    "displayName": "Chint DTSU666",
                     "id": "737127bb-1ad1-4f60-b438-bd3afdbb3aa2",
                     "createMethods": ["discovery"],
                     "interfaces": ["energymeter", "connectable"],
