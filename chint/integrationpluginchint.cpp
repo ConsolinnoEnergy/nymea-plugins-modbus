@@ -9,14 +9,19 @@ IntegrationPluginChint::IntegrationPluginChint()
 
 void IntegrationPluginChint::init()
 {
-    connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=] (const QUuid &modbusUuid){
+    connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved,
+            this, [=] (const QUuid &modbusUuid)
+    {
         qCDebug(dcChint()) << "Modbus RTU master has been removed" << modbusUuid.toString();
 
         foreach (Thing *thing, myThings()) {
             if (thing->thingClassId() == dtsu666ThingClassId &&
                 thing->paramValue(dtsu666ThingModbusMasterUuidParamTypeId) == modbusUuid)
             {
-                qCWarning(dcChint()) << "Modbus RTU hardware resource removed for" << thing << ". The thing will not be functional any more until a new resource has been configured for it.";
+                qCWarning(dcChint())
+                        << "Modbus RTU hardware resource removed for"
+                        << thing
+                        << ". The thing will not be functional any more until a new resource has been configured for it.";
                 thing->setStateValue(dtsu666ConnectedStateTypeId, false);
                 delete m_dtsu666Connections.take(thing);
             }
@@ -31,7 +36,8 @@ void IntegrationPluginChint::discoverThings(ThingDiscoveryInfo *info)
 
     connect(discovery, &DiscoveryRtu::discoveryFinished, info, [this, info, discovery, modbusId](bool modbusMasterAvailable){
         if (!modbusMasterAvailable) {
-            info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No modbus RTU master found. Please set up a modbus RTU master first."));
+            info->finish(Thing::ThingErrorHardwareNotAvailable,
+                         QT_TR_NOOP("No modbus RTU master found. Please set up a modbus RTU master first."));
             return;
         }
 
@@ -75,14 +81,15 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     uint address = thing->paramValue(dtsu666ThingModbusIdParamTypeId).toUInt();
     if (address > 247 || address == 0) {
         qCWarning(dcChint()) << "Setup failed, slave address is not valid" << address;
-        info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
+        info->finish(Thing::ThingErrorSetupFailed,
+                     QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
         return;
     }
 
     QUuid uuid = thing->paramValue(dtsu666ThingModbusMasterUuidParamTypeId).toUuid();
     if (!hardwareManager()->modbusRtuResource()->hasModbusRtuMaster(uuid)) {
         qCWarning(dcChint()) << "Setup failed, hardware manager not available";
-        info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus RTU interface not available."));
+        info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus RTU interface is not available."));
         return;
     }
 
@@ -91,7 +98,8 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
         m_dtsu666Connections.take(thing)->deleteLater();
     }
 
-    DTSU666ModbusRtuConnection *dtsuConnection = new DTSU666ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid),
+    DTSU666ModbusRtuConnection *dtsuConnection =
+            new DTSU666ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid),
                                                                                 address,
                                                                                 thing);
     connect(info, &ThingSetupInfo::aborted, dtsuConnection, [=] {
@@ -99,7 +107,9 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
         dtsuConnection->deleteLater();
     });
 
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reachableChanged, thing, [dtsuConnection, thing](bool reachable) {
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reachableChanged,
+            thing, [dtsuConnection, thing](bool reachable)
+    {
         thing->setStateValue(dtsu666ConnectedStateTypeId, reachable);
         if (reachable) {
             qCDebug(dcChint())
@@ -130,7 +140,9 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
         }
     });
 
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::initializationFinished, thing, [this, info, dtsuConnection](bool success) {
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::initializationFinished,
+            thing, [this, info, dtsuConnection](bool success)
+    {
         if (success)
         {
             m_dtsu666Connections.insert(info->thing(), dtsuConnection);
@@ -178,8 +190,8 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     // Chint Datasheet:
     // - "Forward"/"Reverse" <-> "Consumed"/"Produced"?
     // - "Total Forward active energy" (ImpEp) <-> "Net Forward active energy" (NetImpEp)
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalForwardActiveEnergyChanged, this, [=](float energyProducedPhaseA){
-        thing->setStateValue(dtsu666TotalEnergyProducedStateTypeId, energyProducedPhaseA);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalForwardActiveEnergyChanged, this, [=](float totalEnergyProduced){
+        thing->setStateValue(dtsu666TotalEnergyProducedStateTypeId, totalEnergyProduced);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseAChanged, this, [=](float energyProducedPhaseA){
         thing->setStateValue(dtsu666EnergyProducedPhaseAStateTypeId, energyProducedPhaseA);
@@ -190,8 +202,8 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseCChanged, this, [=](float energyProducedPhaseC){
         thing->setStateValue(dtsu666EnergyProducedPhaseCStateTypeId, energyProducedPhaseC);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalReverseActiveEnergyChanged, this, [=](float energyProducedPhaseA){
-        thing->setStateValue(dtsu666TotalEnergyConsumedStateTypeId, energyProducedPhaseA);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalReverseActiveEnergyChanged, this, [=](float totalEnergyConsumed){
+        thing->setStateValue(dtsu666TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseAChanged, this, [=](float energyConsumedPhaseA){
         thing->setStateValue(dtsu666EnergyConsumedPhaseAStateTypeId, energyConsumedPhaseA);
@@ -202,8 +214,6 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseCChanged, this, [=](float energyConsumedPhaseC){
         thing->setStateValue(dtsu666EnergyConsumedPhaseCStateTypeId, energyConsumedPhaseC);
     });
-
-    // #TODO
 }
 
 void IntegrationPluginChint::postSetupThing(Thing *thing)

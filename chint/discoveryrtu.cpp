@@ -70,7 +70,10 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
     // Test frequency value.
     float frequency = ModbusDataUtils::convertToFloat32(reply->result(), m_endianness);
     if (frequency < 49.0 || frequency > 51.0) {
-        qCDebug(dcChint()) << "Recieved value for frequency is" << frequency << "Hz. This does not seem to be the correct value. This is not a smartmeter.";
+        qCDebug(dcChint())
+                << "Recieved value for frequency is"
+                << frequency
+                << "Hz. This does not seem to be the correct value. This is not a smartmeter.";
         if (m_openReplies <= 0) {
             emit repliesFinished();
         }
