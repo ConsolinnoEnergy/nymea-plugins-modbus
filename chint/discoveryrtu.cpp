@@ -54,7 +54,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
     qCDebug(dcChint()) << "Trying to read register 8260 (frequency) to test the connection.";
 
     m_openReplies++;
-    ModbusRtuReply *reply = master->readInputRegister(modbusId, 8260, 2);
+    ModbusRtuReply *reply = master->readHoldingRegister(modbusId, 8260, 2);
     connect(reply, &ModbusRtuReply::finished, this, [=]{
         m_openReplies--;
         qCDebug(dcChint()) << "Test reply finished!" << reply->error() << reply->result();
