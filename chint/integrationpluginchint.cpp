@@ -136,7 +136,6 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
             thing->setStateValue(dtsu666CurrentPowerPhaseAStateTypeId, 0);
             thing->setStateValue(dtsu666CurrentPowerPhaseBStateTypeId, 0);
             thing->setStateValue(dtsu666CurrentPowerPhaseCStateTypeId, 0);
-            thing->setStateValue(dtsu666FrequencyStateTypeId, 0);
         }
     });
 
@@ -183,9 +182,6 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseCChanged, this, [=](float powerPhaseC){
         thing->setStateValue(dtsu666CurrentPowerPhaseCStateTypeId, powerPhaseC / 10.f);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::frequencyChanged, this, [=](float frequency){
-        thing->setStateValue(dtsu666FrequencyStateTypeId, frequency / 100.f);
-    });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalForwardActiveEnergyChanged, this, [=](float totalForwardActiveEnergy){
         thing->setStateValue(dtsu666TotalEnergyConsumedStateTypeId, totalForwardActiveEnergy);
     });
@@ -209,6 +205,9 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseCChanged, this, [=](float reverseActiveEnergyPhaseC){
         thing->setStateValue(dtsu666EnergyProducedPhaseCStateTypeId, reverseActiveEnergyPhaseC);
+    });
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::softwareversionChanged, this, [=](qint16 softwareVersion) {
+       thing->setStateValue(dtsu666SoftwareversionStateTypeId, softwareVersion);
     });
 }
 

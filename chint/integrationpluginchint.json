@@ -157,14 +157,13 @@
                             "cached": false
                         },
                         {
-                            "id": "fe8782f5-72f6-4af7-8acd-cc1a5d65e9c3",
-                            "name": "frequency",
-                            "displayName": "Frequency",
-                            "displayNameEvent": "Frequency changed",
-                            "type": "double",
-                            "unit": "Hertz",
-                            "defaultValue": 0.00,
-                            "cached": false
+                            "id": "57e8b607-3e80-4588-93e7-adbb6343a26b",
+                            "name": "softwareversion",
+                            "displayName": "Software Version",
+                            "displayNameEvent": "Software Version changed",
+                            "type": "int",
+                            "unit": "None",
+                            "defaultValue": 0
                         },
                         {
                             "id": "f3dc1672-cc53-45d9-b77a-48d7a0780993",

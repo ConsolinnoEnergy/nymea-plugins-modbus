@@ -3,17 +3,16 @@
     "protocol": "RTU",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 3,
-    "checkReachableRegister": "frequency",
+    "checkReachableRegister": "voltagePhaseA",
     "registers": [
         {
-            "id": "frequency",
-            "address": 8260,
-            "size": 2,
-            "type": "float",
+            "id": "softwareversion",
+            "address": 0,
+            "size": 1,
+            "type": "int16",
             "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Frequency",
-            "unit": "Hz",
+            "readSchedule": "init",
+            "description": "Software Version",
             "defaultValue": "0",
             "access": "RO"
         }
