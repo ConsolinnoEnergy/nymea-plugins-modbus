@@ -154,37 +154,37 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     });
 
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
-        thing->setStateValue(dtsu666CurrentPhaseAStateTypeId, currentPhaseA);
+        thing->setStateValue(dtsu666CurrentPhaseAStateTypeId, currentPhaseA / 1000.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseBChanged, this, [=](float currentPhaseB){
-        thing->setStateValue(dtsu666CurrentPhaseBStateTypeId, currentPhaseB);
+        thing->setStateValue(dtsu666CurrentPhaseBStateTypeId, currentPhaseB / 1000.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseCChanged, this, [=](float currentPhaseC){
-        thing->setStateValue(dtsu666CurrentPhaseCStateTypeId, currentPhaseC);
+        thing->setStateValue(dtsu666CurrentPhaseCStateTypeId, currentPhaseC / 1000.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
-        thing->setStateValue(dtsu666VoltagePhaseAStateTypeId, voltagePhaseA);
+        thing->setStateValue(dtsu666VoltagePhaseAStateTypeId, voltagePhaseA / 10.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseBChanged, this, [=](float voltagePhaseB){
-        thing->setStateValue(dtsu666VoltagePhaseBStateTypeId, voltagePhaseB);
+        thing->setStateValue(dtsu666VoltagePhaseBStateTypeId, voltagePhaseB / 10.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseCChanged, this, [=](float voltagePhaseC){
-        thing->setStateValue(dtsu666VoltagePhaseCStateTypeId, voltagePhaseC);
+        thing->setStateValue(dtsu666VoltagePhaseCStateTypeId, voltagePhaseC / 10.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerTotalChanged, this, [=](float currentPower){
-        thing->setStateValue(dtsu666CurrentPowerStateTypeId, currentPower);
+        thing->setStateValue(dtsu666CurrentPowerStateTypeId, currentPower / 10.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseAChanged, this, [=](float powerPhaseA){
-        thing->setStateValue(dtsu666CurrentPowerPhaseAStateTypeId, powerPhaseA);
+        thing->setStateValue(dtsu666CurrentPowerPhaseAStateTypeId, powerPhaseA / 10.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseBChanged, this, [=](float powerPhaseB){
-        thing->setStateValue(dtsu666CurrentPowerPhaseBStateTypeId, powerPhaseB);
+        thing->setStateValue(dtsu666CurrentPowerPhaseBStateTypeId, powerPhaseB / 10.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseCChanged, this, [=](float powerPhaseC){
-        thing->setStateValue(dtsu666CurrentPowerPhaseCStateTypeId, powerPhaseC);
+        thing->setStateValue(dtsu666CurrentPowerPhaseCStateTypeId, powerPhaseC / 10.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::frequencyChanged, this, [=](float frequency){
-        thing->setStateValue(dtsu666FrequencyStateTypeId, frequency);
+        thing->setStateValue(dtsu666FrequencyStateTypeId, frequency / 100.f);
     });
     // #TODO need to check the following associations between Modbus registers and nymea states
     // Chint Datasheet:
