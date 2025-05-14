@@ -186,33 +186,29 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::frequencyChanged, this, [=](float frequency){
         thing->setStateValue(dtsu666FrequencyStateTypeId, frequency / 100.f);
     });
-    // #TODO need to check the following associations between Modbus registers and nymea states
-    // Chint Datasheet:
-    // - "Forward"/"Reverse" <-> "Consumed"/"Produced"?
-    // - "Total Forward active energy" (ImpEp) <-> "Net Forward active energy" (NetImpEp)
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalForwardActiveEnergyChanged, this, [=](float totalEnergyProduced){
-        thing->setStateValue(dtsu666TotalEnergyProducedStateTypeId, totalEnergyProduced);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalForwardActiveEnergyChanged, this, [=](float totalForwardActiveEnergy){
+        thing->setStateValue(dtsu666TotalEnergyConsumedStateTypeId, totalForwardActiveEnergy);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseAChanged, this, [=](float energyProducedPhaseA){
-        thing->setStateValue(dtsu666EnergyProducedPhaseAStateTypeId, energyProducedPhaseA);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseAChanged, this, [=](float forwardActiveEnergyPhaseA){
+        thing->setStateValue(dtsu666EnergyConsumedPhaseAStateTypeId, forwardActiveEnergyPhaseA);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseBChanged, this, [=](float energyProducedPhaseB){
-        thing->setStateValue(dtsu666EnergyProducedPhaseBStateTypeId, energyProducedPhaseB);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseBChanged, this, [=](float forwardActiveEnergyPhaseB){
+        thing->setStateValue(dtsu666EnergyConsumedPhaseBStateTypeId, forwardActiveEnergyPhaseB);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseCChanged, this, [=](float energyProducedPhaseC){
-        thing->setStateValue(dtsu666EnergyProducedPhaseCStateTypeId, energyProducedPhaseC);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseCChanged, this, [=](float forwardActiveEnergyPhaseC){
+        thing->setStateValue(dtsu666EnergyConsumedPhaseCStateTypeId, forwardActiveEnergyPhaseC);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalReverseActiveEnergyChanged, this, [=](float totalEnergyConsumed){
-        thing->setStateValue(dtsu666TotalEnergyConsumedStateTypeId, totalEnergyConsumed);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalReverseActiveEnergyChanged, this, [=](float totalReverseActiveEnergy){
+        thing->setStateValue(dtsu666TotalEnergyProducedStateTypeId, totalReverseActiveEnergy);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseAChanged, this, [=](float energyConsumedPhaseA){
-        thing->setStateValue(dtsu666EnergyConsumedPhaseAStateTypeId, energyConsumedPhaseA);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseAChanged, this, [=](float reverseActiveEnergyPhaseA){
+        thing->setStateValue(dtsu666EnergyProducedPhaseAStateTypeId, reverseActiveEnergyPhaseA);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseBChanged, this, [=](float energyConsumedPhaseB){
-        thing->setStateValue(dtsu666EnergyConsumedPhaseBStateTypeId, energyConsumedPhaseB);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseBChanged, this, [=](float reverseActiveEnergyPhaseB){
+        thing->setStateValue(dtsu666EnergyProducedPhaseBStateTypeId, reverseActiveEnergyPhaseB);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseCChanged, this, [=](float energyConsumedPhaseC){
-        thing->setStateValue(dtsu666EnergyConsumedPhaseCStateTypeId, energyConsumedPhaseC);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseCChanged, this, [=](float reverseActiveEnergyPhaseC){
+        thing->setStateValue(dtsu666EnergyProducedPhaseCStateTypeId, reverseActiveEnergyPhaseC);
     });
 }
 
