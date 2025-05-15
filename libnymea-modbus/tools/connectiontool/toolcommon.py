@@ -505,7 +505,13 @@ def writePropertyBlockScalingImplementation(sourceFile, blockDefinition):
         return
 
     blockName = blockDefinition['id']
-    scaling = [register.setdefault('staticScaleFactor', 0) for register in blockDefinition['registers']]
+    scaling = []
+    for register in blockDefinition['registers']:
+        if 'staticScaleFactor' in register:
+            scaling.append(register['staticScaleFactor'])
+        else:
+            scaling.append(0)
+
     formattedBlockName = blockName[0].upper() + blockName[1:]
     scalingValues = ','.join(map(str, scaling))
 
