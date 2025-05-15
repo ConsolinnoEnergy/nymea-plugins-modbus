@@ -82,7 +82,7 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     if (address > 247 || address == 0) {
         qCWarning(dcChint()) << "Setup failed, slave address is not valid" << address;
         info->finish(Thing::ThingErrorSetupFailed,
-                     QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
+                     QT_TR_NOOP("The Modbus address is not valid. It must be a value between 1 and 247."));
         return;
     }
 
