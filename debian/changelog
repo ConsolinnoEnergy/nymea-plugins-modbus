@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.015) jammy; urgency=medium
+nymea-plugins-modbus (1.7.015-1) jammy; urgency=medium
 
   * Fix Sungrow SH battery capacity
   * Added block write to modbus generator
