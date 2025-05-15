@@ -140,15 +140,15 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     });
 
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::initializationFinished,
-            thing, [this, info, dtsuConnection](bool success)
+            thing, [dtsuConnection](bool success)
     {
         if (success)
         {
-            m_dtsu666Connections.insert(info->thing(), dtsuConnection);
-            info->finish(Thing::ThingErrorNoError);
+            qCDebug(dcChint()) << "DTSU666 smartmeter Modbus RTU initialization successful.";
             dtsuConnection->update();
         } else {
-            info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The DTSU666 smartmeter is not responding."));
+            qCWarning(dcChint()) << "DTSU666 smartmeter Modbus RTU initialization failed.";
+            dtsuConnection->initialize();
         }
     });
 
@@ -209,6 +209,9 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::softwareversionChanged, this, [=](qint16 softwareVersion) {
         thing->setStateValue(dtsu666SoftwareversionStateTypeId, softwareVersion);
     });
+
+    m_dtsu666Connections.insert(info->thing(), dtsuConnection);
+    info->finish(Thing::ThingErrorNoError);
 }
 
 void IntegrationPluginChint::postSetupThing(Thing *thing)

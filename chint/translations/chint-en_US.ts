@@ -18,11 +18,6 @@
         <source>The Modbus RTU interface is not available.</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="../integrationpluginchint.cpp" line="151"/>
-        <source>The DTSU666 smartmeter is not responding.</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>chint</name>
