@@ -57,6 +57,36 @@
                             "defaultValue": false
                         },
                         {
+                            "id": "f3dc1672-cc53-45d9-b77a-48d7a0780993",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumed changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "3c27ae29-5c13-47f7-b14f-51fab6a07a86",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "8614974a-3371-4f9c-a96a-77cf5944aba5",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Current power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "6634212d-cbc6-4188-b731-bcff71b91242",
                             "name": "voltagePhaseA",
                             "displayName": "Voltage phase A",
@@ -117,16 +147,6 @@
                             "cached": false
                         },
                         {
-                            "id": "8614974a-3371-4f9c-a96a-77cf5944aba5",
-                            "name": "currentPower",
-                            "displayName": "Current power",
-                            "displayNameEvent": "Current power changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
                             "id": "1f540f61-3cbd-4a7a-895a-fc48e3066cd8",
                             "name": "currentPowerPhaseA",
                             "displayName": "Current power phase A",
@@ -155,35 +175,6 @@
                             "unit": "Watt",
                             "defaultValue": 0,
                             "cached": false
-                        },
-                        {
-                            "id": "57e8b607-3e80-4588-93e7-adbb6343a26b",
-                            "name": "softwareversion",
-                            "displayName": "Software Version",
-                            "displayNameEvent": "Software Version changed",
-                            "type": "int",
-                            "unit": "None",
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "f3dc1672-cc53-45d9-b77a-48d7a0780993",
-                            "name": "totalEnergyConsumed",
-                            "displayName": "Total energy consumed",
-                            "displayNameEvent": "Total energy consumed changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0.00,
-                            "cached": true
-                        },
-                        {
-                            "id": "3c27ae29-5c13-47f7-b14f-51fab6a07a86",
-                            "name": "totalEnergyProduced",
-                            "displayName": "Total energy produced",
-                            "displayNameEvent": "Total energy produced changed",
-                            "type": "double",
-                            "unit": "KiloWattHour",
-                            "defaultValue": 0.00,
-                            "cached": true
                         },
                         {
                             "id": "a64fe18c-32e9-44f7-b27f-800566ae1aab",
@@ -244,6 +235,15 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": false
+                        },
+                        {
+                            "id": "57e8b607-3e80-4588-93e7-adbb6343a26b",
+                            "name": "softwareversion",
+                            "displayName": "Software Version",
+                            "displayNameEvent": "Software Version changed",
+                            "type": "int",
+                            "unit": "None",
+                            "defaultValue": 0
                         }
                     ]
                 }
