@@ -16,7 +16,7 @@ void IntegrationPluginChint::init()
 
         foreach (Thing *thing, myThings()) {
             if (thing->thingClassId() == dtsu666ThingClassId &&
-                thing->paramValue(dtsu666ThingModbusMasterUuidParamTypeId) == modbusUuid)
+                    thing->paramValue(dtsu666ThingModbusMasterUuidParamTypeId) == modbusUuid)
             {
                 qCWarning(dcChint())
                         << "Modbus RTU hardware resource removed for"
@@ -100,8 +100,8 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
 
     DTSU666ModbusRtuConnection *dtsuConnection =
             new DTSU666ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid),
-                                                                                address,
-                                                                                thing);
+                                           address,
+                                           thing);
     connect(info, &ThingSetupInfo::aborted, dtsuConnection, [=] {
         qCDebug(dcChint()) << "Cleaning up ModbusRTU connection because setup has been aborted.";
         dtsuConnection->deleteLater();
@@ -207,7 +207,7 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
         thing->setStateValue(dtsu666EnergyProducedPhaseCStateTypeId, reverseActiveEnergyPhaseC);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::softwareversionChanged, this, [=](qint16 softwareVersion) {
-       thing->setStateValue(dtsu666SoftwareversionStateTypeId, softwareVersion);
+        thing->setStateValue(dtsu666SoftwareversionStateTypeId, softwareVersion);
     });
 }
 
