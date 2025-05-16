@@ -834,10 +834,25 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                             }
                         
                             qCWarning(dcAlphaInnotec()) << "Execute setHeatingMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
-                            m_currentControlMode = modeToSet;
-                            m_resetMode = false;
-                            settingModeInProgress = false;
-                            loop.quit();
+                            QModbusReply *blockCoolingReply = connection->setBlockCooling((modeToSet == SOFTLIMIT) ? 0 : 1);
+                            if (!blockCoolingReply) {
+                                qCWarning(dcAlphaInnotec()) << "Execute action setBlockCooling failed because the reply could not be created";
+                                info->finish(Thing::ThingErrorHardwareFailure);
+                            }
+                            connect(blockCoolingReply, &QModbusReply::finished, blockCoolingReply, &QModbusReply::deleteLater);
+                            connect(blockCoolingReply, &QModbusReply::finished, info, [this, info, blockCoolingReply, connection, modeToSet, &settingModeInProgress, &loop] {
+                                if (blockCoolingReply->error() != QModbusDevice::NoError) {
+                                    qCWarning(dcAlphaInnotec()) << "Set block cooling finished with error" << blockCoolingReply->errorString();
+                                    info->finish(Thing::ThingErrorHardwareFailure);
+                                    return;
+                                }
+                                
+                                qCWarning(dcAlphaInnotec()) << "Execute setBlockCooling action finshed successfully" << info->action().actionTypeId().toString() << info->action().params();
+                                m_currentControlMode = modeToSet;
+                                m_resetMode = false;
+                                settingModeInProgress = false;
+                                loop.quit();
+                            });
                         });
                         
                         connect(heatingModeReply, &QModbusReply::errorOccurred, info, [info, heatingModeReply] (QModbusDevice::Error error){
