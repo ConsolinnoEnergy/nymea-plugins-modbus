@@ -405,6 +405,32 @@
                     "access": "RW"
                 }
             ]
+        },
+        {
+            "id": "coolingAndPool",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "blockCooling",
+                    "address": 10052,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Block cooling",
+                    "defaultValue": "0",
+                    "access": "RW"
+                },
+                {
+                    "id": "blockPool",
+                    "address": 10053,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Block pool",
+                    "defaultValue": "0",
+                    "access": "RW"
+                }
+            ]
         }
     ]
 }
