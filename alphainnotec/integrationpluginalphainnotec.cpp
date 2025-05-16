@@ -869,9 +869,12 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                 surplusPvPower != oldSurplusPvPower &&
                 m_currentControlMode == SOFTLIMIT) {
                 // Set PC Limit
+                double currentPower = info->thing()->stateValue(aitSmartHomeCurrentPowerStateTypeId).toDouble();
+                info->thing()->setStateValue(aitSmartHomeActualPvSurplusStateTypeId, surplusPvPower + currentPower);
                 qCDebug(dcAlphaInnotec()) << "Surplus power" << surplusPvPower / 1000;
+                qCDebug(dcAlphaInnotec()) << "Power used by HP" << currentPower / 1000;
 
-                QModbusReply *pcLimitReply = connection->setPcLimit(surplusPvPower / 1000);
+                QModbusReply *pcLimitReply = connection->setPcLimit(surplusPvPower / 1000 + currentPower / 1000);
                 if (!pcLimitReply) {
                     qCWarning(dcAlphaInnotec()) << "Execute action setPcLimit failed because the reply could not be created.";
                     info->finish(Thing::ThingErrorHardwareFailure);
