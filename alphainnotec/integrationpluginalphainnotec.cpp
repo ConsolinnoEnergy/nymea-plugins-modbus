@@ -36,7 +36,6 @@
 #include <hardwaremanager.h>
 
 #include <QEventLoop>
-#include <QDateTime>
 
 IntegrationPluginAlphaInnotec::IntegrationPluginAlphaInnotec()
 {
@@ -767,18 +766,9 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             enum Mode modeToSet = Mode::UNDEFINED;
             bool modeChanged = false;
             if ((surplusPvPower < 0) && (oldSurplusPvPower < 0)) {
-                // Turn of hysteresis of 10minutes. Only if no PV surplus has been available for 10minutes; turn off.
-                if (m_turnOffHysteresis == -1 ||
-                   (QDateTime::currentSecsSinceEpoch() - m_turnOffHysteresis) >= 10*60) {
-
-                    modeToSet = NOLIMIT;
-                }
+                modeToSet = NOLIMIT;
             } else if ((surplusPvPower > 0) && (oldSurplusPvPower >= 0)) {
                 modeToSet = SOFTLIMIT;
-                m_turnOffHysteresis = -1;
-            } else if ((surplusPvPower < 0) && (oldSurplusPvPower >= 0)) {
-                // Abschalttimer starten
-                m_turnOffHysteresis = QDateTime::currentSecsSinceEpoch();
             }
 
             if (modeToSet == NOLIMIT && m_currentControlMode == SOFTLIMIT) {
