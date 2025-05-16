@@ -867,6 +867,18 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                                     settingModeInProgress = false;
                                     loop.quit();
                                 });
+
+                                connect(blockPoolReply, &QModbusReply::errorOccurred, info, [info, blockPoolReply] (QModbusDevice::Error error){
+                                    qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << blockPoolReply->errorString();
+                                    info->finish(Thing::ThingErrorHardwareFailure);
+                                    return;
+                                });
+                            });
+
+                            connect(blockCoolingReply, &QModbusReply::errorOccurred, info, [info, blockCoolingReply] (QModbusDevice::Error error){
+                                qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << blockCoolingReply->errorString();
+                                info->finish(Thing::ThingErrorHardwareFailure);
+                                return;
                             });
                         });
                         
@@ -876,6 +888,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                             return;
                         });
                     });
+
                     connect(hotWaterModeReply, &QModbusReply::errorOccurred, info, [info, hotWaterModeReply] (QModbusDevice::Error error){
                         qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << hotWaterModeReply->errorString();
                         info->finish(Thing::ThingErrorHardwareFailure);
