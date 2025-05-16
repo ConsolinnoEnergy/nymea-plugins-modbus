@@ -848,10 +848,25 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                                 }
                                 
                                 qCWarning(dcAlphaInnotec()) << "Execute setBlockCooling action finshed successfully" << info->action().actionTypeId().toString() << info->action().params();
-                                m_currentControlMode = modeToSet;
-                                m_resetMode = false;
-                                settingModeInProgress = false;
-                                loop.quit();
+                                QModbusReply *blockPoolReply = connection->setBlockPool((modeToSet == SOFTLIMIT) ? 0 : 1);
+                                if (!blockPoolReply) {
+                                    qCWarning(dcAlphaInnotec()) << "Execute action setBlockPool failed because the reply could not be created";
+                                    info->finish(Thing::ThingErrorHardwareFailure);
+                                }
+                                connect(blockPoolReply, &QModbusReply::finished, blockPoolReply, &QModbusReply::deleteLater);
+                                connect(blockPoolReply, &QModbusReply::finished, info, [this, info, blockPoolReply, connection, modeToSet, &settingModeInProgress, &loop] {
+                                    if (blockPoolReply->error() != QModbusDevice::NoError) {
+                                        qCWarning(dcAlphaInnotec()) << "Set block pool finished with error" << blockPoolReply->errorString();
+                                        info->finish(Thing::ThingErrorHardwareFailure);
+                                        return;
+                                    }
+
+                                    qCWarning(dcAlphaInnotec()) << "Execute setBlockPooling action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                                    m_currentControlMode = modeToSet;
+                                    m_resetMode = false;
+                                    settingModeInProgress = false;
+                                    loop.quit();
+                                });
                             });
                         });
                         
