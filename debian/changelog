@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.016) jammy; urgency=medium
+
+  * Siemens PAC2200: Initial Support
+
+ -- Luis Reber <l.reber@consolinno.de> Fri, 16 May 2025 13:49:00 +0100
+
 nymea-plugins-modbus (1.7.014) jammy; urgency=medium
 
   * DvModbusIR: Fix current power sign
