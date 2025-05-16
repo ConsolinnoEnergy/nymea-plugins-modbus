@@ -249,12 +249,8 @@ void IntegrationPluginChint::postSetupThing(Thing *thing)
     if (!m_refreshTimer) {
         m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
         connect(m_refreshTimer, &PluginTimer::timeout, this, [this] {
-            // #TODO Check for thing class ID needed here?
-            // Or does myThings only contain things from this plugin (which would be only DTSU666 things in this case)?
             foreach (Thing *thing, myThings()) {
-                if (thing->thingClassId() == dtsu666ThingClassId) {
-                    m_dtsu666Connections.value(thing)->update();
-                }
+                m_dtsu666Connections.value(thing)->update();
             }
         });
 
