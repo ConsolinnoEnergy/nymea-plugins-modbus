@@ -79,6 +79,9 @@ private:
 
     void writeHotWaterOffsetTemp(Thing *thing);
     void writeHeatingOffsetTemp(Thing *thing);
+
+    qint64 m_hysteresisTimer = 0;
+    bool m_turnOffHysteresis = false;
 };
 
 #endif // INTEGRATIONPLUGINALPHAINNOTEC_H

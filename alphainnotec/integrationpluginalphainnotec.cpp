@@ -36,6 +36,7 @@
 #include <hardwaremanager.h>
 
 #include <QEventLoop>
+#include <QDateTime>
 
 IntegrationPluginAlphaInnotec::IntegrationPluginAlphaInnotec()
 {
@@ -766,9 +767,26 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
 
             enum Mode modeToSet = Mode::UNDEFINED;
             bool modeChanged = false;
-            if ((surplusPvPower < 0) && (oldSurplusPvPower < 0)) {
+
+            if ((surplusPvPower < 0) && (oldSurplusPvPower > 0)) {
+                // Start turn off hysteresis
+                // Reset turn on hysteresis
+                qCWarning(dcAlphaInnotec()) << "Start turn off hysteresis.";
+                m_hysteresisTimer = QDateTime::currentSecsSinceEpoch();
+                m_turnOffHysteresis = true;
+            } else if ((surplusPvPower > 0) && (oldSurplusPvPower < 0)) {
+                // Start turn on hysteresis
+                // Reset turn off hysteresis
+                qCWarning(dcAlphaInnotec()) << "Start turn on hysteresis.";
+                m_hysteresisTimer = QDateTime::currentSecsSinceEpoch();
+                m_turnOffHysteresis = false;
+            }
+
+            if ((surplusPvPower < 0) && (oldSurplusPvPower < 0) &&
+                (QDateTime::currentSecsSinceEpoch() - m_hysteresisTimer) > 15*60) {
                 modeToSet = NOLIMIT;
-            } else if ((surplusPvPower > 0) && (oldSurplusPvPower >= 0)) {
+            } else if ((surplusPvPower > 0) && (oldSurplusPvPower >= 0) &&
+                       (QDateTime::currentSecsSinceEpoch() - m_hysteresisTimer) > 5*60) {
                 modeToSet = SOFTLIMIT;
             }
 
@@ -904,20 +922,25 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             }
 
             qCDebug(dcAlphaInnotec()) << "surplusPvPower" << surplusPvPower;
-            qCDebug(dcAlphaInnotec()) << "Mode" << m_currentControlMode;
+            qCWarning(dcAlphaInnotec()) << "Mode" << m_currentControlMode;
             
             if (settingModeInProgress)
                 loop.exec();
 
-            if (surplusPvPower > 0 &&
-                surplusPvPower != oldSurplusPvPower &&
+            if (((surplusPvPower > 0 && surplusPvPower != oldSurplusPvPower) ||
+                m_turnOffHysteresis) &&
                 m_currentControlMode == SOFTLIMIT) {
                 // Set PC Limit
                 info->thing()->setStateValue(aitSmartHomeActualPvSurplusStateTypeId, surplusPvPower);
                 qCDebug(dcAlphaInnotec()) << "Surplus power" << surplusPvPower / 1000;
                 qCDebug(dcAlphaInnotec()) << "Power used by HP" << currentPower / 1000;
-
-                QModbusReply *pcLimitReply = connection->setPcLimit(surplusPvPower / 1000 + currentPower / 1000);
+                
+                float powerToSet = 0;
+                if (!m_turnOffHysteresis) {
+                    powerToSet = surplusPvPower/1000 + currentPower/1000;
+                }
+                qCWarning(dcAlphaInnotec()) << "Power to set" << powerToSet;
+                QModbusReply *pcLimitReply = connection->setPcLimit(powerToSet);
                 if (!pcLimitReply) {
                     qCWarning(dcAlphaInnotec()) << "Execute action setPcLimit failed because the reply could not be created.";
                     info->finish(Thing::ThingErrorHardwareFailure);
