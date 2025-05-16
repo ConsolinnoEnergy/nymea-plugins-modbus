@@ -761,6 +761,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             qCDebug(dcAlphaInnotec()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
             double surplusPvPower = info->action().paramValue(aitSmartHomeActualPvSurplusActionActualPvSurplusParamTypeId).toDouble();
             double oldSurplusPvPower = info->thing()->stateValue(aitSmartHomeActualPvSurplusStateTypeId).toDouble();
+            double currentPower = info->thing()->stateValue(aitSmartHomeCurrentPowerStateTypeId).toDouble();
             info->thing()->setStateValue(aitSmartHomeActualPvSurplusStateTypeId, surplusPvPower);
 
             enum Mode modeToSet = Mode::UNDEFINED;
@@ -912,8 +913,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                 surplusPvPower != oldSurplusPvPower &&
                 m_currentControlMode == SOFTLIMIT) {
                 // Set PC Limit
-                double currentPower = info->thing()->stateValue(aitSmartHomeCurrentPowerStateTypeId).toDouble();
-                info->thing()->setStateValue(aitSmartHomeActualPvSurplusStateTypeId, surplusPvPower + currentPower);
+                info->thing()->setStateValue(aitSmartHomeActualPvSurplusStateTypeId, surplusPvPower);
                 qCDebug(dcAlphaInnotec()) << "Surplus power" << surplusPvPower / 1000;
                 qCDebug(dcAlphaInnotec()) << "Power used by HP" << currentPower / 1000;
 
