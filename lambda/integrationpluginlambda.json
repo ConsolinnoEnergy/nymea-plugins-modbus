@@ -18,7 +18,8 @@
                     "interfaces": [
                         "pvsurplusheatpump",
                         "connectable",
-                        "smartmeterconsumer"
+                        "smartmeterconsumer",
+                        "smartgridheatpump"
                     ],
                     "paramTypes": [
                         {
@@ -554,6 +555,42 @@
                             ],
                             "defaultValue": "Off",
                             "suggestLogging": true
+                        },
+                        {
+                            "id": "16370328-fb9d-4ab3-8a0d-b41a2af6f1d7",
+                            "name": "sgReadyMode",
+                            "displayName": "Smart grid mode",
+                            "displayNameEvent": "Smart grid mode changed",
+                            "displayNameAction": "Set smart grid mode",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Off",
+                                "Low",
+                                "Standard",
+                                "High"
+                            ],
+                            "writable": true,
+                            "defaultValue": "Standard",
+                            "cached": true,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "cee50a87-cdab-4b6a-b5c5-2ef787a6f5c8",
+                            "name": "gpio1State",
+                            "displayName": "Relay 1 enabled",
+                            "displayNameEvent": "Relay 1 enabled changed",
+                            "type": "bool",
+                            "cached": true,
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "0bb5c497-30d6-4a31-b968-490162ac9802",
+                            "name": "gpio2State",
+                            "displayName": "Relay 2 enabled",
+                            "displayNameEvent": "Relay 2 enabled changed",
+                            "type": "bool",
+                            "cached": true,
+                            "defaultValue": false
                         }
                     ],
                     "actionTypes": []

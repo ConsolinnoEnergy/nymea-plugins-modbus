@@ -6,7 +6,8 @@
     "offline": true,
     "technologies": [
         "network",
-        "modbus"
+        "modbus",
+        "gpio"
     ],
     "categories": [
         "heating"

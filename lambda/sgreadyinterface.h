@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
+* Copyright 2013 - 2021, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,39 +28,48 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINLAMBDA_H
-#define INTEGRATIONPLUGINLAMBDA_H
+#ifndef SGREADYINTERFACE_H
+#define SGREADYINTERFACE_H
 
-#include <plugintimer.h>
-#include <integrations/integrationplugin.h>
+#include <QObject>
 
-#include "lambdamodbustcpconnection.h"
-#include "sgreadyinterface.h"
+#include "gpio.h"
 
-class IntegrationPluginLambda: public IntegrationPlugin
+class SgReadyInterface : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginlambda.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginLambda();
+    enum SgReadyMode {
+        SgReadyModeOff,
+        SgReadyModeLow,
+        SgReadyModeStandard,
+        SgReadyModeHigh
+    };
+    Q_ENUM(SgReadyMode)
 
-    void init() override;
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void startMonitoringAutoThings() override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
+    explicit SgReadyInterface(int gpioNumber1, int gpioNumber2, QObject *parent = nullptr);
+
+    SgReadyMode sgReadyMode() const;
+    bool setSgReadyMode(SgReadyMode sgReadyMode);
+
+    bool setup(bool gpio1Enabled, bool gpio2Enabled);
+    bool isValid() const;
+
+    Gpio *gpio1() const;
+    Gpio *gpio2() const;
+
+signals:
+    void sgReadyModeChanged(SgReadyMode sgReadyMode);
 
 private:
-    PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, LambdaModbusTcpConnection *> m_connections;
-    QHash<Thing *, SgReadyInterface *> m_sgReadyInterfaces;
+    SgReadyMode m_sgReadyMode = SgReadyModeStandard;
+    int m_gpioNumber1 = -1;
+    int m_gpioNumber2 = -1;
+
+    Gpio *m_gpio1 = nullptr;
+    Gpio *m_gpio2 = nullptr;
+
+    Gpio *setupGpio(int gpioNumber, bool initialValue);
 };
 
-#endif // INTEGRATIONPLUGINLAMBDA_H
-
-
+#endif // SGREADYINTERFACE_H
