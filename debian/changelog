@@ -1,3 +1,8 @@
+nymea-plugins-modbus (1.7.016) jammy; urgency=medium
+  * Lambda: accuracy improvements and warning suppression
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 18 May 2025 13:49:00 +0100
+
 nymea-plugins-modbus (1.7.015-1) jammy; urgency=medium
 
   * Fix Sungrow SH battery capacity
