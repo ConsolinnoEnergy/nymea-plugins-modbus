@@ -783,7 +783,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             }
 
             if ((surplusPvPower < 0) && (oldSurplusPvPower < 0) &&
-                (QDateTime::currentSecsSinceEpoch() - m_hysteresisTimer) > 15*60) {
+                (QDateTime::currentSecsSinceEpoch() - m_hysteresisTimer) > 20*60) {
                 modeToSet = NOLIMIT;
             } else if ((surplusPvPower > 0) && (oldSurplusPvPower >= 0) &&
                        (QDateTime::currentSecsSinceEpoch() - m_hysteresisTimer) > 5*60) {
@@ -853,7 +853,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                             }
                         
                             qCDebug(dcAlphaInnotec()) << "Execute setHeatingMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
-                            double coolingAndPool = thing->paramValue(aitSmartHomeThingCoolingAndPoolParamTypeId).toBool();
+                            double coolingAndPool = info->thing()->paramValue(aitSmartHomeThingCoolingAndPoolParamTypeId).toBool();
                             if (coolingAndPool) {
                                 QModbusReply *blockCoolingReply = connection->setBlockCooling((modeToSet == SOFTLIMIT) ? 0 : 1);
                                 if (!blockCoolingReply) {
