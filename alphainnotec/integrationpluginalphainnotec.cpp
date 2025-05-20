@@ -469,7 +469,7 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
         });
 
         connect(aitShiConnection, &aitShiModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](float energy) {
-            qCWarning(dcAlphaInnotec()) << "Total energy consumed changed to" << energy;
+            qCDebug(dcAlphaInnotec()) << "Total energy consumed changed to" << energy;
             thing->setStateValue(aitSmartHomeTotalEnergyConsumedStateTypeId, energy);
         });
 
@@ -771,13 +771,13 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             if ((surplusPvPower <= 0) && (oldSurplusPvPower > 0)) {
                 // Start turn off hysteresis
                 // Reset turn on hysteresis
-                qCWarning(dcAlphaInnotec()) << "Start turn off hysteresis.";
+                qCDebug(dcAlphaInnotec()) << "Start turn off hysteresis.";
                 m_hysteresisTimer = QDateTime::currentSecsSinceEpoch();
                 m_turnOffHysteresis = true;
             } else if ((surplusPvPower > 0) && (oldSurplusPvPower <= 0)) {
                 // Start turn on hysteresis
                 // Reset turn off hysteresis
-                qCWarning(dcAlphaInnotec()) << "Start turn on hysteresis.";
+                qCDebug(dcAlphaInnotec()) << "Start turn on hysteresis.";
                 m_hysteresisTimer = QDateTime::currentSecsSinceEpoch();
                 m_turnOffHysteresis = false;
             }
@@ -818,7 +818,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                         return;
                     }
                 
-                    qCWarning(dcAlphaInnotec()) << "Execute setLpcMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                    qCDebug(dcAlphaInnotec()) << "Execute setLpcMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
                     // Set Hot Water Mode
                     QModbusReply *hotWaterModeReply = connection->setHotWaterMode((modeToSet == SOFTLIMIT) ? 2 : 0); 
                     if (!hotWaterModeReply) {
@@ -835,7 +835,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                             return;
                         }
                     
-                        qCWarning(dcAlphaInnotec()) << "Execute setHotWaterMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                        qCDebug(dcAlphaInnotec()) << "Execute setHotWaterMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
                         // Set Heating Mode
                         QModbusReply *heatingModeReply = connection->setHeatingMode((modeToSet == SOFTLIMIT) ? 2 : 0);
                         if (!heatingModeReply) {
@@ -852,7 +852,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                                 return;
                             }
                         
-                            qCWarning(dcAlphaInnotec()) << "Execute setHeatingMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                            qCDebug(dcAlphaInnotec()) << "Execute setHeatingMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
                             QModbusReply *blockCoolingReply = connection->setBlockCooling((modeToSet == SOFTLIMIT) ? 0 : 1);
                             if (!blockCoolingReply) {
                                 qCWarning(dcAlphaInnotec()) << "Execute action setBlockCooling failed because the reply could not be created";
@@ -866,7 +866,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                                     return;
                                 }
                                 
-                                qCWarning(dcAlphaInnotec()) << "Execute setBlockCooling action finshed successfully" << info->action().actionTypeId().toString() << info->action().params();
+                                qCDebug(dcAlphaInnotec()) << "Execute setBlockCooling action finshed successfully" << info->action().actionTypeId().toString() << info->action().params();
                                 QModbusReply *blockPoolReply = connection->setBlockPool((modeToSet == SOFTLIMIT) ? 0 : 1);
                                 if (!blockPoolReply) {
                                     qCWarning(dcAlphaInnotec()) << "Execute action setBlockPool failed because the reply could not be created";
@@ -880,7 +880,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                                         return;
                                     }
 
-                                    qCWarning(dcAlphaInnotec()) << "Execute setBlockPooling action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                                    qCDebug(dcAlphaInnotec()) << "Execute setBlockPooling action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
                                     m_currentControlMode = modeToSet;
                                     m_resetMode = false;
                                     settingModeInProgress = false;
@@ -920,9 +920,6 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                     return;
                 });
             }
-
-            qCDebug(dcAlphaInnotec()) << "surplusPvPower" << surplusPvPower;
-            qCWarning(dcAlphaInnotec()) << "Mode" << m_currentControlMode;
             
             if (settingModeInProgress)
                 loop.exec();
@@ -939,7 +936,6 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                 if (!m_turnOffHysteresis) {
                     powerToSet = surplusPvPower/1000 + currentPower/1000;
                 }
-                qCWarning(dcAlphaInnotec()) << "Power to set" << powerToSet;
                 QModbusReply *pcLimitReply = connection->setPcLimit(powerToSet);
                 if (!pcLimitReply) {
                     qCWarning(dcAlphaInnotec()) << "Execute action setPcLimit failed because the reply could not be created.";
@@ -954,7 +950,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                         return;
                     }
                 
-                    qCWarning(dcAlphaInnotec()) << "Execute setPcLimit action setPcLimit finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                    qCDebug(dcAlphaInnotec()) << "Execute setPcLimit action setPcLimit finished successfully" << info->action().actionTypeId().toString() << info->action().params();
                     info->finish(Thing::ThingErrorNoError);
                 });
                 
