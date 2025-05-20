@@ -374,6 +374,13 @@
                             "displayName": "Hot water offset temperature",
                             "type": "double",
                             "defaultValue": 5
+                        },
+                        {
+                            "id": "0b52dc8d-1e77-415a-8fcf-063bc208e425",
+                            "name": "coolingAndPool",
+                            "displayName": "Block cooling and pool?",
+                            "type": "bool",
+                            "defaultValue": false
                         }
                     ],
                     "stateTypes": [
