@@ -768,13 +768,13 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             enum Mode modeToSet = Mode::UNDEFINED;
             bool modeChanged = false;
 
-            if ((surplusPvPower < 0) && (oldSurplusPvPower > 0)) {
+            if ((surplusPvPower <= 0) && (oldSurplusPvPower > 0)) {
                 // Start turn off hysteresis
                 // Reset turn on hysteresis
                 qCWarning(dcAlphaInnotec()) << "Start turn off hysteresis.";
                 m_hysteresisTimer = QDateTime::currentSecsSinceEpoch();
                 m_turnOffHysteresis = true;
-            } else if ((surplusPvPower > 0) && (oldSurplusPvPower < 0)) {
+            } else if ((surplusPvPower > 0) && (oldSurplusPvPower <= 0)) {
                 // Start turn on hysteresis
                 // Reset turn off hysteresis
                 qCWarning(dcAlphaInnotec()) << "Start turn on hysteresis.";
@@ -927,9 +927,9 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             if (settingModeInProgress)
                 loop.exec();
 
-            if (((surplusPvPower > 0 && surplusPvPower != oldSurplusPvPower) ||
-                m_turnOffHysteresis) &&
-                m_currentControlMode == SOFTLIMIT) {
+            if (((surplusPvPower > 0 || m_turnOffHysteresis) &&
+                  surplusPvPower != oldSurplusPvPower) &&
+                  m_currentControlMode == SOFTLIMIT) {
                 // Set PC Limit
                 info->thing()->setStateValue(aitSmartHomeActualPvSurplusStateTypeId, surplusPvPower);
                 qCDebug(dcAlphaInnotec()) << "Surplus power" << surplusPvPower / 1000;
