@@ -23,19 +23,20 @@ class PowerControlAzzurro
 public:
     PowerControlAzzurro();
 
-    bool activePowerLimitEnabled();
-    unsigned short activePowerOutputLimit();
-    double relativePowerLimit();
+    bool exportLimitEnabled();
+    double exportLimit();
+    double exportLimitRate();
     void setNominalPower(unsigned short value);
     unsigned short nominalPower();
-    void setRelativePowerOutputLimit(unsigned short value);
-    void setActivePowerOutputLimit(unsigned short value);
-    void setActivePowerLimitEnable(bool value);
+    void setExportLimitRate(float value);
+    void setExportLimit(double value);
+    void setExportLimitEnable(bool value);
     QVector<quint16> Registers();
 
 private:
+    double m_exportLimit;
     unsigned short m_nominalPower;
     unsigned short m_controlRegister;
-    unsigned short m_limitRegister;
+    float m_limitRegister;
 };
 #endif

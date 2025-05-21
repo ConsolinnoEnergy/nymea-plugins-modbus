@@ -6,7 +6,7 @@ PowerControlAzzurro::PowerControlAzzurro()
 {
     m_nominalPower = 1000;
     m_controlRegister = 0;
-    m_limitRegister = 1000; // => 100%
+    m_limitRegister = 100;
 }
 
 unsigned short PowerControlAzzurro::nominalPower()
@@ -14,22 +14,33 @@ unsigned short PowerControlAzzurro::nominalPower()
     return m_nominalPower;
 }
 
-void PowerControlAzzurro::setRelativePowerOutputLimit(unsigned short value)
+void PowerControlAzzurro::setExportLimitRate(float value)
 {
     m_limitRegister = value;
+
+    m_exportLimit = m_nominalPower * m_limitRegister / 100;
+    if (m_exportLimit > m_nominalPower)
+        m_exportLimit = m_nominalPower;
+    if (m_exportLimit < 0)
+        m_exportLimit = 0;
 }
 
-void PowerControlAzzurro::setActivePowerOutputLimit(unsigned short value)
+void PowerControlAzzurro::setExportLimit(double value)
 {
-    m_limitRegister = value * 1000 / m_nominalPower;
+    m_exportLimit = value;
 
-    if (value < m_nominalPower)
-        setActivePowerLimitEnable(true);
-    else
-        setActivePowerLimitEnable(false);
+    if (m_nominalPower == 0)
+        return;
+
+    if (m_exportLimit > m_nominalPower)
+        m_exportLimit = m_nominalPower;
+    if (m_exportLimit < 0)
+        m_exportLimit = 0;
+
+    m_limitRegister = m_exportLimit * 100 / m_nominalPower;
 }
 
-void PowerControlAzzurro::setActivePowerLimitEnable(bool value)
+void PowerControlAzzurro::setExportLimitEnable(bool value)
 {
     if (value)
         m_controlRegister |= 0x01;
@@ -39,25 +50,28 @@ void PowerControlAzzurro::setActivePowerLimitEnable(bool value)
 
 QVector<quint16> PowerControlAzzurro::Registers()
 {
-    return QVector<quint16>{m_controlRegister, m_limitRegister};
+    return QVector<quint16>{m_controlRegister, quint16(m_limitRegister)};
 }
 
 void PowerControlAzzurro::setNominalPower(unsigned short value)
 {
-    m_nominalPower = value;
+    if (value > 0)
+        m_nominalPower = value;
+    else
+        m_nominalPower = 1;
 }
 
-bool PowerControlAzzurro::activePowerLimitEnabled()
+bool PowerControlAzzurro::exportLimitEnabled()
 {
     return (bool)(m_controlRegister & 0x0001);
 }
 
-unsigned short PowerControlAzzurro::activePowerOutputLimit()
+double PowerControlAzzurro::exportLimit()
 {
-    return (unsigned short)(m_nominalPower * m_limitRegister / 1000);
+    return (unsigned short)(m_nominalPower * m_limitRegister / 100);
 }
 
-double PowerControlAzzurro::relativePowerLimit()
+double PowerControlAzzurro::exportLimitRate()
 {
-    return m_limitRegister / 10.0;
+    return m_limitRegister;
 }

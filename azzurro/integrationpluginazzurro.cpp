@@ -319,14 +319,15 @@ void IntegrationPluginAzzurro::setupThing(ThingSetupInfo *info)
             quint16 powerControl = value;
             // unsigned long ulValue = value;
             qCDebug(dcAzzurro()) << "Power control changed " << powerControl;
-            m_powerControl->setActivePowerLimitEnable(powerControl & 0x0001); });
+            m_powerControl->setExportLimitEnable(powerControl & 0x01);
+            thing->setStateValue(azzurroInverterRTUEnableExportLimitStateTypeId, m_powerControl->exportLimitEnabled()); });
 
         connect(connection, &AzzurroModbusRtuConnection::activePowerOutputLimitChanged, this, [this, thing](float value)
                 {
-                    quint16 activePowerOutputLimit = value;
-                    m_powerControl->setRelativePowerOutputLimit(activePowerOutputLimit);
-                    qCDebug(dcAzzurro()) << "Active power output limit changed " << m_powerControl->activePowerOutputLimit() << "W (" << activePowerOutputLimit/10 << "%)";
-                    thing->setStateValue(azzurroInverterRTUExportLimitStateTypeId, m_powerControl->activePowerOutputLimit()); });
+                    quint16 exportLimit = value;
+                    m_powerControl->setExportLimitRate(exportLimit);
+                    qCDebug(dcAzzurro()) << "Active power output limit changed " << m_powerControl->exportLimit() << "W (" << exportLimit/10 << "%)";
+                    thing->setStateValue(azzurroInverterRTUExportLimitStateTypeId, m_powerControl->exportLimit()); });
 
         // Meter
         connect(connection, &AzzurroModbusRtuConnection::activePowerPccChanged, thing, [this, thing](float currentPower)
@@ -636,6 +637,7 @@ void IntegrationPluginAzzurro::postSetupThing(Thing *thing)
 
         // Set the maximum power limit to the nominal power
         uint nominalPower = thing->paramValue(azzurroInverterRTUThingNominalPowerParamTypeId).toUInt();
+        m_powerControl->setNominalPower(nominalPower);
         thing->setStateMaxValue(azzurroInverterRTUExportLimitStateTypeId, nominalPower);
     }
 }
@@ -657,12 +659,20 @@ void IntegrationPluginAzzurro::executeAction(ThingActionInfo *info)
             return;
         }
 
-        if (actionTypeId == azzurroInverterRTUExportLimitActionTypeId)
+        if (actionTypeId == azzurroInverterRTUEnableExportLimitActionTypeId)
         {
-            uint powerLimit = info->action().paramValue(azzurroInverterRTUExportLimitActionExportLimitParamTypeId).toUInt();
-            m_powerControl->setActivePowerOutputLimit(powerLimit);
+            bool enableExportLimit = info->action().paramValue(azzurroInverterRTUEnableExportLimitActionEnableExportLimitParamTypeId).toBool();
+            m_powerControl->setExportLimitEnable(enableExportLimit);
+            qCDebug(dcAzzurro()) << "exportLimitEnable: " << m_powerControl->exportLimitEnabled();
 
-            qCDebug(dcAzzurro()) << "activePowerLimit: " << m_powerControl->activePowerOutputLimit() << "W (" << m_powerControl->relativePowerLimit() << "%)";
+            success = executePowerControl(azzurromodbusrtuconnection);
+        }
+        else if (actionTypeId == azzurroInverterRTUExportLimitActionTypeId)
+        {
+            double exportLimit = info->action().paramValue(azzurroInverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
+            m_powerControl->setExportLimit(exportLimit);
+
+            qCDebug(dcAzzurro()) << "exportLimit: " << m_powerControl->exportLimit() << "W (" << m_powerControl->exportLimitRate() << "%)";
             success = executePowerControl(azzurromodbusrtuconnection);
         }
         else
