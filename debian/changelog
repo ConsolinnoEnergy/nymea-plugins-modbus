@@ -1,4 +1,10 @@
-nymea-plugins-modbus (1.7.015) jammy; urgency=medium
+nymea-plugins-modbus (1.7.016) jammy; urgency=medium
+
+  * Sofarsolar HYD / Azzurro hybrid inverters: LPP added
+
+ -- Oliver Wieland <o.wieland@consolinno.de>  Wed, 21 May 2025 11:59:30 +0200
+
+nymea-plugins-modbus (1.7.015-1) jammy; urgency=medium
 
   * Fix Sungrow SH battery capacity
   * Added block write to modbus generator
@@ -12,7 +18,7 @@ nymea-plugins-modbus (1.7.015) jammy; urgency=medium
   * Lambda: Support not available modules
   * SolarEdge: Add battery control for solaredge hybrid inverter
   * Victron GX: Initial plugin added
-  * Sofarsolar HYD / Azzurro hybrid inverters: LPP added
+  * Lambda: Precise electrical energy value
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
 
