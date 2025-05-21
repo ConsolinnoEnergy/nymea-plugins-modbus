@@ -6,7 +6,7 @@ PowerControlSofarsolar::PowerControlSofarsolar()
 {
     m_nominalPower = 1000;
     m_controlRegister = 0;
-    m_limitRegister = 1000; // => 100%
+    m_limitRegister = 100;
 }
 
 unsigned short PowerControlSofarsolar::nominalPower()
@@ -14,22 +14,33 @@ unsigned short PowerControlSofarsolar::nominalPower()
     return m_nominalPower;
 }
 
-void PowerControlSofarsolar::setRelativePowerOutputLimit(unsigned short value)
+void PowerControlSofarsolar::setExportLimitRate(float value)
 {
     m_limitRegister = value;
+
+    m_exportLimit = m_nominalPower * m_limitRegister / 100;
+    if (m_exportLimit > m_nominalPower)
+        m_exportLimit = m_nominalPower;
+    if (m_exportLimit < 0)
+        m_exportLimit = 0;
 }
 
-void PowerControlSofarsolar::setActivePowerOutputLimit(unsigned short value)
+void PowerControlSofarsolar::setExportLimit(double value)
 {
-    m_limitRegister = value * 1000 / m_nominalPower;
+    m_exportLimit = value;
 
-    if (value < m_nominalPower)
-        setActivePowerLimitEnable(true);
-    else
-        setActivePowerLimitEnable(false);
+    if (m_nominalPower == 0)
+        return;
+
+    if (m_exportLimit > m_nominalPower)
+        m_exportLimit = m_nominalPower;
+    if (m_exportLimit < 0)
+        m_exportLimit = 0;
+
+    m_limitRegister = m_exportLimit * 100 / m_nominalPower;
 }
 
-void PowerControlSofarsolar::setActivePowerLimitEnable(bool value)
+void PowerControlSofarsolar::setExportLimitEnable(bool value)
 {
     if (value)
         m_controlRegister |= 0x01;
@@ -39,25 +50,28 @@ void PowerControlSofarsolar::setActivePowerLimitEnable(bool value)
 
 QVector<quint16> PowerControlSofarsolar::Registers()
 {
-    return QVector<quint16>{m_controlRegister, m_limitRegister};
+    return QVector<quint16>{m_controlRegister, quint16(m_limitRegister)};
 }
 
 void PowerControlSofarsolar::setNominalPower(unsigned short value)
 {
-    m_nominalPower = value;
+    if (value > 0)
+        m_nominalPower = value;
+    else
+        m_nominalPower = 1;
 }
 
-bool PowerControlSofarsolar::activePowerLimitEnabled()
+bool PowerControlSofarsolar::exportLimitEnabled()
 {
     return (bool)(m_controlRegister & 0x0001);
 }
 
-unsigned short PowerControlSofarsolar::activePowerOutputLimit()
+double PowerControlSofarsolar::exportLimit()
 {
-    return (unsigned short)(m_nominalPower * m_limitRegister / 1000);
+    return (unsigned short)(m_nominalPower * m_limitRegister / 100);
 }
 
-double PowerControlSofarsolar::relativePowerLimit()
+double PowerControlSofarsolar::exportLimitRate()
 {
-    return m_limitRegister / 10.0;
+    return m_limitRegister;
 }
