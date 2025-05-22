@@ -1,18 +1,28 @@
 {
   "Qcells": {
     "uuid": "ab7e33e3-e376-4e63-891b-7aa9d46f42f4",
-    "DTSU666": {
-      "filename": "qcellssmartmeter",
-      "interfaces": "null",
+    "DTSU666 Inverter": {
+      "filename": "qcellssmartmeterinverter",
+      "interfaces": "solarinverter connectable",
       "uuid_offset": 7
+    },
+    "DTSU666 Consumer": {
+      "filename": "qcellssmartmeterconsumer",
+      "interfaces": "smartmeterconsumer connectable",
+      "uuid_offset": 9
     }
   },
   "Fox ESS": {
     "uuid": "17e4357f-c6a6-4407-857c-354e813c4c92",
-    "DTSU666": {
-      "filename": "foxesssmartmeter",
-      "interfaces": "null",
-      "uuid_offset": 9
+    "DTSU666 Inverter": {
+      "filename": "foxesssmartmeterinverter",
+      "interfaces": "solarinverter connectable",
+      "uuid_offset": 11
+    },
+    "DTSU666 Consumer": {
+      "filename": "foxesssmartmeterconsumer",
+      "interfaces": "smartmeterconsumer connectable",
+      "uuid_offset": 13
     }
   }
 }
