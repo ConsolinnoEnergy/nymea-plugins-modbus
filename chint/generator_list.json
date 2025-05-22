@@ -1,28 +1,38 @@
 {
   "Qcells": {
     "uuid": "ab7e33e3-e376-4e63-891b-7aa9d46f42f4",
-    "DTSU666 Inverter": {
-      "filename": "qcellssmartmeterinverter",
-      "interfaces": "solarinverter connectable",
+    "Q.SAVE-G3 E-METER 3P": {
+      "filename": "qcellsqsaveg3emeter3p",
+      "interfaces": "null",
       "uuid_offset": 7
     },
-    "DTSU666 Consumer": {
-      "filename": "qcellssmartmeterconsumer",
-      "interfaces": "smartmeterconsumer connectable",
+    "Q.SAVE-G3 E-METER 3P Inverter": {
+      "filename": "qcellsqsaveg3emeter3pinverter",
+      "interfaces": "solarinverter connectable",
       "uuid_offset": 9
+    },
+    "Q.SAVE-G3 E-METER 3P Consumer": {
+      "filename": "qcellsqsaveg3emeter3pconsumer",
+      "interfaces": "smartmeterconsumer connectable",
+      "uuid_offset": 11
     }
   },
   "Fox ESS": {
     "uuid": "17e4357f-c6a6-4407-857c-354e813c4c92",
+    "DTSU666": {
+      "filename": "foxesssmartmeter",
+      "interfaces": "null",
+      "uuid_offset": 13
+    },
     "DTSU666 Inverter": {
       "filename": "foxesssmartmeterinverter",
       "interfaces": "solarinverter connectable",
-      "uuid_offset": 11
+      "uuid_offset": 15
     },
     "DTSU666 Consumer": {
       "filename": "foxesssmartmeterconsumer",
       "interfaces": "smartmeterconsumer connectable",
-      "uuid_offset": 13
+      "uuid_offset": 17
     }
   }
 }
