@@ -379,7 +379,7 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             thing->setStateValue(lambdaTCPCoefficientOfPerformanceStateTypeId, coefficientOfPerformance);
         });
         // 1-0-14 until 1-0-19 not connected
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](qint32 totalEnergyConsumed){
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](float totalEnergyConsumed){
             qCDebug(dcLambda()) << thing << "Accumulated electrical energy consumption of compressor unit since last statistic reset" << totalEnergyConsumed << "Wh";
             thing->setStateValue(lambdaTCPTotalEnergyConsumedStateTypeId, totalEnergyConsumed);
         });
