@@ -174,36 +174,23 @@
                         },
                         {
                             "id": "d580576e-86bd-47dd-91ab-27a78f6a7de7",
-                            "name": "exportLimitEnable",
-                            "displayName": "Export Limit enabled",
-                            "displayNameAction": "export limit enabled",
+                            "name": "enableExportLimit",
+                            "displayName": "Enable Export Limit",
+                            "displayNameAction": "Enable Export limit",
                             "type": "bool",
                             "writable": true,
                             "defaultValue": false
                         },
                         {
-                            "id": "814ad633-cd88-4758-af5f-6dd5c1391d39",
-                            "name": "exportLimitRate",
-                            "displayName": "Export Limit Rate (percent of inverter nominal power)",
-                            "displayNameAction": "Set export limit",
-                            "type": "double",
-                            "unit": "Percentage",
-                            "writable": true,
-                            "defaultValue": 100,
-                            "minValue": 0,
-                            "maxValue": 100
-                        },
-                        {
                             "id": "178eb279-71c7-4dee-a5ea-69516ffca4ad",
-                            "name": "exportLimitPower",
-                            "displayName": "Export Limit Power",
+                            "name": "exportLimit",
+                            "displayName": "Export Limit",
                             "displayNameAction": "Set export limit",
                             "type": "double",
                             "unit": "Watt",
                             "writable": true,
                             "defaultValue": 0,
-                            "minValue": 0,
-                            "maxValue": 100
+                            "minValue": 0
                         },
                         {
                             "id": "98731d61-d274-4843-bfa2-35008ea9b18f",
