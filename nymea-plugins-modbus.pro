@@ -18,6 +18,7 @@ PLUGIN_DIRS = \
     kostalmeter             \
     drexelundweiss          \
     foxesswbv3              \
+    foxess                  \
     goodwe                  \
     growatt                 \
     huawei                  \

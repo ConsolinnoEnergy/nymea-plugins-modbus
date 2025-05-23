@@ -1,0 +1,94 @@
+{
+    "name": "foxess",
+    "displayName": "FoxESS",
+    "id": "cefb145b-d758-4aa4-a596-815a81fb6d82",
+    "vendors": [
+        {
+            "name": "foxess",
+            "displayName": "FoxESS",
+            "id": "f0464308-9857-4be6-bdc4-ee1224db48e3",
+            "thingClasses": [
+                {
+                    "name": "foxRSeries",
+                    "displayName": "FoxESS R-Series",
+                    "id": "06489b61-0fe5-4488-8beb-15e0f5a93dba",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["solarinverter", "connectable"],
+                    "providedInterfaces": [ "solarinverter"],
+                    "discoveryParamTypes": [
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "b8f7260b-80d0-414f-a19b-f4f8c77cb9c4",
+                            "name": "modbusMasterUuid",
+                            "displayName": "Modbus RTU master",
+                            "type": "QUuid",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "0ae9ae16-3550-4271-94e0-e1f0c1e6d239",
+                            "name": "slaveAddress",
+                            "displayName": "Modbus slave address",
+                            "type": "uint",
+                            "defaultValue": 1,
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "5f1d2ed4-9ab4-4164-9372-52458f58a438",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "5ca14436-c70f-4641-8d49-a27bd43f70e2",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "52837641-2730-490e-a2e2-f7a478fb6591",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "4e1d7359-4a73-4ab7-b17f-20b48ae844e9",
+                            "name": "operatingState",
+                            "displayName": "Operating State",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Off",
+                                "Sleeping",
+                                "Starting",
+                                "MPPT",
+                                "Throttled",
+                                "ShuttingDown",
+                                "Fault",
+                                "Standby"
+                            ],
+                            "defaultValue": "Off",
+                            "displayNameEvent": "Operating state changed",
+                            "cached": false
+                        }
+                    ],
+                    "actionTypes": [ ]
+                }
+            ]
+        }
+    ]
+}
+

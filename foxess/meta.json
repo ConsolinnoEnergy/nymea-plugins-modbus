@@ -1,0 +1,12 @@
+{
+    "title": "FoxESS Inverter",
+    "tagline": "Connect to FoxESS inverters.",
+    "stability": "consumer",
+    "offline": true,
+    "technologies": [
+        "network"
+    ],
+    "categories": [
+        "energy"
+    ]
+}
