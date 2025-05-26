@@ -62,7 +62,7 @@ void IntegrationPluginFoxESS::discoverThings(ThingDiscoveryInfo *info)
                 ThingDescriptor descriptor(info->thingClassId(), name, result.serialNumber);
 
                 ParamList params{
-                    {foxRSeriesThingSlaveAddressParamTypeId, 1},
+                    {foxRSeriesThingSlaveAddressParamTypeId, result.modbusId},
                     {foxRSeriesThingModbusMasterUuidParamTypeId, result.modbusRtuMasterId},
                     {foxRSeriesThingSerialNumberParamTypeId, result.serialNumber},
                 };
@@ -121,10 +121,28 @@ void IntegrationPluginFoxESS::setupThing(ThingSetupInfo *info)
             thing->setStateValue("connected", reachable);
             if (reachable) {
                 qCDebug(dcFoxess()) << "Device" << thing << "is reachable via Modbus RTU on" << connection->modbusRtuMaster()->serialPort();
+                connection->initialize();
             } else {
                 qCDebug(dcFoxess()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
                 thing->setStateValue("currentPower", 0);
                 thing->setStateValue("operatingState", "Off");
+            }
+        });
+
+        connect(connection, &RSeriesModbusRtuConnection::initializationFinished, info, [info](bool success) {
+            qCWarning(dcFoxess()) << "Setup: Initialization finished";
+            if (success) {
+                info->finish(Thing::ThingErrorNoError);
+            } else {
+                info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The inverter is not responding."));
+            }
+        });
+
+        connect(connection, &RSeriesModbusRtuConnection::initializationFinished, thing, [thing, connection](bool success) {
+            qCWarning(dcFoxess()) << "Setup: Initialization finished";
+            if (success) {
+                thing->setStateValue("firmwareVersion", connection->firmware());
+                thing->setStateValue("serialNumber", connection->serialnumber());
             }
         });
 

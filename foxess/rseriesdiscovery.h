@@ -44,6 +44,7 @@ public:
     explicit DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, uint modbusId, QObject *parent = nullptr);
     struct Result {
         QUuid modbusRtuMasterId;
+        quint32 modbusId;
         QString serialPort;
         QString serialNumber;
     };

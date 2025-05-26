@@ -117,7 +117,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
 
             QString serialNumber = ModbusDataUtils::convertToString(reply2->result());
 
-            Result result {master->modbusUuid(), master->serialPort(), serialNumber};
+            Result result {master->modbusUuid(), m_modbusId, master->serialPort(), serialNumber};
 
             qCWarning(dcFoxess()) << "Found a fox inverter with serialnumber" << serialNumber;
             m_discoveryResults.append(result);

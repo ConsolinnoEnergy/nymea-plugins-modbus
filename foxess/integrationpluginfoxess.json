@@ -35,7 +35,7 @@
                             "readOnly": true
                         },
                         {
-"id": "f68e7ff2-b4ed-4592-a179-1668746e6bb3",
+                            "id": "f68e7ff2-b4ed-4592-a179-1668746e6bb3",
                             "name": "serialNumber",
                             "displayName": "Serial number",
                             "type": "QString",
@@ -91,6 +91,24 @@
                             "defaultValue": "Off",
                             "displayNameEvent": "Operating state changed",
                             "cached": false
+                        },
+                        {
+                            "id": "fb811a0f-215b-41db-a3b3-d3effab8cf08",
+                            "name": "firmwareVersion",
+                            "displayName": "Firmware version",
+                            "displayNameEvent": "Firmware version changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": true
+                        },
+                        {
+                            "id": "55375864-76ce-42d6-8da5-ed163248a052",
+                            "name": "serialNumber",
+                            "displayName": "Serialnumber",
+                            "displayNameEvent": "Serialnumber changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": true
                         }
                     ],
                     "actionTypes": [ ]
