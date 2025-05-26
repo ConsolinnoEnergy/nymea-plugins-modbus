@@ -62,7 +62,7 @@ private slots:
 private:
     ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
     uint m_modbusId;
-
+    qint16 m_openReplies;
     QList<Result> m_discoveryResults;
 };
 

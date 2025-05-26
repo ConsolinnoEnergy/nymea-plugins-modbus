@@ -34,8 +34,7 @@
 DiscoveryRtu::DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, uint modbusId, QObject *parent) :
     QObject{parent},
     m_modbusRtuResource{modbusRtuResource},
-    m_modbusId{modbusId},
-    m_endianness{ModbusDataUtils::ByteOrderBigEndian}
+    m_modbusId{modbusId}
 {
 }
 
@@ -101,7 +100,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
             }
             return;
         }
-        qCDebug(dcFoxess()) << "Recieved value for manufacturer" << gridFrequency << "Hz. Value seems ok.";
+        qCDebug(dcFoxess()) << "Received value for manufacturer" << manufacturer << ". Value seems ok.";
 
         m_openReplies++;
         ModbusRtuReply *reply2 = master->readHoldingRegister(modbusId, 40053, 16);
@@ -118,7 +117,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
 
             QString serialNumber = ModbusDataUtils::convertToString(reply2->result());
 
-            Result result {master->modbusUuid(), master->serialPort(), serialPort};
+            Result result {master->modbusUuid(), master->serialPort(), serialNumber};
 
             qCWarning(dcFoxess()) << "Found a fox inverter with serialnumber" << serialNumber;
             m_discoveryResults.append(result);

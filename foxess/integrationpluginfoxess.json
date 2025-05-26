@@ -33,6 +33,14 @@
                             "type": "uint",
                             "defaultValue": 1,
                             "readOnly": true
+                        },
+                        {
+"id": "f68e7ff2-b4ed-4592-a179-1668746e6bb3",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
                         }
                     ],
                     "stateTypes": [

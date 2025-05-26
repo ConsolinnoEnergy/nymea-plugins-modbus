@@ -47,7 +47,6 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
 
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, RSeriesModbusRtuConnection*> m_rtuConnections;
 
     void setOperatingState(Thing *thing, RSeriesModbusRtuConnection::OperatingState state);

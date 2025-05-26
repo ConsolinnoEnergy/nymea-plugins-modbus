@@ -6,9 +6,9 @@ MODBUS_CONNECTIONS += rseries-registers.json
 include(../modbus.pri)
 
 HEADERS += \
-    integrationpluginfoxess.h \
-    rseriesdiscvoery.h
+    rseriesdiscovery.h \
+    integrationpluginfoxess.h
 
 SOURCES += \
-    integrationpluginfoxess.cpp \
-    rseriesdiscvoery.cpp
+    rseriesdiscovery.cpp \
+    integrationpluginfoxess.cpp
