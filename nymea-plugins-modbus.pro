@@ -50,6 +50,7 @@ PLUGIN_DIRS = \
     technivolt              \
     unipi                   \
     vestel                  \
+    victron                 \
     webasto                 \
     e3dc                    \
     dvmodbusir

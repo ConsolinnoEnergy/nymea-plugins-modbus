@@ -519,7 +519,27 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(action.actionTypeId().toString()).toUtf8());
         }
 
-    } else {
+    } else if (thing->thingClassId() == solarEdgeBatteryThingClassId) {
+        SolarEdgeBattery *battery = qobject_cast<SolarEdgeBattery *>(m_sunSpecThings.value(thing));
+        if (!battery) {
+            qWarning(dcSunSpec()) << "Could not find SolarEdgeBattery instance for thing" << thing;
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (action.actionTypeId() == solarEdgeBatteryEnableForcePowerActionTypeId) {
+            bool enableForcePower = action.param(solarEdgeBatteryEnableForcePowerActionTypeId).value().toBool();
+            battery->setForcePowerEnabled(enableForcePower);
+            info->finish(Thing::ThingErrorNoError);
+        } else if (action.actionTypeId() == solarEdgeBatteryForcePowerActionTypeId) {
+            int forcePower = action.param(solarEdgeBatteryForcePowerActionTypeId).value().toInt();
+            // uint forcePowerTimeout = action.param(solarEdgeBatteryForcePowerTimeoutActionTypeId).value().toUInt();
+            battery->setChargeDischargePower(forcePower, 900);
+            info->finish(Thing::ThingErrorNoError);
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(action.actionTypeId().toString()).toUtf8());
+        }
+    } else{
         Q_ASSERT_X(false, "executeAction", QString("Unhandled thingClassId: %1").arg(info->thing()->thingClassId().toString()).toUtf8());
     }
 }
@@ -1676,6 +1696,8 @@ void IntegrationPluginSunSpec::onSolarEdgeBatteryBlockUpdated()
     thing->setStateValue(solarEdgeBatteryCapacityStateTypeId, battery->batteryData().availableEnergy / 1000.0); // kWh
     thing->setStateValue(solarEdgeBatteryStateOfHealthStateTypeId, battery->batteryData().stateOfHealth);
     thing->setStateValue(solarEdgeBatteryVersionStateTypeId, battery->batteryData().firmwareVersion);
+
+    thing->setStateValue(solarEdgeBatteryEnableForcePowerStateStateTypeId, battery->batteryData().storageControlMode == 4);
 }
 
 void IntegrationPluginSunSpec::evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced)

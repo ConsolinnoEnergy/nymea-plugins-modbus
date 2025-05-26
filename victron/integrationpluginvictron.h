@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2024, nymea GmbH
+* Copyright 2013 - 2022, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,8 +28,8 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINSUNGROWSH_H
-#define INTEGRATIONPLUGINSUNGROWSH_H
+#ifndef INTEGRATIONPLUGINVICTRON_H
+#define INTEGRATIONPLUGINVICTRON_H
 
 #include <plugintimer.h>
 #include <integrations/integrationplugin.h>
@@ -37,17 +37,19 @@
 
 #include "extern-plugininfo.h"
 
-#include "sungrowmodbustcpconnection.h"
+#include "victronsystemmodbustcpconnection.h"
+#include "victronvebusmodbustcpconnection.h"
+#include "victrongridmodbustcpconnection.h"
 
-class IntegrationPluginSungrow: public IntegrationPlugin
+class IntegrationPluginVictron: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginsungrowsh.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginvictron.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit IntegrationPluginSungrow();
+    explicit IntegrationPluginVictron();
 
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
@@ -56,31 +58,24 @@ public:
     void executeAction(ThingActionInfo *info) override;
 
 private:
-
-    enum InverterLimitation {
-        UNLIMITED = 85,   // 0x55
-        LIMITED = 170 // 0xAA
-    };
-    enum BatteryControl {
-        FORCE_CHARGE = 170,     // 0xAA
-        FORCE_DISCHARGE = 187,  // 0xBB
-        FORCE_STOP = 204        // 0xCC
-    };
-
     const int m_modbusTcpPort = 502;
-    const quint16 m_modbusSlaveAddress = 1;
+    const quint16 m_systemModbusSlaveAddress = 100;
+    const quint16 m_vebusModbusSlaveAddress = 227;
     PluginTimer *m_refreshTimer = nullptr;
+    quint8 m_setpointTimer = 0;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, SungrowModbusTcpConnection *> m_tcpConnections;
+    QHash<Thing *, VictronSystemModbusTcpConnection *> m_systemTcpConnections;
+    QHash<Thing *, VictronVebusModbusTcpConnection *> m_vebusTcpConnections;
+    QHash<Thing *, VictronGridModbusTcpConnection *> m_gridTcpConnections;
 
-    void setupSungrowTcpConnection(ThingSetupInfo *info);
+    void setupVictronConnection(ThingSetupInfo *info);
+    void activateRemoteControl(Thing *thing, bool activation);
 
     Thing *getMeterThing(Thing *parentThing);
     Thing *getBatteryThing(Thing *parentThing);
-
-signals:
-
 };
 
-#endif // INTEGRATIONPLUGINSUNGROW_H
+#endif // INTEGRATIONPLUGINVICTRON_H
+
+

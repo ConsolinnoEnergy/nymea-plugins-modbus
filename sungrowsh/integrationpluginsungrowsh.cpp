@@ -177,6 +177,12 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 sungrowConnection->reconnectDevice();
             } else {
                 qCInfo(dcSungrow()) << "Connection initialized successfully for" << thing;
+                thing->setStateValue(sungrowInverterTcpNominalPowerStateTypeId, sungrowConnection->nominalOutputPower()*1000);
+
+                Thing *child = getBatteryThing(thing);
+                if (child) {
+                    child->setStateValue(sungrowBatteryNominalPowerBatteryStateTypeId, sungrowConnection->batteryNominalPower());
+                }
                 sungrowConnection->update();
             }
         });
@@ -250,6 +256,59 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                     batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "idle");
                 }
                 batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, batteryPower);
+            }
+
+            // Mode: 170 - ON | Export will be limited to chosen value
+            //       85 - OFF | Export not limited, max export
+            // Check if mode is 85. If yes, set to 170
+            if (sungrowConnection->exportLimitMode() == InverterLimitation::UNLIMITED) {
+                qCDebug(dcSungrow()) << "Export is unlimited, try to limit it";
+                QModbusReply *reply = sungrowConnection->setExportLimitMode(InverterLimitation::LIMITED);
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+                connect(reply, &QModbusReply::finished, thing, [reply]() {
+                    qCDebug(dcSungrow()) << "Set export mode finished";
+                    if (reply->error() != QModbusDevice::NoError) {
+                        qCDebug(dcSungrow()) << "Error setting export limit mode";
+                    } else {
+                        qCWarning(dcSungrow()) << "Successfully set export limit mode";
+                    }
+                });
+            }
+
+            // quint16 batteryCommand = sungrowConnection->chargeCommand();
+            // if (batteryThing) {
+            //     if (batteryCommand == BatteryControl::FORCE_STOP) {
+            //         batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, false);
+            //     } else {
+            //         batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, true);
+            //     }
+            // }
+        });
+
+        connect(sungrowConnection, &SungrowModbusTcpConnection::exportLimitChanged, thing, [thing](quint16 exportLimit) {
+            qCDebug(dcSungrow()) << "Export limit changed to" << exportLimit << "W";
+            thing->setStateValue(sungrowInverterTcpExportLimitStateTypeId, exportLimit);
+        });
+
+        connect(sungrowConnection, &SungrowModbusTcpConnection::chargeCommandChanged, thing, [this, thing](quint16 command) {
+            qCDebug(dcSungrow()) << "Charge command changed to" << command;
+
+            Thing *batteryThing = getBatteryThing(thing);
+            if (batteryThing) {
+                if (command == BatteryControl::FORCE_STOP) {
+                    batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, false);
+                } else {
+                    batteryThing->setStateValue(sungrowBatteryEnableForcePowerStateStateTypeId, true);
+                }
+            }
+        });
+
+        connect(sungrowConnection, &SungrowModbusTcpConnection::batteryMinLevelChanged, thing, [this, thing] (float level) {
+            qCDebug(dcSungrow()) << "Min battery level changed to" << level;
+
+            Thing *batteryThing = getBatteryThing(thing);
+            if (batteryThing) {
+                batteryThing->setStateValue(sungrowBatteryMinBatteryLevelStateTypeId, (uint) level);
             }
         });
 
@@ -382,4 +441,196 @@ Thing *IntegrationPluginSungrow::getBatteryThing(Thing *parentThing)
         return nullptr;
 
     return batteryThings.first();
+}
+
+// TODO: Define min and max SOC
+void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
+{
+    Thing *thing = info->thing();
+    Action action = info->action();
+
+    if (thing->thingClassId() == sungrowInverterTcpThingClassId) {
+        SungrowModbusTcpConnection *connection = m_tcpConnections.value(thing);
+        if (!connection) {
+            qCWarning(dcSungrow()) << "executeAction - Modbus connection not available.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (!connection->connected()) {
+            qCWarning(dcSungrow()) << "Could not execute action. Modbus connection is not connected.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (action.actionTypeId() == sungrowInverterTcpSetExportLimitActionTypeId) {
+            double ratedPower = thing->stateValue(sungrowInverterTcpNominalPowerStateTypeId).toDouble();
+            quint16 powerLimit = action.paramValue(sungrowInverterTcpSetExportLimitActionExportLimitParamTypeId).toUInt();
+            quint16 targetPowerLimit = powerLimit * (ratedPower/100);
+
+            QModbusReply *reply = connection->setExportLimit(targetPowerLimit);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, reply, [info, reply, targetPowerLimit] (){
+                qCWarning(dcSungrow()) << "Set export limit - Received reply";
+                if (reply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSungrow()) << "Error settting active power limit" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                } else {
+                    qCWarning(dcSungrow()) << "Successfully set export limit to " << targetPowerLimit;
+                    info->finish(Thing::ThingErrorNoError);
+                }
+            });
+
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+        }
+
+    } else if (thing->thingClassId() == sungrowBatteryThingClassId) {
+        Thing *inverterThing = myThings().findById(thing->parentId());
+        SungrowModbusTcpConnection *connection = m_tcpConnections.value(inverterThing);
+        if (!connection) {
+            qCWarning(dcSungrow()) << "executeAction - Modbus connection not available.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (!connection->connected()) {
+            qCWarning(dcSungrow()) << "Could not execute action. Modbus connection is not connected.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (action.actionTypeId() == sungrowBatteryEnableForcePowerActionTypeId) {
+            // TODO: If battery should be force
+            // Check if EMS Mode is 2 or 3
+            //       else set to 2 or 3 (?)
+            // Get current configured power from state
+            // Depending on sign, set the command
+
+            bool power = action.paramValue(sungrowBatteryEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
+            double targetPower = thing->stateValue(sungrowBatteryForcePowerStateTypeId).toDouble();
+            quint16 mode = power ? 2 : 0;
+
+            // Set EMS Mode
+            qCDebug(dcSungrow()) << "Trying to set EMS mode to" << mode << ". 0: Internal control, 2: External control.";
+            QModbusReply *reply = connection->setEmsModeSelection(mode);
+            if (power != thing->stateValue(sungrowBatteryEnableForcePowerStateTypeId).toBool()) {
+                connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+                connect(reply, &QModbusReply::finished, reply, [info, thing, power, connection, reply, mode, targetPower] (){
+                    qCWarning(dcSungrow()) << "Set ems mode - Received reply";
+                    if (reply->error() != QModbusDevice::NoError) {
+                        qCWarning(dcSungrow()) << "Set ems mode - Error setting ems mode" << reply->error() << reply->errorString();
+                        thing->setStateValue(sungrowBatteryEnableForcePowerStateTypeId, !power);
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                        connection->reconnectDevice();
+                    } else {
+                        qCDebug(dcSungrow()) << "Set ems mode - Successfully set ems mode to" << mode;
+                        quint16 command = 0;
+                        if (power == false) {
+                            command = BatteryControl::FORCE_STOP;
+                        } else {
+                            if (targetPower > 0) {
+                                command = BatteryControl::FORCE_CHARGE;
+                            } else {
+                                command = BatteryControl::FORCE_DISCHARGE;
+                            }
+                        }
+                        // Set charge command
+                        QModbusReply *replyCharge = connection->setChargeCommand(command);
+                        connect(replyCharge, &QModbusReply::finished, replyCharge, &QModbusReply::deleteLater);
+                        connect(replyCharge, &QModbusReply::finished, replyCharge, [info, thing, replyCharge, command, power, connection] (){
+                            qCWarning(dcSungrow()) << "Set battery state - Received reply";
+                            if (replyCharge->error() != QModbusDevice::NoError) {
+                                qCWarning(dcSungrow()) << "Set battery state - Error setting ems mode" << replyCharge->error() << replyCharge->errorString();
+                                thing->setStateValue(sungrowBatteryEnableForcePowerStateTypeId, !power);
+                                info->finish(Thing::ThingErrorHardwareFailure);
+                                connection->reconnectDevice();
+                            } else {
+                                qCDebug(dcSungrow()) << "Set battery state - Successfully set battery state to" << command;
+                                thing->setStateValue(sungrowBatteryEnableForcePowerStateTypeId, power);
+                                info->finish(Thing::ThingErrorNoError);
+                            }
+                        });
+                    }
+                });
+            }
+
+        } else if (action.actionTypeId() == sungrowBatteryForcePowerActionTypeId) {
+            // TODO: Do not set command to FORCE_STOP, only set CHARGE / DISCHARGE
+
+            double targetPower = action.paramValue(sungrowBatteryForcePowerActionForcePowerParamTypeId).toDouble();
+            bool power = thing->stateValue(sungrowBatteryEnableForcePowerStateTypeId).toBool();
+            double nominalBatteryPower = thing->stateValue(sungrowBatteryNominalPowerBatteryStateTypeId).toDouble();
+            double oldTargetPower = thing->stateValue(sungrowBatteryForcePowerStateTypeId).toDouble();
+
+            if (targetPower != oldTargetPower) {
+                if (qAbs(targetPower) > qAbs(nominalBatteryPower))
+                    targetPower = nominalBatteryPower - 3000;
+
+                qCDebug(dcSungrow()) << "Current set chargePower is" << connection->chargePower() << "while targetPower is" << qAbs(targetPower);
+                if (connection->chargePower() != qAbs(targetPower)) {
+                    qCDebug(dcSungrow()) << "Trying to set battery power";
+                    QModbusReply *reply = connection->setChargePower(qAbs(targetPower));
+
+                    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+                    connect(reply, &QModbusReply::finished, reply, [info, thing, reply, targetPower, power, connection] (){
+                        qCWarning(dcSungrow()) << "Set battery power - Received reply";
+                        if (reply->error() != QModbusDevice::NoError) {
+                            qCWarning(dcSungrow()) << "Set battery power - Error setting battery power" << reply->error() << reply->errorString();
+                            info->finish(Thing::ThingErrorHardwareFailure);
+                            connection->reconnectDevice();
+                        } else {
+                            qCDebug(dcSungrow()) << "Set battery power - Successfully set battery power to" << targetPower;
+                            if (power == false) {
+                                 thing->setStateValue(sungrowBatteryForcePowerStateTypeId, targetPower);
+                                 info->finish(Thing::ThingErrorNoError);
+                            } else {
+                                quint16 command = 0;
+                                if (targetPower > 0) {
+                                    command = BatteryControl::FORCE_CHARGE;
+                                } else {
+                                    command = BatteryControl::FORCE_DISCHARGE;
+                                }
+                                // Set charge command
+                                QModbusReply *replyCharge = connection->setChargeCommand(command);
+                                connect(replyCharge, &QModbusReply::finished, replyCharge, &QModbusReply::deleteLater);
+                                connect(replyCharge, &QModbusReply::finished, replyCharge, [info, thing, targetPower, replyCharge, command, connection] (){
+                                    qCWarning(dcSungrow()) << "Set battery state - Received reply";
+                                    if (replyCharge->error() != QModbusDevice::NoError) {
+                                        qCWarning(dcSungrow()) << "Set battery state - Error setting ems mode" << replyCharge->error() << replyCharge->errorString();
+                                        info->finish(Thing::ThingErrorHardwareFailure);
+                                        connection->reconnectDevice();
+                                    } else {
+                                        qCDebug(dcSungrow()) << "Set battery state - Successfully set battery state to" << command;
+                                        thing->setStateValue(sungrowBatteryForcePowerStateTypeId, targetPower);
+                                        info->finish(Thing::ThingErrorNoError);
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+        } else if (action.actionTypeId() == sungrowBatteryMinBatteryLevelActionTypeId) {
+            quint16 minLevel = action.paramValue(sungrowBatteryMinBatteryLevelActionMinBatteryLevelParamTypeId).toUInt();
+
+            QModbusReply *reply = connection->setBatteryMinLevel(minLevel);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, reply, [info, reply, minLevel] (){
+                qCWarning(dcSungrow()) << "Set min battery level - Received reply";
+                if (reply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSungrow()) << "Error: Set min battery level" << reply->error() << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                } else {
+                    qCWarning(dcSungrow()) << "Set min battery level to" << minLevel;
+                    info->finish(Thing::ThingErrorNoError);
+                }
+            });
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+        }
+    } else {
+        Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+    }
 }
