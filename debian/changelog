@@ -1,8 +1,9 @@
 nymea-plugins-modbus (1.7.016) jammy; urgency=medium
 
   * Solax X3: Fix writing max charging register on change
+  * PhoenixConnect: Add currentPower states to all wallboxes
 
- -- Luis Reber <l.reber@consolinno.de> Thu, 23 May 2025 13:49:00 +0100
+ -- Luis Reber <l.reber@consolinno.de> Thu, 23 May 2025 13:49:00 +0200
 
 nymea-plugins-modbus (1.7.015-1) jammy; urgency=medium
 
