@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.015-2) jammy; urgency=medium
+nymea-plugins-modbus (1.7.016) jammy; urgency=medium
 
   * Solax X3: Fix writing max charging register on change
 
