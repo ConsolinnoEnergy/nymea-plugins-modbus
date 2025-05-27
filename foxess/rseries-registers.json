@@ -50,7 +50,7 @@
             "registers": [
                 {
                     "id": "manufacturer",
-                    "address": 40005,
+                    "address": 40004,
                     "size": 16,
                     "type": "string",
                     "registerType": "holdingRegister",
@@ -59,7 +59,7 @@
                 },
                 {
                     "id": "deviceModel",
-                    "address": 40021,
+                    "address": 40020,
                     "size": 16,
                     "type": "string",
                     "registerType": "holdingRegister",
@@ -68,7 +68,7 @@
                 },
                 {
                     "id": "dummy0",
-                    "address": 40037,
+                    "address": 40036,
                     "size": 8,
                     "type": "raw",
                     "registerType": "holdingRegister",
@@ -77,7 +77,7 @@
                 },
                 {
                     "id": "firmware",
-                    "address": 40045,
+                    "address": 40044,
                     "size": 8,
                     "type": "string",
                     "registerType": "holdingRegister",
@@ -86,7 +86,7 @@
                 },
                 {
                     "id": "serialnumber",
-                    "address": 40053,
+                    "address": 40052,
                     "size": 16,
                     "type": "string",
                     "registerType": "holdingRegister",
@@ -101,18 +101,7 @@
             "registers": [
                 {
                     "id": "operatingState",
-                    "address": 40074,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "description": "Inverter operating state",
-                    "enum": "OperatingState",
-                    "defaultValue": "OperatingStateOff",
-                    "access": "RO"
-                },
-                {
-                    "id": "inverterState",
-                    "address": 40075,
+                    "address": 40073,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
@@ -121,8 +110,19 @@
                     "access": "RO"
                 },
                 {
+                    "id": "inverterState",
+                    "address": 40074,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter state",
+                    "enum": "OperatingState",
+                    "defaultValue": "OperatingStateOff",
+                    "access": "RO"
+                },
+                {
                     "id": "dummy1",
-                    "address": 40076,
+                    "address": 40075,
                     "size": 3,
                     "type": "raw",
                     "registerType": "holdingRegister",
@@ -131,7 +131,7 @@
                 },
                 {
                     "id": "inverterCurrentPower",
-                    "address": 40079,
+                    "address": 40078,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
@@ -141,7 +141,7 @@
                 },
                 {
                     "id": "dummy2",
-                    "address": 40080,
+                    "address": 40079,
                     "size": 3,
                     "type": "raw",
                     "registerType": "holdingRegister",
@@ -150,7 +150,7 @@
                 },
                 {
                     "id": "inverterFrequency",
-                    "address": 40083,
+                    "address": 40082,
                     "size": 2,
                     "type": "uint32",
                     "registerType": "holdingRegister",
@@ -160,7 +160,7 @@
                 },
                 {
                     "id": "inverterProducedEnergy",
-                    "address": 40085,
+                    "address": 40084,
                     "size": 4,
                     "type": "uint64",
                     "registerType": "holdingRegister",
@@ -170,7 +170,7 @@
                 },
                 {
                     "id": "dummy3",
-                    "address": 40089,
+                    "address": 40088,
                     "size": 12,
                     "type": "raw",
                     "registerType": "holdingRegister",
@@ -179,7 +179,7 @@
                 },
                 {
                     "id": "inverterFrequencySf",
-                    "address": 40101,
+                    "address": 40100,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -189,7 +189,7 @@
                 },
                 {
                     "id": "inverterCurrentPowerSf",
-                    "address": 40102,
+                    "address": 40101,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -199,7 +199,7 @@
                 },
                 {
                     "id": "inverterPowerFactorSf",
-                    "address": 40103,
+                    "address": 40102,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -209,7 +209,7 @@
                 },
                 {
                     "id": "inverterApparentPowerSf",
-                    "address": 40104,
+                    "address": 40103,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -219,7 +219,7 @@
                 },
                 {
                     "id": "inverterReactivePowerSf",
-                    "address": 40105,
+                    "address": 40104,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -229,7 +229,7 @@
                 },
                 {
                     "id": "inverterProducedEnergySf",
-                    "address": 40106,
+                    "address": 40105,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -239,7 +239,7 @@
                 },
                 {
                     "id": "inverterTemperaturScaleFactor",
-                    "address": 40107,
+                    "address": 40106,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
@@ -249,7 +249,7 @@
                 },
                 {
                     "id": "batteryOnline",
-                    "address": 40108,
+                    "address": 40107,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",

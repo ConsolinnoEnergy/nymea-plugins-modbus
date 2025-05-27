@@ -98,9 +98,9 @@ void IntegrationPluginFoxESS::setupThing(ThingSetupInfo *info)
     if (thing->thingClassId() == foxRSeriesThingClassId) {
 
         uint address = thing->paramValue(foxRSeriesThingSlaveAddressParamTypeId).toUInt();
-        if (address > 247 || address < 3) {
+        if (address > 247) {
             qCWarning(dcFoxess()) << "Setup failed, slave address is not valid" << address;
-            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 3 and 247."));
+            info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
             return;
         }
 
@@ -150,19 +150,18 @@ void IntegrationPluginFoxESS::setupThing(ThingSetupInfo *info)
         connect(connection, &RSeriesModbusRtuConnection::updateFinished, thing, [=](){
             qCDebug(dcFoxess()) << "Update finished for" << thing->name();
 
-            quint16 producedEnergySf = connection->inverterProducedEnergySf();
+            qint16 producedEnergySf = connection->inverterProducedEnergySf();
             quint32 producedEnergy = connection->inverterProducedEnergy();
-            double calculatedEnergy = (producedEnergy * qPow(10, producedEnergySf)) / 1000;
+            double calculatedEnergy = static_cast<double> ((producedEnergy * qPow(10, producedEnergySf)) / 1000);
             thing->setStateValue("totalEnergyProduced", calculatedEnergy);
             
-            setOperatingState(thing, connection->operatingState());
+            setOperatingState(thing, connection->inverterState());
+
+            qint16 currentPowerSf = connection->inverterCurrentPowerSf();
+            qint16 currentPower = connection->inverterCurrentPower();
+            double calculatedPower = static_cast<double> (-1 * qFabs(currentPower) * qPow(10, currentPowerSf));
+            thing->setStateValue("currentPower", calculatedPower);
         });
-
-        qint16 currentPowerSf = connection->inverterCurrentPowerSf();
-        qint16 currentPower = connection->inverterCurrentPower();
-        double calculatedPower = -1 * qFabs(currentPower) * qPow(10, currentPowerSf);
-        thing->setStateValue("currentPower", calculatedPower);
-
 
         m_rtuConnections.insert(thing, connection);
     }
@@ -173,7 +172,7 @@ void IntegrationPluginFoxESS::postSetupThing(Thing *thing)
     if (thing->thingClassId() == foxRSeriesThingClassId) {
         if (!m_pluginTimer) {
             qCDebug(dcFoxess()) << "Starting plugin timer...";
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
+            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(RSeriesModbusRtuConnection *connection, m_rtuConnections) {
                     connection->update();

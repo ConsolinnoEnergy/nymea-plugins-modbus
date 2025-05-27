@@ -79,7 +79,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
     qCDebug(dcFoxess()) << "Scanning modbus RTU master" << master->modbusUuid() << "Modbus ID:" << modbusId;
 
     m_openReplies++;
-    ModbusRtuReply *reply = master->readHoldingRegister(modbusId, 40005, 16);
+    ModbusRtuReply *reply = master->readHoldingRegister(modbusId, 40004, 16);
     connect(reply, &ModbusRtuReply::finished, this, [=](){
         m_openReplies--;
         qCDebug(dcFoxess()) << "Test reply finished!" << reply->error() << reply->result();
@@ -103,7 +103,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
         qCDebug(dcFoxess()) << "Received value for manufacturer" << manufacturer << ". Value seems ok.";
 
         m_openReplies++;
-        ModbusRtuReply *reply2 = master->readHoldingRegister(modbusId, 40053, 16);
+        ModbusRtuReply *reply2 = master->readHoldingRegister(modbusId, 40052, 16);
         connect(reply2, &ModbusRtuReply::finished, this, [=](){
             m_openReplies--;
             qCDebug(dcFoxess()) << "Reading next test value" << reply2->error() << reply2->result();
