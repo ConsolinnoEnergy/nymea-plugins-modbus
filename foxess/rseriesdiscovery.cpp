@@ -84,9 +84,13 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
         m_openReplies--;
         qCDebug(dcFoxess()) << "Test reply finished!" << reply->error() << reply->result();
         if (reply->error() != ModbusRtuReply::NoError || reply->result().length() < 16) {
-            qCDebug(dcFoxess()) << "Error reading holding register 40005.";
+            qCDebug(dcFoxess()) << "Error reading holding register 40004.";
             if (m_openReplies <= 0) {
-                emit repliesFinished();
+                if (modbusId < 10) {
+                    tryConnect(master, modbusId+1);
+                } else {
+                    emit repliesFinished();
+                }
             }
             return;
         }
@@ -108,22 +112,30 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
             m_openReplies--;
             qCDebug(dcFoxess()) << "Reading next test value" << reply2->error() << reply2->result();
             if (reply2->error() != ModbusRtuReply::NoError || reply2->result().length() < 16) {
-                qCDebug(dcFoxess()) << "Error reading holding register 40053 (serial number).";
+                qCDebug(dcFoxess()) << "Error reading holding register 40052 (serial number).";
                 if (m_openReplies <= 0) {
-                    emit repliesFinished();
+                    if (modbusId < 10) {
+                        tryConnect(master, modbusId+1);
+                    } else {
+                        emit repliesFinished();
+                    }
                 }
                 return;
             }
 
             QString serialNumber = ModbusDataUtils::convertToString(reply2->result());
 
-            Result result {master->modbusUuid(), m_modbusId, master->serialPort(), serialNumber};
+            Result result {master->modbusUuid(), modbusId, master->serialPort(), serialNumber};
 
             qCWarning(dcFoxess()) << "Found a fox inverter with serialnumber" << serialNumber;
             m_discoveryResults.append(result);
 
             if (m_openReplies <= 0) {
-                emit repliesFinished();
+                if (modbusId < 10) {
+                    tryConnect(master, modbusId+1);
+                } else {
+                    emit repliesFinished();
+                }
             }
         });
     });
