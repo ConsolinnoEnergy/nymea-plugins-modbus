@@ -93,6 +93,16 @@
                             "cached": false
                         },
                         {
+                            "id": "e1ba620e-ede0-48c6-9cdb-467acc79bb45",
+                            "name": "frequency",
+                            "displayName": "Frequency",
+                            "type": "double",
+                            "unit": "Hertz",
+                            "displayNameEvent": "Frequency changed",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
                             "id": "fb811a0f-215b-41db-a3b3-d3effab8cf08",
                             "name": "firmwareVersion",
                             "displayName": "Firmware version",

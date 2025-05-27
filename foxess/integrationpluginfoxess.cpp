@@ -151,17 +151,26 @@ void IntegrationPluginFoxESS::setupThing(ThingSetupInfo *info)
         connect(connection, &RSeriesModbusRtuConnection::updateFinished, thing, [=](){
             qCDebug(dcFoxess()) << "Update finished for" << thing->name();
 
+            // Calculate inverter energy
             qint16 producedEnergySf = connection->inverterProducedEnergySf();
             quint32 producedEnergy = connection->inverterProducedEnergy();
             double calculatedEnergy = static_cast<double> ((producedEnergy * qPow(10, producedEnergySf)) / 1000);
             thing->setStateValue("totalEnergyProduced", calculatedEnergy);
             
+            // Set operating state
             setOperatingState(thing, connection->inverterState());
 
+            // Calculate inverter power
             qint16 currentPowerSf = connection->inverterCurrentPowerSf();
             qint16 currentPower = connection->inverterCurrentPower();
             double calculatedPower = static_cast<double> (-1 * qFabs(currentPower) * qPow(10, currentPowerSf));
             thing->setStateValue("currentPower", calculatedPower);
+
+            // Calculate inverter frequency
+            qint16 frequencySf = connection->inverterFrequencySf();
+            quint32 frequency = connection->inverterFrequency();
+            double calculatedFrequency = static_cast<double> (frequency * qPow(10, frequencySf));
+            thing->setStateValue("frequency", calculatedFrequency);
         });
 
         m_rtuConnections.insert(thing, connection);
