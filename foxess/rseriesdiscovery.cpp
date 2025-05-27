@@ -93,7 +93,7 @@ void DiscoveryRtu::tryConnect(ModbusRtuMaster *master, quint16 modbusId)
 
         // Test frequency value.
         QString manufacturer = ModbusDataUtils::convertToString(reply->result());
-        if (!manufacturer.contains("fox")) {
+        if (!manufacturer.toLower().contains("fox")) {
             qCWarning(dcFoxess()) << "Recieved value for manufacturer is" << manufacturer<< "This does not seem to be the correct value.";
             if (m_openReplies <= 0) {
                 emit repliesFinished();

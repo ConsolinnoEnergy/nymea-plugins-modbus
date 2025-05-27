@@ -45,57 +45,6 @@
     ],
     "blocks": [
         {
-            "id": "commonInfo",
-            "readSchedule": "init",
-            "registers": [
-                {
-                    "id": "manufacturer",
-                    "address": 40004,
-                    "size": 16,
-                    "type": "string",
-                    "registerType": "holdingRegister",
-                    "description": "Device Manufacturer",
-                    "access": "RO"
-                },
-                {
-                    "id": "deviceModel",
-                    "address": 40020,
-                    "size": 16,
-                    "type": "string",
-                    "registerType": "holdingRegister",
-                    "description": "Device Model",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy0",
-                    "address": 40036,
-                    "size": 8,
-                    "type": "raw",
-                    "registerType": "holdingRegister",
-                    "description": "Dummy0",
-                    "access": "RO"
-                },
-                {
-                    "id": "firmware",
-                    "address": 40044,
-                    "size": 8,
-                    "type": "string",
-                    "registerType": "holdingRegister",
-                    "description": "Firmwareversion",
-                    "access": "RO"
-                },
-                {
-                    "id": "serialnumber",
-                    "address": 40052,
-                    "size": 16,
-                    "type": "string",
-                    "registerType": "holdingRegister",
-                    "description": "Serialnumber",
-                    "access": "RO"
-                }
-            ]
-        },
-        {
             "id": "inverterData",
             "readSchedule": "update",
             "registers": [
@@ -261,7 +210,46 @@
         }
     ],
     "registers": [
-
+        {
+            "id": "manufacturer",
+            "address": 40004,
+            "size": 16,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "description": "Device Manufacturer",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "deviceModel",
+            "address": 40020,
+            "size": 16,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "description": "Device Model",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "firmware",
+            "address": 40044,
+            "size": 8,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "description": "Firmwareversion",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "serialnumber",
+            "address": 40052,
+            "size": 16,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "description": "Serialnumber",
+            "readSchedule": "init",
+            "access": "RO"
+        }
     ]
 }
 

@@ -59,7 +59,7 @@ void IntegrationPluginFoxESS::discoverThings(ThingDiscoveryInfo *info)
             foreach (const DiscoveryRtu::Result &result, discovery->discoveryResults()) {
 
                 QString name = supportedThings().findById(info->thingClassId()).displayName();
-                ThingDescriptor descriptor(info->thingClassId(), name, result.serialNumber);
+                ThingDescriptor descriptor(info->thingClassId(), name, "SN" + result.serialNumber);
 
                 ParamList params{
                     {foxRSeriesThingSlaveAddressParamTypeId, result.modbusId},
@@ -129,9 +129,10 @@ void IntegrationPluginFoxESS::setupThing(ThingSetupInfo *info)
             }
         });
 
-        connect(connection, &RSeriesModbusRtuConnection::initializationFinished, info, [info](bool success) {
+        connect(connection, &RSeriesModbusRtuConnection::initializationFinished, info, [info, thing, connection](bool success) {
             qCWarning(dcFoxess()) << "Setup: Initialization finished";
             if (success) {
+                thing->setName("FoxESS " + connection->deviceModel());
                 info->finish(Thing::ThingErrorNoError);
             } else {
                 info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The inverter is not responding."));
