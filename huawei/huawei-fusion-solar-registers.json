@@ -594,6 +594,30 @@
                     "unit": "W",
                     "defaultValue": "0",
                     "access": "RO"
+                },
+                {
+                    "id": "fillerRegister8",
+                    "address": 37745,
+                    "size": 13,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "FillerRegister8",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "lunaBattery2Capacity",
+                    "address": 37758,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "update",
+                    "description": "Luna 2000 Battery capacity",
+                    "staticScaleFactor": -3,
+                    "unit": "kWh",
+                    "defaultValue": "0",
+                    "access": "RO"
                 }
             ]
         }

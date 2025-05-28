@@ -133,6 +133,15 @@ Description: nymea integration plugin for B+G E-Tech Modbus based energy meters
  This package contains the nymea integration plugin for Modbus based energy meters
  made by B+G E-Tech.
 
+Package: nymea-plugin-janitza
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Janitza UMG604 Pro Modbus based energy meters
+ This package contains the nymea integration plugin for Modbus based energy meters
+ made by Janitza.
 
 Package: nymea-plugin-broetje
 Architecture: any
@@ -484,3 +493,11 @@ Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: nymea integration plugin for Solax X3 Ultra solar inverters and meters
  This package contains the nymea integration plugin for Solax X3 Ultra solar inverters and meters.
+
+Package: nymea-plugin-victron
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration to use Victron inverters with the Consolinno HEMS.
+ This package contains the nymea integration plugin for the Victron Inverter.

@@ -1,0 +1,959 @@
+{
+    "className": "KacoNH3",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "serialnumber",
+    "enums": [
+        {
+            "name": "OperatingState",
+            "values": [
+                {
+                    "key": "Off",
+                    "value": 1
+                },
+                {
+                    "key": "Sleeping",
+                    "value": 2
+                },
+                {
+                    "key": "Starting",
+                    "value": 3
+                },
+                {
+                    "key": "Mppt",
+                    "value": 4
+                },
+                {
+                    "key": "Throttled",
+                    "value": 5
+                },
+                {
+                    "key": "ShuttingDown",
+                    "value": 6
+                },
+                {
+                    "key": "Fault",
+                    "value": 7
+                },
+                {
+                    "key": "Standby",
+                    "value": 8
+                }
+            ]
+        },
+        {
+            "name": "ChargeStatus",
+            "values": [
+                {
+                    "key": "Off",
+                    "value": 1
+                },
+                {
+                    "key": "Empty",
+                    "value": 2
+                },
+                {
+                    "key": "Discharging",
+                    "value": 3
+                },
+                {
+                    "key": "Charging",
+                    "value": 4
+                },
+                {
+                    "key": "Full",
+                    "value": 5
+                },
+                {
+                    "key": "Holding",
+                    "value": 6
+                },
+                {
+                    "key": "Testing",
+                    "value": 7
+                }
+            ]
+        },
+        {
+            "name": "BatteryType",
+            "values": [
+                {
+                    "key": "NoBattery",
+                    "value": 0
+                },
+                {
+                    "key": "LeadAcid",
+                    "value": 1
+                },
+                {
+                    "key": "NickelMetalHydrate",
+                    "value": 2
+                },
+                {
+                    "key": "NickelCadmium",
+                    "value": 3
+                },
+                {
+                    "key": "LithiumIon",
+                    "value": 4
+                },
+                {
+                    "key": "CarbonZinc",
+                    "value": 5
+                },
+                {
+                    "key": "ZincChloride",
+                    "value": 6
+                },
+                {
+                    "key": "Alkaline",
+                    "value": 7
+                },
+                {
+                    "key": "RechargableAlkaline",
+                    "value": 8
+                },
+                {
+                    "key": "SodiumSulfur",
+                    "value": 9
+                },
+                {
+                    "key": "Flow",
+                    "value": 10
+                },
+                {
+                    "key": "Other",
+                    "value": 99
+                }
+            ]
+        },
+        {
+            "name": "BatteryStatus",
+            "values": [
+                {
+                    "key": "Disconnected",
+                    "value": 1
+                },
+                {
+                    "key": "Initializing",
+                    "value": 2
+                },
+                {
+                    "key": "Connected",
+                    "value": 3
+                },
+                {
+                    "key": "Standby",
+                    "value": 4
+                },
+                {
+                    "key": "SocProtection",
+                    "value": 5
+                },
+                {
+                    "key": "Suspending",
+                    "value": 6
+                },
+                {
+                    "key": "Fault",
+                    "value": 99
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "commonInfo",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "manufacturer",
+                    "address": 50004,
+                    "size": 16,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Device Manufacturer",
+                    "access": "RO"
+                },
+                {
+                    "id": "deviceModel",
+                    "address": 50020,
+                    "size": 16,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Device Model",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy0",
+                    "address": 50036,
+                    "size": 8,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy0",
+                    "access": "RO"
+                },
+                {
+                    "id": "firmware",
+                    "address": 50044,
+                    "size": 8,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Firmwareversion",
+                    "access": "RO"
+                },
+                {
+                    "id": "serialnumber",
+                    "address": 50052,
+                    "size": 16,
+                    "type": "string",
+                    "registerType": "holdingRegister",
+                    "description": "Serialnumber",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "inverterData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "inverterCurrent",
+                    "address": 50072,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPhA",
+                    "address": 50073,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Phase A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPhB",
+                    "address": 50074,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Phase B",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPhC",
+                    "address": 50075,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Phase C",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentSf",
+                    "address": 50076,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 50077,
+                    "size": 3,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy1",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterVoltageL1",
+                    "address": 50080,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Voltage L1",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterVoltageL2",
+                    "address": 50081,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Voltage L2",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterVoltageL3",
+                    "address": 50082,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Voltage L3",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterVoltageSf",
+                    "address": 50083,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Voltage Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPower",
+                    "address": 50084,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Power",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPowerSf",
+                    "address": 50085,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Power Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 50086,
+                    "size": 8,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy2",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterProducedEnergy",
+                    "address": 50094,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Produced Energy",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterProducedEnergySf",
+                    "address": 50096,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Energy Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy3",
+                    "address": 50097,
+                    "size": 11,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy3",
+                    "access": "RO"
+                },
+                {
+                    "id": "operatingState",
+                    "address": 50108,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "OperatingState",
+                    "defaultValue": "OperatingStateOff",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Status",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "meterData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "meterCurrent",
+                    "address": 50420,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentPhaseA",
+                    "address": 50421,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Phase A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentPhaseB",
+                    "address": 50422,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Phase B",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentPhaseC",
+                    "address": 50423,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Phase C",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentSf",
+                    "address": 50424,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterVoltage",
+                    "address": 50425,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterVoltagePhaseA",
+                    "address": 50426,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage Phase A",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterVoltagePhaseB",
+                    "address": 50427,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage Phase B",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterVoltagePhaseC",
+                    "address": 50428,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage Phase C",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy5",
+                    "address": 50429,
+                    "size": 4,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy5",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterVoltageSf",
+                    "address": 50433,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Voltage Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterFrequency",
+                    "address": 50434,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Frequency",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterFrequencySf",
+                    "address": 50435,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Frequency Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentPower",
+                    "address": 50436,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Power",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy6",
+                    "address": 50437,
+                    "size": 3,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy6",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterCurrentPowerSf",
+                    "address": 50440,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Current Power Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy7",
+                    "address": 50441,
+                    "size": 15,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy7",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterProducedEnergy",
+                    "address": 50456,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Produced Energy",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy8",
+                    "address": 50458,
+                    "size": 6,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy8",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterConsumedEnergy",
+                    "address": 50464,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Consumed Energy",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy9",
+                    "address": 50466,
+                    "size": 6,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy9",
+                    "access": "RO"
+                },
+                {
+                    "id": "meterEnergySf",
+                    "address": 50472,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Meter Energy Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "batteryData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "batMaxCapacity",
+                    "address": 51097,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Capacity",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxDischarge",
+                    "address": 51098,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Discharge Rate",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxCharge",
+                    "address": 51099,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Charge Rate",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSelfDischarge",
+                    "address": 51100,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Self Discharge",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSocMax",
+                    "address": 51101,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max SoC",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSocMin",
+                    "address": 51102,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Min SoC",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy11",
+                    "address": 51103,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy11",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentSoc",
+                    "address": 51105,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current SoC",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy12",
+                    "address": 51106,
+                    "size": 4,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy12",
+                    "access": "RO"
+                },
+                {
+                    "id": "batChargeStatus",
+                    "address": 51110,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "ChargeStatus",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current SoC",
+                    "defaultValue": "ChargeStatusOff",
+                    "access": "RO"
+                },
+                {
+                    "id": "batLocRemCtl",
+                    "address": 51111,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Local Remote Ctl",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batHeartbeat",
+                    "address": 51112,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Heartbeat",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCtlHeartbeat",
+                    "address": 51113,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Contoller Heartbeat",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batAlmRst",
+                    "address": 51114,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Alarm Reset",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batType",
+                    "address": 51115,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "BatteryType",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Type",
+                    "defaultValue": "BatteryTypeNoBattery",
+                    "access": "RO"
+                },
+                {
+                    "id": "batState",
+                    "address": 51116,
+                    "size": 1,
+                    "type": "uint16",
+                    "enum": "BatteryStatus",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Status",
+                    "defaultValue": "BatteryStatusDisconnected",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy13",
+                    "address": 51117,
+                    "size": 11,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy13",
+                    "access": "RO"
+                },
+                {
+                    "id": "batVoltage",
+                    "address": 51128,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Voltage",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy14",
+                    "address": 51129,
+                    "size": 9,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy14",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrent",
+                    "address": 51138,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy15",
+                    "address": 51139,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy15",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentPower",
+                    "address": 51141,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy16",
+                    "address": 51142,
+                    "size": 4,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy16",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxCapacitySf",
+                    "address": 51146,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Capacity Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxEnergySf",
+                    "address": 51147,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Energy Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batDisChargeSf",
+                    "address": 51148,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Charge / Discharge Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSelfDischargeSf",
+                    "address": 51149,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Self Discharge Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batSoCSf",
+                    "address": 51150,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Self Discharge Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy17",
+                    "address": 51151,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy17",
+                    "access": "RO"
+                },
+                {
+                    "id": "batVoltageSf",
+                    "address": 51153,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Voltage Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCellVoltageSf",
+                    "address": 51154,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Cell Voltage Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentSf",
+                    "address": 51155,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batMaxCurrentSf",
+                    "address": 51156,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Max Current Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batCurrentPowerSf",
+                    "address": 51157,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Battery Current Power Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+
+    ]
+}
+

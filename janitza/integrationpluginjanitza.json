@@ -1,0 +1,171 @@
+{
+    "name": "janitza",
+    "displayName": "Janitza",
+    "id": "daf1d4cf-afa8-42ed-94f5-13fa6c98d975",
+    "paramTypes":[ ],
+    "vendors": [
+        {
+            "name": "janitza",
+            "displayName": "Janitza",
+            "id": "6998a72d-0b97-4458-a6b5-0d856ae67e46",
+            "thingClasses": [
+                {
+                    "name": "umg604",
+                    "displayName": "Janitza UMG604 Pro",
+                    "id": "896aedb1-73de-4494-8e15-27c4cf0727a3",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["energymeter", "connectable"],
+                    "discoveryParamTypes": [
+
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "5ee36391-ec42-4874-8db7-f2b2ce649185",
+                            "name": "ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "inputType": "IPv4Address",
+                            "defaultValue": "127.0.0.1",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "5111322d-b258-456c-90a7-4130db9d989f",
+                            "name": "macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "defaultValue": "00:00:00:00:00:00",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "da8f2425-2f36-432a-b446-44ec6c35129f",
+                            "name": "serialNumber",
+                            "displayName": "Serial Number",
+                            "type": "uint",
+                            "defaultValue": "0",
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "5c577cf5-3484-45eb-855f-13e2603cb7c1",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "cached": false,
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "68b6378f-2eec-4bb8-a0cd-5c01c8b2c18b",
+                            "name": "voltagePhaseA",
+                            "displayName": "Voltage phase A",
+                            "displayNameEvent": "Voltage phase A changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "e72ad7c4-1ecf-4025-8a5b-c7dfb9a83f65",
+                            "name": "voltagePhaseB",
+                            "displayName": "Voltage phase B",
+                            "displayNameEvent": "Voltage phase B changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "b560766b-3551-4635-9058-6b3ccbe4e148",
+                            "name": "voltagePhaseC",
+                            "displayName": "Voltage phase C",
+                            "displayNameEvent": "Voltage phase C changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "6e40eec0-8b9e-4c9a-ae59-53a8c847782c",
+                            "name": "currentPhaseA",
+                            "displayName": "Current phase A",
+                            "displayNameEvent": "Current phase A changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "8cfdfbcf-0f93-4d58-b5f9-b276e872afeb",
+                            "name": "currentPhaseB",
+                            "displayName": "Current phase B",
+                            "displayNameEvent": "Current phase B changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "7a937375-2f47-4f37-93d5-5dc55e009c49",
+                            "name": "currentPhaseC",
+                            "displayName": "Current phase C",
+                            "displayNameEvent": "Current phase C changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "b0c47ada-1120-4dcf-a182-0b63bda2dcdb",
+                            "name": "currentPower",
+                            "displayName": "Current power",
+                            "displayNameEvent": "Current power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "58d37726-1ec0-488f-a533-fcddefc21248",
+                            "name": "frequency",
+                            "displayName": "Frequency",
+                            "displayNameEvent": "Frequency changed",
+                            "type": "double",
+                            "unit": "Hertz",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "f26f09c7-5234-4920-83de-9f90442523ce",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumed changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "26926e5d-046b-43b2-85f6-8d1fc4422c8a",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "445cce27-f329-473f-8380-b6556ba85c48",
+                            "name": "firmwareVersion",
+                            "displayName": "Firmware Version",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": true
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

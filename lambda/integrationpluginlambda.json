@@ -10,7 +10,7 @@
             "thingClasses": [
                 {
                     "name": "lambdaTCP",
-                    "displayName": "Lambda heat pump (Modbus TCP)",
+                    "displayName": "Lambda EU 08L-20L",
                     "id": "19306c25-9d5a-473f-9d6d-a34e81182387",
                     "createMethods": [
                         "discovery"
@@ -253,7 +253,7 @@
                             "displayNameEvent": "Heat pump operating state changed",
                             "type": "QString",
                             "possibleValues": [
-                                "Stby",
+                                "Standby",
                                 "Central Heating",
                                 "Domestic Hot Water",
                                 "Central Cooling",
@@ -273,7 +273,7 @@
                                 "MinTemp Block",
                                 "Firmware Download"
                             ],
-                            "defaultValue": "Stby",
+                            "defaultValue": "Standby",
                             "suggestLogging": true
                         },
                         {

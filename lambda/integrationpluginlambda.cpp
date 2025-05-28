@@ -280,16 +280,16 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             qCDebug(dcLambda()) << thing << "Heat pump operating state" << heatpumpState;
             switch (heatpumpState) {
             case LambdaModbusTcpConnection::HeatpumpStateStby:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Stby");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Standby");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateCh:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Ch");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Central Heating");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateDhw:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Dhw");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Domestic Hot Water");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateCc:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Cc");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Central Cooling");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateCirculate:
                 thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Circulate");
@@ -304,10 +304,10 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Frost");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateStbyFrost:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "StbyFrost");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Standby Frost");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateNotUsed:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "NotUsed");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Not Used");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateSummer:
                 thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Summer");
@@ -322,19 +322,19 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Warning");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateInfoMessage:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "InfoMessage");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Info Message");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateTimeBlock:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "TimeBlock");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Time Block");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateReleaseBlock:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "ReleaseBlock");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Release Block");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateMinTempBlock:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "MinTempBlock");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "MinTemp Block");
                 break;
             case LambdaModbusTcpConnection::HeatpumpStateFirmwareDownload:
-                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "FirmwareDownload");
+                thing->setStateValue(lambdaTCPHeatpumpStateStateTypeId, "Firmware Download");
                 break;
             }
         });
@@ -379,7 +379,7 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             thing->setStateValue(lambdaTCPCoefficientOfPerformanceStateTypeId, coefficientOfPerformance);
         });
         // 1-0-14 until 1-0-19 not connected
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](qint32 totalEnergyConsumed){
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](float totalEnergyConsumed){
             qCDebug(dcLambda()) << thing << "Accumulated electrical energy consumption of compressor unit since last statistic reset" << totalEnergyConsumed << "Wh";
             thing->setStateValue(lambdaTCPTotalEnergyConsumedStateTypeId, totalEnergyConsumed);
         });

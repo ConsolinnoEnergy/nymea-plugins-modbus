@@ -166,6 +166,21 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
         GoodweModbusRtuConnection *connection = new GoodweModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
         connect(connection, &GoodweModbusRtuConnection::reachableChanged, this, [=](bool reachable){
             thing->setStateValue(goodweInverterRTUConnectedStateTypeId, reachable);
+            if (!reachable) {
+                thing->setStateValue(goodweInverterRTUCurrentPowerStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv1PowerStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv1VoltageStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv1CurrentStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv2PowerStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv2VoltageStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv2CurrentStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv3PowerStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv4VoltageStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv3CurrentStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv4PowerStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv4VoltageStateTypeId, 0);
+                thing->setStateValue(goodweInverterRTUPv4CurrentStateTypeId, 0);                
+            }
 
             // Set connected state for meter
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(goodweMeterThingClassId);
@@ -175,6 +190,17 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
                     meterThings.first()->setStateValue(goodweMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(goodweMeterConnectedStateTypeId, false);
+                    meterThings.first()->setStateValue(goodweMeterCurrentPowerStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterCurrentPhaseAStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterCurrentPhaseBStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterCurrentPhaseCStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterVoltagePhaseAStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterVoltagePhaseBStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterVoltagePhaseCStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterCurrentPowerPhaseAStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterCurrentPowerPhaseBStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterCurrentPowerPhaseCStateTypeId, 0);
+                    meterThings.first()->setStateValue(goodweMeterFrequencyStateTypeId, 0);
                 }
             }
 
@@ -186,6 +212,7 @@ void IntegrationPluginGoodwe::setupThing(ThingSetupInfo *info)
                     batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, true);
                 } else {
                     batteryThings.first()->setStateValue(goodweBatteryConnectedStateTypeId, false);
+                    batteryThings.first()->setStateValue(goodweBatteryCurrentPowerStateTypeId, 0);
                 }
             }
 

@@ -23,6 +23,7 @@ PLUGIN_DIRS = \
     huawei                  \
     idm                     \
     inepro                  \
+    janitza                 \
     kacosunspec             \
     kostal                  \
     lambda                  \
@@ -49,6 +50,7 @@ PLUGIN_DIRS = \
     technivolt              \
     unipi                   \
     vestel                  \
+    victron                 \
     webasto                 \
     e3dc                    \
     dvmodbusir
