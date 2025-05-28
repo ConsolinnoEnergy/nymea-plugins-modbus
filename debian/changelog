@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.017) jammy; urgency=medium
+
+  * Add Zhejiang Chint DTSU666 smart meter
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 28 May 2025 08:49:00 +0200
+
 nymea-plugins-modbus (1.7.016) jammy; urgency=medium
 
   * Solax X3: Fix writing max charging register on change
@@ -18,7 +24,6 @@ nymea-plugins-modbus (1.7.015-1) jammy; urgency=medium
   * Sax: fix current power meter
   * Lambda: Support not available modules
   * SolarEdge: Add battery control for solaredge hybrid inverter
-  * Add Zhejiang Chint DTSU666 smart meter
   * Victron GX: Initial plugin added
   * Lambda: Precise electrical energy value
 
