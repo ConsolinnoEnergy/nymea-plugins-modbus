@@ -181,14 +181,14 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
         }
     });
 
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
-        thing->setStateValue(dtsu666CurrentPhaseAStateTypeId, currentPhaseA / 1000.f);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseAChanged, this, [thing, dtsuConnection](float currentPhaseA){
+        thing->setStateValue(dtsu666CurrentPhaseAStateTypeId, (currentPhaseA / 1000.f) * dtsuConnection->currentTransformerRate());
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseBChanged, this, [=](float currentPhaseB){
-        thing->setStateValue(dtsu666CurrentPhaseBStateTypeId, currentPhaseB / 1000.f);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseBChanged, this, [thing, dtsuConnection](float currentPhaseB){
+        thing->setStateValue(dtsu666CurrentPhaseBStateTypeId, (currentPhaseB / 1000.f) * dtsuConnection->currentTransformerRate());
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseCChanged, this, [=](float currentPhaseC){
-        thing->setStateValue(dtsu666CurrentPhaseCStateTypeId, currentPhaseC / 1000.f);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseCChanged, this, [thing, dtsuConnection](float currentPhaseC){
+        thing->setStateValue(dtsu666CurrentPhaseCStateTypeId, (currentPhaseC / 1000.f) * dtsuConnection->currentTransformerRate());
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
         thing->setStateValue(dtsu666VoltagePhaseAStateTypeId, voltagePhaseA / 10.f);
@@ -199,8 +199,8 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseCChanged, this, [=](float voltagePhaseC){
         thing->setStateValue(dtsu666VoltagePhaseCStateTypeId, voltagePhaseC / 10.f);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerTotalChanged, this, [=](float currentPower){
-        thing->setStateValue(dtsu666CurrentPowerStateTypeId, currentPower / 10.f);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerTotalChanged, this, [thing, dtsuConnection](float currentPower){
+        thing->setStateValue(dtsu666CurrentPowerStateTypeId, (currentPower / 10.f) * dtsuConnection->currentTransformerRate());
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseAChanged, this, [=](float powerPhaseA){
         thing->setStateValue(dtsu666CurrentPowerPhaseAStateTypeId, powerPhaseA / 10.f);
