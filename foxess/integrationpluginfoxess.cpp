@@ -171,6 +171,12 @@ void IntegrationPluginFoxESS::setupThing(ThingSetupInfo *info)
             quint32 frequency = connection->inverterFrequency();
             double calculatedFrequency = static_cast<double> (frequency * qPow(10, frequencySf));
             thing->setStateValue("frequency", calculatedFrequency);
+
+            // Calculate max production limit
+            qint16 productionLimitSf = connection->productionLimitSf();
+            quint16 productionLimit = connection->productionLimit();
+            quint16 calculatedProductionPercent = productionLimit * qPow(10, productionLimitSf);
+            thing->setStateValue("productionLimit", calculatedProductionPercent * 1000);
         });
 
         m_rtuConnections.insert(thing, connection);
@@ -191,6 +197,28 @@ void IntegrationPluginFoxESS::postSetupThing(Thing *thing)
 
             m_pluginTimer->start();
         }
+    }
+}
+
+void IntegrationPluginFoxESS::executeAction(ThingActionInfo *info) 
+{
+    Thing *thing = info->thing();
+    RSeriesModbusRtuConnection *connection = m_rtuConnections.value(thing);
+    if (info->action().actionTypeId() == foxRSeriesProductionLimitActionTypeId) {
+        uint productionLimit = info->action().paramValue(foxRSeriesProductionLimitActionProductionLimitParamTypeId).toUInt();
+        qint16 scaleFactor = -1 * connection->productionLimitSf();
+        quint16 calculatedProductionLimit = (productionLimit / 1000) * qPow(10, scaleFactor);
+        ModbusRtuReply *reply = connection->setProductionLimit(calculatedProductionLimit);
+        connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
+        connect(reply, &ModbusRtuReply::finished, this, [reply, thing, info, productionLimit]() {
+            if (reply->error() == ModbusRtuReply::NoError) {
+                qCDebug(dcFoxess()) << "Successfully set production limit";
+                thing->setStateValue("productionLimit", productionLimit);
+                info->finish(Thing::ThingErrorNoError);
+            } else {
+                qCWarning(dcFoxess()) << "Error setting production limit";
+            }
+        });
     }
 }
 

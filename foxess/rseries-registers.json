@@ -249,6 +249,26 @@
             "description": "Serialnumber",
             "readSchedule": "init",
             "access": "RO"
+        },
+        {
+            "id": "productionLimit",
+            "address": 40300,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Maximum active power",
+            "readSchedule": "update",
+            "access": "RW"
+        },
+        {
+            "id": "productionLimitSf",
+            "address": 40305,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Maximum active power Scale factor",
+            "readSchedule": "update",
+            "access": "RO"
         }
     ]
 }

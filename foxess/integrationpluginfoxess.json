@@ -119,6 +119,19 @@
                             "type": "QString",
                             "defaultValue": "",
                             "cached": true
+                        },
+                        {
+                            "id": "a761172f-5660-481f-a5fb-703911f57934",
+                            "name": "productionLimit",
+                            "displayName": "Production limit",
+                            "displayNameEvent": "Production limit changed",
+                            "displayNameAction": "Set production limit",
+                            "type": "uint",
+                            "minValue": 0,
+                            "maxValue": 100000,
+                            "defaultValue": 100000,
+                            "writable": true,
+                            "cached": true
                         }
                     ],
                     "actionTypes": [ ]
