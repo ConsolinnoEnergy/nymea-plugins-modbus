@@ -17,7 +17,8 @@
                     ],
                     "interfaces": [
                         "solarinverter",
-                        "connectable"
+                        "connectable",
+                        "limitgridexport"
                     ],
                     "providedInterfaces": [
                         "solarinverter",
