@@ -167,7 +167,7 @@
                     "description": "Current battery 1 (0x0605)",
                     "defaultValue": "0",
                     "unit": "A",
-                    "staticScaleFactor": -1,
+                    "staticScaleFactor": -2,
                     "access": "RO"
                 },
                 {
