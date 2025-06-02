@@ -18,7 +18,8 @@
                     ],
                     "interfaces": [
                         "solarinverter",
-                        "connectable"
+                        "connectable",
+                        "limitgridexport"
                     ],
                     "providedInterfaces": [
                         "energymeter",
