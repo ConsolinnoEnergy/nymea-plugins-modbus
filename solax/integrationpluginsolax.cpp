@@ -1682,26 +1682,30 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
         } else if (action.actionTypeId() == solaxBatteryMaxChargingCurrentActionTypeId) {
             double maxCurrent = action.paramValue(solaxBatteryMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toDouble();
             bool enableMaxCurrent = thing->stateValue(solaxBatteryEnableMaxChargingCurrentStateTypeId).toBool();
-            qCWarning(dcSolax()) << "Battery max current should be set to" << maxCurrent << "A";
-            
-            if (enableMaxCurrent && maxCurrent >= 0 && maxCurrent <= 30)
-            {
-                thing->setStateValue(solaxBatteryMaxChargingCurrentStateTypeId, maxCurrent);
-                setMaxCurrent(inverterThing, maxCurrent);
-            }            
+
+            if (maxCurrent != thing->stateValue(solaxBatteryMaxChargingCurrentStateTypeId).toDouble()){
+                qCWarning(dcSolax()) << "Battery max current changed to" << maxCurrent << "A";
+                if (enableMaxCurrent && maxCurrent >= 0 && maxCurrent <= 30)
+                {
+                    thing->setStateValue(solaxBatteryMaxChargingCurrentStateTypeId, maxCurrent);
+                    setMaxCurrent(inverterThing, maxCurrent);
+                }  
+            }          
         } else if (action.actionTypeId() == solaxBatteryEnableMaxChargingCurrentActionTypeId) {
             bool enableMaxCurrent = action.paramValue(solaxBatteryEnableMaxChargingCurrentActionEnableMaxChargingCurrentParamTypeId).toBool();
             double maxCurrent = thing->stateValue(solaxBatteryMaxChargingCurrentStateTypeId).toDouble();
-            qCWarning(dcSolax()) << "Battery max current is enabled?" << enableMaxCurrent;
-
-            if (!enableMaxCurrent) {
-                setMaxCurrent(inverterThing, 30.0); //reset to default value 30A
-                thing->setStateValue(solaxBatteryMaxChargingCurrentStateTypeId, 30.0);
-            } else if (enableMaxCurrent && maxCurrent >= 0 && maxCurrent <= 30)
-            {
-                setMaxCurrent(inverterThing, maxCurrent);
-            }
-            thing->setStateValue(solaxBatteryEnableMaxChargingCurrentStateTypeId, enableMaxCurrent);                 
+            
+            if (enableMaxCurrent != thing->stateValue(solaxBatteryEnableMaxChargingCurrentStateTypeId).toBool()){
+                qCWarning(dcSolax()) << "Enabling of battery max current changed to" << enableMaxCurrent;
+                if (!enableMaxCurrent) {
+                    setMaxCurrent(inverterThing, 30.0); //reset to default value 30A
+                    thing->setStateValue(solaxBatteryMaxChargingCurrentStateTypeId, 30.0);
+                } else if (enableMaxCurrent && maxCurrent >= 0 && maxCurrent <= 30)
+                {
+                    setMaxCurrent(inverterThing, maxCurrent);
+                }
+                thing->setStateValue(solaxBatteryEnableMaxChargingCurrentStateTypeId, enableMaxCurrent); 
+            }                
         } else if (action.actionTypeId() == solaxBatteryMinBatteryLevelActionTypeId) {
             int minBatteryLevel = action.paramValue(solaxBatteryMinBatteryLevelActionMinBatteryLevelParamTypeId).toInt();
             qCWarning(dcSolax()) << "Min battery level set to" << minBatteryLevel;
