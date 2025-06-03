@@ -113,48 +113,27 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             qCWarning(dcLambda()) << "There are no GPIOs available on this plattform";
         } else {
             int gpioNumber1{496};
-            int gpioNumber2{497};
             bool gpioEnabled1 = thing->stateValue(lambdaTCPGpio1StateStateTypeId).toBool();
-            bool gpioEnabled2 = thing->stateValue(lambdaTCPGpio2StateStateTypeId).toBool();
-            
-            SgReadyInterface *sgReadyInterface = new SgReadyInterface(gpioNumber1, gpioNumber2, this);
-            if (!sgReadyInterface->setup(gpioEnabled1, gpioEnabled2)) {
+                        
+            LpcInterface *lpcInterface = new LpcInterface(gpioNumber1, this);
+            if (!lpcInterface->setup(gpioEnabled1)) {
                 qCWarning(dcLambda()) << "Setup" << thing << "failed because the GPIO could not be set up correctly.";
-                //: Error message if SG ready GPIOs setup failed
+                //: Error message if LPC GPIOs setup failed
                 info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Failed to set up the GPIO hardware interface."));
                 return;
             }
 
             // Intially set values according to relais states
-            thing->setStateValue(lambdaTCPGpio1StateStateTypeId, sgReadyInterface->gpio1()->value() == Gpio::ValueHigh);
-            thing->setStateValue(lambdaTCPGpio2StateStateTypeId, sgReadyInterface->gpio2()->value() == Gpio::ValueHigh);
-            if (  sgReadyInterface->sgReadyMode() == SgReadyInterface::SgReadyModeOff ) {
-                thing->setStateValue(lambdaTCPSgReadyModeStateTypeId, "Off");
-            } else if (sgReadyInterface->sgReadyMode() == SgReadyInterface::SgReadyModeLow) {
-                thing->setStateValue(lambdaTCPSgReadyModeStateTypeId, "Low");
-            } else if (sgReadyInterface->sgReadyMode() == SgReadyInterface::SgReadyModeHigh) {
-                thing->setStateValue(lambdaTCPSgReadyModeStateTypeId, "High");
-            } else {
-                thing->setStateValue(lambdaTCPSgReadyModeStateTypeId, "Standard");
-            }
+            thing->setStateValue(lambdaTCPGpio1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);
+            thing->setStateValue(lambdaTCPActivateLpcStateTypeId, lpcInterface->limitPowerConsumption());
 
             // Reflect the SG states on change
-            connect(sgReadyInterface, &SgReadyInterface::sgReadyModeChanged, this, [thing, sgReadyInterface](SgReadyInterface::SgReadyMode mode){
-                Q_UNUSED(mode)
-                thing->setStateValue(lambdaTCPGpio1StateStateTypeId, sgReadyInterface->gpio1()->value() == Gpio::ValueHigh);
-                thing->setStateValue(lambdaTCPGpio2StateStateTypeId, sgReadyInterface->gpio2()->value() == Gpio::ValueHigh);
-                if ( mode == SgReadyInterface::SgReadyModeOff ) {
-                thing->setStateValue(lambdaTCPSgReadyModeStateTypeId, "Off");
-                } else if (mode == SgReadyInterface::SgReadyModeLow) {
-                    thing->setStateValue(lambdaTCPSgReadyModeStateTypeId, "Low");
-                } else if (mode == SgReadyInterface::SgReadyModeHigh) {
-                    thing->setStateValue(lambdaTCPSgReadyModeStateTypeId, "High");
-                } else {
-                    thing->setStateValue(lambdaTCPSgReadyModeStateTypeId, "Standard");
-                }
+            connect(lpcInterface, &LpcInterface::limitPowerConsumptionChanged, this, [thing, lpcInterface](bool value){
+                thing->setStateValue(lambdaTCPGpio1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);
+                thing->setStateValue(lambdaTCPActivateLpcStateTypeId, value);
             });        
 
-            m_sgReadyInterfaces.insert(thing, sgReadyInterface);
+            m_lpcInterfaces.insert(thing, lpcInterface);
         }
 
         QHostAddress hostAddress = QHostAddress(thing->paramValue(lambdaTCPThingIpAddressParamTypeId).toString());
@@ -661,9 +640,9 @@ void IntegrationPluginLambda::thingRemoved(Thing *thing)
             LambdaModbusTcpConnection *connection = m_connections.take(thing);
             delete connection;
         }
-        if (m_sgReadyInterfaces.contains(thing)) {
-            SgReadyInterface *sgReadyInterface = m_sgReadyInterfaces.take(thing);
-            delete sgReadyInterface;
+        if (m_lpcInterfaces.contains(thing)) {
+            LpcInterface *lpcInterface = m_lpcInterfaces.take(thing);
+            delete lpcInterface;
         }
     }
 
@@ -692,26 +671,16 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
         connection->setDemandPower(actualPvSurplus);
     }
 
-    SgReadyInterface *sgReadyInterface = m_sgReadyInterfaces.value(thing);
-        if (!sgReadyInterface || !sgReadyInterface->isValid()) {
+    LpcInterface *lpcInterface = m_lpcInterfaces.value(thing);
+        if (!lpcInterface || !lpcInterface->isValid()) {
             qCWarning(dcLambda()) << "Failed to execute action. There is no interface available for" << thing;
         } else { 
-            if (info->action().actionTypeId() == lambdaTCPSgReadyModeActionTypeId) {
-                QString sgReadyModeString = info->action().paramValue(lambdaTCPSgReadyModeActionSgReadyModeParamTypeId).toString();
-                qCDebug(dcLambda()) << "Set SG ready mode from" << thing << "to" << sgReadyModeString;
-                SgReadyInterface::SgReadyMode mode;
-                if (sgReadyModeString == "Off") {
-                    mode = SgReadyInterface::SgReadyModeOff;
-                } else if (sgReadyModeString == "Low") {
-                    mode = SgReadyInterface::SgReadyModeLow;
-                } else if (sgReadyModeString == "High") {
-                    mode = SgReadyInterface::SgReadyModeHigh;
-                } else {
-                    mode = SgReadyInterface::SgReadyModeStandard;
-                }
-
-                if (!sgReadyInterface->setSgReadyMode(mode)) {
-                    qCWarning(dcLambda()) << "Failed to set the sg ready mode on" << thing << "to" << sgReadyModeString;
+            if (info->action().actionTypeId() == lambdaTCPActivateLpcActionTypeId) {
+                bool limitPowerConsumption = info->action().paramValue(lambdaTCPActivateLpcActionActivateLpcParamTypeId).toBool();
+                qCDebug(dcLambda()) << "Set LPC activation from" << thing << "to" << limitPowerConsumption;
+                
+                if (!lpcInterface->setLimitPowerConsumption(limitPowerConsumption)) {
+                    qCWarning(dcLambda()) << "Failed to set the sg ready mode on" << thing << "to" << limitPowerConsumption;
                 }
             }
         }

@@ -28,48 +28,38 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef SGREADYINTERFACE_H
-#define SGREADYINTERFACE_H
+#ifndef LPCINTERFACE_H
+#define LPCINTERFACE_H
 
 #include <QObject>
 
 #include "gpio.h"
 
-class SgReadyInterface : public QObject
+class LpcInterface : public QObject
 {
     Q_OBJECT
-public:
-    enum SgReadyMode {
-        SgReadyModeOff,
-        SgReadyModeLow,
-        SgReadyModeStandard,
-        SgReadyModeHigh
-    };
-    Q_ENUM(SgReadyMode)
+public:  
 
-    explicit SgReadyInterface(int gpioNumber1, int gpioNumber2, QObject *parent = nullptr);
+    explicit LpcInterface(int gpioNumber1, QObject *parent = nullptr);
+    
+    bool limitPowerConsumption() const;
+    bool setLimitPowerConsumption(bool limitPowerConsumption);
 
-    SgReadyMode sgReadyMode() const;
-    bool setSgReadyMode(SgReadyMode sgReadyMode);
-
-    bool setup(bool gpio1Enabled, bool gpio2Enabled);
+    bool setup(bool gpio1Enabled);
     bool isValid() const;
 
     Gpio *gpio1() const;
-    Gpio *gpio2() const;
 
 signals:
-    void sgReadyModeChanged(SgReadyMode sgReadyMode);
+    void limitPowerConsumptionChanged(bool limitPowerConsumption);
 
 private:
-    SgReadyMode m_sgReadyMode = SgReadyModeStandard;
+    bool m_limitPowerConsumption = false;
     int m_gpioNumber1 = -1;
-    int m_gpioNumber2 = -1;
 
     Gpio *m_gpio1 = nullptr;
-    Gpio *m_gpio2 = nullptr;
 
     Gpio *setupGpio(int gpioNumber, bool initialValue);
 };
 
-#endif // SGREADYINTERFACE_H
+#endif // LPCINTERFACE_H

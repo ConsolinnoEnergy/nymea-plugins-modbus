@@ -18,8 +18,7 @@
                     "interfaces": [
                         "pvsurplusheatpump",
                         "connectable",
-                        "smartmeterconsumer",
-                        "smartgridheatpump"
+                        "smartmeterconsumer"
                     ],
                     "paramTypes": [
                         {
@@ -558,19 +557,13 @@
                         },
                         {
                             "id": "16370328-fb9d-4ab3-8a0d-b41a2af6f1d7",
-                            "name": "sgReadyMode",
-                            "displayName": "Smart grid mode",
-                            "displayNameEvent": "Smart grid mode changed",
-                            "displayNameAction": "Set smart grid mode",
-                            "type": "QString",
-                            "possibleValues": [
-                                "Off",
-                                "Low",
-                                "Standard",
-                                "High"
-                            ],
+                            "name": "activateLpc",
+                            "displayName": "Activate Limit of power consumption",
+                            "displayNameEvent": "LPC activation changed",
+                            "displayNameAction": "Set LPC activation",
+                            "type": "bool",
                             "writable": true,
-                            "defaultValue": "Standard",
+                            "defaultValue": false,
                             "cached": true,
                             "suggestLogging": true
                         },
@@ -579,15 +572,6 @@
                             "name": "gpio1State",
                             "displayName": "Relay 1 enabled",
                             "displayNameEvent": "Relay 1 enabled changed",
-                            "type": "bool",
-                            "cached": true,
-                            "defaultValue": false
-                        },
-                        {
-                            "id": "0bb5c497-30d6-4a31-b968-490162ac9802",
-                            "name": "gpio2State",
-                            "displayName": "Relay 2 enabled",
-                            "displayNameEvent": "Relay 2 enabled changed",
                             "type": "bool",
                             "cached": true,
                             "defaultValue": false

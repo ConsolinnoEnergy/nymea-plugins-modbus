@@ -35,7 +35,7 @@
 #include <integrations/integrationplugin.h>
 
 #include "lambdamodbustcpconnection.h"
-#include "sgreadyinterface.h"
+#include "lpcinterface.h"
 
 class IntegrationPluginLambda: public IntegrationPlugin
 {
@@ -58,7 +58,7 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, LambdaModbusTcpConnection *> m_connections;
-    QHash<Thing *, SgReadyInterface *> m_sgReadyInterfaces;
+    QHash<Thing *, LpcInterface *> m_lpcInterfaces;
 };
 
 #endif // INTEGRATIONPLUGINLAMBDA_H

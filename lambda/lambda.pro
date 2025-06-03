@@ -10,9 +10,9 @@ include(../modbus.pri)
 SOURCES += \
     integrationpluginlambda.cpp \
     lambdamodbustcpconnection.cpp \
-    sgreadyinterface.cpp
+    lpcinterface.cpp
 
 HEADERS += \
     integrationpluginlambda.h \
     lambdamodbustcpconnection.h \
-    sgreadyinterface.h
+    lpcinterface.h
