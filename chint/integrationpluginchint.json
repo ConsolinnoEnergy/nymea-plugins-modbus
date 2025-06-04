@@ -44,6 +44,14 @@
                             "type": "QUuid",
                             "defaultValue": "",
                             "readOnly": true
+                        },
+                        {
+                            "id": "781786ec-e791-4e34-9afe-646f1ccb11da",
+                            "name": "useTransformerRates",
+                            "displayName": "Uses CT Clamps",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "readOnly": false
                         }
                     ],
                     "stateTypes": [
@@ -224,6 +232,22 @@
                             "type": "int",
                             "unit": "None",
                             "defaultValue": 0
+                        },
+                        {
+                            "id": "3e7d701e-00c9-40a5-8633-5598e8a082c4",
+                            "name": "currentTransformerRate",
+                            "displayName": "Current transformer rate",
+                            "type": "double",
+                            "unit": "None",
+                            "defaultValue": 1.0
+                        },
+                        {
+                            "id": "f73fca29-e500-454c-b033-71e5e8995886",
+                            "name": "voltageTransformerRate",
+                            "displayName": "Voltage transformer rate",
+                            "type": "double",
+                            "unit": "None",
+                            "defaultValue": 1.0
                         }
                     ]
                 }

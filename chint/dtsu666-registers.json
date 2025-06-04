@@ -15,21 +15,38 @@
             "description": "Software Version",
             "defaultValue": "0",
             "access": "RO"
-        },
-        {
-            "id": "currentTransformerRate",
-            "address": 6,
-            "size": 1,
-            "type": "int16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Current transformer rate",
-            "defaultValue": "0",
-            "staticScaleFactor": -1,
-            "access": "RO"
         }
     ],
     "blocks": [
+        {
+            "id": "transformerRates",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "currentTransformerRate",
+                    "address": 6,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
+                    "description": "Current transformer rate",
+                    "defaultValue": 1,
+                    "access": "RO"
+                },
+                {
+                    "id": "voltageTransformerRate",
+                    "address": 7,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
+                    "description": "Voltage transformer rate",
+                    "defaultValue": 1,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
         {
             "id": "voltageCurrentPower",
             "readSchedule": "update",

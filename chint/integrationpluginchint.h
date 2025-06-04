@@ -57,6 +57,8 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
+    void setStateValues(Thing *thing);
+
     PluginTimer *m_refreshTimer = nullptr;
     QHash<Thing *, DTSU666ModbusRtuConnection *> m_dtsu666Connections;
 };
