@@ -190,52 +190,52 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::currentPhaseCChanged, this, [thing, dtsuConnection](float currentPhaseC){
         thing->setStateValue(dtsu666CurrentPhaseCStateTypeId, (currentPhaseC / 1000.f) * dtsuConnection->currentTransformerRate());
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseAChanged, this, [thing](float voltagePhaseA){
         thing->setStateValue(dtsu666VoltagePhaseAStateTypeId, voltagePhaseA / 10.f);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseBChanged, this, [=](float voltagePhaseB){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseBChanged, this, [thing](float voltagePhaseB){
         thing->setStateValue(dtsu666VoltagePhaseBStateTypeId, voltagePhaseB / 10.f);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseCChanged, this, [=](float voltagePhaseC){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::voltagePhaseCChanged, this, [thing](float voltagePhaseC){
         thing->setStateValue(dtsu666VoltagePhaseCStateTypeId, voltagePhaseC / 10.f);
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerTotalChanged, this, [thing, dtsuConnection](float currentPower){
         thing->setStateValue(dtsu666CurrentPowerStateTypeId, (currentPower / 10.f) * dtsuConnection->currentTransformerRate());
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseAChanged, this, [=](float powerPhaseA){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseAChanged, this, [thing](float powerPhaseA){
         thing->setStateValue(dtsu666CurrentPowerPhaseAStateTypeId, powerPhaseA / 10.f);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseBChanged, this, [=](float powerPhaseB){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseBChanged, this, [thing](float powerPhaseB){
         thing->setStateValue(dtsu666CurrentPowerPhaseBStateTypeId, powerPhaseB / 10.f);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseCChanged, this, [=](float powerPhaseC){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::powerPhaseCChanged, this, [thing](float powerPhaseC){
         thing->setStateValue(dtsu666CurrentPowerPhaseCStateTypeId, powerPhaseC / 10.f);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalForwardActiveEnergyChanged, this, [=](float totalForwardActiveEnergy){
-        thing->setStateValue(dtsu666TotalEnergyConsumedStateTypeId, totalForwardActiveEnergy);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalForwardActiveEnergyChanged, this, [thing, dtsuConnection](float totalForwardActiveEnergy){
+        thing->setStateValue(dtsu666TotalEnergyConsumedStateTypeId, totalForwardActiveEnergy * dtsuConnection->currentTransformerRate());
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseAChanged, this, [=](float forwardActiveEnergyPhaseA){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseAChanged, this, [thing](float forwardActiveEnergyPhaseA){
         thing->setStateValue(dtsu666EnergyConsumedPhaseAStateTypeId, forwardActiveEnergyPhaseA);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseBChanged, this, [=](float forwardActiveEnergyPhaseB){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseBChanged, this, [thing](float forwardActiveEnergyPhaseB){
         thing->setStateValue(dtsu666EnergyConsumedPhaseBStateTypeId, forwardActiveEnergyPhaseB);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseCChanged, this, [=](float forwardActiveEnergyPhaseC){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseCChanged, this, [thing](float forwardActiveEnergyPhaseC){
         thing->setStateValue(dtsu666EnergyConsumedPhaseCStateTypeId, forwardActiveEnergyPhaseC);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalReverseActiveEnergyChanged, this, [=](float totalReverseActiveEnergy){
-        thing->setStateValue(dtsu666TotalEnergyProducedStateTypeId, totalReverseActiveEnergy);
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalReverseActiveEnergyChanged, this, [thing, dtsuConnection](float totalReverseActiveEnergy){
+        thing->setStateValue(dtsu666TotalEnergyProducedStateTypeId, totalReverseActiveEnergy * dtsuConnection->currentTransformerRate());
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseAChanged, this, [=](float reverseActiveEnergyPhaseA){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseAChanged, this, [thing](float reverseActiveEnergyPhaseA){
         thing->setStateValue(dtsu666EnergyProducedPhaseAStateTypeId, reverseActiveEnergyPhaseA);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseBChanged, this, [=](float reverseActiveEnergyPhaseB){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseBChanged, this, [thing](float reverseActiveEnergyPhaseB){
         thing->setStateValue(dtsu666EnergyProducedPhaseBStateTypeId, reverseActiveEnergyPhaseB);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseCChanged, this, [=](float reverseActiveEnergyPhaseC){
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseCChanged, this, [thing](float reverseActiveEnergyPhaseC){
         thing->setStateValue(dtsu666EnergyProducedPhaseCStateTypeId, reverseActiveEnergyPhaseC);
     });
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::softwareversionChanged, this, [=](qint16 softwareVersion) {
+    connect(dtsuConnection, &DTSU666ModbusRtuConnection::softwareversionChanged, this, [thing](qint16 softwareVersion) {
         thing->setStateValue(dtsu666SoftwareversionStateTypeId, softwareVersion);
     });
 
