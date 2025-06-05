@@ -72,11 +72,6 @@ bool LpcInterface::setup(bool gpio1Enabled)
         return false;
     }    
 
-    // Lambda uses an "EVU Freigabe", which means that the relais S1 shall be always switched on if LPC is inactive
-    m_limitPowerConsumption = !gpio1Enabled;  
-
-    emit limitPowerConsumptionChanged(m_limitPowerConsumption);
-
     return true;
 }
 

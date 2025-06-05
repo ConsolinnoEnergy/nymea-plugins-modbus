@@ -124,10 +124,9 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             }
 
             // Intially set values according to relais states
-            thing->setStateValue(lambdaTCPGpio1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);
-            thing->setStateValue(lambdaTCPActivateLpcStateTypeId, lpcInterface->limitPowerConsumption());
+            thing->setStateValue(lambdaTCPGpio1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);            
 
-            // Reflect the SG states on change
+            // Reflect the LPC state on change
             connect(lpcInterface, &LpcInterface::limitPowerConsumptionChanged, this, [thing, lpcInterface](bool value){
                 thing->setStateValue(lambdaTCPGpio1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);
                 thing->setStateValue(lambdaTCPActivateLpcStateTypeId, value);
