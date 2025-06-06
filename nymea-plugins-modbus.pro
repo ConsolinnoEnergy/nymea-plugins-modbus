@@ -42,6 +42,7 @@ PLUGIN_DIRS = \
     sma                     \
     sofarsolar              \
     solaxevc                \
+    solaxevcg2              \
     solax                   \
     solaxultra              \
     stiebeleltron           \
