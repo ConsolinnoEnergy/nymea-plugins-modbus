@@ -1,0 +1,26 @@
+{
+    "className": "SolaxEvcG2",
+    "protocol": "TCP",
+    "endianness": "LittleEndian",
+    "errorLimitUntilNotReachable": 10,
+    "checkReachableRegister": "firmwareVersion",
+    "enums": [
+
+    ],
+    "blocks": [
+
+    ],
+    "registers": [
+        {
+            "id": "firmwareVersion",
+            "address": 25,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "init",
+            "description": "Firmware version",
+            "defaultValue": 0,
+            "access": "RO"
+        }
+    ]
+}
