@@ -113,7 +113,7 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             qCWarning(dcLambda()) << "There are no GPIOs available on this plattform";
         } else {
             int gpioNumber1{496};
-            bool gpioEnabled1 = thing->stateValue(lambdaTCPGpio1StateStateTypeId).toBool();
+            bool gpioEnabled1 = true; // here CLS state is missing
                         
             LpcInterface *lpcInterface = new LpcInterface(gpioNumber1, this);
             if (!lpcInterface->setup(gpioEnabled1)) {
@@ -128,6 +128,8 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
 
             // Reflect the LPC state on change
             connect(lpcInterface, &LpcInterface::limitPowerConsumptionChanged, this, [thing, lpcInterface](bool value){
+                qCDebug(dcLambda()) << "GPIO changed to" << (lpcInterface->gpio1()->value() == Gpio::ValueHigh);
+                qCDebug(dcLambda()) << "LPC activation changed to" << value;
                 thing->setStateValue(lambdaTCPGpio1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);
                 thing->setStateValue(lambdaTCPActivateLpcStateTypeId, value);
             });        
@@ -679,7 +681,7 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
                 qCDebug(dcLambda()) << "Set LPC activation from" << thing << "to" << limitPowerConsumption;
                 
                 if (!lpcInterface->setLimitPowerConsumption(limitPowerConsumption)) {
-                    qCWarning(dcLambda()) << "Failed to set the sg ready mode on" << thing << "to" << limitPowerConsumption;
+                    qCWarning(dcLambda()) << "Failed to set LPC on" << thing << "to" << limitPowerConsumption;
                 }
             }
         }

@@ -38,11 +38,6 @@ LpcInterface::LpcInterface(int gpioNumber1, QObject *parent) :
 
 }
 
-bool LpcInterface::limitPowerConsumption() const
-{
-    return m_limitPowerConsumption;
-}
-
 bool LpcInterface::setLimitPowerConsumption(bool limitPowerConsumption)
 {
     if (!isValid())
@@ -56,10 +51,9 @@ bool LpcInterface::setLimitPowerConsumption(bool limitPowerConsumption)
         return false;
     }   
 
-    if (m_limitPowerConsumption != limitPowerConsumption) {
-        m_limitPowerConsumption = limitPowerConsumption;
-        emit limitPowerConsumptionChanged(m_limitPowerConsumption);
-    }
+    emit limitPowerConsumptionChanged(limitPowerConsumption);
+
+    qCWarning(dcLambda()) << "Set GPIO 1 to " << gpioSetting;
 
     return true;
 }
@@ -70,7 +64,10 @@ bool LpcInterface::setup(bool gpio1Enabled)
     if (!m_gpio1) {
         qCWarning(dcLambda()) << "Failed to set up LPC interface gpio 1" << m_gpioNumber1;
         return false;
-    }    
+    }
+
+    bool limitPowerConsumption = !gpio1Enabled;    
+    emit limitPowerConsumptionChanged(limitPowerConsumption);
 
     return true;
 }
@@ -112,6 +109,8 @@ Gpio *LpcInterface::setupGpio(int gpioNumber, bool initialValue)
         gpio->deleteLater();
         return nullptr;
     }
+
+    qCWarning(dcLambda()) << "Setup GPIO number " << gpioNumber << "with initial value " << initialValue;
 
     return gpio;
 }
