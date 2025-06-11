@@ -6,7 +6,9 @@ MODBUS_CONNECTIONS += sofarsolar-registers.json
 include(../modbus.pri)
 
 HEADERS += \
-    integrationpluginsofarsolar.h
+    integrationpluginsofarsolar.h \
+    powercontrolsofarsolar.h
 
 SOURCES += \
-    integrationpluginsofarsolar.cpp
+    integrationpluginsofarsolar.cpp \
+    powercontrolsofarsolar.cpp

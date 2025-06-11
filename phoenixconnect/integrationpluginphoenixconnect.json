@@ -103,6 +103,16 @@
                             "defaultValue": ""
                         },
                         {
+                            "id": "e4491a1e-caaa-40cb-b55c-b23a23639117",
+                            "name": "currentPower",
+                            "displayName": "Current power usage",
+                            "displayNameEvent": "Current power usage changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "75e75e12-bd22-444a-804c-c589731b206e",
                             "name": "phaseCount",
                             "displayName": "Phase count",
@@ -321,6 +331,16 @@
                             "maxValue": 16,
                             "defaultValue": 6,
                             "writable": true
+                        },
+                        {
+                            "id": "4ac9d4d8-57ab-494c-a3c8-a37f7246b347",
+                            "name": "currentPower",
+                            "displayName": "Current power usage",
+                            "displayNameEvent": "Current power usage changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "9d4900eb-b16b-4881-ae68-f198cfc8b768",
@@ -557,6 +577,16 @@
                             "name": "firmwareVersion",
                             "type": "QString",
                             "defaultValue": ""
+                        },
+                        {
+                            "id": "fc3e84be-d2eb-47d3-9bf1-41150f0cba5e",
+                            "name": "currentPower",
+                            "displayName": "Current power usage",
+                            "displayNameEvent": "Current power usage changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
                         },
                         {
                             "id": "554aca26-85d4-4b8f-aa08-f3a8beb0a9dc",

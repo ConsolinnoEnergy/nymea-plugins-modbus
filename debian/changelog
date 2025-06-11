@@ -1,7 +1,19 @@
-nymea-plugins-modbus (1.7.016) jammy; urgency=medium
+nymea-plugins-modbus (1.7.017) jammy; urgency=medium
+
+  * Added Zhejiang Chint DTSU666 smart meter
+  * Added Support for AlphaInnotec Smart Home Interface
+  * Growatt: support for LPP changed: limit power input (W) instead of rate (%)
+  * Sofarsolar HYD / Azzurro hybrid inverters: LPP added
   * Lambda: accuracy improvements and warning suppression
 
- -- Luis Reber <l.reber@consolinno.de> Thu, 18 May 2025 13:49:00 +0100
+ -- Luis Reber <l.reber@consolinno.de> Thu, 28 May 2025 08:49:00 +0200
+
+nymea-plugins-modbus (1.7.016) jammy; urgency=medium
+
+  * Solax X3: Fix writing max charging register on change
+  * PhoenixConnect: Add currentPower states to all wallboxes
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 23 May 2025 13:49:00 +0200
 
 nymea-plugins-modbus (1.7.015-1) jammy; urgency=medium
 
