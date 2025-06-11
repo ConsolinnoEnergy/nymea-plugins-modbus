@@ -451,7 +451,7 @@
         },
         {
             "id": "wallboxInfo",
-            "readSchedule": "init",
+            "readSchedule": "update",
             "registers": [
                 {
                     "id": "typePower",
