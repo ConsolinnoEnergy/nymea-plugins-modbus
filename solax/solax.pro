@@ -2,7 +2,10 @@ include(../plugins.pri)
 
 # Generate modbus connection
 # MODBUS_TOOLS_CONFIG += VERBOSE
-MODBUS_CONNECTIONS += x3inverter-registers.json
+MODBUS_CONNECTIONS += \
+    x3inverter-registers.json \
+    solaxevcg2-registers.json
+
 include(../modbus.pri)
 
 HEADERS += \
