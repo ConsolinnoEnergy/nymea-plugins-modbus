@@ -1,39 +1,38 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-*
-* Copyright 2022 - 2024, Consolinno Energy GmbH
-* Contact: info@consolinno.de
-*
-* GNU Lesser General Public License Usage
-* Alternatively, this project may be redistributed and/or modified under the
-* terms of the GNU Lesser General Public License as published by the Free
-* Software Foundation; version 3. This project is distributed in the hope that
-* it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with this project. If not, see <https://www.gnu.org/licenses/>.
-*
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+ *
+ * Copyright 2022 - 2024, Consolinno Energy GmbH
+ * Contact: info@consolinno.de
+ *
+ * GNU Lesser General Public License Usage
+ * Alternatively, this project may be redistributed and/or modified under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; version 3. This project is distributed in the hope that
+ * it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this project. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "integrationplugingrowatt.h"
 #include "plugininfo.h"
 #include <iostream>
-#include<cmath>
+#include <cmath>
 
 #include <network/networkdevicediscovery.h>
-//#include <types/param.h>
+// #include <types/param.h>
 
 #include <QDebug>
-//#include <QStringList>
-//#include <QJsonDocument>
+// #include <QStringList>
+// #include <QJsonDocument>
 #include <QNetworkInterface>
 
-//#include <hardwaremanager.h>
-//#include <modbus/modbusrtuconnection.h>
-//#include <hardware/modbus/modbusrtuhardwareresource.h>
-//#include <serialport.h>
+// #include <hardwaremanager.h>
+// #include <modbus/modbusrtuconnection.h>
+// #include <hardware/modbus/modbusrtuhardwareresource.h>
+// #include <serialport.h>
 
 IntegrationPluginGrowatt::IntegrationPluginGrowatt()
 {
@@ -41,7 +40,8 @@ IntegrationPluginGrowatt::IntegrationPluginGrowatt()
 
 void IntegrationPluginGrowatt::init()
 {
-    connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=](const QUuid &modbusUuid){
+    connect(hardwareManager()->modbusRtuResource(), &ModbusRtuHardwareResource::modbusRtuMasterRemoved, this, [=](const QUuid &modbusUuid)
+            {
         qCDebug(dcGrowatt()) << "Modbus RTU master has been removed" << modbusUuid.toString();
 
         foreach (Thing *thing, myThings()) {
@@ -65,26 +65,29 @@ void IntegrationPluginGrowatt::init()
 
                 delete m_rtuConnections.take(thing);
             }
-        }
-    });
+        } });
 }
 
 void IntegrationPluginGrowatt::discoverThings(ThingDiscoveryInfo *info)
 {
-    if (info->thingClassId() == growattInverterRTUThingClassId) {
+    if (info->thingClassId() == growattInverterRTUThingClassId)
+    {
         qCDebug(dcGrowatt()) << "Discovering modbus RTU resources...";
-        if (hardwareManager()->modbusRtuResource()->modbusRtuMasters().isEmpty()) {
+        if (hardwareManager()->modbusRtuResource()->modbusRtuMasters().isEmpty())
+        {
             info->finish(Thing::ThingErrorHardwareNotAvailable, QT_TR_NOOP("No Modbus RTU interface available. Please set up a Modbus RTU interface first."));
             return;
         }
 
         uint slaveAddress = info->params().paramValue(growattInverterRTUDiscoverySlaveAddressParamTypeId).toUInt();
-        if (slaveAddress > 247 || slaveAddress == 0) {
+        if (slaveAddress > 247 || slaveAddress == 0)
+        {
             info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The Modbus slave address must be a value between 1 and 247."));
             return;
         }
 
-        foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters()) {
+        foreach (ModbusRtuMaster *modbusMaster, hardwareManager()->modbusRtuResource()->modbusRtuMasters())
+        {
             qCDebug(dcGrowatt()) << "Found RTU master resource" << modbusMaster << "connected" << modbusMaster->connected();
             if (!modbusMaster->connected())
                 continue;
@@ -109,33 +112,37 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
     Thing *thing = info->thing();
     qCDebug(dcGrowatt()) << "Setup" << thing << thing->params();
 
-    if (thing->thingClassId() == growattInverterRTUThingClassId) {
+    if (thing->thingClassId() == growattInverterRTUThingClassId)
+    {
 
-        //nominal power
+        // nominal power
         thing->setStateValue(growattInverterRTUNominalPowerStateTypeId, thing->paramValue(growattInverterRTUThingNominalPowerParamTypeId));
-        
 
         uint address = thing->paramValue(growattInverterRTUThingSlaveAddressParamTypeId).toUInt();
-        if (address > 247 || address < 1) {
+        if (address > 247 || address < 1)
+        {
             qCWarning(dcGrowatt()) << "Setup failed, slave address is not valid" << address;
             info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus address not valid. It must be a value between 1 and 247."));
             return;
         }
 
         QUuid uuid = thing->paramValue(growattInverterRTUThingModbusMasterUuidParamTypeId).toUuid();
-        if (!hardwareManager()->modbusRtuResource()->hasModbusRtuMaster(uuid)) {
+        if (!hardwareManager()->modbusRtuResource()->hasModbusRtuMaster(uuid))
+        {
             qCWarning(dcGrowatt()) << "Setup failed, hardware manager not available";
             info->finish(Thing::ThingErrorSetupFailed, QT_TR_NOOP("The Modbus RTU resource is not available."));
             return;
         }
 
-        if (m_rtuConnections.contains(thing)) {
+        if (m_rtuConnections.contains(thing))
+        {
             qCDebug(dcGrowatt()) << "Already have a Growatt connection for this thing. Cleaning up old connection and initializing new one...";
             m_rtuConnections.take(thing)->deleteLater();
         }
 
         GrowattModbusRtuConnection *connection = new GrowattModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid), address, this);
-        connect(connection, &GrowattModbusRtuConnection::reachableChanged, this, [=](bool reachable){
+        connect(connection, &GrowattModbusRtuConnection::reachableChanged, this, [=](bool reachable)
+                {
             thing->setStateValue(growattInverterRTUConnectedStateTypeId, reachable);
             if (!reachable) {
                 thing->setStateValue(growattInverterRTUCurrentPowerStateTypeId, 0);
@@ -191,296 +198,295 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
                 qCDebug(dcGrowatt()) << "Device" << thing << "is reachable via Modbus RTU on" << connection->modbusRtuMaster()->serialPort();
             } else {
                 qCWarning(dcGrowatt()) << "Device" << thing << "is not answering Modbus RTU calls on" << connection->modbusRtuMaster()->serialPort();
-            }
-        });
+            } });
 
         // Handle property changed signals
 
-        //inverter serial
-        connect(connection, &GrowattModbusRtuConnection::inverterSerialChanged, this, [this, thing](QString value){
+        // inverter serial
+        connect(connection, &GrowattModbusRtuConnection::inverterSerialChanged, this, [this, thing](QString value)
+                {
             qCDebug(dcGrowatt()) << "Inverter serial changed to" << value;
-            thing->setStateValue(growattInverterRTUSerialInverterStateTypeId, value);
-        });
-        //battery serial
-        connect(connection, &GrowattModbusRtuConnection::batterySerialChanged, this, [this, thing](QString value){
-            qCDebug(dcGrowatt()) << "battery serial changed to" << value;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
-            if (!batteryThings.isEmpty()) {
-                batteryThings.first()->setStateValue(growattBatterySerialBatteryStateTypeId, value);
-                // if battery serial is only x set connected to false
-                if (value == "XXXXXXXXXXXXXXXX") {
-                    batteryThings.first()->setStateValue(growattBatteryConnectedStateTypeId, false);
-                }
-            }
-           
-        });
+            thing->setStateValue(growattInverterRTUSerialInverterStateTypeId, value); });
+        // battery serial
+        connect(connection, &GrowattModbusRtuConnection::batterySerialChanged, this, [this, thing](QString value)
+                {
+                    qCDebug(dcGrowatt()) << "battery serial changed to" << value;
+                    Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
+                    if (!batteryThings.isEmpty())
+                    {
+                        batteryThings.first()->setStateValue(growattBatterySerialBatteryStateTypeId, value);
+                        // if battery serial is only x set connected to false
+                        if (value == "XXXXXXXXXXXXXXXX")
+                        {
+                            batteryThings.first()->setStateValue(growattBatteryConnectedStateTypeId, false);
+                        }
+                    } });
 
         // PV DC values
-        //total
-        connect(connection, &GrowattModbusRtuConnection::PpvChanged, this, [this, thing](double value){
+        // total
+        connect(connection, &GrowattModbusRtuConnection::PpvChanged, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter total PV power changed to" << value;
-            thing->setStateValue(growattInverterRTUCurrentPowerStateTypeId, -value);
-        });
-        connect(connection, &GrowattModbusRtuConnection::Epv_totalChanged, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUCurrentPowerStateTypeId, -value); });
+        connect(connection, &GrowattModbusRtuConnection::Epv_totalChanged, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter total generated energy changed to" << value;
-            thing->setStateValue(growattInverterRTUTotalEnergyProducedStateTypeId, value);
-        });
-        //PV1
-        connect(connection, &GrowattModbusRtuConnection::Ppv1Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUTotalEnergyProducedStateTypeId, value); });
+        // PV1
+        connect(connection, &GrowattModbusRtuConnection::Ppv1Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter PV1 power changed to" << value;
-            thing->setStateValue(growattInverterRTUPv1PowerStateTypeId, -value);
-        });
-        connect(connection, &GrowattModbusRtuConnection::Vpv1Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUPv1PowerStateTypeId, -value); });
+        connect(connection, &GrowattModbusRtuConnection::Vpv1Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter PV1 voltage changed to" << value;
-            thing->setStateValue(growattInverterRTUPv1VoltageStateTypeId, value);
-        });
-        connect(connection, &GrowattModbusRtuConnection::Ipv1Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUPv1VoltageStateTypeId, value); });
+        connect(connection, &GrowattModbusRtuConnection::Ipv1Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter PV1 current changed to" << value;
-            thing->setStateValue(growattInverterRTUPv1CurrentStateTypeId, value);
-        });
-        //PV2
-        connect(connection, &GrowattModbusRtuConnection::Ppv2Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUPv1CurrentStateTypeId, value); });
+        // PV2
+        connect(connection, &GrowattModbusRtuConnection::Ppv2Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter PV2 power changed to" << value;
-            thing->setStateValue(growattInverterRTUPv2PowerStateTypeId, -value);
-        });
-        connect(connection, &GrowattModbusRtuConnection::Vpv2Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUPv2PowerStateTypeId, -value); });
+        connect(connection, &GrowattModbusRtuConnection::Vpv2Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter PV2 voltage changed to" << value;
-            thing->setStateValue(growattInverterRTUPv2VoltageStateTypeId, value);
-        });
-        connect(connection, &GrowattModbusRtuConnection::Ipv2Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUPv2VoltageStateTypeId, value); });
+        connect(connection, &GrowattModbusRtuConnection::Ipv2Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter PV2 current changed to" << value;
-            thing->setStateValue(growattInverterRTUPv2CurrentStateTypeId, value);
-        });
-
-        
+            thing->setStateValue(growattInverterRTUPv2CurrentStateTypeId, value); });
 
         // Inverter AC values
         // nominal power
-        connect(connection, &GrowattModbusRtuConnection::PmaxChanged, this, [this, thing](double value){
+        connect(connection, &GrowattModbusRtuConnection::PmaxChanged, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter nominal Power changed to" << value;
-            thing->setStateValue(growattInverterRTUPowerAcOutStateTypeId, -value);
-        });
+            thing->setStateValue(growattInverterRTUPowerAcOutStateTypeId, -value); });
 
-        //total
-        connect(connection, &GrowattModbusRtuConnection::PacChanged, this, [this, thing](double value){
+        // total
+        connect(connection, &GrowattModbusRtuConnection::PacChanged, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter total Power changed to" << value;
-            thing->setStateValue(growattInverterRTUPowerAcOutStateTypeId, -value);
-        });
+            thing->setStateValue(growattInverterRTUPowerAcOutStateTypeId, -value); });
 
-        //phases
-        connect(connection, &GrowattModbusRtuConnection::Iac1Changed, this, [this, thing](double value){
+        // phases
+        connect(connection, &GrowattModbusRtuConnection::Iac1Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter AC out L1 current changed to" << value;
-            thing->setStateValue(growattInverterRTUPhaseACurrentStateTypeId, value);
-        });
-        connect(connection, &GrowattModbusRtuConnection::Iac2Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUPhaseACurrentStateTypeId, value); });
+        connect(connection, &GrowattModbusRtuConnection::Iac2Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter AC out L2 current changed to" << value;
-            thing->setStateValue(growattInverterRTUPhaseBCurrentStateTypeId, value);
-        });
-        connect(connection, &GrowattModbusRtuConnection::Iac3Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUPhaseBCurrentStateTypeId, value); });
+        connect(connection, &GrowattModbusRtuConnection::Iac3Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter AC out L3 current changed to" << value;
-            thing->setStateValue(growattInverterRTUPhaseCCurrentStateTypeId, value);
-        });
+            thing->setStateValue(growattInverterRTUPhaseCCurrentStateTypeId, value); });
 
-        //voltage
-        connect(connection, &GrowattModbusRtuConnection::Vac1Changed, this, [this, thing](double value){
+        // voltage
+        connect(connection, &GrowattModbusRtuConnection::Vac1Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter Voltage L1 changed to" << value;
             thing->setStateValue(growattInverterRTUVoltagePhaseAStateTypeId, value);
             // assumption that meter voltage is equal to voltage at inverter AC since no registers for meter voltage
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 meterThings.first()->setStateValue(growattMeterVoltagePhaseAStateTypeId, value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::Vac2Changed, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::Vac2Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter Voltage L2 changed to" << value;
             thing->setStateValue(growattInverterRTUVoltagePhaseBStateTypeId, value);
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 meterThings.first()->setStateValue(growattMeterVoltagePhaseBStateTypeId, value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::Vac3Changed, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::Vac3Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter Voltage L3 changed to" << value;
             thing->setStateValue(growattInverterRTUVoltagePhaseCStateTypeId, value);
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 meterThings.first()->setStateValue(growattMeterVoltagePhaseCStateTypeId, value);
-            }
-        });
+            } });
 
         // AC power
-        connect(connection, &GrowattModbusRtuConnection::Pac1Changed, this, [this, thing](double value){
+        connect(connection, &GrowattModbusRtuConnection::Pac1Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter Power L1 changed to" << value;
-            thing->setStateValue(growattInverterRTUCurrentPowerPhaseAStateTypeId, -value);
-        });
-        connect(connection, &GrowattModbusRtuConnection::Pac2Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUCurrentPowerPhaseAStateTypeId, -value); });
+        connect(connection, &GrowattModbusRtuConnection::Pac2Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter Power L2 changed to" << value;
-            thing->setStateValue(growattInverterRTUCurrentPowerPhaseBStateTypeId, -value);
-        });
-        connect(connection, &GrowattModbusRtuConnection::Pac3Changed, this, [this, thing](double value){
+            thing->setStateValue(growattInverterRTUCurrentPowerPhaseBStateTypeId, -value); });
+        connect(connection, &GrowattModbusRtuConnection::Pac3Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Inverter Power L3 changed to" << value;
-            thing->setStateValue(growattInverterRTUCurrentPowerPhaseCStateTypeId, -value);
-        });
+            thing->setStateValue(growattInverterRTUCurrentPowerPhaseCStateTypeId, -value); });
 
-        connect(connection, &GrowattModbusRtuConnection::FacChanged, this, [this, thing](double value){
+        connect(connection, &GrowattModbusRtuConnection::FacChanged, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "Frequency changed to" << value;
             thing->setStateValue(growattInverterRTUFrequencyStateTypeId, value);
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             if (!meterThings.isEmpty()) {
                 meterThings.first()->setStateValue(growattMeterFrequencyStateTypeId, value);
-            }
-        });
+            } });
 
         // control values
-        connect(connection, &GrowattModbusRtuConnection::ExportLimit_En_disChanged, this, [this, thing](uint value){
-            qCDebug(dcGrowatt()) << "Export limit enabled changed to" << value;
-            if (value == 0) {
-                thing->setStateValue(growattInverterRTUExportLimitEnableStateTypeId, false);
-            } else {
-                thing->setStateValue(growattInverterRTUExportLimitEnableStateTypeId, true);
-            }
-            
-        });
-        connect(connection, &GrowattModbusRtuConnection::ExportLimitPowerRateChanged, this, [this, thing](double value){
-            qCDebug(dcGrowatt()) << "Export limit power rate changed to" << value;
-            thing->setStateValue(growattInverterRTUExportLimitStateTypeId, value);            
-        });
+        connect(connection, &GrowattModbusRtuConnection::ExportLimit_En_disChanged, this, [this, thing](uint value)
+                {
+                    qCDebug(dcGrowatt()) << "Export limit enabled changed to" << value;
+                    if (value == 0)
+                    {
+                        thing->setStateValue(growattInverterRTUEnableExportLimitStateTypeId, false);
+                    }
+                    else
+                    {
+                        thing->setStateValue(growattInverterRTUEnableExportLimitStateTypeId, true);
+                    } });
+        connect(connection, &GrowattModbusRtuConnection::ExportLimitPowerRateChanged, this, [this, thing](double value)
+                {
+                    qCDebug(dcGrowatt()) << "Export limit power rate changed to" << value << "%";
+                    double exportLimitWatt = powerRate2AbsolutePower(thing, value);
+                    qCDebug(dcGrowatt()) << "Export limit power changed to" << exportLimitWatt << "W";
+                    thing->setStateValue(growattInverterRTUExportLimitStateTypeId, exportLimitWatt); });
 
         // meter values
-        //power total
-        connect(connection, &GrowattModbusRtuConnection::Ptouser_totalChanged, this, [this, thing](double value){
+        // power total
+        connect(connection, &GrowattModbusRtuConnection::Ptouser_totalChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid supply changed to" << value;
             if (!meterThings.isEmpty()) {
                 // supply
                 meterThings.first()->setStateValue(growattMeterCurrentPowerStateTypeId, value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::Ptogrid_totalChanged, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::Ptogrid_totalChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid feed-in changed to" << value;
             if (!meterThings.isEmpty()) {
                 // feed in
                 meterThings.first()->setStateValue(growattMeterCurrentPowerStateTypeId, -value);
-            }
-        });
-        //power phases
-        //supply
-        connect(connection, &GrowattModbusRtuConnection::Pactouser_RChanged, this, [this, thing](double value){
+            } });
+        // power phases
+        // supply
+        connect(connection, &GrowattModbusRtuConnection::Pactouser_RChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid supply L1 changed to" << value;
             if (!meterThings.isEmpty()) {
                 // supply
                 meterThings.first()->setStateValue(growattMeterCurrentPowerPhaseAStateTypeId, value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::Pactouser_SChanged, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::Pactouser_SChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid supply L2 changed to" << value;
             if (!meterThings.isEmpty()) {
                 // supply
                 meterThings.first()->setStateValue(growattMeterCurrentPowerPhaseBStateTypeId, value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::Pactouser_TChanged, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::Pactouser_TChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid supply L3 changed to" << value;
             if (!meterThings.isEmpty()) {
                 // supply
                 meterThings.first()->setStateValue(growattMeterCurrentPowerPhaseCStateTypeId, value);
-            }
-        });
-        //feedin
-        connect(connection, &GrowattModbusRtuConnection::Pactogrid_RChanged, this, [this, thing](double value){
+            } });
+        // feedin
+        connect(connection, &GrowattModbusRtuConnection::Pactogrid_RChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid feed-in L1 changed to" << value;
             if (!meterThings.isEmpty()) {
                 // feed in
                 meterThings.first()->setStateValue(growattMeterCurrentPowerPhaseAStateTypeId, -value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::Pactogrid_SChanged, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::Pactogrid_SChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid feed-in L2 changed to" << value;
             if (!meterThings.isEmpty()) {
                 // feed in
                 meterThings.first()->setStateValue(growattMeterCurrentPowerPhaseBStateTypeId, -value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::Pactogrid_TChanged, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::Pactogrid_TChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid feed-in L3 changed to" << value;
             if (!meterThings.isEmpty()) {
                 // feed in
                 meterThings.first()->setStateValue(growattMeterCurrentPowerPhaseCStateTypeId, -value);
-            }
-        });
-        //energy
-        connect(connection, &GrowattModbusRtuConnection::Etouser_totalChanged, this, [this, thing](double value){
+            } });
+        // energy
+        connect(connection, &GrowattModbusRtuConnection::Etouser_totalChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid supply energy changed to" << value;
             if (!meterThings.isEmpty()) {
                 //supply = imported = consumed
                 meterThings.first()->setStateValue(growattMeterTotalEnergyConsumedStateTypeId, value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::Etogrid_totalChanged, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::Etogrid_totalChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Grid feed-in energy changed to" << value;
             if (!meterThings.isEmpty()) {
                 //feedIn = returned = exported = produced
                 meterThings.first()->setStateValue(growattMeterTotalEnergyProducedStateTypeId, value);
-            }
-        });
+            } });
 
-        
-
-        //consumption power
-        connect(connection, &GrowattModbusRtuConnection::Ptoload_totalChanged, this, [this, thing](double value){
+        // consumption power
+        connect(connection, &GrowattModbusRtuConnection::Ptoload_totalChanged, this, [this, thing](double value)
+                {
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId);
             qCDebug(dcGrowatt()) << "Consumption changed to" << value;
             if (!meterThings.isEmpty()) {
                 meterThings.first()->setStateValue(growattMeterLoadPowerStateTypeId, value);
-            }
-        });
-
+            } });
 
         /// battery values
-        
 
-        //soc
-        connect(connection, &GrowattModbusRtuConnection::SOC_3000Changed, this, [this, thing](double value){
+        // soc
+        connect(connection, &GrowattModbusRtuConnection::SOC_3000Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "SOC changed to" << value;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 batteryThings.first()->setStateValue(growattBatteryBatteryLevelStateTypeId, value);
-            }
-        });
-        //power
-        connect(connection, &GrowattModbusRtuConnection::Pdischr_3000Changed, this, [this, thing](double value){
+            } });
+        // power
+        connect(connection, &GrowattModbusRtuConnection::Pdischr_3000Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "discharge changed to" << value;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 batteryThings.first()->setStateValue(growattBatteryCurrentPowerStateTypeId, -value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::Pchr_3000Changed, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::Pchr_3000Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "charge changed to" << value;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 batteryThings.first()->setStateValue(growattBatteryCurrentPowerStateTypeId, value);
-            }
-        });
-        //voltage
-        connect(connection, &GrowattModbusRtuConnection::Vbat_3000Changed, this, [this, thing](double value){
+            } });
+        // voltage
+        connect(connection, &GrowattModbusRtuConnection::Vbat_3000Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "bat voltage changed to" << value;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 batteryThings.first()->setStateValue(growattBatteryVoltageStateTypeId, value);
-            }
-        });
-        //current
-        connect(connection, &GrowattModbusRtuConnection::Ibat_3000Changed, this, [this, thing](double value){
+            } });
+        // current
+        connect(connection, &GrowattModbusRtuConnection::Ibat_3000Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "bat current changed to" << value;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
@@ -492,25 +498,25 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
                     batteryThings.first()->setStateValue(growattBatteryCurrentStateTypeId, value * pow(10, -3));
                 }
                 
-            }
-        });
-        //temperature
-        connect(connection, &GrowattModbusRtuConnection::TempA_3000Changed, this, [this, thing](double value){
+            } });
+        // temperature
+        connect(connection, &GrowattModbusRtuConnection::TempA_3000Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "bat temperature b changed to" << value;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 batteryThings.first()->setStateValue(growattBatteryTemperatureAStateTypeId, value);
-            }
-        });
-        connect(connection, &GrowattModbusRtuConnection::TempB_3000Changed, this, [this, thing](double value){
+            } });
+        connect(connection, &GrowattModbusRtuConnection::TempB_3000Changed, this, [this, thing](double value)
+                {
             qCDebug(dcGrowatt()) << "bat temperature a changed to" << value;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 batteryThings.first()->setStateValue(growattBatteryTemperatureBStateTypeId, value);
-            }
-        });
+            } });
         // charging state
-        connect(connection, &GrowattModbusRtuConnection::BMS_StatusChanged, this, [this, thing](uint value){
+        connect(connection, &GrowattModbusRtuConnection::BMS_StatusChanged, this, [this, thing](uint value)
+                {
             qCDebug(dcGrowatt()) << "bat state changed to" << value;
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
@@ -529,9 +535,7 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
                 }
 
                 batteryThings.first()->setStateValue(growattBatteryBatteryStateStateTypeId, batteryStates[value]);
-            }
-        });
-
+            } });
 
         // FIXME: make async and check if this is really a Growatt
         m_rtuConnections.insert(thing, connection);
@@ -539,21 +543,25 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
         return;
     }
 
-    if (thing->thingClassId() == growattMeterThingClassId) {
+    if (thing->thingClassId() == growattMeterThingClassId)
+    {
         // Nothing to do here, we get all information from the inverter connection
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
-        if (parentThing) {
+        if (parentThing)
+        {
             thing->setStateValue(growattMeterConnectedStateTypeId, parentThing->stateValue(growattInverterRTUConnectedStateTypeId).toBool());
         }
         return;
     }
 
-    if (thing->thingClassId() == growattBatteryThingClassId) {
+    if (thing->thingClassId() == growattBatteryThingClassId)
+    {
         // Nothing to do here, we get all information from the inverter connection
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
-        if (parentThing) {
+        if (parentThing)
+        {
             thing->setStateValue(growattBatteryConnectedStateTypeId, parentThing->stateValue(growattInverterRTUConnectedStateTypeId).toBool());
             thing->setStateValue(growattBatteryCapacityStateTypeId, parentThing->paramValue(growattInverterRTUThingBatteryCapacityParamTypeId).toUInt());
         }
@@ -561,14 +569,16 @@ void IntegrationPluginGrowatt::setupThing(ThingSetupInfo *info)
     }
 }
 
-void IntegrationPluginGrowatt::executeAction(ThingActionInfo *info) 
+void IntegrationPluginGrowatt::executeAction(ThingActionInfo *info)
 {
     Thing *thing = info->thing();
 
-    if (thing->thingClassId() == growattInverterRTUThingClassId) {
+    if (thing->thingClassId() == growattInverterRTUThingClassId)
+    {
         GrowattModbusRtuConnection *growattmodbusrtuconnection = m_rtuConnections.value(thing);
 
-        if (!growattmodbusrtuconnection) {
+        if (!growattmodbusrtuconnection)
+        {
             qCWarning(dcGrowatt()) << "Modbus connection not available";
             info->finish(Thing::ThingErrorHardwareFailure);
             return;
@@ -581,95 +591,146 @@ void IntegrationPluginGrowatt::executeAction(ThingActionInfo *info)
         }*/
 
         bool success = false;
-        if (info->action().actionTypeId() == growattInverterRTUExportLimitEnableActionTypeId) {
+        if (info->action().actionTypeId() == growattInverterRTUEnableExportLimitActionTypeId)
+        {
             // enable/disable export limit
-            bool toggle = info->action().paramValue(growattInverterRTUExportLimitEnableActionExportLimitEnableParamTypeId).toBool();
+            bool toggle = info->action().paramValue(growattInverterRTUEnableExportLimitActionEnableExportLimitParamTypeId).toBool();
             uint state;
             /* states
             0: Disable exportLimit;
             1: Enable 485 exportLimit; -> this is the correct option
             2: Enable 232 exportLimit;
             3: Enable CT exportLimit;*/
-            if (toggle) {
+            if (toggle)
+            {
                 state = 1;
-            } else {
+            }
+            else
+            {
                 state = 0;
             }
             ModbusRtuReply *reply = growattmodbusrtuconnection->setExportLimit_En_dis(state);
             success = handleReply(reply);
+        }
+        else if (info->action().actionTypeId() == growattInverterRTUExportLimitActionTypeId)
+        {
+            double value = info->action().paramValue(growattInverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
+            thing->setStateValue(growattInverterRTUExportLimitStateTypeId, value);
+            double valuePercent = absolutePower2PowerRate(thing, value);
 
-        } else if (info->action().actionTypeId() == growattInverterRTUExportLimitActionTypeId){
-            uint valuePercent = info->action().paramValue(growattInverterRTUExportLimitActionExportLimitParamTypeId).toInt();
             std::cout << "valuePercent: " << valuePercent << std::endl;
+
             ModbusRtuReply *reply = growattmodbusrtuconnection->setExportLimitPowerRate(valuePercent);
             success = handleReply(reply);
             success = true;
-        } else {
+        }
+        else
+        {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled actionTypeId: %1").arg(action.actionTypeId().toString()).toUtf8());
-        }        
+        }
 
-        if (success) {
+        if (success)
+        {
             info->finish(Thing::ThingErrorNoError);
-        } else {
+        }
+        else
+        {
             qCWarning(dcGrowatt()) << "Action execution finished with error.";
             info->finish(Thing::ThingErrorHardwareFailure);
             return;
         }
-		
-    } 
+    }
 }
 
 void IntegrationPluginGrowatt::postSetupThing(Thing *thing)
 {
-    if (thing->thingClassId() == growattInverterRTUThingClassId) {
-        if (!m_pluginTimer) {
+    if (thing->thingClassId() == growattInverterRTUThingClassId)
+    {
+        if (!m_pluginTimer)
+        {
             qCDebug(dcGrowatt()) << "Starting plugin timer...";
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
-            connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
+            connect(m_pluginTimer, &PluginTimer::timeout, this, [this]
+                    {
                 foreach (GrowattModbusRtuConnection *connection, m_rtuConnections) {
                     connection->update();
-                }
-            });
+                } });
 
             m_pluginTimer->start();
         }
 
         // Check if we have to set up a child meter for this inverter connection
-        if (myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId).isEmpty()) {
+        if (myThings().filterByParentId(thing->id()).filterByThingClassId(growattMeterThingClassId).isEmpty())
+        {
             qCDebug(dcGrowatt()) << "Set up Growatt meter for" << thing;
             emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(growattMeterThingClassId, "Growatt Power Meter", QString(), thing->id()));
         }
 
         // Check if we have to set up a child battery for this inverter connection
-        if (myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId).isEmpty()) {
+        if (myThings().filterByParentId(thing->id()).filterByThingClassId(growattBatteryThingClassId).isEmpty())
+        {
             qCDebug(dcGrowatt()) << "Set up Growatt battery for" << thing;
             emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(growattBatteryThingClassId, "Growatt Battery", QString(), thing->id()));
         }
+
+        // Set the maximum power limit to the nominal power
+        uint nominalPower = thing->stateValue(growattInverterRTUNominalPowerStateTypeId).toUInt();
+        qCDebug(dcGrowatt()) << "Set maximum export limit to " << nominalPower;
+        thing->setStateMaxValue(growattInverterRTUExportLimitStateTypeId, nominalPower);
+        qCDebug(dcGrowatt()) << "Maximum export limit set to " << thing->state(growattInverterRTUExportLimitStateTypeId).maxValue().toUInt();
     }
 }
 
 void IntegrationPluginGrowatt::thingRemoved(Thing *thing)
 {
-    if (m_rtuConnections.contains(thing)) {
+    if (m_rtuConnections.contains(thing))
+    {
         m_rtuConnections.take(thing)->deleteLater();
     }
 
-    if (myThings().isEmpty() && m_pluginTimer) {
+    if (myThings().isEmpty() && m_pluginTimer)
+    {
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_pluginTimer);
         m_pluginTimer = nullptr;
     }
 }
 
-bool IntegrationPluginGrowatt::handleReply(ModbusRtuReply *reply) {
-    if (!reply) {
-            qCWarning(dcGrowatt()) << "Sending modbus command failed because the reply could not be created.";
-            //m_errorOccured = true;
-            return false;
-        }
-        connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
-        connect(reply, &ModbusRtuReply::errorOccurred, this, [reply] (ModbusRtuReply::Error error){
-            qCWarning(dcGrowatt()) << "Modbus reply error occurred while writing modbus" << error << reply->errorString();
-            emit reply->finished(); // To make sure it will be deleted
-        });
-        return true;
+double IntegrationPluginGrowatt::powerRate2AbsolutePower(Thing *thing, double value)
+{
+    double nominalPower = thing->stateValue(growattInverterRTUNominalPowerStateTypeId).toDouble();
+
+    if (nominalPower > 0)
+    {
+        return value * nominalPower / 100;
+    }
+
+    return 0.0;
+}
+
+double IntegrationPluginGrowatt::absolutePower2PowerRate(Thing *thing, double absoluteValue)
+{
+    double nominalPower = thing->stateValue(growattInverterRTUNominalPowerStateTypeId).toDouble();
+    if (nominalPower > 0)
+    {
+        return absoluteValue * 100 / nominalPower;
+    }
+
+    return 0.0;
+}
+
+bool IntegrationPluginGrowatt::handleReply(ModbusRtuReply *reply)
+{
+    if (!reply)
+    {
+        qCWarning(dcGrowatt()) << "Sending modbus command failed because the reply could not be created.";
+        // m_errorOccured = true;
+        return false;
+    }
+    connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply](ModbusRtuReply::Error error)
+            {
+                qCWarning(dcGrowatt()) << "Modbus reply error occurred while writing modbus" << error << reply->errorString();
+                emit reply->finished(); // To make sure it will be deleted
+            });
+    return true;
 }
