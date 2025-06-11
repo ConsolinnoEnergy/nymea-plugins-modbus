@@ -20,6 +20,7 @@
 #include "plugininfo.h"
 #include "discoveryrtu.h"
 #include "discoverytcp.h"
+#include "discoverytcpevcg2.h"
 
 #include <network/networkdevicediscovery.h>
 #include <types/param.h>
@@ -158,6 +159,57 @@ void IntegrationPluginSolax::discoverThings(ThingDiscoveryInfo *info)
             info->finish(Thing::ThingErrorNoError);
         });
 
+        discovery->startDiscovery();
+    } else if (info->thingClassId() == solaxEvcG2ThingClassId) {
+        if (!hardwareManager()->networkDeviceDiscovery()->available()) {
+            qCWarning(dcSolax()) << "The network discovery is not available on this platform.";
+            info->finish(Thing::ThingErrorUnsupportedFeature,
+                         QT_TR_NOOP("The network device discovery is not available."));
+            return;
+        }
+        // Create a discovery with the info as parent for auto deleting the object once the
+        // discovery info is done
+        SolaxEvcG2TCPDiscovery *discovery =
+                new SolaxEvcG2TCPDiscovery{ hardwareManager()->networkDeviceDiscovery(), info };
+        connect(discovery, &SolaxEvcG2TCPDiscovery::discoveryFinished, info, [=]() {
+            foreach (const SolaxEvcG2TCPDiscovery::Result &result, discovery->discoveryResults()) {
+                ThingDescriptor descriptor{
+                    solaxEvcG2ThingClassId,
+                            supportedThings().findById(solaxEvcG2ThingClassId).displayName(),
+                            result.networkDeviceInfo.address().toString()
+                };
+                qCInfo(dcSolax()) << "Discovered:" << descriptor.title() << descriptor.description();
+
+                // Check if this device has already been configured. If yes, take it's ThingId. This
+                // does two things:
+                // - During normal configure, the discovery won't display devices that have a
+                // ThingId that already exists. So this prevents a device from beeing added twice.
+                // - During reconfigure, the discovery only displays devices that have a ThingId
+                // that already exists. For reconfigure to work, we need to set an already existing
+                // ThingId.
+                Things existingThings =
+                        myThings()
+                        .filterByThingClassId(solaxEvcG2ThingClassId)
+                        .filterByParam(solaxEvcG2ThingMacAddressParamTypeId,
+                                       result.networkDeviceInfo.macAddress());
+                if (!existingThings.isEmpty()) {
+                    descriptor.setThingId(existingThings.first()->id());
+                }
+
+                ParamList params;
+                params << Param(solaxEvcG2ThingIpAddressParamTypeId,
+                                result.networkDeviceInfo.address().toString());
+                params << Param(solaxEvcG2ThingMacAddressParamTypeId,
+                                result.networkDeviceInfo.macAddress());
+                params << Param(solaxEvcG2ThingPortParamTypeId, result.port);
+                params << Param(solaxEvcG2ThingModbusIdParamTypeId, result.modbusId);
+                descriptor.setParams(params);
+                info->addThingDescriptor(descriptor);
+            }
+            info->finish(Thing::ThingErrorNoError);
+        });
+
+        // Start the discovery process
         discovery->startDiscovery();
     }
 }
@@ -863,6 +915,65 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
         return;
     }
+
+    if (thing->thingClassId() == solaxEvcG2ThingClassId) {
+        // Handle reconfigure
+        if (m_evcG2TcpConnections.contains(thing)) {
+            qCDebug(dcSolax()) << "Already have a Solax connection for this thing. Cleaning up "
+                                  "old connection and initializing new one...";
+            SolaxEvcG2ModbusTcpConnection *connection = m_evcG2TcpConnections.take(thing);
+            connection->disconnectDevice();
+            connection->deleteLater();
+        } else {
+            qCDebug(dcSolax()) << "Setting up a new device: " << thing->params();
+        }
+
+        if (m_monitors.contains(thing)) {
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+        }
+
+        // Make sure we have a valid mac address, otherwise no monitor and no auto searching is
+        // possible. Testing for null is necessary, because registering a monitor with a zero mac
+        // adress will cause a segfault.
+        const auto macAddress =
+                MacAddress{ thing->paramValue(solaxEvcG2ThingMacAddressParamTypeId).toString() };
+        if (macAddress.isNull()) {
+            qCWarning(dcSolax())
+                    << "Failed to set up Solax wallbox because the MAC address is not valid:"
+                    << thing->paramValue(solaxEvcG2ThingMacAddressParamTypeId).toString()
+                    << macAddress.toString();
+            info->finish(Thing::ThingErrorInvalidParameter,
+                         QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device to fix this."));
+            return;
+        }
+
+        // Create a monitor so we always get the correct IP in the network and see if the device is
+        // reachable without polling on our own. In this call, nymea is checking a list for known
+        // mac addresses and associated ip addresses
+        const auto monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        // If the mac address is not known, nymea is starting a internal network discovery.
+        // 'monitor' is returned while the discovery is still running -> monitor does not include ip
+        // address and is set to not reachable
+        m_monitors.insert(thing, monitor);
+        // If the ip address was not found in the cache, wait for the for the network discovery
+        // cache to be updated
+        qCDebug(dcSolax())
+                << "Monitor reachable"
+                << monitor->reachable()
+                << macAddress.toString();
+        m_setupTcpConnectionRunning = false;
+        if (monitor->reachable()) {
+            setupEvcG2TcpConnection(info);
+        } else {
+            connect(hardwareManager()->networkDeviceDiscovery(),
+                    &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
+                if (!m_setupTcpConnectionRunning) {
+                    m_setupTcpConnectionRunning = true;
+                    setupEvcG2TcpConnection(info);
+                }
+            });
+        }
+    }
 }
 
 void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
@@ -1478,11 +1589,100 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         return;
 }
 
+void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
+{
+    qCDebug(dcSolax()) << "Setup EVC G2 TCP connection.";
+    const auto thing = info->thing();
+    const auto monitor = m_monitors.value(thing);
+    uint port = thing->paramValue(solaxEvcG2ThingPortParamTypeId).toUInt();
+    quint16 modbusId = thing->paramValue(solaxEvcG2ThingModbusIdParamTypeId).toUInt();
+    const auto connection = new SolaxEvcG2ModbusTcpConnection {
+            monitor->networkDeviceInfo().address(),
+            port,
+            modbusId,
+            this };
+    m_evcG2TcpConnections.insert(thing, connection);
+
+    connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
+        // Clean up in case the setup gets aborted.
+        if (m_monitors.contains(thing)) {
+            qCDebug(dcSolax()) << "Unregister monitor because the setup has been aborted.";
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+        }
+    });
+
+    // Reconnect on monitor reachable changed
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
+        qCDebug(dcSolax()) << "Network device monitor reachable changed for" << thing->name()
+                              << reachable;
+        if (reachable && !thing->stateValue(solaxEvcG2ConnectedStateTypeId).toBool()) {
+            connection->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->reconnectDevice();
+        } else {
+            // Note: We disable autoreconnect explicitly and we will
+            // connect the device once the monitor says it is reachable again
+            connection->disconnectDevice();
+        }
+    });
+
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::reachableChanged, thing,
+            [connection, thing](bool reachable) {
+                qCDebug(dcSolax()) << "Reachable state changed to" << reachable;
+                if (reachable) {
+                    // Connected true will be set after successfull init.
+                    connection->initialize();
+                } else {
+                    thing->setStateValue(solaxEvcG2ConnectedStateTypeId, false);
+                    thing->setStateValue(solaxEvcG2CurrentPowerStateTypeId, 0);
+                }
+            });
+
+    // #TODO  Handle typePowerChanged (set maxChargingCurrent max value)
+//    connect(connection, &SolaxEvcModbusTcpConnection::typePowerChanged, thing,
+//            [this, connection, thing](quint16 type) {
+//                qCDebug(dcSolaxEvc()) << "Received info about EV type.";
+//                if (type == 1) {
+//                    thing->setStateMaxValue("maxChargingCurrent", 16);
+//                } else {
+//                    thing->setStateMaxValue("maxChargingCurrent", 32);
+//                }
+//            });
+
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::initializationFinished, thing,
+            [=](bool success) {
+                thing->setStateValue(solaxEvcG2ConnectedStateTypeId, success);
+
+                if (success) {
+                    qCDebug(dcSolax()) << "Solax wallbox initialized.";
+                    thing->setStateValue(solaxEvcG2FirmwareVersionStateTypeId,
+                                         connection->firmwareVersion());
+                    // #TODO set other readSchedule=init values to states
+                } else {
+                    qCDebug(dcSolax()) << "Solax wallbox initialization failed.";
+                    // Try to reconnect to device
+                    connection->reconnectDevice();
+                }
+            });
+
+    // #TODO connects for state value changes
+
+    if (monitor->reachable()) {
+        connection->connectDevice();
+    }
+    info->finish(Thing::ThingErrorNoError);
+    return;
+}
+
 void IntegrationPluginSolax::postSetupThing(Thing *thing)
 {
-    if (thing->thingClassId() == solaxX3InverterTCPThingClassId || thing->thingClassId() == solaxX3InverterRTUThingClassId) {
+    if (thing->thingClassId() == solaxX3InverterTCPThingClassId ||
+            thing->thingClassId() == solaxX3InverterRTUThingClassId ||
+            thing->thingClassId() == solaxEvcG2ThingClassId) {
 
-        bool connectionWasCreated = m_tcpConnections.contains(thing) || m_rtuConnections.contains(thing);
+        bool connectionWasCreated =
+                m_tcpConnections.contains(thing) ||
+                m_rtuConnections.contains(thing) ||
+                m_evcG2TcpConnections.contains(thing);
         if (!connectionWasCreated) {
             qCDebug(dcSolax()) << "Aborting post setup, because setup did not complete.";
             return;
@@ -1504,6 +1704,10 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
                     } else {
                         connection->update();
                     }
+                }
+
+                foreach(SolaxEvcG2ModbusTcpConnection *connection, m_evcG2TcpConnections) {
+                    connection->update();
                 }
             });
 
@@ -1720,6 +1924,12 @@ void IntegrationPluginSolax::thingRemoved(Thing *thing)
 {
     if (m_tcpConnections.contains(thing)) {
         SolaxModbusTcpConnection *connection = m_tcpConnections.take(thing);
+        connection->disconnectDevice();
+        connection->deleteLater();
+    }
+
+    if (m_evcG2TcpConnections.contains(thing)) {
+        SolaxEvcG2ModbusTcpConnection *connection = m_evcG2TcpConnections.take(thing);
         connection->disconnectDevice();
         connection->deleteLater();
     }

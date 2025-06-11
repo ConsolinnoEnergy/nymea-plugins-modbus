@@ -3,7 +3,7 @@
     "protocol": "TCP",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 10,
-    "checkReachableRegister": "chargePhase",
+    "checkReachableRegister": "firmwareVersion",
     "enums": [
         {
             "name": "State",
@@ -33,7 +33,7 @@
                     "value": 5
                 },
                 {
-                    "key": "<Reserved>",
+                    "key": "Reserved",
                     "value": 6
                 },
                 {
@@ -70,23 +70,23 @@
             "name": "TypePower",
             "values": [
                 {
-                    "key": "Power6kW",
+                    "key": "6kW",
                     "value": 0
                 },
                 {
-                    "key": "Power7kW",
+                    "key": "7kW",
                     "value": 1
                 },
                 {
-                    "key": "Power11kW",
+                    "key": "11kW",
                     "value": 2
                 },
                 {
-                    "key": "Power22kW",
+                    "key": "22kW",
                     "value": 3
                 },
                 {
-                    "key": "Power4p6kW",
+                    "key": "4p6kW",
                     "value": 4
                 }
             ]
@@ -108,15 +108,15 @@
             "name": "EvcMode",
             "values": [
                 {
-                    "key": "EvcPVMode",
+                    "key": "PV",
                     "value": 0
                 },
                 {
-                    "key": "EvcStandardMode",
+                    "key": "Standard",
                     "value": 1
                 },
                 {
-                    "key": "EvcOCPPMode",
+                    "key": "OCPP",
                     "value": 2
                 }
             ]
@@ -461,7 +461,7 @@
                     "registerType": "inputRegister",
                     "description": "Wallbox Power Type",
                     "enum": "TypePower",
-                    "defaultValue": "Power6kW",
+                    "defaultValue": "TypePower6kW",
                     "access": "RO"
                 },
                 {
@@ -472,7 +472,7 @@
                     "registerType": "inputRegister",
                     "description": "Wallbox is single or three phase",
                     "enum": "TypePhase",
-                    "defaultValue": "ThreePhase",
+                    "defaultValue": "TypePhaseThreePhase",
                     "access": "RO"
                 },
                 {
@@ -483,18 +483,7 @@
                     "registerType": "inputRegister",
                     "description": "EVC Mode",
                     "enum": "EvcMode",
-                    "defaultValue": "EvcStandardMode",
-                    "access": "RO"
-                },
-                {
-                    "id": "firmwareVersion",
-                    "address": 25,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "readSchedule": "init",
-                    "description": "Firmware version",
-                    "defaultValue": 0,
+                    "defaultValue": "EvcModeStandard",
                     "access": "RO"
                 }
             ]
@@ -531,7 +520,7 @@
                     "registerType": "holdingRegister",
                     "description": "Start Charge Mode",
                     "enum": "StartChargeMode",
-                    "defaultValue": "PlugAndCharge",
+                    "defaultValue": "StartChargeModePlugAndCharge",
                     "access": "RW"
                 }
             ]
@@ -548,7 +537,7 @@
                     "registerType": "holdingRegister",
                     "description": "Boost Mode",
                     "enum": "BoostMode",
-                    "defaultValue": "Normal",
+                    "defaultValue": "BoostModeNormal",
                     "access": "RW"
                 },
                 {
@@ -569,6 +558,17 @@
     ],
     "registers": [
         {
+            "id": "firmwareVersion",
+            "address": 37,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "init",
+            "description": "Firmware version",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
             "id": "chargePhase",
             "address": 40,
             "size": 1,
@@ -577,7 +577,7 @@
             "readSchedule": "update",
             "description": "Charge Phase",
             "enum": "ChargePhase",
-            "defaultValue": "ThreePhase",
+            "defaultValue": "ChargePhaseThreePhase",
             "access": "RO"
         },
         {
@@ -588,7 +588,7 @@
             "registerType": "holdingRegister",
             "description": "EVC Mode (R/W)",
             "enum": "EvcMode",
-            "defaultValue": "EvcStandardMode",
+            "defaultValue": "EvcModeStandard",
             "access": "RW"
         },
         {
@@ -600,7 +600,7 @@
             "readSchedule": "update",
             "description": "Charge Phase (R/W)",
             "enum": "ChargePhase",
-            "defaultValue": "ThreePhase",
+            "defaultValue": "ChargePhaseThreePhase",
             "access": "RW"
         },
         {
@@ -612,7 +612,7 @@
             "readSchedule": "update",
             "description": "Control Command",
             "enum": "ControlCommand",
-            "defaultValue": "Available",
+            "defaultValue": "ControlCommandAvailable",
             "access": "RW"
         },
         {

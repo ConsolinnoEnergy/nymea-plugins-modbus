@@ -16,7 +16,7 @@
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "discoverytcp.h"
+#include "discoverytcpevcg2.h"
 #include "extern-plugininfo.h"
 
 SolaxEvcG2TCPDiscovery::SolaxEvcG2TCPDiscovery(NetworkDeviceDiscovery *networkDeviceDiscovery,
@@ -28,14 +28,14 @@ SolaxEvcG2TCPDiscovery::SolaxEvcG2TCPDiscovery(NetworkDeviceDiscovery *networkDe
 
 void SolaxEvcG2TCPDiscovery::startDiscovery()
 {
-    qCInfo(dcSolaxEvcG2()) << "Discovery: Searching for Solax wallboxes in the network...";
+    qCInfo(dcSolax()) << "Discovery: Searching for Solax 2nd Gen wallboxes in the network...";
     NetworkDeviceDiscoveryReply *discoveryReply = m_networkDeviceDiscovery->discover();
 
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::networkDeviceInfoAdded, this,
             &SolaxEvcG2TCPDiscovery::checkNetworkDevice);
 
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=]() {
-        qCDebug(dcSolaxEvcG2())
+        qCDebug(dcSolax())
                 << "Discovery: Network discovery finished. Found"
                 << discoveryReply->networkDeviceInfos().count()
                 << "network devices";
@@ -43,7 +43,7 @@ void SolaxEvcG2TCPDiscovery::startDiscovery()
         // Give the last connections added right before the network discovery finished a chance to
         // check the device...
         QTimer::singleShot(3000, this, [this]() {
-            qCDebug(dcSolaxEvcG2()) << "Discovery: Grace period timer triggered.";
+            qCDebug(dcSolax()) << "Discovery: Grace period timer triggered.";
             finishDiscovery();
         });
         discoveryReply->deleteLater();
@@ -59,7 +59,7 @@ void SolaxEvcG2TCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &network
 {
     uint port = 502;
     quint16 modbusId = 1;
-    qCDebug(dcSolaxEvcG2())
+    qCDebug(dcSolax())
             << "Checking network device:"
             << networkDeviceInfo
             << "Port:" << port
@@ -81,7 +81,7 @@ void SolaxEvcG2TCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &network
         connect(connection, &SolaxEvcG2ModbusTcpConnection::initializationFinished, this,
                 [=](bool success) {
             if (!success) {
-                qCDebug(dcSolaxEvcG2())
+                qCDebug(dcSolax())
                         << "Discovery: Initialization failed on"
                         << networkDeviceInfo.address().toString();
                 cleanupConnection(connection);
@@ -97,11 +97,11 @@ void SolaxEvcG2TCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &network
                 result.modbusId = modbusId;
                 m_discoveryResults.append(result);
 
-                qCDebug(dcSolaxEvcG2())
+                qCDebug(dcSolax())
                         << "Discovery: --> Found Version:" << result.firmwareVersion
                         << result.networkDeviceInfo;
             } else {
-                qCDebug(dcSolaxEvcG2()) << "Firmware version too low!";
+                qCDebug(dcSolax()) << "Firmware version too low!";
             }
 
             // Done with this connection
@@ -109,7 +109,7 @@ void SolaxEvcG2TCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &network
         });
 
         if (!connection->initialize()) {
-            qCDebug(dcSolaxEvcG2())
+            qCDebug(dcSolax())
                     << "Discovery: Unable to initialize connection on"
                     << networkDeviceInfo.address().toString();
             cleanupConnection(connection);
@@ -118,7 +118,7 @@ void SolaxEvcG2TCPDiscovery::checkNetworkDevice(const NetworkDeviceInfo &network
 
     // If check reachability failed...skip this host...
     connect(connection, &SolaxEvcG2ModbusTcpConnection::checkReachabilityFailed, this, [=]() {
-        qCDebug(dcSolaxEvcG2())
+        qCDebug(dcSolax())
                 << "Discovery: Checking reachability failed on"
                 << networkDeviceInfo.address().toString();
         cleanupConnection(connection);
@@ -141,9 +141,9 @@ void SolaxEvcG2TCPDiscovery::finishDiscovery()
     foreach (SolaxEvcG2ModbusTcpConnection *connection, m_connections) {
         cleanupConnection(connection);
     }
-    qCInfo(dcSolaxEvcG2())
+    qCInfo(dcSolax())
             << "Discovery: Finished the discovery process. Found"
             << m_discoveryResults.count()
-            << "Solax wallboxes";
+            << "Solax 2nd Gen wallboxes";
     emit discoveryFinished();
 }
