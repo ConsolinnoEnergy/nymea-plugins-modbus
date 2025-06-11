@@ -16,8 +16,8 @@
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef DISCOVERYTCP_H
-#define DISCOVERYTCP_H
+#ifndef DISCOVERYTCPEVCG2_H
+#define DISCOVERYTCPEVCG2_H
 
 #include <QObject>
 #include <QTimer>
@@ -58,4 +58,4 @@ private:
     void finishDiscovery();
 };
 
-#endif // DISCOVERYTCP_H
+#endif // DISCOVERYTCPEVCG2_H

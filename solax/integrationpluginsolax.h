@@ -26,6 +26,7 @@
 #include "extern-plugininfo.h"
 #include "solaxmodbusrtuconnection.h"
 #include "solaxmodbustcpconnection.h"
+#include "solaxevcg2modbustcpconnection.h"
 
 #include <QObject>
 #include <QHostAddress>
@@ -71,6 +72,7 @@ private:
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, SolaxModbusTcpConnection *> m_tcpConnections;
     QHash<Thing *, SolaxModbusRtuConnection *> m_rtuConnections;
+    QHash<Thing *, SolaxEvcG2ModbusTcpConnection *> m_evcG2TcpConnections;
     
     QTimer *m_batteryPowerTimer = nullptr;
 
@@ -79,6 +81,7 @@ private:
     void setBmsWarningMessage(Thing *thing);
 
     void setupTcpConnection(ThingSetupInfo *info);
+    void setupEvcG2TcpConnection(ThingSetupInfo *info);
     
     void writePasswordToInverter(Thing *thing);
     void disableRemoteControl(Thing *thing);
