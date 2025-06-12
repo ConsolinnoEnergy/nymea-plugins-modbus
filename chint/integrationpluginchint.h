@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
+* Copyright 2025, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,62 +28,37 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINALPHAINNOTEC_H
-#define INTEGRATIONPLUGINALPHAINNOTEC_H
+#ifndef INTEGRATIONPLUGINCHINT_H
+#define INTEGRATIONPLUGINCHINT_H
 
-#include <plugintimer.h>
 #include <integrations/integrationplugin.h>
-#include <network/networkdevicemonitor.h>
+#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <plugintimer.h>
 
-#include "alphainnotecmodbustcpconnection.h"
-#include "aitshimodbustcpconnection.h"
+#include "dtsu666modbusrtuconnection.h"
 
-class IntegrationPluginAlphaInnotec: public IntegrationPlugin
+#include "extern-plugininfo.h"
+
+#include <QObject>
+
+class IntegrationPluginChint: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginalphainnotec.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginchint.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit IntegrationPluginAlphaInnotec();
-
+    explicit IntegrationPluginChint();
+    void init() override;
     void discoverThings(ThingDiscoveryInfo *info) override;
-    void startMonitoringAutoThings() override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
 
 private:
-    PluginTimer *m_pluginTimer = nullptr;
-
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, AlphaInnotecModbusTcpConnection *> m_connections;
-    QHash<Thing *, aitShiModbusTcpConnection *> m_aitShiConnections;
-
-    quint16 m_platformVersion = 0;
-    quint16 m_majorVersion = 0;
-    quint16 m_minorVersion = 0;
-    
-    enum Mode {
-        NOLIMIT = 0,
-        SOFTLIMIT = 1,
-        UNDEFINED = 3
-    };
-
-    enum Mode m_currentControlMode = Mode::NOLIMIT;
-    bool m_resetMode = false;
-
-    void updateFirmwareVersion(Thing *thing, quint16 version, QString place);
-
-    void writeHotWaterOffsetTemp(Thing *thing);
-    void writeHeatingOffsetTemp(Thing *thing);
-
-    qint64 m_hysteresisTimer = 0;
-    bool m_turnOffHysteresis = false;
+    PluginTimer *m_refreshTimer = nullptr;
+    QHash<Thing *, DTSU666ModbusRtuConnection *> m_dtsu666Connections;
 };
 
-#endif // INTEGRATIONPLUGINALPHAINNOTEC_H
-
-
+#endif // INTEGRATIONPLUGINCHINT_H

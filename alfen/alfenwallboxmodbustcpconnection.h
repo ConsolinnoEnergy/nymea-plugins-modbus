@@ -466,7 +466,7 @@ protected:
     float m_currerealEnergyDeliveredL1 = 0;
     float m_realEnergyDeliveredPhaseL2 = 0;
     float m_realEnergyDeliveredPhaseL3 = 0;
-    float m_realEnergyDeliveredSum = 0;
+    double m_realEnergyDeliveredSum = 0;
     float m_currerealEnergyConsumedL1 = 0;
     float m_realEnergyConsumedPhaseL2 = 0;
     float m_realEnergyConsumedPhaseL3 = 0;
