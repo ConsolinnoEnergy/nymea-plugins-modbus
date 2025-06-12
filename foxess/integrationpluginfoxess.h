@@ -22,9 +22,14 @@
 #include <integrations/integrationplugin.h>
 #include <hardware/modbus/modbusrtuhardwareresource.h>
 #include <plugintimer.h>
+#include <network/networkdevicemonitor.h>
+
+#include "network/zeroconf/zeroconfservicebrowser.h"
+#include "network/zeroconf/zeroconfserviceentry.h"
 
 #include "extern-plugininfo.h"
 #include "rseriesmodbusrtuconnection.h"
+#include "foxessmodbustcpconnection.h"
 
 #include <QObject>
 #include <QTimer>
@@ -48,9 +53,20 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
 
+    // R-Series Inverter
     QHash<Thing *, RSeriesModbusRtuConnection*> m_rtuConnections;
-
     void setOperatingState(Thing *thing, RSeriesModbusRtuConnection::OperatingState state);
+
+    // A-Series Wallbox
+    QTimer *m_chargeLimitTimer = nullptr;
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
+    ZeroConfServiceBrowser *m_serviceBrowser = nullptr;
+    QHash<Thing *, FoxESSModbusTcpConnection *> m_tcpConnections;
+    bool m_setupTcpConnectionRunning = false;
+
+    void setupTcpConnection(ThingSetupInfo *info);
+    void toggleCharging(FoxESSModbusTcpConnection *connection, bool power);
+    void setMaxCurrent(FoxESSModbusTcpConnection *connection, float maxCurrent, int phaseCount);
 };
 
 #endif // INTEGRATIONPLUGINFOXESS_H

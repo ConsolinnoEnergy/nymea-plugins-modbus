@@ -1,10 +1,12 @@
 {
-    "title": "FoxESS Inverter",
-    "tagline": "Connect to FoxESS inverters.",
+    "title": "FoxESS",
+    "tagline": "Connect to FoxESS devices.",
+    "icon": "foxess.png",
     "stability": "consumer",
     "offline": true,
     "technologies": [
-        "network"
+        "network",
+        "modbus"
     ],
     "categories": [
         "energy"
