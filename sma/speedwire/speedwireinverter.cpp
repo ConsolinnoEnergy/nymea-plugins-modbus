@@ -1249,13 +1249,13 @@ void SpeedwireInverter::processData(const QHostAddress &senderAddress, quint16 s
         }
     } else {
         if (m_currentReply) {
-            qCWarning(dcSma()) << "Inverter: Received unexpected data: waiting for" << static_cast<Speedwire::Command>(m_currentReply->request().command()) << "Packet ID:" << m_currentReply->request().packetId();
+            qCDebug(dcSma()) << "Inverter: Received unexpected data: waiting for" << static_cast<Speedwire::Command>(m_currentReply->request().command()) << "Packet ID:" << m_currentReply->request().packetId();
         } else {
-            qCWarning(dcSma()) << "Inverter: Received unexpected data: not waiting for any response.";
+            qCDebug(dcSma()) << "Inverter: Received unexpected data: not waiting for any response.";
         }
-        qCWarning(dcSma()) << "Inverter:" << header;
-        qCWarning(dcSma()) << "Inverter:" << packet;
-        qCWarning(dcSma()) << "Inverter:" << data.toHex();
+        qCDebug(dcSma()) << "Inverter:" << header;
+        qCDebug(dcSma()) << "Inverter:" << packet;
+        qCDebug(dcSma()) << "Inverter:" << data.toHex();
     }
 }
 
