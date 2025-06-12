@@ -5,6 +5,7 @@ nymea-plugins-modbus (1.7.017) jammy; urgency=medium
   * Growatt: support for LPP changed: limit power input (W) instead of rate (%)
   * Sofarsolar HYD / Azzurro hybrid inverters: LPP added
   * Fix Alfen wrong energy value ESEMS-1800
+  * Lambda: accuracy improvements and warning suppression
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 28 May 2025 08:49:00 +0200
 
