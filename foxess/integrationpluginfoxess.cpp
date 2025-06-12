@@ -132,7 +132,15 @@ void IntegrationPluginFoxESS::setupThing(ThingSetupInfo *info)
         connect(connection, &RSeriesModbusRtuConnection::initializationFinished, info, [info, thing, connection](bool success) {
             qCWarning(dcFoxess()) << "Setup: Initialization finished";
             if (success) {
-                thing->setName("FoxESS " + connection->deviceModel());
+                QString deviceModel = connection->deviceModel();
+                thing->setName("FoxESS " + deviceModel);
+                if (deviceModel == "R75") {
+                    thing->setStateMaxValue("productionLimit", 75000);
+                } else if (deviceModel == "R100") {
+                    thing->setStateMaxValue("productionLimit", 100000);
+                } else if (deviceModel == "R110") {
+                    thing->setStateMaxValue("productionLimit", 110000);
+                }
                 info->finish(Thing::ThingErrorNoError);
             } else {
                 info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("The inverter is not responding."));
