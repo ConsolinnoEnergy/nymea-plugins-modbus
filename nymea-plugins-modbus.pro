@@ -15,6 +15,7 @@ PLUGIN_DIRS = \
     amperfied               \
     bgetech                 \
     broetje                 \
+    chint                   \
     kostalmeter             \
     drexelundweiss          \
     foxesswbv3              \

@@ -471,7 +471,7 @@ void LambdaModbusTcpConnection::update4()
                     qCDebug(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading boiler temp" << hostAddress().toString() << exceptionToString(response.exceptionCode());
                 }
             }
-            qCWarning(dcLambdaModbusTcpConnection()) << "Error during read boiler temp: Still continuing";
+            qCDebug(dcLambdaModbusTcpConnection()) << "Error during read boiler temp: Still continuing";
             //verifyUpdateFinished();
             update5();
             return;
@@ -484,7 +484,7 @@ void LambdaModbusTcpConnection::update4()
     });
 
     connect(reply, &QModbusReply::errorOccurred, this, [this, reply] (QModbusDevice::Error error){
-        qCWarning(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading \"Actual temperature boiler high sensor\" registers from" << hostAddress().toString() << error << reply->errorString();
+        qCDebug(dcLambdaModbusTcpConnection()) << "Modbus reply error occurred while reading \"Actual temperature boiler high sensor\" registers from" << hostAddress().toString() << error << reply->errorString();
     });
 }
 

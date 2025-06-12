@@ -4,3 +4,4 @@ solaxevc
 dvmodbusir
 technivolt
 janitza
+chint

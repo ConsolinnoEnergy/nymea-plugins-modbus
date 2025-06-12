@@ -1,20 +1,20 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-*
-* Copyright 2022 - 2023, Consolinno Energy GmbH
-* Contact: info@consolinno.de
-*
-* GNU Lesser General Public License Usage
-* Alternatively, this project may be redistributed and/or modified under the
-* terms of the GNU Lesser General Public License as published by the Free
-* Software Foundation; version 3. This project is distributed in the hope that
-* it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with this project. If not, see <https://www.gnu.org/licenses/>.
-*
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ *
+ * Copyright 2022 - 2023, Consolinno Energy GmbH
+ * Contact: info@consolinno.de
+ *
+ * GNU Lesser General Public License Usage
+ * Alternatively, this project may be redistributed and/or modified under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; version 3. This project is distributed in the hope that
+ * it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this project. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef INTEGRATIONPLUGINAZZURRO_H
 #define INTEGRATIONPLUGINAZZURRO_H
@@ -25,11 +25,12 @@
 
 #include "extern-plugininfo.h"
 #include "azzurromodbusrtuconnection.h"
+#include "powercontrolazzurro.h"
 
 #include <QObject>
 #include <QTimer>
 
-class IntegrationPluginAzzurro: public IntegrationPlugin
+class IntegrationPluginAzzurro : public IntegrationPlugin
 {
     Q_OBJECT
 
@@ -42,20 +43,27 @@ public:
     void discoverThings(ThingDiscoveryInfo *info) override;
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
+    void executeAction(ThingActionInfo *info) override;
     void thingRemoved(Thing *thing) override;
 
 private:
-    bool isOutlier(const QList<float>& list);
+    bool isOutlier(const QList<float> &list);
     PluginTimer *m_pluginTimer = nullptr;
     int m_windowLength{7};
+    PowerControlAzzurro *m_powerControl;
+
+    void executeExportLimitAction(ThingActionInfo *info, bool &retFlag);
+    bool executePowerControl(AzzurroModbusRtuConnection *azzurromodbusrtuconnection);
+    bool handleReply(ModbusRtuReply *reply);
 
     QHash<Thing *, QList<float>> m_pvEnergyProducedValues;
     QHash<Thing *, QList<float>> m_energyConsumedValues;
     QHash<Thing *, QList<float>> m_energyProducedValues;
 
-    struct PvPower {
-        quint16 power1 {0};
-        quint16 power2 {0};
+    struct PvPower
+    {
+        quint16 power1{0};
+        quint16 power2{0};
     };
 
     QHash<Thing *, AzzurroModbusRtuConnection *> m_rtuConnections;
@@ -65,4 +73,3 @@ private:
 };
 
 #endif // INTEGRATIONPLUGINAZZURRO_H
-
