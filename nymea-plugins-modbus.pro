@@ -17,7 +17,6 @@ PLUGIN_DIRS = \
     broetje                 \
     kostalmeter             \
     drexelundweiss          \
-    foxesswbv3              \
     foxess                  \
     goodwe                  \
     growatt                 \
