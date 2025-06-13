@@ -57,10 +57,20 @@ public:
     void thingRemoved(Thing *thing) override;
 
 private:
+    struct DTSU666Data {
+        bool hasCTClamps = false;
+        float voltageTransformerRate = 1.f;
+        float currentTransformerRate = 1.f;
+
+        float getEffectiveVoltageTransformerRate() const;
+        float getEffectiveCurrentTransformerRate() const;
+    };
+
     void setStateValues(Thing *thing);
 
     PluginTimer *m_refreshTimer = nullptr;
     QHash<Thing *, DTSU666ModbusRtuConnection *> m_dtsu666Connections;
+    QHash<Thing *, DTSU666Data> m_dtsu666Data;
 };
 
 #endif // INTEGRATIONPLUGINCHINT_H
