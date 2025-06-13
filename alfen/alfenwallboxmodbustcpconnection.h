@@ -45,7 +45,7 @@
 #include <modbusdatautils.h>
 #include <modbustcpmaster.h>
 
-class AlfenWallboxModbusTcpConnection : public ModbusTCPMaster
+class AlfenWallboxModbusTcpConnection : public ModbusTcpMaster
 {
     Q_OBJECT
 public:

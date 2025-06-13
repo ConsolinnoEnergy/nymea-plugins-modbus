@@ -172,7 +172,7 @@ void IntegrationPluginABB::postSetupThing(Thing *thing)
                 connection->update();
             }
             foreach(ABBModbusTcpConnection *connection, m_tcpConnections) {
-                qCDebug(dcAbb()) << "Updating connection" << connection->hostAddress();
+                qCDebug(dcAbb()) << "Updating connection" << connection->modbusTcpMaster()->hostAddress();
                 connection->update();
             }
         });

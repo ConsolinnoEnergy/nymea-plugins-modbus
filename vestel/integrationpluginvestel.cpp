@@ -134,7 +134,7 @@ void IntegrationPluginVestel::postSetupThing(Thing *thing)
         m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
-                qCDebug(dcVestel()) << "Updating connection" << connection->hostAddress().toString();
+                qCDebug(dcVestel()) << "Updating connection" << connection->modbusTcpMaster()->hostAddress().toString();
                 connection->update();
                 connection->setAliveRegister(1);
             }
@@ -225,7 +225,7 @@ void IntegrationPluginVestel::setupEVC04Connection(ThingSetupInfo *info)
             return;
 
         if (reachable && !thing->stateValue("connected").toBool()) {
-            evc04Connection->setHostAddress(monitor->networkDeviceInfo().address());
+            evc04Connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
             evc04Connection->connectDevice();
         } else if (!reachable) {
             // Note: We disable autoreconnect explicitly and we will
@@ -261,7 +261,7 @@ void IntegrationPluginVestel::setupEVC04Connection(ThingSetupInfo *info)
 
     connect(evc04Connection, &EVC04ModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcVestel()) << "Connection init finished with errors" << thing->name() << evc04Connection->hostAddress().toString();
+            qCWarning(dcVestel()) << "Connection init finished with errors" << thing->name() << evc04Connection->modbusTcpMaster()->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             evc04Connection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Error communicating with the wallbox."));
@@ -281,7 +281,7 @@ void IntegrationPluginVestel::setupEVC04Connection(ThingSetupInfo *info)
     });
 
     connect(evc04Connection, &EVC04ModbusTcpConnection::updateFinished, thing, [this, evc04Connection, thing](){
-        if (!evc04Connection->connected()) {
+        if (!evc04Connection->modbusTcpMaster()->connected()) {
             qCDebug(dcVestel()) << "Skipping EVC04 updateFinished, device is not connected.";
             return;
         }

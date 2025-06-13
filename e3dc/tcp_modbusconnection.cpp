@@ -36,7 +36,7 @@
 NYMEA_LOGGING_CATEGORY(dcTCP_ModbusConnection, "TCP_ModbusConnection")
 
 TCP_ModbusConnection::TCP_ModbusConnection(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent) :
-    ModbusTCPMaster(hostAddress, port, parent),
+    ModbusTcpMaster(hostAddress, port, parent),
     m_slaveId(slaveId)
 {
     

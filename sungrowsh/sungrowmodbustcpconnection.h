@@ -45,7 +45,7 @@
 #include <modbusdatautils.h>
 #include <modbustcpmaster.h>
 
-class SungrowModbusTcpConnection : public ModbusTCPMaster
+class SungrowModbusTcpConnection : public ModbusTcpMaster
 {
     Q_OBJECT
 public:

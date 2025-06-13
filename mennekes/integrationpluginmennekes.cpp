@@ -236,11 +236,11 @@ void IntegrationPluginMennekes::postSetupThing(Thing *thing)
         m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             foreach(AmtronECUModbusTcpConnection *connection, m_amtronECUConnections) {
-                qCDebug(dcMennekes()) << "Updating connection" << connection->hostAddress().toString();
+                qCDebug(dcMennekes()) << "Updating connection" << connection->modbusTcpMaster()->hostAddress().toString();
                 connection->update();
             }
             foreach(AmtronHCC3ModbusTcpConnection *connection, m_amtronHCC3Connections) {
-                qCDebug(dcMennekes()) << "Updating connection" << connection->hostAddress().toString();
+                qCDebug(dcMennekes()) << "Updating connection" << connection->modbusTcpMaster()->hostAddress().toString();
                 connection->update();
             }
         });
@@ -347,7 +347,7 @@ void IntegrationPluginMennekes::setupAmtronECUConnection(ThingSetupInfo *info)
 
     qCDebug(dcMennekes()) << "Setting up amtron wallbox on" << address.toString();
     AmtronECUModbusTcpConnection *amtronECUConnection = new AmtronECUModbusTcpConnection(address, 502, 0xff, this);
-    connect(info, &ThingSetupInfo::aborted, amtronECUConnection, &ModbusTCPMaster::deleteLater);
+    connect(info, &ThingSetupInfo::aborted, amtronECUConnection, &AmtronHCC3ModbusTcpConnection::deleteLater);
 
     // Reconnect on monitor reachable changed
     NetworkDeviceMonitor *monitor = m_monitors.value(thing);
@@ -357,7 +357,7 @@ void IntegrationPluginMennekes::setupAmtronECUConnection(ThingSetupInfo *info)
             return;
 
         if (reachable && !thing->stateValue("connected").toBool()) {
-            amtronECUConnection->setHostAddress(monitor->networkDeviceInfo().address());
+            amtronECUConnection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
             amtronECUConnection->connectDevice();
         } else if (!reachable) {
             // Note: We disable autoreconnect explicitly and we will
@@ -391,7 +391,7 @@ void IntegrationPluginMennekes::setupAmtronECUConnection(ThingSetupInfo *info)
 
     connect(amtronECUConnection, &AmtronECUModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcMennekes()) << "Connection init finished with errors" << thing->name() << amtronECUConnection->hostAddress().toString();
+            qCWarning(dcMennekes()) << "Connection init finished with errors" << thing->name() << amtronECUConnection->modbusTcpMaster()->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             amtronECUConnection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Error communicating with the wallbox."));
@@ -480,7 +480,7 @@ void IntegrationPluginMennekes::setupAmtronHCC3Connection(ThingSetupInfo *info)
 
     qCDebug(dcMennekes()) << "Setting up amtron wallbox on" << address.toString();
     AmtronHCC3ModbusTcpConnection *amtronHCC3Connection = new AmtronHCC3ModbusTcpConnection(address, 502, 0xff, this);
-    connect(info, &ThingSetupInfo::aborted, amtronHCC3Connection, &ModbusTCPMaster::deleteLater);
+    connect(info, &ThingSetupInfo::aborted, amtronHCC3Connection, &AmtronHCC3ModbusTcpConnection::deleteLater);
 
     // Reconnect on monitor reachable changed
     NetworkDeviceMonitor *monitor = m_monitors.value(thing);
@@ -490,7 +490,7 @@ void IntegrationPluginMennekes::setupAmtronHCC3Connection(ThingSetupInfo *info)
             return;
 
         if (reachable && !thing->stateValue("connected").toBool()) {
-            amtronHCC3Connection->setHostAddress(monitor->networkDeviceInfo().address());
+            amtronHCC3Connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
             amtronHCC3Connection->connectDevice();
         } else if (!reachable) {
             // Note: We disable autoreconnect explicitly and we will
@@ -523,7 +523,7 @@ void IntegrationPluginMennekes::setupAmtronHCC3Connection(ThingSetupInfo *info)
 
     connect(amtronHCC3Connection, &AmtronHCC3ModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcMennekes()) << "Connection init finished with errors" << thing->name() << amtronHCC3Connection->hostAddress().toString();
+            qCWarning(dcMennekes()) << "Connection init finished with errors" << thing->name() << amtronHCC3Connection->modbusTcpMaster()->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             amtronHCC3Connection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Error communicating with the wallbox."));

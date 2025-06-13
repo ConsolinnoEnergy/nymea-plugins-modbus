@@ -22,7 +22,7 @@ TechnivoltWallbox::TechnivoltWallbox(TechnivoltModbusTcpConnection *modbusTcpCon
 
 TechnivoltWallbox::~TechnivoltWallbox()
 {
-    qCDebug(dcTechnivoltWallbox()) << "Deleting TechnivoltWallbox object for device with address" << m_modbusTcpConnection->hostAddress();
+    qCDebug(dcTechnivoltWallbox()) << "Deleting TechnivoltWallbox object for device with address" << m_modbusTcpConnection->modbusTcpMaster()->hostAddress();
     delete m_modbusTcpConnection;
 }
 
@@ -34,7 +34,7 @@ TechnivoltModbusTcpConnection *TechnivoltWallbox::modbusTcpConnection()
 
 void TechnivoltWallbox::update()
 {
-    if (!m_modbusTcpConnection->connected()) {
+    if (!m_modbusTcpConnection->modbusTcpMaster()->connected()) {
         return;
     }
 
@@ -92,7 +92,7 @@ void TechnivoltWallbox::update()
 
 bool TechnivoltWallbox::enableOutput(bool state)
 {
-    if (!m_modbusTcpConnection->connected()) {
+    if (!m_modbusTcpConnection->modbusTcpMaster()->connected()) {
         qCDebug(dcTechnivoltWallbox()) << "Can't set charging on/off, device is not connected.";
         return false;
     }
@@ -109,7 +109,7 @@ bool TechnivoltWallbox::enableOutput(bool state)
 
 bool TechnivoltWallbox::setMaxAmpere(int ampereValue)
 {
-    if (!m_modbusTcpConnection->connected()) {
+    if (!m_modbusTcpConnection->modbusTcpMaster()->connected()) {
         qCDebug(dcTechnivoltWallbox()) << "Can't set current limit, device is not connected.";
         return false;
     }

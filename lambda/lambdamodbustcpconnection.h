@@ -45,7 +45,7 @@
 #include <modbusdatautils.h>
 #include <modbustcpmaster.h>
 
-class LambdaModbusTcpConnection : public ModbusTCPMaster
+class LambdaModbusTcpConnection : public ModbusTcpMaster
 {
     Q_OBJECT
 public:

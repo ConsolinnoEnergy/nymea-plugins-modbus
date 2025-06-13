@@ -118,14 +118,14 @@ void SungrowDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
     });
 
     // In case of an error skip the host
-    connect(connection, &ModbusTCPMaster::connectionStateChanged, this, [=](bool connected){
+    connect(connection, &ModbusTcpMaster::connectionStateChanged, this, [=](bool connected){
         if (connected) {
             qCDebug(dcSungrow()) << "Discovery: Connected with" << networkDeviceInfo.address().toString() << m_port;
         }
     });
 
     // In case of an error skip the host
-    connect(connection, &ModbusTCPMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
+    connect(connection, &ModbusTcpMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
         if (error != QModbusDevice::NoError) {
             qCDebug(dcSungrow()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";
             cleanupConnection(connection);

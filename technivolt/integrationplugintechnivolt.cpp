@@ -269,7 +269,7 @@ void IntegrationPluginTechnivolt::executeAction(ThingActionInfo *info)
         return;
     }
 
-    if (!connection->connected()) {
+    if (!connection->modbusTcpMaster()->connected()) {
         qCWarning(dcTechnivoltWallbox()) << "Could not execute action. The modbus connection is currently not available.";
         info->finish(Thing::ThingErrorHardwareNotAvailable);
         return;

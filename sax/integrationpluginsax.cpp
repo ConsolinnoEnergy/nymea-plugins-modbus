@@ -145,7 +145,7 @@ void IntegrationPluginSax::postSetupThing(Thing *thing)
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(SaxModbusTcpConnection *connection, m_tcpConnections) {
-                    qCDebug(dcSax()) << "Updating connection" << connection->hostAddress();
+                    qCDebug(dcSax()) << "Updating connection" << connection->modbusTcpMaster()->hostAddress();
                     connection->update();
                 }
             });
@@ -216,7 +216,7 @@ void IntegrationPluginSax::setupTcpConnection(ThingSetupInfo *info)
                 // connectedState switches to false when modbus calls don't work (connection->reachable == false).
                 if (monitorReachable) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
-                    m_tcpConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_tcpConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_tcpConnections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
@@ -246,7 +246,7 @@ void IntegrationPluginSax::setupTcpConnection(ThingSetupInfo *info)
 
 
             if (monitor->reachable()) {
-                connection->setHostAddress(monitor->networkDeviceInfo().address());
+                connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                 connection->reconnectDevice();
             }
         }

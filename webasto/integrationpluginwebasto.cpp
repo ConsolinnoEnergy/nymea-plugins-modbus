@@ -143,7 +143,7 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
         m_uniteDiscoveryRunning = true;
         foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
             // Reconfigure won't work without this. The device will not answer modbus calls (discovery will skip it) if there already is another active connection.
-            qCWarning(dcWebasto()) << "Disconnecting existing device" << connection->hostAddress().toString()
+            qCWarning(dcWebasto()) << "Disconnecting existing device" << connection->modbusTcpMaster()->hostAddress().toString()
                                    << "temporarily to not interfere with discovery. Nothing to worry about, the device will reconnect after discovery is done.";
             connection->disconnectDevice();
         }
@@ -190,7 +190,7 @@ void IntegrationPluginWebasto::discoverThings(ThingDiscoveryInfo *info)
             info->finish(Thing::ThingErrorNoError);
             m_uniteDiscoveryRunning = false;
             foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
-                qCDebug(dcWebasto()) << "Discovery is done, reconnecting existing device" << connection->hostAddress().toString();
+                qCDebug(dcWebasto()) << "Discovery is done, reconnecting existing device" << connection->modbusTcpMaster()->hostAddress().toString();
                 connection->reconnectDevice();
 
                 // Warning: This code needs to execute, otherwise the plugin is effectively disabled.
@@ -340,7 +340,7 @@ void IntegrationPluginWebasto::postSetupThing(Thing *thing)
             if (!m_uniteDiscoveryRunning) {
                 foreach(EVC04ModbusTcpConnection *connection, m_evc04Connections) {
                     if (connection->reachable()) {
-                        qCDebug(dcWebasto()) << "Updating connection" << connection->hostAddress().toString();
+                        qCDebug(dcWebasto()) << "Updating connection" << connection->modbusTcpMaster()->hostAddress().toString();
                         connection->update();
                         QModbusReply *reply = connection->setAliveRegister(1);
                         connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
@@ -1018,7 +1018,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
                 if (monitorReachable) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
                     qCDebug(dcWebasto()) << "Connection is not working. Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_evc04Connections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
@@ -1048,7 +1048,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
                 // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
                 if (m_evc04Connections.contains(thing)) {
                     qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_evc04Connections.value(thing)->reconnectDevice();
                 }
             } else {
@@ -1079,7 +1079,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
                 if (monitor->reachable()) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
                     qCDebug(dcWebasto()) << "Connection is not working. Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_evc04Connections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
@@ -1106,7 +1106,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
                 // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
                 if (m_evc04Connections.contains(thing)) {
                     qCDebug(dcWebasto()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_evc04Connections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_evc04Connections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_evc04Connections.value(thing)->reconnectDevice();
                 }
             }
@@ -1115,7 +1115,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
 
     connect(evc04Connection, &EVC04ModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcWebasto()) << "Connection init finished with errors" << thing->name() << evc04Connection->hostAddress().toString();
+            qCWarning(dcWebasto()) << "Connection init finished with errors" << thing->name() << evc04Connection->modbusTcpMaster()->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             evc04Connection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Error communicating with the wallbox."));
@@ -1135,7 +1135,7 @@ void IntegrationPluginWebasto::setupEVC04Connection(ThingSetupInfo *info)
     });
 
     connect(evc04Connection, &EVC04ModbusTcpConnection::updateFinished, thing, [this, evc04Connection, thing](){
-        if (!evc04Connection->connected()) {
+        if (!evc04Connection->modbusTcpMaster()->connected()) {
             qCDebug(dcWebasto()) << "Skipping EVC04 updateFinished, device is not connected.";
             return;
         }

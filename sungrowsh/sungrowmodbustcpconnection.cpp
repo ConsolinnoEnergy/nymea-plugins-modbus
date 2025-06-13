@@ -46,10 +46,10 @@
 NYMEA_LOGGING_CATEGORY(dcSungrowModbusTcpConnection, "SungrowModbusTcpConnection")
 
 SungrowModbusTcpConnection::SungrowModbusTcpConnection(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent) :
-    ModbusTCPMaster(hostAddress, port, parent),
+    ModbusTcpMaster(hostAddress, port, parent),
     m_slaveId(slaveId)
 {
-    connect(this, &ModbusTCPMaster::connectionStateChanged, this, [this](bool status){
+    connect(this, &ModbusTcpMaster::connectionStateChanged, this, [this](bool status){
         if (status) {
            qCDebug(dcSungrowModbusTcpConnection()) << "Modbus TCP connection" << m_hostAddress.toString() << "connected. Start testing if the connection is reachable...";
             // Cleanup before starting to initialize
