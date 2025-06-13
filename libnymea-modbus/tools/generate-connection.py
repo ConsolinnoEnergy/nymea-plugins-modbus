@@ -1,20 +1,30 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2021 - 2022 nymea GmbH <developer@nymea.io>
+# Copyright 2021 - 2024, nymea GmbH
+# Contact: contact@nymea.io
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This file is part of nymea.
+# This project including source code and documentation is protected by
+# copyright law, and remains the property of nymea GmbH. All rights, including
+# reproduction, publication, editing and translation, are reserved. The use of
+# this project is subject to the terms of a license agreement to be concluded
+# with nymea GmbH in accordance with the terms of use of nymea GmbH, available
+# under https://nymea.io/license
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU General Public License Usage
+# Alternatively, this project may be redistributed and/or modified under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, GNU version 3. This project is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+# Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# You should have received a copy of the GNU General Public License along with
+# this project. If not, see <https://www.gnu.org/licenses/>.
+#
+# For any further details and any questions please contact us under
+# contact@nymea.io or see our FAQ/Licensing Information on
+# https://nymea.io/license/faq
 
 # To lazy to type all those register plugins, let's make live much easier and generate code from a json register definition 
 
@@ -44,10 +54,11 @@ def writeTcpHeaderFile():
     writeLine(headerFile)
     writeLine(headerFile, '#include <modbusdatautils.h>')
     writeLine(headerFile, '#include <modbustcpmaster.h>')
+    writeLine(headerFile, '#include <modbustcpconnection.h>')
     writeLine(headerFile)
 
     # Begin of class
-    writeLine(headerFile, 'class %s : public ModbusTCPMaster' % className)
+    writeLine(headerFile, 'class %s : public ModbusTcpConnection' % className)
     writeLine(headerFile, '{')
     writeLine(headerFile, '    Q_OBJECT')
 
@@ -62,14 +73,32 @@ def writeTcpHeaderFile():
         for enumDefinition in registerJson['enums']:
             writeEnumDefinition(headerFile, enumDefinition)
 
+    if queuedRequests:
+        writeLine(headerFile, '    typedef void(%s::*Function)(void);' % className)
+        writeLine(headerFile)
+
     # Constructor
     writeLine(headerFile, '    explicit %s(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent = nullptr);' % className)
-    writeLine(headerFile, '    ~%s() = default;' % className)
+    writeLine(headerFile, '    explicit %s(ModbusTcpMaster *modbusTcpMaster, quint16 slaveId, QObject *parent = nullptr);' % className)
+    writeLine(headerFile, '    ~%s() override = default;' % className)
     writeLine(headerFile)
-    writeLine(headerFile, '    bool reachable() const;')
+    writeLine(headerFile, '    ModbusTcpMaster *modbusTcpMaster() const override; ')
+    writeLine(headerFile, '    quint16 slaveId() const;')
     writeLine(headerFile)
+    writeLine(headerFile, '    bool reachable() const override;')
+    writeLine(headerFile, '    bool initializing() const override;')
+    writeLine(headerFile)
+    
+    # Write init and update method declarations
+    writeLine(headerFile, '    virtual bool initialize() override;')
+    writeLine(headerFile, '    virtual bool update() override;')
+    writeLine(headerFile)
+
     writeLine(headerFile, '    ModbusDataUtils::ByteOrder endianness() const;')
     writeLine(headerFile, '    void setEndianness(ModbusDataUtils::ByteOrder endianness);')
+    writeLine(headerFile)
+    writeLine(headerFile, '    ModbusDataUtils::ByteOrder stringEndianness() const;')
+    writeLine(headerFile, '    void setStringEndianness(ModbusDataUtils::ByteOrder stringEndianness);')
     writeLine(headerFile)
     writeLine(headerFile, '    uint checkReachableRetries() const;')
     writeLine(headerFile, '    void setCheckReachableRetries(uint checkReachableRetries);')
@@ -84,11 +113,27 @@ def writeTcpHeaderFile():
         # Write block get/set method declarations
         writeBlocksUpdateMethodDeclarations(headerFile, registerJson['blocks'])
 
+    # Write registers get/set data unit declarations
+    writePropertyGetSetDataUnitDeclarationsTcp(headerFile, registerJson['registers'])
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyGetSetDataUnitDeclarationsTcp(headerFile, blockDefinition['registers'])
+
+    if 'blocks' in registerJson:
+        writeInternalBlockReadDataUnitDeclarationsTcp(headerFile, registerJson['blocks'])
+
+
+    # Update methods
     writePropertyUpdateMethodDeclarations(headerFile, registerJson['registers'])
     writeLine(headerFile)
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
             writePropertyUpdateMethodDeclarations(headerFile, blockDefinition['registers'])
+
+    writeLine(headerFile)
+
+    if 'blocks' in registerJson:
+        writePropertyUpdateMethodDeclarations(headerFile, registerJson['blocks'])
 
     writeLine(headerFile)
 
@@ -102,21 +147,21 @@ def writeTcpHeaderFile():
 
     writeLine(headerFile)
 
-    # Write init and update method declarations
-    writeLine(headerFile, '    virtual bool initialize();')
-    writeLine(headerFile, '    virtual bool update();')
+    writeLine(headerFile, 'public slots:')
+    writeLine(headerFile, '    bool connectDevice() override;')
+    writeLine(headerFile, '    void disconnectDevice() override;')
+    writeLine(headerFile, '    bool reconnectDevice() override;')
     writeLine(headerFile)
 
     # Write registers value changed signals
     writeLine(headerFile, 'signals:')
-    writeLine(headerFile, '    void reachableChanged(bool reachable);')
     writeLine(headerFile, '    void checkReachabilityFailed();')
     writeLine(headerFile, '    void checkReachableRetriesChanged(uint checkReachableRetries);')
     writeLine(headerFile)
-    writeLine(headerFile, '    void initializationFinished(bool success);')
     writeLine(headerFile, '    void updateFinished();')
     writeLine(headerFile)
     writeLine(headerFile, '    void endiannessChanged(ModbusDataUtils::ByteOrder endianness);')
+    writeLine(headerFile, '    void stringEndiannessChanged(ModbusDataUtils::ByteOrder stringEndianness);')
     writeLine(headerFile)
 
     writePropertyChangedSignals(headerFile, registerJson['registers'])
@@ -141,16 +186,28 @@ def writeTcpHeaderFile():
         for blockDefinition in registerJson['blocks']:
             writePropertyProcessMethodDeclaration(headerFile, blockDefinition['registers'])
 
+        writeBlockPropertiesProcessMethodDeclaration(headerFile, registerJson['blocks'])
+
     writeLine(headerFile, '    void handleModbusError(QModbusDevice::Error error);')
     writeLine(headerFile, '    void testReachability();')
     writeLine(headerFile)
 
-    # Private members
-    writeLine(headerFile, 'private:')
+    writeLine(headerFile, '    /* Internals */')
+    writeLine(headerFile, '    ModbusTcpMaster *m_modbusTcpMaster = nullptr;')
     writeLine(headerFile, '    ModbusDataUtils::ByteOrder m_endianness = ModbusDataUtils::ByteOrder%s;' % endianness)
+    writeLine(headerFile, '    ModbusDataUtils::ByteOrder m_stringEndianness = ModbusDataUtils::ByteOrder%s;' % stringEndianness)
     writeLine(headerFile, '    quint16 m_slaveId = 1;')
     writeLine(headerFile)
+
+    if queuedRequests:
+        writeLine(headerFile, '    QModbusReply *m_currentInitReply = nullptr;')
+        writeLine(headerFile, '    QQueue<%s::Function> m_initRequestQueue;' % className)
+        writeLine(headerFile, '    QModbusReply *m_currentUpdateReply = nullptr;')
+        writeLine(headerFile, '    QQueue<%s::Function> m_updateRequestQueue;' % className)
+        writeLine(headerFile)
+
     writeLine(headerFile, '    bool m_reachable = false;')
+    writeLine(headerFile, '    bool m_initializing = false;')
     writeLine(headerFile, '    QModbusReply *m_checkRechableReply = nullptr;')
     writeLine(headerFile, '    uint m_checkReachableRetries = 0;')
     writeLine(headerFile, '    uint m_checkReachableRetriesCount = 0;')
@@ -168,13 +225,23 @@ def writeTcpHeaderFile():
     writeLine(headerFile, '    QVector<QModbusReply *> m_pendingUpdateReplies;')
     writeLine(headerFile)
     writeLine(headerFile, '    QObject *m_initObject = nullptr;')
-    writeLine(headerFile, '    void verifyInitFinished();')
+    writeLine(headerFile, '    bool verifyInitFinished();')
     writeLine(headerFile, '    void finishInitialization(bool success);')
     writeLine(headerFile)
-    writeLine(headerFile, '    void verifyUpdateFinished();')
+
+    writeLine(headerFile, '    void setupConnection();')
+    writeLine(headerFile)
+    writeLine(headerFile, '    bool verifyUpdateFinished();')
     writeLine(headerFile)
     writeLine(headerFile, '    void onReachabilityCheckFailed();')
     writeLine(headerFile, '    void evaluateReachableState();')
+
+    if queuedRequests:
+        writeLine(headerFile)
+        writeLine(headerFile, '    void sendNextQueuedInitRequest();')
+        writeLine(headerFile, '    void enqueueInitRequest(%s::Function function);' % (className))
+        writeLine(headerFile, '    void sendNextQueuedRequest();')
+        writeLine(headerFile, '    void enqueueRequest(%s::Function function);' % (className))
 
     # End of class
     writeLine(headerFile)
@@ -193,42 +260,49 @@ def writeTcpSourceFile():
     writeLicenseHeader(sourceFile)
     writeLine(sourceFile)
     writeLine(sourceFile, '#include "%s"' % headerFileName)
+    writeLine(sourceFile)
     writeLine(sourceFile, '#include <loggingcategories.h>')
     writeLine(sourceFile, '#include <math.h>')
     writeLine(sourceFile, '#include <QTimer>')
+    writeLine(sourceFile, '#include <QModbusDevice>')
+    writeLine(sourceFile, '#include <QModbusResponse>')
     writeLine(sourceFile)
     writeLine(sourceFile, 'NYMEA_LOGGING_CATEGORY(dc%s, "%s")' % (className, className))
     writeLine(sourceFile)
 
     # Constructor
     writeLine(sourceFile, '%s::%s(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent) :' % (className, className))
-    writeLine(sourceFile, '    ModbusTCPMaster(hostAddress, port, parent),')
-    writeLine(sourceFile, '    m_slaveId(slaveId)')
+    writeLine(sourceFile, '    ModbusTcpConnection{parent},')
+    writeLine(sourceFile, '    m_modbusTcpMaster{new ModbusTcpMaster(hostAddress, port, this)},')
+    writeLine(sourceFile, '    m_slaveId{slaveId}')
     writeLine(sourceFile, '{')
-    writeLine(sourceFile, '    connect(this, &ModbusTCPMaster::connectionStateChanged, this, [this](bool status){')
-    writeLine(sourceFile, '        if (status) {')
-    writeLine(sourceFile, '           qCDebug(dc%s()) << "Modbus TCP connection" << m_hostAddress.toString() << "connected. Start testing if the connection is reachable...";' % (className))
-    writeLine(sourceFile, '            // Cleanup before starting to initialize')
-    writeLine(sourceFile, '            m_pendingInitReplies.clear();')
-    writeLine(sourceFile, '            m_pendingUpdateReplies.clear();')
-    writeLine(sourceFile, '            m_communicationWorking = false;')
-    writeLine(sourceFile, '            m_communicationFailedCounter = 0;')
-    writeLine(sourceFile, '            m_checkReachableRetriesCount = 0;')
-    writeLine(sourceFile, '            testReachability();')
-    writeLine(sourceFile, '        } else {')
-    writeLine(sourceFile, '            qCWarning(dc%s()) << "Modbus TCP connection diconnected from" << m_hostAddress.toString() << ". The connection is not reachable any more.";' % (className))
-    writeLine(sourceFile, '            m_communicationWorking = false;')
-    writeLine(sourceFile, '            m_communicationFailedCounter = 0;')
-    writeLine(sourceFile, '            m_checkReachableRetriesCount = 0;')
-    writeLine(sourceFile, '        }')
-    writeLine(sourceFile)
-    writeLine(sourceFile, '        evaluateReachableState();')
-    writeLine(sourceFile, '    });')
+    writeLine(sourceFile, '    setupConnection();')
+    writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
             writePropertyBlockScalingImplementation(sourceFile, blockDefinition)
+
+
+    writeLine(sourceFile, '%s::%s(ModbusTcpMaster *modbusTcpMaster, quint16 slaveId, QObject *parent) :' % (className, className))
+    writeLine(sourceFile, '    ModbusTcpConnection{parent},')
+    writeLine(sourceFile, '    m_modbusTcpMaster{modbusTcpMaster},')
+    writeLine(sourceFile, '    m_slaveId{slaveId}')
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    setupConnection();')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'ModbusTcpMaster *%s::modbusTcpMaster() const' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_modbusTcpMaster;')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'quint16 %s::slaveId() const' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_slaveId;')
 
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
@@ -236,6 +310,12 @@ def writeTcpSourceFile():
     writeLine(sourceFile, 'bool %s::reachable() const' % (className))
     writeLine(sourceFile, '{')
     writeLine(sourceFile, '    return m_reachable;')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'bool %s::initializing() const' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_initializing;')
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -271,28 +351,74 @@ def writeTcpSourceFile():
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
+    writeLine(sourceFile, 'ModbusDataUtils::ByteOrder %s::stringEndianness() const' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_stringEndianness;')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::setStringEndianness(ModbusDataUtils::ByteOrder stringEndianness)' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (m_stringEndianness == stringEndianness)')
+    writeLine(sourceFile, '        return;')
+    writeLine(sourceFile,)
+    writeLine(sourceFile, '    m_stringEndianness = stringEndianness;')
+    writeLine(sourceFile, '    emit stringEndiannessChanged(m_stringEndianness);')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
     # Property get methods
     writePropertyGetSetMethodImplementationsTcp(sourceFile, className, registerJson['registers'])
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
             writePropertyGetSetMethodImplementationsTcp(sourceFile, className, blockDefinition['registers'])
 
+
+    # Property get/set data unit methods
+    writePropertyGetSetDataUnitImplementationsTcp(sourceFile, className, registerJson['registers'])
+    if 'blocks' in registerJson:
+        for blockDefinition in registerJson['blocks']:
+            writePropertyGetSetDataUnitImplementationsTcp(sourceFile, className, blockDefinition['registers'])
+
+    # Get block data unit method
+    if 'blocks' in registerJson:
+        writeInternalBlockReadDataUnitImplementationsTcp(sourceFile, className, registerJson['blocks'])
+
+
     # Write init and update method implementation
     blocks = []
     if 'blocks' in registerJson:
         blocks = registerJson['blocks']
 
-    writeInitMethodImplementationTcp(sourceFile, className, registerJson['registers'], blocks)
-    writeUpdateMethodTcp(sourceFile, className, registerJson['registers'], blocks)
+    writeInitMethodImplementationTcp(sourceFile, className, registerJson['registers'], blocks, queuedRequests)
+    writeUpdateMethodTcp(sourceFile, className, registerJson['registers'], blocks, queuedRequests)
+
+    writeLine(sourceFile, 'bool %s::connectDevice()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_modbusTcpMaster->connectDevice();')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::disconnectDevice()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    m_modbusTcpMaster->disconnectDevice();')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'bool %s::reconnectDevice()' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_modbusTcpMaster->reconnectDevice();')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
 
     # Write update methods
-    writePropertyUpdateMethodImplementationsTcp(sourceFile, className, registerJson['registers'])
+    writePropertyUpdateMethodImplementationsTcp(sourceFile, className, registerJson['registers'], queuedRequests, queuedRequestsDelay)
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
-            writePropertyUpdateMethodImplementationsTcp(sourceFile, className, blockDefinition['registers'])
+            writePropertyUpdateMethodImplementationsTcp(sourceFile, className, blockDefinition['registers'], queuedRequests, queuedRequestsDelay)
 
         # Write block update method
-        writeBlockUpdateMethodImplementationsTcp(sourceFile, className, registerJson['blocks'])
+        writeBlockUpdateMethodImplementationsTcp(sourceFile, className, registerJson['blocks'], queuedRequests, queuedRequestsDelay)
 
     # Write internal protected property read method implementations
     writeInternalPropertyReadMethodImplementationsTcp(sourceFile, className, registerJson['registers'])
@@ -308,6 +434,8 @@ def writeTcpSourceFile():
         for blockDefinition in registerJson['blocks']:
             writePropertyProcessMethodImplementations(sourceFile, className, blockDefinition['registers'])
 
+        writeBlockPropertiesProcessMethodImplementations(sourceFile, className, registerJson['blocks'])
+
     writeLine(sourceFile, 'void %s::handleModbusError(QModbusDevice::Error error)' % (className))
     writeLine(sourceFile, '{')
     writeLine(sourceFile, '    if (error == QModbusDevice::NoError) {')
@@ -322,7 +450,7 @@ def writeTcpSourceFile():
     writeLine(sourceFile, '        m_communicationFailedCounter++;')
     writeLine(sourceFile, '        if (m_communicationWorking && m_communicationFailedCounter >= m_communicationFailedMax) {')
     writeLine(sourceFile, '            m_communicationWorking = false;')
-    writeLine(sourceFile, '            qCWarning(dc%s()) << "Received" << m_communicationFailedCounter << "errors while communicating with the RTU master. Mark as not reachable until the communication works again.";' % (className))
+    writeLine(sourceFile, '            qCWarning(dc%s()) << "Received" << m_communicationFailedCounter << "errors while communicating with the TCP master. Mark as not reachable until the communication works again.";' % (className))
     writeLine(sourceFile, '            evaluateReachableState();')
     writeLine(sourceFile, '        }')
     writeLine(sourceFile, '    }')
@@ -331,36 +459,98 @@ def writeTcpSourceFile():
 
     writeTestReachabilityImplementationsTcp(sourceFile, className, registerJson['registers'], checkReachableRegister)
 
-    writeLine(sourceFile, 'void %s::verifyInitFinished()' % (className))
+    writeLine(sourceFile, 'bool %s::verifyInitFinished()' % (className))
     writeLine(sourceFile, '{')
-    writeLine(sourceFile, '    if (m_pendingInitReplies.isEmpty()) {')
-    writeLine(sourceFile, '        finishInitialization(true);')
-    writeLine(sourceFile, '    }')
+    if queuedRequests:
+        writeLine(sourceFile, '    if (m_initRequestQueue.isEmpty() && !m_currentInitReply) {')
+        writeLine(sourceFile, '        finishInitialization(true);')
+        writeLine(sourceFile, '        return true;')
+        writeLine(sourceFile, '    }')
+    else:
+        writeLine(sourceFile, '    if (m_pendingInitReplies.isEmpty()) {')
+        writeLine(sourceFile, '        finishInitialization(true);')
+        writeLine(sourceFile, '        return true;')
+        writeLine(sourceFile, '    }')
+    writeLine(sourceFile, '    return false;')
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
     writeLine(sourceFile, 'void %s::finishInitialization(bool success)' % (className))
     writeLine(sourceFile, '{')
     writeLine(sourceFile, '    if (success) {')
-    writeLine(sourceFile, '        qCDebug(dc%s()) << "Initialization finished of %s" << hostAddress().toString() << "finished successfully";' % (className, className))
+    writeLine(sourceFile, '        qCDebug(dc%s()) << "Initialization finished of %s" << m_modbusTcpMaster->hostAddress().toString() << "finished successfully";' % (className, className))
     writeLine(sourceFile, '    } else {')
-    writeLine(sourceFile, '        qCWarning(dc%s()) << "Initialization finished of %s" << hostAddress().toString() << "failed.";' % (className, className))
+    writeLine(sourceFile, '        qCWarning(dc%s()) << "Initialization finished of %s" << m_modbusTcpMaster->hostAddress().toString() << "failed.";' % (className, className))
     writeLine(sourceFile, '    }')
     writeLine(sourceFile)
-    writeLine(sourceFile, '    // Cleanup init')
-    writeLine(sourceFile, '    delete m_initObject;')
-    writeLine(sourceFile, '    m_initObject = nullptr;')
-    writeLine(sourceFile, '    m_pendingInitReplies.clear();')
+    writeLine(sourceFile, '    m_initializing = false;')
+
+    if queuedRequests:
+        writeLine(sourceFile, '    m_initRequestQueue.clear();')
+    else:
+        writeLine(sourceFile, '    // Cleanup init')
+        writeLine(sourceFile, '    delete m_initObject;')
+        writeLine(sourceFile, '    m_initObject = nullptr;')
+        writeLine(sourceFile, '    m_pendingInitReplies.clear();')
+
     writeLine(sourceFile)
-    writeLine(sourceFile, '    emit initializationFinished(success);')
+    writeLine(sourceFile, '    QTimer::singleShot(0, this, [this, success](){')
+    writeLine(sourceFile, '        emit initializationFinished(success);')
+    writeLine(sourceFile, '    });')
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
-    writeLine(sourceFile, 'void %s::verifyUpdateFinished()' % (className))
+    writeLine(sourceFile, 'void %s::setupConnection()' % (className))
     writeLine(sourceFile, '{')
-    writeLine(sourceFile, '    if (m_pendingUpdateReplies.isEmpty()) {')
-    writeLine(sourceFile, '        emit updateFinished();')
+    writeLine(sourceFile, '    connect(m_modbusTcpMaster, &ModbusTcpMaster::connectionStateChanged, this, [this](bool status){')
+    writeLine(sourceFile, '        if (status) {')
+    writeLine(sourceFile, '           qCDebug(dc%s()) << "Modbus TCP connection" << m_modbusTcpMaster->hostAddress().toString() << "connected. Start testing if the connection is reachable...";' % (className))
+    writeLine(sourceFile, '            // Cleanup before starting to initialize')
+    writeLine(sourceFile, '            m_pendingInitReplies.clear();')
+    writeLine(sourceFile, '            m_pendingUpdateReplies.clear();')
+
+    if queuedRequests:
+        writeLine(sourceFile, '            m_currentUpdateReply = nullptr;')
+        writeLine(sourceFile, '            m_updateRequestQueue.clear();')
+        writeLine(sourceFile, '            m_currentInitReply = nullptr;')
+        writeLine(sourceFile, '            m_initRequestQueue.clear();')
+
+    writeLine(sourceFile, '            m_communicationWorking = false;')
+    writeLine(sourceFile, '            m_communicationFailedCounter = 0;')
+    writeLine(sourceFile, '            m_checkReachableRetriesCount = 0;')
+    writeLine(sourceFile, '            testReachability();')
+    writeLine(sourceFile, '        } else {')
+    writeLine(sourceFile, '            qCWarning(dc%s()) << "Modbus TCP connection diconnected from" << m_modbusTcpMaster->hostAddress().toString() << ". The connection is not reachable any more.";' % (className))
+    writeLine(sourceFile, '            m_communicationWorking = false;')
+    writeLine(sourceFile, '            m_communicationFailedCounter = 0;')
+    writeLine(sourceFile, '            m_checkReachableRetriesCount = 0;')
+    writeLine(sourceFile, '            m_initializing = false;')
+
+    if queuedRequests:
+        writeLine(sourceFile, '            m_currentUpdateReply = nullptr;')
+        writeLine(sourceFile, '            m_updateRequestQueue.clear();')
+        writeLine(sourceFile, '            m_currentInitReply = nullptr;')
+        writeLine(sourceFile, '            m_initRequestQueue.clear();')
+
+    writeLine(sourceFile, '        }')
+    writeLine(sourceFile)
+    writeLine(sourceFile, '        evaluateReachableState();')
+    writeLine(sourceFile, '    });')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'bool %s::verifyUpdateFinished()' % (className))
+    writeLine(sourceFile, '{')
+    if queuedRequests:
+        writeLine(sourceFile, '    if (m_updateRequestQueue.isEmpty() && !m_currentUpdateReply) {')
+        writeLine(sourceFile, '        emit updateFinished();')
+        writeLine(sourceFile, '        return true;')
+    else:
+        writeLine(sourceFile, '    if (m_pendingUpdateReplies.isEmpty()) {')
+        writeLine(sourceFile, '        emit updateFinished();')
+        writeLine(sourceFile, '        return true;')
     writeLine(sourceFile, '    }')
+    writeLine(sourceFile, '    return false;')
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -381,7 +571,7 @@ def writeTcpSourceFile():
 
     writeLine(sourceFile, 'void %s::evaluateReachableState()' % (className))
     writeLine(sourceFile, '{')
-    writeLine(sourceFile, '    bool reachable = m_communicationWorking && connected();')
+    writeLine(sourceFile, '    bool reachable = m_communicationWorking && m_modbusTcpMaster->connected();')
     writeLine(sourceFile, '    if (m_reachable == reachable)')
     writeLine(sourceFile, '        return;')
     writeLine(sourceFile)
@@ -391,13 +581,17 @@ def writeTcpSourceFile():
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
-
+    if queuedRequests:
+        writeSendNextQueuedInitRequestMethodImplementation(sourceFile, className)
+        writeEnqueueInitRequestMethodImplementation(sourceFile, className)
+        writeSendNextQueuedRequestMethodImplementation(sourceFile, className)
+        writeEnqueueRequestMethodImplementation(sourceFile, className)
 
     # Write the debug print
     debugObjectParamName = className[0].lower() + className[1:]
     writeLine(sourceFile, 'QDebug operator<<(QDebug debug, %s *%s)' % (className, debugObjectParamName))
     writeLine(sourceFile, '{')
-    writeLine(sourceFile, '    debug.nospace().noquote() << "%s(" << %s->hostAddress().toString() << ":" << %s->port() << ")" << "\\n";' % (className, debugObjectParamName, debugObjectParamName))
+    writeLine(sourceFile, '    debug.nospace().noquote() << "%s(" << %s->modbusTcpMaster()->hostAddress().toString() << ":" << %s->modbusTcpMaster()->port() << ")" << "\\n";' % (className, debugObjectParamName, debugObjectParamName))
     writeRegistersDebugLine(sourceFile, debugObjectParamName, registerJson['registers'])
     if 'blocks' in registerJson:
         for blockDefinition in registerJson['blocks']:
@@ -457,6 +651,9 @@ def writeRtuHeaderFile():
     writeLine(headerFile, '    ModbusDataUtils::ByteOrder endianness() const;')
     writeLine(headerFile, '    void setEndianness(ModbusDataUtils::ByteOrder endianness);')
     writeLine(headerFile)
+    writeLine(headerFile, '    ModbusDataUtils::ByteOrder stringEndianness() const;')
+    writeLine(headerFile, '    void setStringEndianness(ModbusDataUtils::ByteOrder stringEndianness);')
+    writeLine(headerFile)
 
     # Write registers get method declarations
     writePropertyGetSetMethodDeclarationsRtu(headerFile, registerJson['registers'])
@@ -498,6 +695,7 @@ def writeRtuHeaderFile():
     writeLine(headerFile, '    void updateFinished();')
     writeLine(headerFile)
     writeLine(headerFile, '    void endiannessChanged(ModbusDataUtils::ByteOrder endianness);')
+    writeLine(headerFile, '    void stringEndiannessChanged(ModbusDataUtils::ByteOrder stringEndianness);')
     writeLine(headerFile)
     writePropertyChangedSignals(headerFile, registerJson['registers'])
     if 'blocks' in registerJson:
@@ -527,9 +725,10 @@ def writeRtuHeaderFile():
     writeLine(headerFile)
 
     # Private members
-    writeLine(headerFile, 'private:')
+    writeLine(headerFile, '    /* Internals */')
     writeLine(headerFile, '    ModbusRtuMaster *m_modbusRtuMaster = nullptr;')
     writeLine(headerFile, '    ModbusDataUtils::ByteOrder m_endianness = ModbusDataUtils::ByteOrder%s;' % endianness)
+    writeLine(headerFile, '    ModbusDataUtils::ByteOrder m_stringEndianness = ModbusDataUtils::ByteOrder%s;' % stringEndianness)
     writeLine(headerFile, '    quint16 m_slaveId = 1;')
     writeLine(headerFile)
     writeLine(headerFile, '    bool m_reachable = false;')
@@ -553,7 +752,7 @@ def writeRtuHeaderFile():
     writeLine(headerFile, '    void verifyInitFinished();')
     writeLine(headerFile, '    void finishInitialization(bool success);')
     writeLine(headerFile)
-    writeLine(headerFile, '    void verifyUpdateFinished();')
+    writeLine(headerFile, '    bool verifyUpdateFinished();')
     writeLine(headerFile)
     writeLine(headerFile, '    void onReachabilityCheckFailed();')
     writeLine(headerFile, '    void evaluateReachableState();')
@@ -576,6 +775,7 @@ def writeRtuSourceFile():
     writeLicenseHeader(sourceFile)
 
     writeLine(sourceFile, '#include "%s"' % headerFileName)
+    writeLine(sourceFile)
     writeLine(sourceFile, '#include <loggingcategories.h>')
     writeLine(sourceFile, '#include <math.h>')
     writeLine(sourceFile, '#include <QTimer>')
@@ -669,6 +869,21 @@ def writeRtuSourceFile():
     writeLine(sourceFile, '    m_endianness = endianness;')
     writeLine(sourceFile, '    emit endiannessChanged(m_endianness);')
     writeLine(sourceFile, '}')
+
+    writeLine(sourceFile, 'ModbusDataUtils::ByteOrder %s::stringEndianness() const' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    return m_stringEndianness;')
+    writeLine(sourceFile, '}')
+    writeLine(sourceFile)
+
+    writeLine(sourceFile, 'void %s::setStringEndianness(ModbusDataUtils::ByteOrder stringEndianness)' % (className))
+    writeLine(sourceFile, '{')
+    writeLine(sourceFile, '    if (m_stringEndianness == stringEndianness)')
+    writeLine(sourceFile, '        return;')
+    writeLine(sourceFile,)
+    writeLine(sourceFile, '    m_stringEndianness = stringEndianness;')
+    writeLine(sourceFile, '    emit stringEndiannessChanged(m_stringEndianness);')
+    writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
     # Property get methods
@@ -753,15 +968,26 @@ def writeRtuSourceFile():
     writeLine(sourceFile, '    m_initObject = nullptr;')
     writeLine(sourceFile, '    m_pendingInitReplies.clear();')
     writeLine(sourceFile)
-    writeLine(sourceFile, '    emit initializationFinished(success);')
+    writeLine(sourceFile, '    QTimer::singleShot(0, this, [this, success](){')
+    writeLine(sourceFile, '        emit initializationFinished(success);')
+    writeLine(sourceFile, '    });')
+
+    if queuedRequests:
+        writeLine(sourceFile)
+        writeLine(sourceFile, '    m_pendingInitReplies.clear();')
+        writeLine(sourceFile, '    m_pendingUpdateReplies.clear();')
+        writeLine(sourceFile, '    update();')
+
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
-    writeLine(sourceFile, 'void %s::verifyUpdateFinished()' % (className))
+    writeLine(sourceFile, 'bool %s::verifyUpdateFinished()' % (className))
     writeLine(sourceFile, '{')
     writeLine(sourceFile, '    if (m_pendingUpdateReplies.isEmpty()) {')
     writeLine(sourceFile, '        emit updateFinished();')
+    writeLine(sourceFile, '        return true;')
     writeLine(sourceFile, '    }')
+    writeLine(sourceFile, '    return false;')
     writeLine(sourceFile, '}')
     writeLine(sourceFile)
 
@@ -853,6 +1079,11 @@ endianness = 'BigEndian'
 if 'endianness' in registerJson:
     endianness = registerJson['endianness']
 
+stringEndianness = 'BigEndian'
+if 'stringEndianness' in registerJson:
+    stringEndianness = registerJson['stringEndianness']
+
+
 errorLimitUntilNotReachable = 10
 if 'errorLimitUntilNotReachable' in registerJson:
     errorLimitUntilNotReachable = registerJson['errorLimitUntilNotReachable']
@@ -895,13 +1126,27 @@ else:
     logger.debug('Verified successfully checkReachableRegister: %s' % checkReachableRegister['id'])
 
 
+queuedRequests = False
+queuedRequestsDelay = 0
+
+if 'queuedRequests' in registerJson:
+    queuedRequests = registerJson['queuedRequests']
+
+if 'queuedRequestsDelay' in registerJson:
+    queuedRequestsDelay = registerJson['queuedRequestsDelay']
+
 # Inform about parsed and validated configs if debugging enabled
 logger.debug('Script path: %s' % scriptPath)
 logger.debug('Output directory: %s' % outputDirectory)
 logger.debug('Class name prefix: %s' % classNamePrefix)
 logger.debug('Endianness: %s' % endianness)
+logger.debug('String endianness: %s' % stringEndianness)
+logger.debug('Queued requests: %s' % queuedRequests)
+logger.debug('Queued requests delay: %s ms' % queuedRequestsDelay)
+
 logger.debug('Error limit until not reachable: %s' % errorLimitUntilNotReachable)
 logger.debug('Check reachable register: %s' % checkReachableRegister['id'])
+
 
 protocol = 'TCP'
 if 'protocol' in registerJson:
@@ -980,7 +1225,7 @@ projectIncludeFile = open(projectIncludeFilePath, 'w')
 writeLine(projectIncludeFile, '# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #')
 writeLine(projectIncludeFile, '#')
 writeLine(projectIncludeFile, '# This file has been autogenerated.')
-writeLine(projectIncludeFile, '# Any changes in this file may be overwritten from qmake.')
+writeLine(projectIncludeFile, '# Any changes in this file may be overwritten on a rebuild.')
 writeLine(projectIncludeFile, '#')
 writeLine(projectIncludeFile, '# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #')
 writeLine(projectIncludeFile)
