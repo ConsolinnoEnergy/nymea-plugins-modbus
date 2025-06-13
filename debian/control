@@ -494,6 +494,13 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Solax X3 Ultra solar inverters and meters
  This package contains the nymea integration plugin for Solax X3 Ultra solar inverters and meters.
 
+Package: nymea-plugin-siemens
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: nymea integration plugin for Siemens PAC 2200 energy meter
+ This package contains the nymea integration plugin for Siemens PAC 2200 energy meter.
+
 Package: nymea-plugin-victron
 Architecture: any
 Section: libs
