@@ -233,7 +233,16 @@ void IntegrationPluginFoxESS::setupThing(ThingSetupInfo *info)
             qint16 productionLimitSf = connection->productionLimitSf();
             quint16 productionLimit = connection->productionLimit();
             quint16 calculatedProductionPercent = productionLimit * qPow(10, productionLimitSf);
-            thing->setStateValue("productionLimit", calculatedProductionPercent * 1000);
+
+            QString deviceModel = connection->deviceModel();
+            if (deviceModel == "R75") {
+                thing->setStateValue("productionLimit", calculatedProductionPercent * 750);
+            } else if (deviceModel == "R100") {
+                thing->setStateValue("productionLimit", calculatedProductionPercent * 1000);
+            } else if (deviceModel == "R110") {
+                thing->setStateValue("productionLimit", calculatedProductionPercent * 1100);
+            }
+
         });
 
         m_rtuConnections.insert(thing, connection);
