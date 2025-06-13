@@ -1,6 +1,6 @@
 {
-    "title": "foxess",
-    "tagline": "Integrates FoxESS 3rd Gen wallbox into nymea.",
+    "title": "FoxESS",
+    "tagline": "Connect to FoxESS devices.",
     "icon": "foxess.png",
     "stability": "consumer",
     "offline": true,

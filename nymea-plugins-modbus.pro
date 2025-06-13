@@ -18,7 +18,7 @@ PLUGIN_DIRS = \
     chint                   \
     kostalmeter             \
     drexelundweiss          \
-    foxesswbv3              \
+    foxess                  \
     goodwe                  \
     growatt                 \
     huawei                  \
