@@ -53,8 +53,20 @@ public:
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
+    void executeAction(ThingActionInfo *info) override;
 
 private:
+
+    enum InverterLimitation {
+        UNLIMITED = 85,   // 0x55
+        LIMITED = 170 // 0xAA
+    };
+    enum BatteryControl {
+        FORCE_CHARGE = 170,     // 0xAA
+        FORCE_DISCHARGE = 187,  // 0xBB
+        FORCE_STOP = 204        // 0xCC
+    };
+
     const int m_modbusTcpPort = 502;
     const quint16 m_modbusSlaveAddress = 1;
     PluginTimer *m_refreshTimer = nullptr;
@@ -66,8 +78,9 @@ private:
 
     Thing *getMeterThing(Thing *parentThing);
     Thing *getBatteryThing(Thing *parentThing);
+
+signals:
+
 };
 
 #endif // INTEGRATIONPLUGINSUNGROW_H
-
-

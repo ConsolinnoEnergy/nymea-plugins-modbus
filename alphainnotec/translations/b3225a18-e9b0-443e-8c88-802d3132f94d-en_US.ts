@@ -1,431 +1,364 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1">
+<TS version="2.1" language="en_US">
 <context>
     <name>AlphaInnotec</name>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="106"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="109"/>
+        <location filename="../plugininfo.h" line="93"/>
+        <location filename="../plugininfo.h" line="96"/>
         <source>Connected</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: connected, ID: {01ce0d61-3813-4c1b-a18b-555913d689a2})
+        <extracomment>The name of the StateType ({ce470a50-cb47-4a52-8804-3eabac2cb569}) of ThingClass aitSmartHome
 ----------
 The name of the StateType ({01ce0d61-3813-4c1b-a18b-555913d689a2}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="112"/>
-        <source>Connected changed</source>
-        <extracomment>The name of the EventType ({01ce0d61-3813-4c1b-a18b-555913d689a2}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="115"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="118"/>
+        <location filename="../plugininfo.h" line="99"/>
+        <location filename="../plugininfo.h" line="102"/>
         <source>Cooling on</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: coolingOn, ID: {8b407c1d-b84f-48d4-9961-b29bc58fff0e})
+        <extracomment>The name of the StateType ({7ac3979d-d198-4ab6-9c2f-51d5022aae2f}) of ThingClass aitSmartHome
 ----------
 The name of the StateType ({8b407c1d-b84f-48d4-9961-b29bc58fff0e}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="121"/>
-        <source>Cooling turned on/off</source>
-        <extracomment>The name of the EventType ({8b407c1d-b84f-48d4-9961-b29bc58fff0e}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="124"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="127"/>
+        <location filename="../plugininfo.h" line="111"/>
         <source>External air temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: externalAirTemperature, ID: {92594f19-8e4c-485b-bfd5-5371a0454267})
-----------
-The name of the StateType ({92594f19-8e4c-485b-bfd5-5371a0454267}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({92594f19-8e4c-485b-bfd5-5371a0454267}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="130"/>
-        <source>External air temperature changed</source>
-        <extracomment>The name of the EventType ({92594f19-8e4c-485b-bfd5-5371a0454267}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="133"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="136"/>
+        <location filename="../plugininfo.h" line="114"/>
         <source>External energy source temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: externalEnergySourceTemperature, ID: {519d7d45-1f3d-4118-ade9-3d7508451005})
-----------
-The name of the StateType ({519d7d45-1f3d-4118-ade9-3d7508451005}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({519d7d45-1f3d-4118-ade9-3d7508451005}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="139"/>
-        <source>External energy source temperature changed</source>
-        <extracomment>The name of the EventType ({519d7d45-1f3d-4118-ade9-3d7508451005}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="142"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="145"/>
+        <location filename="../plugininfo.h" line="117"/>
         <source>External return temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: externalReturnTemperature, ID: {b6702fc5-889b-48b6-9257-64c5ee6e5e95})
-----------
-The name of the StateType ({b6702fc5-889b-48b6-9257-64c5ee6e5e95}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({b6702fc5-889b-48b6-9257-64c5ee6e5e95}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="148"/>
-        <source>External return temperature changed</source>
-        <extracomment>The name of the EventType ({b6702fc5-889b-48b6-9257-64c5ee6e5e95}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="151"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="154"/>
+        <location filename="../plugininfo.h" line="123"/>
+        <location filename="../plugininfo.h" line="126"/>
         <source>Flow temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: flowTemperature, ID: {fb448191-69d7-4f2e-87bf-6e4fb61e403f})
+        <extracomment>The name of the StateType ({4a10d0b3-3d1a-4bd5-82d6-1e683c8407d5}) of ThingClass aitSmartHome
 ----------
 The name of the StateType ({fb448191-69d7-4f2e-87bf-6e4fb61e403f}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="157"/>
-        <source>Flow temperature changed</source>
-        <extracomment>The name of the EventType ({fb448191-69d7-4f2e-87bf-6e4fb61e403f}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="160"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="163"/>
+        <location filename="../plugininfo.h" line="129"/>
         <source>Heat source inlet temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: heatSourceInletTemperature, ID: {e9facc5d-f41c-4256-85aa-b0f777431975})
-----------
-The name of the StateType ({e9facc5d-f41c-4256-85aa-b0f777431975}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({e9facc5d-f41c-4256-85aa-b0f777431975}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="166"/>
-        <source>Heat source inlet temperature changed</source>
-        <extracomment>The name of the EventType ({e9facc5d-f41c-4256-85aa-b0f777431975}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="169"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="172"/>
+        <location filename="../plugininfo.h" line="132"/>
         <source>Heat source outlet temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: heatSourceOutletTemperature, ID: {48424285-4bc4-4110-8089-0486292d7371})
-----------
-The name of the StateType ({48424285-4bc4-4110-8089-0486292d7371}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({48424285-4bc4-4110-8089-0486292d7371}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="175"/>
-        <source>Heat source outlet temperature changed</source>
-        <extracomment>The name of the EventType ({48424285-4bc4-4110-8089-0486292d7371}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="178"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="181"/>
+        <location filename="../plugininfo.h" line="141"/>
+        <location filename="../plugininfo.h" line="144"/>
         <source>Heating on</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: heatingOn, ID: {07465fbb-6949-4bd1-90d5-acf2d80c161d})
+        <extracomment>The name of the StateType ({cbaf845a-a161-4982-a03d-314993681a50}) of ThingClass aitSmartHome
 ----------
 The name of the StateType ({07465fbb-6949-4bd1-90d5-acf2d80c161d}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="184"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="187"/>
+        <location filename="../plugininfo.h" line="150"/>
         <source>Heating pump operating hours</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: heatingPumpOperatingHours, ID: {ef378ce6-f112-4022-8535-78cbd6ccfeeb})
-----------
-The name of the StateType ({ef378ce6-f112-4022-8535-78cbd6ccfeeb}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({ef378ce6-f112-4022-8535-78cbd6ccfeeb}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="190"/>
-        <source>Heating pump operating hours changed</source>
-        <extracomment>The name of the EventType ({ef378ce6-f112-4022-8535-78cbd6ccfeeb}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="193"/>
-        <source>Heating turned on/off</source>
-        <extracomment>The name of the EventType ({07465fbb-6949-4bd1-90d5-acf2d80c161d}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="196"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="199"/>
+        <location filename="../plugininfo.h" line="153"/>
         <source>Hot gas temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: hotGasTemperature, ID: {bea6658e-64bf-4476-b75d-38c34a5fed85})
-----------
-The name of the StateType ({bea6658e-64bf-4476-b75d-38c34a5fed85}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({bea6658e-64bf-4476-b75d-38c34a5fed85}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="202"/>
-        <source>Hot gas temperature changed</source>
-        <extracomment>The name of the EventType ({bea6658e-64bf-4476-b75d-38c34a5fed85}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="205"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="208"/>
+        <location filename="../plugininfo.h" line="162"/>
+        <location filename="../plugininfo.h" line="165"/>
         <source>Hot water temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: hotWaterTemperature, ID: {da7e6bc9-95fd-4c90-931f-5b1cd69d864a})
+        <extracomment>The name of the StateType ({602ebb39-454b-4101-9f7b-cc5a0f6ce317}) of ThingClass aitSmartHome
 ----------
 The name of the StateType ({da7e6bc9-95fd-4c90-931f-5b1cd69d864a}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="211"/>
-        <source>Hot water temperature changed</source>
-        <extracomment>The name of the EventType ({da7e6bc9-95fd-4c90-931f-5b1cd69d864a}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="214"/>
+        <location filename="../plugininfo.h" line="177"/>
+        <location filename="../plugininfo.h" line="180"/>
         <source>IP address</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, Type: thing, ID: {64a18910-9111-4eaf-986d-f7b64b03b99a})</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="217"/>
-        <source>MAC address</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, Type: thing, ID: {f791c219-98a5-41ee-8e5f-1bfb5136dc9c})</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="220"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="223"/>
-        <source>Mean temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: meanTemperature, ID: {956051a6-8677-4b25-b899-71aa3590d4e5})
+        <extracomment>The name of the ParamType (ThingClass: aitSmartHome, Type: thing, ID: {5b452fb6-7f3c-47df-bbc7-2d79cd35b2c7})
 ----------
-The name of the StateType ({956051a6-8677-4b25-b899-71aa3590d4e5}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+The name of the ParamType (ThingClass: alphaConnect, Type: thing, ID: {64a18910-9111-4eaf-986d-f7b64b03b99a})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="226"/>
-        <source>Mean temperature changed</source>
-        <extracomment>The name of the EventType ({956051a6-8677-4b25-b899-71aa3590d4e5}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <location filename="../plugininfo.h" line="183"/>
+        <location filename="../plugininfo.h" line="186"/>
+        <source>MAC address</source>
+        <extracomment>The name of the ParamType (ThingClass: aitSmartHome, Type: thing, ID: {b1eeb237-4328-4fb3-8a1e-afdc7ea89896})
+----------
+The name of the ParamType (ThingClass: alphaConnect, Type: thing, ID: {f791c219-98a5-41ee-8e5f-1bfb5136dc9c})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="229"/>
+        <location filename="../plugininfo.h" line="189"/>
         <source>Modbus slave ID</source>
         <extracomment>The name of the ParamType (ThingClass: alphaConnect, Type: thing, ID: {1d9517ca-680c-49e2-a8d1-320743c27559})</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="232"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="235"/>
+        <location filename="../plugininfo.h" line="192"/>
+        <source>Optimize cooling and pool?</source>
+        <extracomment>The name of the ParamType (ThingClass: aitSmartHome, Type: thing, ID: {0b52dc8d-1e77-415a-8fcf-063bc208e425})</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="195"/>
+        <location filename="../plugininfo.h" line="198"/>
         <source>Outdoor temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: outdoorTemperature, ID: {d0c8f168-49b5-47ca-9988-c9922be38dd5})
+        <extracomment>The name of the StateType ({87b58468-01d6-4474-a4ea-199ecb0d9d03}) of ThingClass aitSmartHome
 ----------
 The name of the StateType ({d0c8f168-49b5-47ca-9988-c9922be38dd5}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="238"/>
-        <source>Outdoor temperature changed</source>
-        <extracomment>The name of the EventType ({d0c8f168-49b5-47ca-9988-c9922be38dd5}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="241"/>
+        <location filename="../plugininfo.h" line="201"/>
         <source>Port</source>
         <extracomment>The name of the ParamType (ThingClass: alphaConnect, Type: thing, ID: {b92025c1-8978-4d47-bd3c-4df749dbfd0f})</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="244"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="247"/>
+        <location filename="../plugininfo.h" line="204"/>
+        <location filename="../plugininfo.h" line="207"/>
         <source>Return temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: returnTemperature, ID: {6f96706e-67a3-43d3-bf74-e2e3e5fd0d6d})
+        <extracomment>The name of the StateType ({dcde18e6-5475-449c-abb6-226ae5d25bed}) of ThingClass aitSmartHome
 ----------
 The name of the StateType ({6f96706e-67a3-43d3-bf74-e2e3e5fd0d6d}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="250"/>
-        <source>Return temperature changed</source>
-        <extracomment>The name of the EventType ({6f96706e-67a3-43d3-bf74-e2e3e5fd0d6d}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="253"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="256"/>
+        <location filename="../plugininfo.h" line="219"/>
         <source>Room remote adjuster 1 temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: roomTemperature1, ID: {52f8a581-7b9c-4c15-8aaa-c083763e7820})
-----------
-The name of the StateType ({52f8a581-7b9c-4c15-8aaa-c083763e7820}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({52f8a581-7b9c-4c15-8aaa-c083763e7820}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="259"/>
-        <source>Room remote adjuster 1 temperature changed</source>
-        <extracomment>The name of the EventType ({52f8a581-7b9c-4c15-8aaa-c083763e7820}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="262"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="265"/>
+        <location filename="../plugininfo.h" line="222"/>
         <source>Room remote adjuster 2 temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: roomTemperature2, ID: {91b57690-5daa-4766-86ae-f205fa0c805a})
-----------
-The name of the StateType ({91b57690-5daa-4766-86ae-f205fa0c805a}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({91b57690-5daa-4766-86ae-f205fa0c805a}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="268"/>
-        <source>Room remote adjuster 2 temperature changed</source>
-        <extracomment>The name of the EventType ({91b57690-5daa-4766-86ae-f205fa0c805a}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="271"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="274"/>
+        <location filename="../plugininfo.h" line="225"/>
         <source>Room remote adjuster 3 temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: roomTemperature3, ID: {a8c7e706-57ba-4572-b6e6-5eec91065ea8})
-----------
-The name of the StateType ({a8c7e706-57ba-4572-b6e6-5eec91065ea8}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({a8c7e706-57ba-4572-b6e6-5eec91065ea8}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="277"/>
-        <source>Room remote adjuster 3 temperature changed</source>
-        <extracomment>The name of the EventType ({a8c7e706-57ba-4572-b6e6-5eec91065ea8}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="280"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="283"/>
+        <location filename="../plugininfo.h" line="228"/>
         <source>Room temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: temperature, ID: {0b978a61-4340-443a-8ea6-69217a593508})
-----------
-The name of the StateType ({0b978a61-4340-443a-8ea6-69217a593508}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({ca0263d7-ea16-41fb-a914-3e12217a62ab}) of ThingClass aitSmartHome</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="286"/>
-        <source>Room temperature changed</source>
-        <extracomment>The name of the EventType ({0b978a61-4340-443a-8ea6-69217a593508}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="289"/>
-        <source>Set target room temperature</source>
-        <extracomment>The name of the ActionType ({2e8f44c5-c4e3-4539-b85b-45898bbbf6c2}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="292"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="295"/>
+        <location filename="../plugininfo.h" line="249"/>
         <source>Solar collector temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: solarCollectorTemperature, ID: {d4484305-eb0f-418b-bb15-f71b08e6fce1})
-----------
-The name of the StateType ({d4484305-eb0f-418b-bb15-f71b08e6fce1}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({d4484305-eb0f-418b-bb15-f71b08e6fce1}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="298"/>
-        <source>Solar collector temperature changed</source>
-        <extracomment>The name of the EventType ({d4484305-eb0f-418b-bb15-f71b08e6fce1}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="301"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="304"/>
+        <location filename="../plugininfo.h" line="252"/>
         <source>Solar storage tank temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: solarStorageTankTemperature, ID: {75089369-c224-4fe5-91d1-9bdc5578f0a5})
-----------
-The name of the StateType ({75089369-c224-4fe5-91d1-9bdc5578f0a5}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({75089369-c224-4fe5-91d1-9bdc5578f0a5}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="307"/>
-        <source>Solar storage tank temperature changed</source>
-        <extracomment>The name of the EventType ({75089369-c224-4fe5-91d1-9bdc5578f0a5}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="310"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="313"/>
+        <location filename="../plugininfo.h" line="255"/>
         <source>Supply air temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: supplyAirTemperature, ID: {90d88164-3083-47c7-a396-b338bd9ea54c})
-----------
-The name of the StateType ({90d88164-3083-47c7-a396-b338bd9ea54c}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <extracomment>The name of the StateType ({90d88164-3083-47c7-a396-b338bd9ea54c}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="316"/>
-        <source>Supply air temperature changed</source>
-        <extracomment>The name of the EventType ({90d88164-3083-47c7-a396-b338bd9ea54c}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="319"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="322"/>
+        <location filename="../plugininfo.h" line="258"/>
+        <location filename="../plugininfo.h" line="261"/>
         <source>System status</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, EventType: systemStatus, ID: {5a21a131-f3a0-4ebd-9b2e-12eb25c84853})
+        <extracomment>The name of the StateType ({ce7d213c-c5e6-4fb2-ba26-a7fbfd650828}) of ThingClass aitSmartHome
 ----------
 The name of the StateType ({5a21a131-f3a0-4ebd-9b2e-12eb25c84853}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="325"/>
-        <source>System status changed</source>
-        <extracomment>The name of the EventType ({5a21a131-f3a0-4ebd-9b2e-12eb25c84853}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <location filename="../plugininfo.h" line="90"/>
+        <source>AlphaInnotec SHI</source>
+        <extracomment>The name of the ThingClass ({d3395111-de03-4361-aecb-d17a76b7b1a7})</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="328"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="331"/>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="334"/>
-        <source>Target room temperature</source>
-        <extracomment>The name of the ParamType (ThingClass: alphaConnect, ActionType: targetTemperature, ID: {2e8f44c5-c4e3-4539-b85b-45898bbbf6c2})
+        <location filename="../plugininfo.h" line="105"/>
+        <source>Current power</source>
+        <extracomment>The name of the StateType ({9d67de79-b1f0-4fd9-8c67-52f19be92be9}) of ThingClass aitSmartHome</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="108"/>
+        <source>Error code</source>
+        <extracomment>The name of the StateType ({419217ae-5b3f-4cd7-8481-1c8b95ab946f}) of ThingClass aitSmartHome</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="120"/>
+        <source>Firmware version</source>
+        <extracomment>The name of the StateType ({db7aa620-d7fd-4f3a-89ae-69e807c839d8}) of ThingClass aitSmartHome</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="135"/>
+        <source>Heating energy</source>
+        <extracomment>The name of the StateType ({24367fba-2883-40da-9b92-5d4db3c71c2f}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="138"/>
+        <source>Heating offset temperature</source>
+        <extracomment>The name of the ParamType (ThingClass: aitSmartHome, Type: thing, ID: {74d52504-1ec3-4af0-a695-c2ceb36b3f1e})</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="147"/>
+        <source>Heating power</source>
+        <extracomment>The name of the StateType ({9a905acc-eabb-493c-a21d-1766a42298ca}) of ThingClass aitSmartHome</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="156"/>
+        <source>Hot water energy</source>
+        <extracomment>The name of the StateType ({be2430c3-54ef-441e-b684-9aabc1d984d6}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="159"/>
+        <source>Hot water offset temperature</source>
+        <extracomment>The name of the ParamType (ThingClass: aitSmartHome, Type: thing, ID: {bedf8f10-b64e-48a9-b710-c034cc36b604})</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="168"/>
+        <location filename="../plugininfo.h" line="171"/>
+        <location filename="../plugininfo.h" line="174"/>
+        <source>Hot water temperature setpoint</source>
+        <extracomment>The name of the StateType ({abfeb687-74b4-4883-bace-15577bf631c9}) of ThingClass aitSmartHome
 ----------
-The name of the ParamType (ThingClass: alphaConnect, EventType: targetTemperature, ID: {2e8f44c5-c4e3-4539-b85b-45898bbbf6c2})
+The name of the ParamType (ThingClass: alphaConnect, ActionType: hotWaterSetpointTemperature, ID: {a7f1a688-51d3-4f9e-a323-86117c5542a8})
 ----------
-The name of the StateType ({2e8f44c5-c4e3-4539-b85b-45898bbbf6c2}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+The name of the StateType ({a7f1a688-51d3-4f9e-a323-86117c5542a8}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="337"/>
-        <source>Target room temperature changed</source>
-        <extracomment>The name of the EventType ({2e8f44c5-c4e3-4539-b85b-45898bbbf6c2}) of ThingClass alphaConnect</extracomment>
-        <translation type="unfinished"></translation>
+        <location filename="../plugininfo.h" line="210"/>
+        <location filename="../plugininfo.h" line="213"/>
+        <location filename="../plugininfo.h" line="216"/>
+        <source>Return temperature setpoint</source>
+        <extracomment>The name of the StateType ({98da2f50-b341-44b2-9edd-7c8929040f93}) of ThingClass aitSmartHome
+----------
+The name of the ParamType (ThingClass: alphaConnect, ActionType: returnSetpointTemperature, ID: {1ee6b189-ceff-4912-a577-2e3320307c3f})
+----------
+The name of the StateType ({1ee6b189-ceff-4912-a577-2e3320307c3f}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="340"/>
+        <location filename="../plugininfo.h" line="231"/>
+        <source>Set PV surplus</source>
+        <extracomment>The name of the ActionType ({305a29fb-c997-44c3-bd26-bf112a28b34c}) of ThingClass aitSmartHome</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="234"/>
+        <source>Set hot water temperature setpoint</source>
+        <extracomment>The name of the ActionType ({a7f1a688-51d3-4f9e-a323-86117c5542a8}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="237"/>
+        <source>Set return temperature setpoint</source>
+        <extracomment>The name of the ActionType ({1ee6b189-ceff-4912-a577-2e3320307c3f}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="240"/>
+        <source>Set smart grid mode</source>
+        <extracomment>The name of the ActionType ({8cc9761f-b30e-4f54-aee7-b64190df57e1}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="243"/>
+        <location filename="../plugininfo.h" line="246"/>
+        <source>Smart grid mode</source>
+        <extracomment>The name of the ParamType (ThingClass: alphaConnect, ActionType: sgReadyMode, ID: {8cc9761f-b30e-4f54-aee7-b64190df57e1})
+----------
+The name of the StateType ({8cc9761f-b30e-4f54-aee7-b64190df57e1}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="264"/>
+        <location filename="../plugininfo.h" line="267"/>
+        <source>Total energy</source>
+        <extracomment>The name of the StateType ({189ee77f-5074-4622-ac7c-aaff3881e38d}) of ThingClass aitSmartHome
+----------
+The name of the StateType ({c7948cf6-fd1a-44fa-a91b-98f2474ecc62}) of ThingClass alphaConnect</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="270"/>
+        <location filename="../plugininfo.h" line="273"/>
+        <source>actual PV surplus</source>
+        <extracomment>The name of the ParamType (ThingClass: aitSmartHome, ActionType: actualPvSurplus, ID: {305a29fb-c997-44c3-bd26-bf112a28b34c})
+----------
+The name of the StateType ({305a29fb-c997-44c3-bd26-bf112a28b34c}) of ThingClass aitSmartHome</extracomment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugininfo.h" line="276"/>
         <source>alpha Innotec</source>
         <extracomment>The name of the vendor ({2c2101ae-7bb8-4012-97ba-cedf4cecd924})</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="343"/>
+        <location filename="../plugininfo.h" line="279"/>
         <source>alpha connect</source>
         <extracomment>The name of the ThingClass ({c5437b68-cfd2-4ec8-bad6-006fb5e8a8da})</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../../build-nymea-plugins-modbus-Desktop-Debug/alphainnotec/plugininfo.h" line="346"/>
+        <location filename="../plugininfo.h" line="282"/>
         <source>alpha innotec</source>
         <extracomment>The name of the plugin AlphaInnotec ({b3225a18-e9b0-443e-8c88-802d3132f94d})</extracomment>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
     <name>IntegrationPluginAlphaInnotec</name>
     <message>
-        <location filename="../integrationpluginalphainnotec.cpp" line="46"/>
+        <location filename="../integrationpluginalphainnotec.cpp" line="50"/>
         <source>The network device discovery is not available.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../integrationpluginalphainnotec.cpp" line="103"/>
-        <source>No IP address given</source>
-        <translation type="unfinished"></translation>
+        <location filename="../integrationpluginalphainnotec.cpp" line="143"/>
+        <source>No IP address given.</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../integrationpluginalphainnotec.cpp" line="357"/>
+        <source>The MAC address is not known. Please reconfigure the heatpump.</source>
+        <translation></translation>
     </message>
 </context>
 </TS>

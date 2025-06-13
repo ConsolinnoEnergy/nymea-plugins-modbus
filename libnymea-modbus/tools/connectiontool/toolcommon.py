@@ -374,6 +374,7 @@ def validateBlocks(blockDefinitions):
     for blockDefinition in blockDefinitions:
         blockName = blockDefinition['id']
         blockRegisters = blockDefinition['registers']
+        blockWritable = blockDefinition.setdefault('writable', False)
         
         blockStartAddress = 0
         registerCount = 0
@@ -382,6 +383,10 @@ def validateBlocks(blockDefinitions):
         registerType = ""
 
         for i, blockRegister in enumerate(blockRegisters):
+            if not 'R' in blockRegister['access']:
+                logger.warning('Error: block %s has invalid register access in register %s. The block registers must be readable.' % (blockName, blockRegister['id']))
+                exit(1)
+        
             if i == 0:
                 blockStartAddress = blockRegister['address']
                 registerAccess = blockRegister['access']
@@ -406,6 +411,7 @@ def validateBlocks(blockDefinitions):
             blockSize += blockRegister['size']
 
         logger.debug('Define valid block \"%s\" starting at %s with length %s containing %s properties to read.' % (blockName, blockStartAddress, blockSize, registerCount))
+
 
 
 def writeBlocksUpdateMethodDeclarations(fileDescriptor, blockDefinitions):
@@ -487,6 +493,30 @@ def writePropertyProcessMethodDeclaration(fileDescriptor, registerDefinitions):
 
     writeLine(fileDescriptor)
     
+def writePropertyBlockScalingDeclaration(headerFile, blockDefinition):
+    if not blockDefinition.setdefault('writable', False):
+        return
+
+    blockName = blockDefinition['id']
+    writeLine(headerFile, f'    QVector<qint16> m_block{blockName[0].upper() + blockName[1:]}Scaling;')
+
+
+def writePropertyBlockScalingImplementation(sourceFile, blockDefinition):
+    if not blockDefinition.setdefault('writable', False):
+        return
+
+    blockName = blockDefinition['id']
+    scaling = []
+    for register in blockDefinition['registers']:
+        if 'staticScaleFactor' in register:
+            scaling.append(register['staticScaleFactor'])
+        else:
+            scaling.append(0)
+
+    formattedBlockName = blockName[0].upper() + blockName[1:]
+    scalingValues = ','.join(map(str, scaling))
+
+    writeLine(sourceFile, f'    m_block{formattedBlockName}Scaling = {{{scalingValues}}};')
 
 def writePropertyProcessMethodImplementations(fileDescriptor, className, registerDefinitions):
     propertyVariables = []

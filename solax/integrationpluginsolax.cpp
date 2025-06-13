@@ -52,6 +52,12 @@ void IntegrationPluginSolax::init()
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
                 }
 
+                // Set connected state for meter 2
+                Things meter2Things = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+                if (!meter2Things.isEmpty()) {
+                    meter2Things.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
+                }
+
                 // Set connected state for battery
                 Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
                 if (!batteryThings.isEmpty()) {
@@ -176,9 +182,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         if (m_monitors.contains(thing))
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
 
-        if (m_meterstates.contains(thing))
-            m_meterstates.remove(thing);
-
         if (m_batterystates.contains(thing))
             m_batterystates.remove(thing);
 
@@ -237,9 +240,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             m_rtuConnections.take(thing)->deleteLater();
         }
 
-        if (m_meterstates.contains(thing))
-            m_meterstates.remove(thing);
-
         if (m_batterystates.contains(thing))
             m_batterystates.remove(thing);
 
@@ -249,14 +249,25 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             thing->setStateValue(solaxX3InverterRTUConnectedStateTypeId, reachable);
 
             // Set connected state for meter
-            m_meterstates.find(thing)->modbusReachable = reachable;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                if (reachable && m_meterstates.value(thing).meterCommStatus) {
+                m_meterstates.find(meterThings.first())->modbusReachable = reachable;
+                if (reachable && m_meterstates.value(meterThings.first()).meterCommStatus) {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                }
+            }
+            
+            Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!secondaryMeterThings.isEmpty()) {
+                m_meterstates.find(secondaryMeterThings.first())->modbusReachable = reachable;
+                if (reachable && m_meterstates.value(secondaryMeterThings.first()).meterCommStatus) {
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
+                } else {
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, 0);
                 }
             }
 
@@ -371,14 +382,29 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         // Meter
         connect(connection, &SolaxModbusRtuConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
             bool commStatusBool = (commStatus != 0);
-            m_meterstates.find(thing)->meterCommStatus = commStatusBool;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
+                m_meterstates.find(meterThings.first())->meterCommStatus = commStatusBool;
                 qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
-                if (commStatusBool && m_meterstates.value(thing).modbusReachable) {
+                if (commStatusBool && m_meterstates.value(meterThings.first()).modbusReachable) {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusRtuConnection::meter2CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
+            bool commStatusBool = (commStatus != 0);
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                m_meterstates.find(meterThings.first())->meterCommStatus = commStatusBool;
+                qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
+                if (commStatusBool && m_meterstates.value(meterThings.first()).modbusReachable) {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
+                } else {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
+                    meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, 0);
                 }
             }
         });
@@ -539,6 +565,25 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusRtuConnection::updateFinished, thing, [this, thing, connection](){
             qCDebug(dcSolax()) << "Solax X3 - Update finished.";
+
+            // TODO: does this reliably create the secondary meter?
+            Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+
+            quint16 meter2CommState = connection->meter2CommunicationState();
+            if (meter2CommState == 1 && meter2CommState == m_secondMeterCheck) {
+                m_secondMeterCounter++;
+            } else {
+                m_secondMeterCounter = 0;
+            }
+            m_secondMeterCheck = meter2CommState;
+
+            if (secondaryMeterThings.isEmpty() && m_secondMeterCounter == 3) {
+                qCDebug(dcSolax()) << "Create the secondary meter thing";
+                QString name = supportedThings().findById(solaxMeterSecondaryThingClassId).displayName();
+                ThingDescriptor descriptor(solaxMeterSecondaryThingClassId, name, QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             qint16 currentBatPower = 0;
             if (!batteryThings.isEmpty()) {
@@ -636,7 +681,12 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+
+                quint16 oldBatteryLevel = batteryThings.first()->stateValue(solaxBatteryBatteryLevelStateTypeId).toUInt();
+                quint16 batteryLevelDiff = qFabs(socBat1-oldBatteryLevel);
+                if (oldBatteryLevel == 0 || batteryLevelDiff <= 10)
+                    batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+
                 batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
                 int minBatteryLevel = batteryThings.first()->stateValue(solaxBatteryMinBatteryLevelStateTypeId).toInt();
                 bool batManualMode = batteryThings.first()->stateValue(solaxBatteryEnableForcePowerStateStateTypeId).toBool();
@@ -673,11 +723,59 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
             }
         });
 
+        // Set meter 2 states
+        connect(connection, &SolaxModbusRtuConnection::consumEnergyTotalMeter2Changed, thing, [this, thing](double consumEnergyTotal){
+            // New value should not be smaller then old one.
+            // Difference should not be greater than 10
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter consumed energy total (consumEnergyTotal) changed" << consumEnergyTotal << "kWh";
+                double oldEnergyValue = meterThings.first()->stateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId).toDouble();
+                double diffEnergy = consumEnergyTotal - oldEnergyValue;
+                if (oldEnergyValue == 0 ||
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
+                {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId, 0);
+                } else {
+                    qCWarning(dcSolax()) << "RTU Meter 2 Consumed - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "RTU Meter 2 Consumed - New energy value is" << consumEnergyTotal;
+                    writeErrorLog();
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusRtuConnection::feedinEnergyTotalMeter2Changed, thing, [this, thing](double feedinEnergyTotal){
+            // New value should not be smaller than the old one.
+            // Difference should not be greater than 10
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter exported energy total (feedinEnergyTotal) changed" << feedinEnergyTotal << "kWh";
+                double oldEnergyValue = meterThings.first()->stateValue(solaxMeterSecondaryTotalEnergyProducedStateTypeId).toDouble();
+                double diffEnergy = feedinEnergyTotal - oldEnergyValue;
+                if (oldEnergyValue == 0 ||
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
+                {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyProducedStateTypeId, feedinEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "RTU Meter Produced - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "RTU Meter Produced - New energy value is" << feedinEnergyTotal;
+                    writeErrorLog();
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusRtuConnection::currentPowerMeter2Changed, thing, [this, thing](qint32 feedinPower){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
+                double power = qFabs(static_cast<double>(feedinPower));
+                if (power <= 20000)
+                    meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, -1 * power);
+            }
+        });
 
         // FIXME: make async and check if this is really an solax
         m_rtuConnections.insert(thing, connection);
-        MeterStates meterStates{};
-        m_meterstates.insert(thing, meterStates);
         BatteryStates batteryStates{};
         m_batterystates.insert(thing, batteryStates);
         info->finish(Thing::ThingErrorNoError);
@@ -687,6 +785,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
 
     if (thing->thingClassId() == solaxMeterThingClassId) {
         // Nothing to do here, we get all information from the inverter connection
+
+        if (m_meterstates.contains(thing))
+            m_meterstates.remove(thing);
+
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
@@ -696,6 +798,30 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(solaxMeterConnectedStateTypeId, parentThing->stateValue(solaxX3InverterRTUConnectedStateTypeId).toBool());
             }
         }
+
+        MeterStates meterStates{};
+        m_meterstates.insert(thing, meterStates);
+        return;
+    }
+
+    if (thing->thingClassId() == solaxMeterSecondaryThingClassId) {
+        // Nothing to do here, we get all information from the inverter connection
+
+        if (m_meterstates.contains(thing))
+            m_meterstates.remove(thing);
+
+        info->finish(Thing::ThingErrorNoError);
+        Thing *parentThing = myThings().findById(thing->parentId());
+        if (parentThing) {
+            if (parentThing->thingClassId() == solaxX3InverterTCPThingClassId) {
+                thing->setStateValue(solaxMeterSecondaryConnectedStateTypeId, parentThing->stateValue(solaxX3InverterTCPConnectedStateTypeId).toBool());
+            } else if (parentThing->thingClassId() == solaxX3InverterRTUThingClassId) {
+                thing->setStateValue(solaxMeterSecondaryConnectedStateTypeId, parentThing->stateValue(solaxX3InverterRTUConnectedStateTypeId).toBool());
+            }
+        }
+
+        MeterStates meterStates{};
+        m_meterstates.insert(thing, meterStates);
         return;
     }
 
@@ -748,8 +874,6 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         quint16 modbusId = thing->paramValue(solaxX3InverterTCPThingModbusIdParamTypeId).toUInt();
         SolaxModbusTcpConnection *connection = new SolaxModbusTcpConnection(monitor->networkDeviceInfo().address(), port, modbusId, this);
         m_tcpConnections.insert(thing, connection);
-        MeterStates meterStates{};
-        m_meterstates.insert(thing, meterStates);
         BatteryStates batteryStates{};
         m_batterystates.insert(thing, batteryStates);
 
@@ -786,18 +910,20 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                 thing->setStateValue(solaxX3InverterTCPCurrentPowerStateTypeId, 0);
                 foreach (Thing *childThing, myThings().filterByParentId(thing->id())) {
                     childThing->setStateValue("connected", false);
-                }
-                Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
-                if (!meterThings.isEmpty()) {
-                    meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
-                    meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                    childThing->setStateValue("currentPower", 0);
                 }
 
-                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
-                if (!batteryThings.isEmpty()) {
-                    batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
-                }
+                // Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
+                // if (!meterThings.isEmpty()) {
+                //     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                //     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                // }
+
+                // Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+                // if (!batteryThings.isEmpty()) {
+                //     batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
+                //     batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
+                // }
             }
         });
 
@@ -807,13 +933,23 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             writePasswordToInverter(thing);
 
             // Set connected state for meter
-            m_meterstates.find(thing)->modbusReachable = success;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
-                if (success && m_meterstates.value(thing).meterCommStatus) {
+                m_meterstates.find(meterThings.first())->modbusReachable = success;
+                if (success && m_meterstates.value(meterThings.first()).meterCommStatus) {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
+                }
+            }
+
+            Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!secondaryMeterThings.isEmpty()) {
+                m_meterstates.find(secondaryMeterThings.first())->modbusReachable = success;
+                if (success && m_meterstates.value(secondaryMeterThings.first()).meterCommStatus) {
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
+                } else {
+                    secondaryMeterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
                 }
             }
 
@@ -933,6 +1069,25 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::updateFinished, thing, [this, thing, connection](){
             qCDebug(dcSolax()) << "Solax X3 - Update finished.";
+
+            // TODO: does this reliably create the secondary meter?
+            Things secondaryMeterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+
+            quint16 meter2CommState = connection->meter2CommunicationState();
+            if (meter2CommState == 1 && meter2CommState == m_secondMeterCheck) {
+                m_secondMeterCounter++;
+            } else {
+                m_secondMeterCounter = 0;
+            }
+            m_secondMeterCheck = meter2CommState;
+
+            if (secondaryMeterThings.isEmpty() && m_secondMeterCounter == 3) {
+                qCDebug(dcSolax()) << "Create the secondary meter thing";
+                QString name = supportedThings().findById(solaxMeterSecondaryThingClassId).displayName();
+                ThingDescriptor descriptor(solaxMeterSecondaryThingClassId, name, QString(), thing->id());
+                emit autoThingsAppeared(ThingDescriptors() << descriptor);
+            }
+
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             qint16 currentBatPower = 0;
             if (!batteryThings.isEmpty()) {
@@ -987,15 +1142,30 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         // Meter
         connect(connection, &SolaxModbusTcpConnection::meter1CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
             bool commStatusBool = (commStatus != 0);
-            m_meterstates.find(thing)->meterCommStatus = commStatusBool;
             Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId);
             if (!meterThings.isEmpty()) {
+                m_meterstates.find(meterThings.first())->meterCommStatus = commStatusBool;
                 qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
-                if (commStatusBool && m_meterstates.value(thing).modbusReachable) {
+                if (commStatusBool && m_meterstates.value(meterThings.first()).modbusReachable) {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, true);
                 } else {
                     meterThings.first()->setStateValue(solaxMeterConnectedStateTypeId, false);
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::meter2CommunicationStateChanged, thing, [this, thing](quint16 commStatus){
+            bool commStatusBool = (commStatus != 0);
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                m_meterstates.find(meterThings.first())->meterCommStatus = commStatusBool;
+                qCDebug(dcSolax()) << "Meter comm status changed" << commStatus;
+                if (commStatusBool && m_meterstates.value(meterThings.first()).modbusReachable) {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, true);
+                } else {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryConnectedStateTypeId, false);
+                    meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, 0);
                 }
             }
         });
@@ -1207,7 +1377,12 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolax()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+
+                quint16 oldBatteryLevel = batteryThings.first()->stateValue(solaxBatteryBatteryLevelStateTypeId).toUInt();
+                quint16 batteryLevelDiff = qFabs(socBat1-oldBatteryLevel);
+                if (oldBatteryLevel == 0 || batteryLevelDiff <= 10)
+                    batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
+
                 batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
                 int minBatteryLevel = batteryThings.first()->stateValue(solaxBatteryMinBatteryLevelStateTypeId).toInt();
                 bool batManualMode = batteryThings.first()->stateValue(solaxBatteryEnableForcePowerStateStateTypeId).toBool();
@@ -1244,6 +1419,56 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             }
         });
 
+        // Set meter 2 states
+        connect(connection, &SolaxModbusTcpConnection::consumEnergyTotalMeter2Changed, thing, [this, thing](double consumEnergyTotal){
+            // New value should not be smaller then old one.
+            // Difference should not be greater than 10
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter consumed energy total (consumEnergyTotal) changed" << consumEnergyTotal << "kWh";
+                double oldEnergyValue = meterThings.first()->stateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId).toDouble();
+                double diffEnergy = consumEnergyTotal - oldEnergyValue;
+                if (oldEnergyValue == 0 ||
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
+                {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyConsumedStateTypeId, 0);
+                } else {
+                    qCWarning(dcSolax()) << "TCP Meter 2 Consumed - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "TCP Meter 2 Consumed - New energy value is" << consumEnergyTotal;
+                    writeErrorLog();
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::feedinEnergyTotalMeter2Changed, thing, [this, thing](double feedinEnergyTotal){
+            // New value should not be smaller than the old one.
+            // Difference should not be greater than 10
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter exported energy total (feedinEnergyTotal) changed" << feedinEnergyTotal << "kWh";
+                double oldEnergyValue = meterThings.first()->stateValue(solaxMeterSecondaryTotalEnergyProducedStateTypeId).toDouble();
+                double diffEnergy = feedinEnergyTotal - oldEnergyValue;
+                if (oldEnergyValue == 0 ||
+                    (diffEnergy >= 0 && diffEnergy <= m_energyCheck))
+                {
+                    meterThings.first()->setStateValue(solaxMeterSecondaryTotalEnergyProducedStateTypeId, feedinEnergyTotal);
+                } else {
+                    qCWarning(dcSolax()) << "TCP Meter Produced - Old Energy value is" << oldEnergyValue;
+                    qCWarning(dcSolax()) << "TCP Meter Produced - New energy value is" << feedinEnergyTotal;
+                    writeErrorLog();
+                }
+            }
+        });
+
+        connect(connection, &SolaxModbusTcpConnection::currentPowerMeter2Changed, thing, [this, thing](qint32 feedinPower){
+            Things meterThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterSecondaryThingClassId);
+            if (!meterThings.isEmpty()) {
+                qCDebug(dcSolax()) << "Meter power (feedin_power, power exported to grid) changed" << feedinPower << "W";
+                double power = qFabs(static_cast<double>(feedinPower));
+                if (power <= 20000)
+                    meterThings.first()->setStateValue(solaxMeterSecondaryCurrentPowerStateTypeId, -1 * power);
+            }
+        });
 
         if (monitor->reachable())
             connection->connectDevice();
@@ -1454,6 +1679,33 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             {
                 setBatteryPower(inverterThing, batteryPower, timeout);
             }
+        } else if (action.actionTypeId() == solaxBatteryMaxChargingCurrentActionTypeId) {
+            double maxCurrent = action.paramValue(solaxBatteryMaxChargingCurrentActionMaxChargingCurrentParamTypeId).toDouble();
+            bool enableMaxCurrent = thing->stateValue(solaxBatteryEnableMaxChargingCurrentStateTypeId).toBool();
+
+            if (maxCurrent != thing->stateValue(solaxBatteryMaxChargingCurrentStateTypeId).toDouble()){
+                qCWarning(dcSolax()) << "Battery max current changed to" << maxCurrent << "A";
+                if (enableMaxCurrent && maxCurrent >= 0 && maxCurrent <= 30)
+                {
+                    thing->setStateValue(solaxBatteryMaxChargingCurrentStateTypeId, maxCurrent);
+                    setMaxCurrent(inverterThing, maxCurrent);
+                }  
+            }          
+        } else if (action.actionTypeId() == solaxBatteryEnableMaxChargingCurrentActionTypeId) {
+            bool enableMaxCurrent = action.paramValue(solaxBatteryEnableMaxChargingCurrentActionEnableMaxChargingCurrentParamTypeId).toBool();
+            double maxCurrent = thing->stateValue(solaxBatteryMaxChargingCurrentStateTypeId).toDouble();
+            
+            if (enableMaxCurrent != thing->stateValue(solaxBatteryEnableMaxChargingCurrentStateTypeId).toBool()){
+                qCWarning(dcSolax()) << "Enabling of battery max current changed to" << enableMaxCurrent;
+                if (!enableMaxCurrent) {
+                    setMaxCurrent(inverterThing, 30.0); //reset to default value 30A
+                    thing->setStateValue(solaxBatteryMaxChargingCurrentStateTypeId, 30.0);
+                } else if (enableMaxCurrent && maxCurrent >= 0 && maxCurrent <= 30)
+                {
+                    setMaxCurrent(inverterThing, maxCurrent);
+                }
+                thing->setStateValue(solaxBatteryEnableMaxChargingCurrentStateTypeId, enableMaxCurrent); 
+            }                
         } else if (action.actionTypeId() == solaxBatteryMinBatteryLevelActionTypeId) {
             int minBatteryLevel = action.paramValue(solaxBatteryMinBatteryLevelActionMinBatteryLevelParamTypeId).toInt();
             qCWarning(dcSolax()) << "Min battery level set to" << minBatteryLevel;
@@ -1680,6 +1932,51 @@ void IntegrationPluginSolax::setBatteryPower(Thing *thing, qint32 powerToSet, qu
                         //info->finish(Thing::ThingErrorNoError);
                     }
                 });
+            }
+        });
+    } else {
+        qCWarning(dcSolax()) << "setBatteryPower - Received incorrect thing";
+    }
+}
+
+void IntegrationPluginSolax::setMaxCurrent(Thing *thing, double maxCurrent)
+{
+    if (thing->thingClassId() == solaxX3InverterTCPThingClassId) {
+        SolaxModbusTcpConnection *connection = m_tcpConnections.value(thing);
+        if (!connection) {
+            qCWarning(dcSolax()) << "setBatteryPower - Modbus connection not available";
+            // info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+
+        QModbusReply *reply = connection->setWriteChargeMaxCurrent(float(maxCurrent));
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, thing, [thing, reply](){
+            if (reply->error() != QModbusDevice::NoError) {
+                qCWarning(dcSolax()) << "setMaxChargingCurrent: Error during setting" << reply->error() << reply->errorString();
+                //info->finish(Thing::ThingErrorHardwareFailure);
+            } else {
+                qCWarning(dcSolax()) << "setMaxChargingCurrent: set successfully ";
+                //info->finish(Thing::ThingErrorNoError);
+            }
+        });
+    } else if (thing->thingClassId() == solaxX3InverterRTUThingClassId) {
+        SolaxModbusRtuConnection *connection = m_rtuConnections.value(thing);
+        if (!connection) {
+            qCWarning(dcSolax()) << "setBatteryPower - Modbus connection not available";
+            // info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+
+        ModbusRtuReply *reply = connection->setWriteChargeMaxCurrent(float(maxCurrent));
+        connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
+        connect(reply, &ModbusRtuReply::finished, thing, [thing, reply](){
+            if (reply->error() != ModbusRtuReply::NoError) {
+                qCWarning(dcSolax()) << "setMaxChargingCurrent: Error during setting" << reply->error() << reply->errorString();
+                //info->finish(Thing::ThingErrorHardwareFailure);
+            } else {
+                qCWarning(dcSolax()) << "setMaxChargingCurrent: set successfully ";
+                //info->finish(Thing::ThingErrorNoError);
             }
         });
     } else {

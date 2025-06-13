@@ -379,19 +379,19 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             thing->setStateValue(lambdaTCPCoefficientOfPerformanceStateTypeId, coefficientOfPerformance);
         });
         // 1-0-14 until 1-0-19 not connected
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](qint32 totalEnergyConsumed){
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::totalEnergyConsumedChanged, thing, [thing](float totalEnergyConsumed){
             qCDebug(dcLambda()) << thing << "Accumulated electrical energy consumption of compressor unit since last statistic reset" << totalEnergyConsumed << "Wh";
             thing->setStateValue(lambdaTCPTotalEnergyConsumedStateTypeId, totalEnergyConsumed);
         });
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::compressorTotalHeatOutputChanged, thing, [thing](qint32 compressorTotalHeatOutput){
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::compressorTotalHeatOutputChanged, thing, [thing](float compressorTotalHeatOutput){
             qCDebug(dcLambda()) << thing << "Accumulated thermal energy output of compressor unit since last statistic reset" << compressorTotalHeatOutput << "Wh";
             thing->setStateValue(lambdaTCPCompressorTotalHeatOutputStateTypeId, compressorTotalHeatOutput);
         });
         connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::updateFinished, thing, [thing, lambdaTCPTcpConnection](){
             qCDebug(dcLambda()) << "Lambda heat pump - Update finished.";
-            qint32 energyInput = lambdaTCPTcpConnection->totalEnergyConsumed();
-            qint32 energyOutput = lambdaTCPTcpConnection->compressorTotalHeatOutput();
-            double averageCOP = (double)energyOutput / (double)energyInput;
+            float energyInput = lambdaTCPTcpConnection->totalEnergyConsumed();
+            float energyOutput = lambdaTCPTcpConnection->compressorTotalHeatOutput();
+            float averageCOP = energyOutput / energyInput;
             qCDebug(dcLambda()) << thing << "Average coefficient of performance" << averageCOP;
             if (energyInput > 0) {
                 thing->setStateValue(lambdaTCPAverageCoefficientOfPerformanceStateTypeId, averageCOP);

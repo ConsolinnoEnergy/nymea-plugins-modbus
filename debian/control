@@ -465,12 +465,12 @@ Depends: ${shlibs:Depends},
 Description: nymea integration plugin for Solax X3 EV Charger
  This package contains the nymea integration plugin for the Solax X3 EV Charger.
 
-Package: nymea-plugin-foxesswbv3
+Package: nymea-plugin-foxess
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Description: nymea integration plugin for FoxESS wallbox 3rd gen.
- This package contains the nymea integration plugin for the FoxESS wallbox 3rd gen..
+Description: nymea integration plugin for FoxESS wallbox and inverter.
+ This package contains the nymea integration plugin for the FoxESS wallbox 3rd gen and inverter.
 
 Package: nymea-plugin-qcellsg4wb
 Architecture: any
@@ -500,3 +500,21 @@ Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: nymea integration plugin for Siemens PAC 2200 energy meter
  This package contains the nymea integration plugin for Siemens PAC 2200 energy meter.
+
+Package: nymea-plugin-victron
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration to use Victron inverters with the Consolinno HEMS.
+ This package contains the nymea integration plugin for the Victron Inverter.
+
+Package: nymea-plugin-chint
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for Zhejiang Chint DTSU666 energy meter
+ This package contains the nymea integration plugin for energy meter DTSU666
+ made by Zhejiang Chint Instrument & Meter Co.

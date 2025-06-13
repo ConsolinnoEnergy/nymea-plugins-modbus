@@ -1,11 +1,45 @@
-nymea-plugins-modbus (1.7.016) jammy; urgency=medium
+nymea-plugins-modbus (1.7.017) jammy; urgency=medium
 
+  * Added Zhejiang Chint DTSU666 smart meter
+  * Added Support for AlphaInnotec Smart Home Interface
+  * Growatt: support for LPP changed: limit power input (W) instead of rate (%)
+  * Sofarsolar HYD / Azzurro hybrid inverters: LPP added
+  * Fix Alfen wrong energy value ESEMS-1800
+  * Add support for FoxESS R-Series
+    - Combine Wallbox and Inverter into one plugin
+  * Lambda: accuracy improvements and warning suppression
+  * SMA: Reduce warnings, add fixes from nymea team
   * Siemens PAC2200: Initial Support
 
- -- Luis Reber <l.reber@consolinno.de> Fri, 16 May 2025 13:49:00 +0100
+ -- Luis Reber <l.reber@consolinno.de> Thu, 28 May 2025 08:49:00 +0200
+
+nymea-plugins-modbus (1.7.016) jammy; urgency=medium
+
+  * Solax X3: Fix writing max charging register on change
+  * PhoenixConnect: Add currentPower states to all wallboxes
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 23 May 2025 13:49:00 +0200
+
+nymea-plugins-modbus (1.7.015-1) jammy; urgency=medium
+
+  * Fix Sungrow SH battery capacity
+  * Added block write to modbus generator
+  * Kaco NH3: Fix PV and Bat power
+  * Solax X3 EVC: Fix charging interruption
+  * Solax X3 / Qcells G4:
+    - Add second meter as PV-Kit
+    - Add control for max charging current
+  * Sungrow SH: Support battery control and export limit
+  * Sax: fix current power meter
+  * Lambda: Support not available modules
+  * SolarEdge: Add battery control for solaredge hybrid inverter
+  * Victron GX: Initial plugin added
+  * Lambda: Precise electrical energy value
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 10 Apr 2025 13:49:00 +0100
 
 nymea-plugins-modbus (1.7.014) jammy; urgency=medium
-
+ 
   * DvModbusIR: Fix current power sign
   * Fix Solax X3 Energy readout
 

@@ -206,10 +206,11 @@ def writeInternalPropertyReadMethodImplementationsRtu(fileDescriptor, className,
 
 ##############################################################
 
-def writeInternalBlockReadMethodDeclarationsRtu(fileDescriptor, blockDefinitions):
+def writeInternalBlockReadWriteMethodDeclarationsRtu(fileDescriptor, blockDefinitions):
     for blockDefinition in blockDefinitions:
         blockName = blockDefinition['id']
         blockRegisters = blockDefinition['registers']
+        blockWritable = blockDefinition.setdefault("writable", False)
         blockStartAddress = 0
         registerCount = 0
         blockSize = 0
@@ -231,13 +232,18 @@ def writeInternalBlockReadMethodDeclarationsRtu(fileDescriptor, blockDefinitions
                 writeLine(fileDescriptor, '     - %s - Address: %s, Size: %s' % (registerDefinition['description'], registerDefinition['address'], registerDefinition['size']))
         writeLine(fileDescriptor, '    */' )
         writeLine(fileDescriptor, '    ModbusRtuReply *readBlock%s();' % (blockName[0].upper() + blockName[1:]))
+
+        if blockWritable and registerType == 'holdingRegister':
+            # Currently only holding registers are supported for writing
+            writeLine(fileDescriptor, '    ModbusRtuReply *writeBlock%s(QVector<quint16> values);' % (blockName[0].upper() + blockName[1:]))
         writeLine(fileDescriptor)
 
 
-def writeInternalBlockReadMethodImplementationsRtu(fileDescriptor, className, blockDefinitions):
+def writeInternalBlockReadWriteMethodImplementationsRtu(fileDescriptor, className, blockDefinitions):
     for blockDefinition in blockDefinitions:
         blockName = blockDefinition['id']
         blockRegisters = blockDefinition['registers']
+        blockWritable = blockDefinition.setdefault("writable", False)
         blockStartAddress = 0
         registerCount = 0
         blockSize = 0
@@ -266,6 +272,27 @@ def writeInternalBlockReadMethodImplementationsRtu(fileDescriptor, className, bl
             #Default to holdingRegister
             writeLine(fileDescriptor, '    return m_modbusRtuMaster->readHoldingRegister(m_slaveId, %s, %s);' % (blockStartAddress, blockSize))
 
+        writeLine(fileDescriptor, '}')
+        writeLine(fileDescriptor)
+
+        # Check if we require a write method
+        if not blockWritable:
+            continue
+
+        # Currently only holding registers are supported for writing
+        if  registerType != 'holdingRegister':
+            continue
+        
+        writeLine(fileDescriptor, 'ModbusRtuReply *%s::writeBlock%s(QVector<quint16> values)' % (className, blockName[0].upper() + blockName[1:]))
+        writeLine(fileDescriptor, '{')
+        writeLine(fileDescriptor, '    // Write register block \"%s\"' % blockName)
+        writeLine(fileDescriptor, '    qCDebug(dc%s()) << "--> Write block \\"%s\\" registers from:" << %s << "size:" << %s;' % (className, blockName, blockStartAddress, blockSize))
+        writeLine(fileDescriptor, '    QVector<quint16> scaledValues;')
+        writeLine(fileDescriptor, '    scaledValues.resize(values.size());')
+        writeLine(fileDescriptor, '    for (int i = 0; i < values.size(); i++) {')
+        writeLine(fileDescriptor, '         scaledValues[i] = values[i] * 1.0 / pow(10, m_block%sScaling[i]);' % (blockName[0].upper() + blockName[1:]))
+        writeLine(fileDescriptor, '    }')
+        writeLine(fileDescriptor, '    return m_modbusRtuMaster->writeHoldingRegisters(m_slaveId, %s, scaledValues);' % (blockStartAddress))
         writeLine(fileDescriptor, '}')
         writeLine(fileDescriptor)
 
