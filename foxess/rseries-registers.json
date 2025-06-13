@@ -1,0 +1,275 @@
+{
+    "className": "RSeries",
+    "protocol": "RTU",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 15,
+    "checkReachableRegister": "serialnumber",
+    "enums": [
+        {
+            "name": "OperatingState",
+            "values": [
+                {
+                    "key": "Off",
+                    "value": 0
+                },
+                {
+                    "key": "Sleeping",
+                    "value": 1
+                },
+                {
+                    "key": "Starting",
+                    "value": 2
+                },
+                {
+                    "key": "Mppt",
+                    "value": 3
+                },
+                {
+                    "key": "Throttled",
+                    "value": 4
+                },
+                {
+                    "key": "ShuttingDown",
+                    "value": 5
+                },
+                {
+                    "key": "Fault",
+                    "value": 6
+                },
+                {
+                    "key": "Standby",
+                    "value": 7
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "inverterData",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "operatingState",
+                    "address": 40073,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter operating state",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterState",
+                    "address": 40074,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter state",
+                    "enum": "OperatingState",
+                    "defaultValue": "OperatingStateOff",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy1",
+                    "address": 40075,
+                    "size": 3,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy1",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPower",
+                    "address": 40078,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Current Power",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy2",
+                    "address": 40079,
+                    "size": 3,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy2",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterFrequency",
+                    "address": 40082,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter frequency",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterProducedEnergy",
+                    "address": 40084,
+                    "size": 4,
+                    "type": "uint64",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Produced Energy",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy3",
+                    "address": 40088,
+                    "size": 12,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "Dummy3",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterFrequencySf",
+                    "address": 40100,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter frequency Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterCurrentPowerSf",
+                    "address": 40101,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter current power Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterPowerFactorSf",
+                    "address": 40102,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter power factor Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterApparentPowerSf",
+                    "address": 40103,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter apparent power Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterReactivePowerSf",
+                    "address": 40104,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter reactive power Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterProducedEnergySf",
+                    "address": 40105,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter Energy Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "inverterTemperaturScaleFactor",
+                    "address": 40106,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter temperatur Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "batteryOnline",
+                    "address": 40107,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "Inverter temperatur Scalefactor",
+                    "defaultValue": "0",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "manufacturer",
+            "address": 40004,
+            "size": 16,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "description": "Device Manufacturer",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "deviceModel",
+            "address": 40020,
+            "size": 16,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "description": "Device Model",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "firmware",
+            "address": 40044,
+            "size": 8,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "description": "Firmwareversion",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "serialnumber",
+            "address": 40052,
+            "size": 16,
+            "type": "string",
+            "registerType": "holdingRegister",
+            "description": "Serialnumber",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "productionLimit",
+            "address": 40300,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Maximum active power",
+            "readSchedule": "update",
+            "access": "RW"
+        },
+        {
+            "id": "productionLimitSf",
+            "address": 40305,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Maximum active power Scale factor",
+            "readSchedule": "update",
+            "access": "RO"
+        }
+    ]
+}
+
