@@ -73,8 +73,8 @@ void SungrowDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
 
     qCDebug(dcSungrow()) << "Creating Sungrow Modbus TCP connection for" << networkDeviceInfo.address() << "Port:" << m_port << "Slave Address" << m_modbusAddress;
     SungrowModbusTcpConnection *connection = new SungrowModbusTcpConnection(networkDeviceInfo.address(), m_port, m_modbusAddress, this);
-    connection->setTimeout(5000);
-    connection->setNumberOfRetries(0);
+    connection->modbusTcpMaster()->setTimeout(5000);
+    connection->modbusTcpMaster()->setNumberOfRetries(0);
     m_connections.append(connection);
 
     connect(connection, &SungrowModbusTcpConnection::reachableChanged, this, [=](bool reachable){
@@ -118,14 +118,14 @@ void SungrowDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
     });
 
     // In case of an error skip the host
-    connect(connection, &ModbusTcpMaster::connectionStateChanged, this, [=](bool connected){
+    connect(connection->modbusTcpMaster(), &ModbusTcpMaster::connectionStateChanged, this, [=](bool connected){
         if (connected) {
             qCDebug(dcSungrow()) << "Discovery: Connected with" << networkDeviceInfo.address().toString() << m_port;
         }
     });
 
     // In case of an error skip the host
-    connect(connection, &ModbusTcpMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
+    connect(connection->modbusTcpMaster(), &ModbusTcpMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
         if (error != QModbusDevice::NoError) {
             qCDebug(dcSungrow()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";
             cleanupConnection(connection);
