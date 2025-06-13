@@ -1,2 +1,2 @@
-usr/lib/@DEB_HOST_MULTIARCH@/nymea/plugins/libnymea_integrationpluginjanitza.so
-janitza/translations/*qm usr/share/nymea/translations/
+usr/lib/@DEB_HOST_MULTIARCH@/nymea/plugins/libnymea_integrationpluginsiemens.so
+siemens/translations/*qm usr/share/nymea/translations/
