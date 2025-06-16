@@ -961,14 +961,14 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 << "Monitor reachable"
                 << monitor->reachable()
                 << macAddress.toString();
-        m_setupTcpConnectionRunning = false;
+        m_setupEvcG2TcpConnectionRunning = false;
         if (monitor->reachable()) {
             setupEvcG2TcpConnection(info);
         } else {
             connect(hardwareManager()->networkDeviceDiscovery(),
                     &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
-                if (!m_setupTcpConnectionRunning) {
-                    m_setupTcpConnectionRunning = true;
+                if (!m_setupEvcG2TcpConnectionRunning) {
+                    m_setupEvcG2TcpConnectionRunning = true;
                     setupEvcG2TcpConnection(info);
                 }
             });

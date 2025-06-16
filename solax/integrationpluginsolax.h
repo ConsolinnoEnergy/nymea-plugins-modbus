@@ -53,6 +53,7 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
     bool m_setupTcpConnectionRunning = false;
+    bool m_setupEvcG2TcpConnectionRunning = false;
 
     struct MeterStates {
         bool modbusReachable {false};
