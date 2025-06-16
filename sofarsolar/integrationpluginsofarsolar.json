@@ -17,7 +17,8 @@
                     ],
                     "interfaces": [
                         "solarinverter",
-                        "connectable"
+                        "connectable",
+                        "limitgridexport"
                     ],
                     "providedInterfaces": [
                         "solarinverter",
@@ -52,6 +53,15 @@
                             "minValue": 1,
                             "maxValue": 247,
                             "defaultValue": 1
+                        },
+                        {
+                            "id": "ec7a61e9-2490-4305-b4d0-959349c973c0",
+                            "name": "nominalPower",
+                            "displayName": "Nominal power",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "minValue": 1,
+                            "defaultValue": 5000
                         }
                     ],
                     "stateTypes": [
@@ -102,6 +112,27 @@
                             "defaultValue": "Waiting",
                             "displayNameEvent": "System Status changed",
                             "cached": false
+                        },
+                        {
+                            "id": "eae90acd-f520-41a4-99c6-d5eecb7a149f",
+                            "name": "enableExportLimit",
+                            "displayName": "Enable Export Limit",
+                            "displayNameAction": "Enable Export Limit",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
+                        },
+                        {
+                            "id": "9b88cf03-8e3c-4748-84b5-44235efe94c5",
+                            "name": "exportLimit",
+                            "displayName": "Export Limit",
+                            "displayNameAction": "Set export limit",
+                            "type": "double",
+                            "unit": "Watt",
+                            "writable": true,
+                            "defaultValue": 0,
+                            "minValue": 0,
+                            "maxValue": 100
                         }
                     ],
                     "actionTypes": []

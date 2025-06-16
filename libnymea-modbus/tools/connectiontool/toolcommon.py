@@ -413,6 +413,7 @@ def validateBlocks(blockDefinitions):
         logger.debug('Define valid block \"%s\" starting at %s with length %s containing %s properties to read.' % (blockName, blockStartAddress, blockSize, registerCount))
 
 
+
 def writeBlocksUpdateMethodDeclarations(fileDescriptor, blockDefinitions):
     for blockDefinition in blockDefinitions:
         blockName = blockDefinition['id']

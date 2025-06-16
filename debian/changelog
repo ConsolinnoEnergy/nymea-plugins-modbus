@@ -3,6 +3,13 @@ nymea-plugins-modbus (1.7.017) jammy; urgency=medium
   * Added Zhejiang Chint DTSU666 smart meter
   * Added Support for AlphaInnotec Smart Home Interface
   * Growatt: support for LPP changed: limit power input (W) instead of rate (%)
+  * Sofarsolar HYD / Azzurro hybrid inverters: LPP added
+  * Fix Alfen wrong energy value ESEMS-1800
+  * Add support for FoxESS R-Series
+    - Combine Wallbox and Inverter into one plugin
+  * Lambda: accuracy improvements and warning suppression
+  * SMA: Reduce warnings, add fixes from nymea team
+  * Siemens PAC2200: Initial Support
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 28 May 2025 08:49:00 +0200
 

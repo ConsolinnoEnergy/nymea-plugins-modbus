@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2022, nymea GmbH
+* Copyright 2013 - 2025, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,50 +28,46 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef SPEEDWIREINTERFACE_H
-#define SPEEDWIREINTERFACE_H
+#ifndef DISCOVERYTCP_H
+#define DISCOVERYTCP_H
 
 #include <QObject>
-#include <QUdpSocket>
-#include <QDataStream>
 #include <QTimer>
 
-#include "speedwire.h"
+#include <network/networkdevicediscovery.h>
+#include <modbusdatautils.h>
 
-class SpeedwireInterface : public QObject
+#include "siemenspac2200modbustcpconnection.h"
+
+class DiscoveryTcp : public QObject
 {
     Q_OBJECT
 public:
+    explicit DiscoveryTcp(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    struct Result {
+        NetworkDeviceInfo networkDeviceInfo;
+    };
 
-    explicit SpeedwireInterface(quint32 sourceSerialNumber, QObject *parent = nullptr);
-    ~SpeedwireInterface();
+    void startDiscovery();
 
-    bool available() const;
-
-    static bool isOwnInterface(const QHostAddress &hostAddress);
-
-    quint32 sourceSerialNumber() const;
-
-    bool initialize();
-
-public slots:
-    void sendDataUnicast(const QHostAddress &address, const QByteArray &data);
-    void sendDataMulticast(const QByteArray &data);
+    QList<Result> discoveryResults() const;
 
 signals:
-    void dataReceived(const QHostAddress &senderAddress, quint16 senderPort, const QByteArray &data, bool multicast = false);
-
-private slots:
-    void reconfigureMulticastGroup();
+    void discoveryFinished();
 
 private:
-    QUdpSocket *m_unicast = nullptr;
-    QUdpSocket *m_multicast = nullptr;
-    quint32 m_sourceSerialNumber = 0;
-    bool m_available = false;
-    QTimer m_multicastReconfigureationTimer;
-    uint m_multicastWarningPrintCount = 0;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
+
+    QDateTime m_startDateTime;
+
+    QList<SiemensPAC2200ModbusTcpConnection *> m_connections;
+
+    QList<Result> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SiemensPAC2200ModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-
-#endif // SPEEDWIREINTERFACE_H
+#endif // DISCOVERYTCP_H

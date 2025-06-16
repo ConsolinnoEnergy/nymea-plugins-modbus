@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2022, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,50 +28,44 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef SPEEDWIREINTERFACE_H
-#define SPEEDWIREINTERFACE_H
+#ifndef RSERIESDISCOVERY_H
+#define RSERIESDISCOVERY_H
 
 #include <QObject>
-#include <QUdpSocket>
-#include <QDataStream>
 #include <QTimer>
 
-#include "speedwire.h"
+#include <hardware/modbus/modbusrtuhardwareresource.h>
+#include <modbusdatautils.h>
 
-class SpeedwireInterface : public QObject
+class DiscoveryRtu : public QObject
 {
     Q_OBJECT
 public:
+    explicit DiscoveryRtu(ModbusRtuHardwareResource *modbusRtuResource, uint modbusId, QObject *parent = nullptr);
+    struct Result {
+        QUuid modbusRtuMasterId;
+        quint32 modbusId;
+        QString serialPort;
+        QString serialNumber;
+    };
 
-    explicit SpeedwireInterface(quint32 sourceSerialNumber, QObject *parent = nullptr);
-    ~SpeedwireInterface();
+    void startDiscovery();
 
-    bool available() const;
-
-    static bool isOwnInterface(const QHostAddress &hostAddress);
-
-    quint32 sourceSerialNumber() const;
-
-    bool initialize();
-
-public slots:
-    void sendDataUnicast(const QHostAddress &address, const QByteArray &data);
-    void sendDataMulticast(const QByteArray &data);
+    QList<Result> discoveryResults() const;
 
 signals:
-    void dataReceived(const QHostAddress &senderAddress, quint16 senderPort, const QByteArray &data, bool multicast = false);
+    void discoveryFinished(bool modbusRtuMasterAvailable);
+    void repliesFinished();
 
 private slots:
-    void reconfigureMulticastGroup();
+    void tryConnect(ModbusRtuMaster *master, quint16 modbusId);
 
 private:
-    QUdpSocket *m_unicast = nullptr;
-    QUdpSocket *m_multicast = nullptr;
-    quint32 m_sourceSerialNumber = 0;
-    bool m_available = false;
-    QTimer m_multicastReconfigureationTimer;
-    uint m_multicastWarningPrintCount = 0;
+    ModbusRtuHardwareResource *m_modbusRtuResource = nullptr;
+    uint m_modbusId;
+    qint16 m_openReplies;
+    QList<Result> m_discoveryResults;
 };
 
+#endif // RSERIESDISCOVERY_H
 
-#endif // SPEEDWIREINTERFACE_H
