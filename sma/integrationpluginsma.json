@@ -454,6 +454,18 @@
                     "createMethods": ["auto"],
                     "setupMethod": "JustAdd",
                     "interfaces": [ "energystorage", "connectable"],
+                    "settingsTypes": [
+                        {
+                            "id": "f4f37bce-c60b-40a2-adac-230f48a7db8f",
+                            "name": "capacity",
+                            "displayName": "Battery capacity",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "minValue": 0,
+                            "maxValue": 10000,
+                            "defaultValue": 5
+                        }
+                    ],
                     "paramTypes": [ ],
                     "stateTypes": [
                         {
