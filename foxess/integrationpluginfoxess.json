@@ -1,13 +1,141 @@
 {
-    "name": "foxEss",
+    "name": "foxess",
     "displayName": "FoxESS",
     "id": "efc090ee-4230-4755-ad87-fb2675ca0186",
     "vendors": [
         {
-            "name": "foxEss",
+            "name": "foxess",
             "displayName": "FoxESS",
             "id": "17e4357f-c6a6-4407-857c-354e813c4c92",
             "thingClasses": [
+                {
+                    "name": "foxRSeries",
+                    "displayName": "FoxESS R-Series",
+                    "id": "06489b61-0fe5-4488-8beb-15e0f5a93dba",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["solarinverter", "connectable"],
+                    "providedInterfaces": [ "solarinverter"],
+                    "discoveryParamTypes": [
+                    ],
+                    "paramTypes": [
+                        {
+                            "id": "b8f7260b-80d0-414f-a19b-f4f8c77cb9c4",
+                            "name": "modbusMasterUuid",
+                            "displayName": "Modbus RTU master",
+                            "type": "QUuid",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "0ae9ae16-3550-4271-94e0-e1f0c1e6d239",
+                            "name": "slaveAddress",
+                            "displayName": "Modbus slave address",
+                            "type": "uint",
+                            "defaultValue": 1,
+                            "readOnly": true
+                        },
+                        {
+                            "id": "f68e7ff2-b4ed-4592-a179-1668746e6bb3",
+                            "name": "serialNumber",
+                            "displayName": "Serial number",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "5f1d2ed4-9ab4-4164-9372-52458f58a438",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "5ca14436-c70f-4641-8d49-a27bd43f70e2",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "52837641-2730-490e-a2e2-f7a478fb6591",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": true
+                        },
+                        {
+                            "id": "4e1d7359-4a73-4ab7-b17f-20b48ae844e9",
+                            "name": "operatingState",
+                            "displayName": "Operating State",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Off",
+                                "Sleeping",
+                                "Starting",
+                                "MPPT",
+                                "Throttled",
+                                "ShuttingDown",
+                                "Fault",
+                                "Standby"
+                            ],
+                            "defaultValue": "Off",
+                            "displayNameEvent": "Operating state changed",
+                            "cached": false
+                        },
+                        {
+                            "id": "e1ba620e-ede0-48c6-9cdb-467acc79bb45",
+                            "name": "frequency",
+                            "displayName": "Frequency",
+                            "type": "double",
+                            "unit": "Hertz",
+                            "displayNameEvent": "Frequency changed",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "fb811a0f-215b-41db-a3b3-d3effab8cf08",
+                            "name": "firmwareVersion",
+                            "displayName": "Firmware version",
+                            "displayNameEvent": "Firmware version changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": true
+                        },
+                        {
+                            "id": "55375864-76ce-42d6-8da5-ed163248a052",
+                            "name": "serialNumber",
+                            "displayName": "Serialnumber",
+                            "displayNameEvent": "Serialnumber changed",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": true
+                        },
+                        {
+                            "id": "a761172f-5660-481f-a5fb-703911f57934",
+                            "name": "productionLimit",
+                            "displayName": "Production limit",
+                            "displayNameEvent": "Production limit changed",
+                            "displayNameAction": "Set production limit",
+                            "type": "uint",
+                            "minValue": 0,
+                            "maxValue": 100000,
+                            "defaultValue": 100000,
+                            "writable": true,
+                            "cached": true
+                        }
+                    ],
+                    "actionTypes": [ ]
+                },
                 {
                     "name": "foxEss",
                     "displayName": "FoxESS EV Charger (Modbus TCP)",
@@ -223,3 +351,4 @@
         }
     ]
 }
+

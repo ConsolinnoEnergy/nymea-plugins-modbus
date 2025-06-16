@@ -1,12 +1,14 @@
 include(../plugins.pri)
 
 # Generate modbus connection
-MODBUS_CONNECTIONS += alphainnotec-registers.json
+MODBUS_CONNECTIONS += alphainnotec-registers.json ait-shi-registers.json
 #MODBUS_TOOLS_CONFIG += VERBOSE
 include(../modbus.pri)
 
 SOURCES += \
-    integrationpluginalphainnotec.cpp
+    integrationpluginalphainnotec.cpp \
+    aitdiscovery.cpp
 
 HEADERS += \
-    integrationpluginalphainnotec.h
+    integrationpluginalphainnotec.h \
+    aitdiscovery.h

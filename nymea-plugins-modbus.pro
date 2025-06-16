@@ -15,9 +15,10 @@ PLUGIN_DIRS = \
     amperfied               \
     bgetech                 \
     broetje                 \
+    chint                   \
     kostalmeter             \
     drexelundweiss          \
-    foxesswbv3              \
+    foxess                  \
     goodwe                  \
     growatt                 \
     huawei                  \
@@ -47,6 +48,7 @@ PLUGIN_DIRS = \
     sungrowsg               \
     sungrowsh               \
     sunspec                 \
+    siemens                 \
     technivolt              \
     unipi                   \
     vestel                  \

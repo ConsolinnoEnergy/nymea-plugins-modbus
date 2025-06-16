@@ -2213,7 +2213,7 @@ void AlfenWallboxModbusTcpConnection::processRealEnergyDeliveredPhaseL3RegisterV
 
 void AlfenWallboxModbusTcpConnection::processRealEnergyDeliveredSumRegisterValues(const QVector<quint16> values)
 {
-    float receivedRealEnergyDeliveredSum = ModbusDataUtils::convertToFloat32(values, m_endianness);
+    double receivedRealEnergyDeliveredSum = ModbusDataUtils::convertToFloat64(values, m_endianness) / 1000;
     emit realEnergyDeliveredSumReadFinished(receivedRealEnergyDeliveredSum);
 
     if (m_realEnergyDeliveredSum != receivedRealEnergyDeliveredSum) {

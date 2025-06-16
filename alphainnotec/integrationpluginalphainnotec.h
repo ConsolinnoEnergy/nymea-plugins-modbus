@@ -33,8 +33,10 @@
 
 #include <plugintimer.h>
 #include <integrations/integrationplugin.h>
+#include <network/networkdevicemonitor.h>
 
 #include "alphainnotecmodbustcpconnection.h"
+#include "aitshimodbustcpconnection.h"
 
 class IntegrationPluginAlphaInnotec: public IntegrationPlugin
 {
@@ -55,7 +57,31 @@ public:
 
 private:
     PluginTimer *m_pluginTimer = nullptr;
+
+    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, AlphaInnotecModbusTcpConnection *> m_connections;
+    QHash<Thing *, aitShiModbusTcpConnection *> m_aitShiConnections;
+
+    quint16 m_platformVersion = 0;
+    quint16 m_majorVersion = 0;
+    quint16 m_minorVersion = 0;
+    
+    enum Mode {
+        NOLIMIT = 0,
+        SOFTLIMIT = 1,
+        UNDEFINED = 3
+    };
+
+    enum Mode m_currentControlMode = Mode::NOLIMIT;
+    bool m_resetMode = false;
+
+    void updateFirmwareVersion(Thing *thing, quint16 version, QString place);
+
+    void writeHotWaterOffsetTemp(Thing *thing);
+    void writeHeatingOffsetTemp(Thing *thing);
+
+    qint64 m_hysteresisTimer = 0;
+    bool m_turnOffHysteresis = false;
 };
 
 #endif // INTEGRATIONPLUGINALPHAINNOTEC_H
