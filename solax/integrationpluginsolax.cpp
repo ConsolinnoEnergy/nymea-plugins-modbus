@@ -955,12 +955,22 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         // 'monitor' is returned while the discovery is still running -> monitor does not include ip
         // address and is set to not reachable
         m_monitors.insert(thing, monitor);
+        connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
+            // Clean up in case the setup gets aborted.
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcSolax()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
+        });
         // If the ip address was not found in the cache, wait for the for the network discovery
         // cache to be updated
         qCDebug(dcSolax())
                 << "Monitor reachable"
                 << monitor->reachable()
                 << macAddress.toString();
+        qCDebug(dcSolax())
+                << "NetworkDeviceDiscovery running?"
+                << hardwareManager()->networkDeviceDiscovery()->running();
         m_setupEvcG2TcpConnectionRunning = false;
         if (monitor->reachable()) {
             setupEvcG2TcpConnection(info);
@@ -1603,14 +1613,6 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
             this };
     m_evcG2TcpConnections.insert(thing, connection);
 
-    connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
-        // Clean up in case the setup gets aborted.
-        if (m_monitors.contains(thing)) {
-            qCDebug(dcSolax()) << "Unregister monitor because the setup has been aborted.";
-            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-        }
-    });
-
     // Reconnect on monitor reachable changed
     connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
         qCDebug(dcSolax()) << "Network device monitor reachable changed for" << thing->name()
@@ -1645,14 +1647,20 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                     qCDebug(dcSolax()) << "Solax wallbox initialized.";
                     thing->setStateValue(solaxEvcG2FirmwareVersionStateTypeId,
                                          connection->firmwareVersion());
-                    thing->setStateValue(solaxEvcG2MaxChargingCurrentStateTypeId,
-                                         connection->maxChargeCurrent());
+                    // #TODO
+                    // - set StartChargeMode (to "PlugAndCharge"?)
+                    // - set EvseSceneRW (to "Standard")
+                    // - set EvseMode (to "Fast")
+                    // - set BoostMode (to "Normal")
                 } else {
                     qCDebug(dcSolax()) << "Solax wallbox initialization failed.";
                     // Try to reconnect to device
                     connection->reconnectDevice();
                 }
             });
+
+    // #TODO
+    // - pluggedIn State
 
     connect(connection, &SolaxEvcG2ModbusTcpConnection::stateChanged, thing,
             [thing](SolaxEvcG2ModbusTcpConnection::State state) {
@@ -1703,11 +1711,15 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
             [thing](float currentPhaseC) {
                 thing->setStateValue(solaxEvcG2CurrentPhaseCStateTypeId, currentPhaseC);
             });
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::maxChargeCurrentChanged, thing,
+            [thing](float maxChargeCurrent) {
+                thing->setStateValue(solaxEvcG2MaxChargingCurrentStateTypeId, maxChargeCurrent);
+            });
 
     // #TODO remove when testing finished
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::evcModeChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::EvcMode evcMode) {
-                qCDebug(dcSolax()) << "EVC Mode:" << evcMode;
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::evseSceneChanged, thing,
+            [](SolaxEvcG2ModbusTcpConnection::EvseScene evseScene) {
+                qCDebug(dcSolax()) << "EVSE Scene:" << evseScene;
             });
     connect(connection, &SolaxEvcG2ModbusTcpConnection::ecoGearChanged, thing,
             [](quint16 ecoGear) {
@@ -1729,9 +1741,9 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
             [](quint16 userSetContractedCurrent) {
                 qCDebug(dcSolax()) << "User Set Contracted Current:" << userSetContractedCurrent;
             });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::evcModeRWChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::EvcMode evcMode) {
-                qCDebug(dcSolax()) << "EVC Mode (RW):" << evcMode;
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::evseSceneRWChanged, thing,
+            [](SolaxEvcG2ModbusTcpConnection::EvseScene evseScene) {
+                qCDebug(dcSolax()) << "EVSE Scene (RW):" << evseScene;
             });
     connect(connection, &SolaxEvcG2ModbusTcpConnection::chargePhaseRWChanged, thing,
             [](SolaxEvcG2ModbusTcpConnection::ChargePhase chargePhase) {
@@ -1752,6 +1764,10 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
     connect(connection, &SolaxEvcG2ModbusTcpConnection::setEVSEModeChanged, thing,
             [](SolaxEvcG2ModbusTcpConnection::SetEVSEMode setEVSEMode) {
                 qCDebug(dcSolax()) << "Set EVSE Mode:" << setEVSEMode;
+            });
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::updateFinished, connection,
+            [connection]() {
+                qCDebug(dcSolax()) << "Current control command:" << connection->controlCommand();
             });
 
     if (monitor->reachable()) {
@@ -2005,6 +2021,32 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             thing->setStateValue(solaxBatteryMinBatteryLevelStateTypeId, minBatteryLevel);
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+        }
+    } else if (thing->thingClassId() == solaxEvcG2ThingClassId) {
+        SolaxEvcG2ModbusTcpConnection *connection = m_evcG2TcpConnections.value(thing);
+        if (!connection) {
+            qCWarning(dcSolax()) << "Modbus connection not available";
+            info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+        if (!connection->modbusTcpMaster()->connected()) {
+            qCWarning(dcSolax()) << "Could not execute action. The modbus connection is currently not available.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (action.actionTypeId() == solaxEvcG2PowerActionTypeId) {
+            auto charging = action.paramValue(solaxEvcG2PowerActionPowerParamTypeId).toBool();
+            setEvcG2Charging(connection, charging);
+            info->finish(Thing::ThingErrorNoError);
+        } else if (action.actionTypeId() == solaxEvcG2MaxChargingCurrentActionTypeId) {
+            auto maxChargeCurrent =
+                    action.paramValue(solaxEvcG2MaxChargingCurrentActionMaxChargingCurrentParamTypeId).toFloat();
+            setEvcG2MaxChargingCurrent(connection, maxChargeCurrent);
+            info->finish(Thing::ThingErrorNoError);
+        } else {
+            qCDebug(dcSolax()) << "Unhandled action:" << info;
+            info->finish(Thing::ThingErrorActionTypeNotFound);
         }
     }
 }
@@ -2281,6 +2323,40 @@ void IntegrationPluginSolax::setMaxCurrent(Thing *thing, double maxCurrent)
     } else {
         qCWarning(dcSolax()) << "setBatteryPower - Received incorrect thing";
     }
+}
+
+void IntegrationPluginSolax::setEvcG2Charging(SolaxEvcG2ModbusTcpConnection *connection,
+                                              bool charging)
+{
+    qCDebug(dcSolax()) << "Current control command:" << connection->controlCommand();
+    qCDebug(dcSolax()) << (charging ? "Start" : "Stop") << "charging";
+    const auto command = charging ?
+                SolaxEvcG2ModbusTcpConnection::ControlCommandStartCharge :
+                SolaxEvcG2ModbusTcpConnection::ControlCommandStopCharge;
+    const auto reply = connection->setControlCommand(command);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [reply]() {
+        if (reply->error() == QModbusDevice::NoError) {
+            qCDebug(dcSolax()) << "Successfully set charging";
+        } else {
+            qCDebug(dcSolax()) << "Error while setting charging:" << reply->error();
+        }
+    });
+}
+
+void IntegrationPluginSolax::setEvcG2MaxChargingCurrent(SolaxEvcG2ModbusTcpConnection *connection,
+                                                        float maxChargingCurrent)
+{
+    qCDebug(dcSolax()) << "Setting max. charging current to" << maxChargingCurrent << "A";
+    const auto reply = connection->setMaxChargeCurrent(maxChargingCurrent);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [reply]() {
+        if (reply->error() == QModbusDevice::NoError) {
+            qCDebug(dcSolax()) << "Successfully set max. charging current";
+        } else {
+            qCDebug(dcSolax()) << "Error while setting max. charging current:" << reply->error();
+        }
+    });
 }
 
 void IntegrationPluginSolax::writeErrorLog()

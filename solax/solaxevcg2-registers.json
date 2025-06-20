@@ -107,7 +107,7 @@
             ]
         },
         {
-            "name": "EvcMode",
+            "name": "EvseScene",
             "values": [
                 {
                     "key": "PV",
@@ -478,14 +478,14 @@
                     "access": "RO"
                 },
                 {
-                    "id": "evcMode",
+                    "id": "evseScene",
                     "address": 35,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "inputRegister",
-                    "description": "EVC Mode",
-                    "enum": "EvcMode",
-                    "defaultValue": "EvcModeStandard",
+                    "description": "EVSE Scene",
+                    "enum": "EvseScene",
+                    "defaultValue": "EvseSceneStandard",
                     "access": "RO"
                 }
             ]
@@ -594,15 +594,15 @@
             "access": "RO"
         },
         {
-            "id": "evcModeRW",
+            "id": "evseSceneRW",
             "address": 1564,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "EVC Mode (R/W)",
-            "enum": "EvcMode",
-            "defaultValue": "EvcModeStandard",
+            "description": "EVSE Scene (R/W)",
+            "enum": "EvseScene",
+            "defaultValue": "EvseSceneStandard",
             "access": "RW"
         },
         {
@@ -658,7 +658,7 @@
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "readSchedule": "init",
+            "readSchedule": "update",
             "description": "Max. Charge Current",
             "unit": "A",
             "staticScaleFactor": -2,

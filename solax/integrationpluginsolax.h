@@ -89,6 +89,9 @@ private:
     void setBatteryPower(Thing *thing, qint32 powerToSet, quint16 batteryTimeout);
     void setMaxCurrent(Thing *thing, double maxCurrent);
 
+    void setEvcG2Charging(SolaxEvcG2ModbusTcpConnection *connection, bool charging);
+    void setEvcG2MaxChargingCurrent(SolaxEvcG2ModbusTcpConnection *connection, float maxChargingCurrent);
+
     void writeErrorLog();
 
     quint16 m_energyCheck = 0;
