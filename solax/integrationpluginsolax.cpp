@@ -1798,10 +1798,12 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
                     connection->update();
                 }
             });
-
             m_pluginTimer->start();
         }
+    }
 
+    if (thing->thingClassId() == solaxX3InverterTCPThingClassId ||
+            thing->thingClassId() == solaxX3InverterRTUThingClassId) {
         // Check if w have to set up a child meter for this inverter connection
         if (myThings().filterByParentId(thing->id()).filterByThingClassId(solaxMeterThingClassId).isEmpty()) {
             qCDebug(dcSolax()) << "Set up solax meter for" << thing;
@@ -1809,7 +1811,6 @@ void IntegrationPluginSolax::postSetupThing(Thing *thing)
             emit autoThingsAppeared(ThingDescriptors() << ThingDescriptor(solaxMeterThingClassId, name, QString(), thing->id()));
         }
     }
-
 }
 
 void IntegrationPluginSolax::writePasswordToInverter(Thing *thing)
