@@ -4,6 +4,8 @@
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "firmwareVersion",
+    "queuedRequests": true,
+    "queuedRequestsDelay": 100,
     "enums": [
         {
             "name": "State",
@@ -581,11 +583,23 @@
             "access": "RO"
         },
         {
+            "id": "chargingTime",
+            "address": 43,
+            "size": 2,
+            "type": "uint32",
+            "registerType": "inputRegister",
+            "readSchedule": "update",
+            "description": "Charging Time",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
             "id": "evcModeRW",
             "address": 1564,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
+            "readSchedule": "update",
             "description": "EVC Mode (R/W)",
             "enum": "EvcMode",
             "defaultValue": "EvcModeStandard",
@@ -644,7 +658,7 @@
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "description": "Max. Charge Current",
             "unit": "A",
             "staticScaleFactor": -2,
