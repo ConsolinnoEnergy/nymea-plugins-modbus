@@ -951,9 +951,6 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         // reachable without polling on our own. In this call, nymea is checking a list for known
         // mac addresses and associated ip addresses
         const auto monitor = hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
-        // If the mac address is not known, nymea is starting a internal network discovery.
-        // 'monitor' is returned while the discovery is still running -> monitor does not include ip
-        // address and is set to not reachable
         m_monitors.insert(thing, monitor);
         connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
             // Clean up in case the setup gets aborted.
@@ -962,27 +959,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
             }
         });
-        // If the ip address was not found in the cache, wait for the for the network discovery
-        // cache to be updated
-        qCDebug(dcSolax())
-                << "Monitor reachable"
-                << monitor->reachable()
-                << macAddress.toString();
-        qCDebug(dcSolax())
-                << "NetworkDeviceDiscovery running?"
-                << hardwareManager()->networkDeviceDiscovery()->running();
-        m_setupEvcG2TcpConnectionRunning = false;
-        if (monitor->reachable()) {
-            setupEvcG2TcpConnection(info);
-        } else {
-            connect(hardwareManager()->networkDeviceDiscovery(),
-                    &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
-                if (!m_setupEvcG2TcpConnectionRunning) {
-                    m_setupEvcG2TcpConnectionRunning = true;
-                    setupEvcG2TcpConnection(info);
-                }
-            });
-        }
+        setupEvcG2TcpConnection(info);
     }
 }
 
