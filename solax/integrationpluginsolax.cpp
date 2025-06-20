@@ -1637,41 +1637,6 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                 }
             });
 
-//    connect(connection, &SolaxEvcG2ModbusTcpConnection::stateChanged, thing,
-//            [](SolaxEvcG2ModbusTcpConnection::State state) {
-//                qCDebug(dcSolax()) << "State changed to:" << state;
-//                // #TODO
-//            });
-//    connect(connection, &SolaxEvcG2ModbusTcpConnection::faultCodeChanged, thing,
-//            [](quint32 faultCode) {
-//                qCDebug(dcSolax()) << "Fault code changed to:" << faultCode;
-//                // #TODO
-//            });
-
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::totalPowerChanged, thing,
-            [thing](float totalPower) {
-                thing->setStateValue(solaxEvcG2CurrentPowerStateTypeId, totalPower);
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::sessionEnergyChanged, thing,
-            [thing](float sessionEnergy) {
-                thing->setStateValue(solaxEvcG2SessionEnergyStateTypeId, sessionEnergy);
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::totalEnergyChanged, thing,
-            [thing](float totalEnergy) {
-                thing->setStateValue(solaxEvcG2TotalEnergyConsumedStateTypeId, totalEnergy);
-            });
-
-    // #TODO  Handle typePowerChanged (set maxChargingCurrent max value)
-//    connect(connection, &SolaxEvcModbusTcpConnection::typePowerChanged, thing,
-//            [this, connection, thing](quint16 type) {
-//                qCDebug(dcSolaxEvc()) << "Received info about EV type.";
-//                if (type == 1) {
-//                    thing->setStateMaxValue("maxChargingCurrent", 16);
-//                } else {
-//                    thing->setStateMaxValue("maxChargingCurrent", 32);
-//                }
-//            });
-
     connect(connection, &SolaxEvcG2ModbusTcpConnection::initializationFinished, thing,
             [=](bool success) {
                 thing->setStateValue(solaxEvcG2ConnectedStateTypeId, success);
@@ -1687,6 +1652,38 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                     connection->reconnectDevice();
                 }
             });
+
+        connect(connection, &SolaxEvcG2ModbusTcpConnection::stateChanged, thing,
+                [thing](SolaxEvcG2ModbusTcpConnection::State state) {
+                    thing->setStateValue(solaxEvcG2StateStateTypeId, state);
+                });
+        connect(connection, &SolaxEvcG2ModbusTcpConnection::faultCodeChanged, thing,
+                [thing](quint32 faultCode) {
+                    thing->setStateValue(solaxEvcG2FaultCodeStateTypeId, faultCode);
+                });
+        connect(connection, &SolaxEvcG2ModbusTcpConnection::totalPowerChanged, thing,
+                [thing](float totalPower) {
+                    thing->setStateValue(solaxEvcG2CurrentPowerStateTypeId, totalPower);
+                });
+        connect(connection, &SolaxEvcG2ModbusTcpConnection::sessionEnergyChanged, thing,
+                [thing](float sessionEnergy) {
+                    thing->setStateValue(solaxEvcG2SessionEnergyStateTypeId, sessionEnergy);
+                });
+        connect(connection, &SolaxEvcG2ModbusTcpConnection::totalEnergyChanged, thing,
+                [thing](float totalEnergy) {
+                    thing->setStateValue(solaxEvcG2TotalEnergyConsumedStateTypeId, totalEnergy);
+                });
+
+        // #TODO  Handle typePowerChanged (set maxChargingCurrent max value)
+    //    connect(connection, &SolaxEvcModbusTcpConnection::typePowerChanged, thing,
+    //            [this, connection, thing](quint16 type) {
+    //                qCDebug(dcSolaxEvc()) << "Received info about EV type.";
+    //                if (type == 1) {
+    //                    thing->setStateMaxValue("maxChargingCurrent", 16);
+    //                } else {
+    //                    thing->setStateMaxValue("maxChargingCurrent", 32);
+    //                }
+    //            });
 
     // #TODO connects for state value changes
 
