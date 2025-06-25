@@ -1645,8 +1645,6 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                 } else {
                     thing->setStateValue(solaxEvcG2PluggedInStateTypeId, true);
                 }
-                thing->setStateValue(solaxEvcG2ChargingStateTypeId,
-                                     state == SolaxEvcG2ModbusTcpConnection::StateCharging);
             });
     connect(connection, &SolaxEvcG2ModbusTcpConnection::faultCodeChanged, thing,
             [thing](quint32 faultCode) {
