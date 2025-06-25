@@ -1661,8 +1661,8 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
             });
 
     connect(connection, &SolaxEvcG2ModbusTcpConnection::stateChanged, thing,
-            [thing](SolaxEvcG2ModbusTcpConnection::State state) {
-                qCDebug(dcSolax()) << "State:" << state; // #TODO remove when testing finished
+            [this, thing, connection](SolaxEvcG2ModbusTcpConnection::State state) {
+                qCDebug(dcSolax()) << "State changed to:" << state; // #TODO remove when testing finished
                 thing->setStateValue(solaxEvcG2StateStateTypeId, state);
                 thing->setStateValue(solaxEvcG2ChargingStateTypeId,
                                      state == SolaxEvcG2ModbusTcpConnection::StateCharging);
@@ -1672,6 +1672,20 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                     thing->setStateValue(solaxEvcG2PluggedInStateTypeId, false);
                 } else {
                     thing->setStateValue(solaxEvcG2PluggedInStateTypeId, true);
+                }
+
+                // Make wallbox follow our charging instructions.
+                if (state == SolaxEvcG2ModbusTcpConnection::StateCharging) {
+                    if (!thing->stateValue(solaxEvcG2PowerStateTypeId).toBool()) {
+                        qCDebug(dcSolax()) << "EV charging but instructed not to. Disable charging...";
+                        setEvcG2Charging(connection, false);
+                    }
+                } else {
+                    if (thing->stateValue(solaxEvcG2PluggedInStateTypeId).toBool() &&
+                            thing->stateValue(solaxEvcG2PowerStateTypeId).toBool()) {
+                        qCDebug(dcSolax()) << "EV plugged in and instructed to charge. Enable charging...";
+                        setEvcG2Charging(connection, true);
+                    }
                 }
             });
     connect(connection, &SolaxEvcG2ModbusTcpConnection::faultCodeChanged, thing,
@@ -2044,6 +2058,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
         if (action.actionTypeId() == solaxEvcG2PowerActionTypeId) {
             auto charging = action.paramValue(solaxEvcG2PowerActionPowerParamTypeId).toBool();
             setEvcG2Charging(connection, charging);
+            thing->setStateValue(solaxEvcG2PowerStateTypeId, charging);
             info->finish(Thing::ThingErrorNoError);
         } else if (action.actionTypeId() == solaxEvcG2MaxChargingCurrentActionTypeId) {
             auto maxChargeCurrent =
@@ -2408,7 +2423,10 @@ void IntegrationPluginSolax::setEvcG2Charging(SolaxEvcG2ModbusTcpConnection *con
         if (reply->error() == QModbusDevice::NoError) {
             qCDebug(dcSolax()) << "Successfully set charging";
         } else {
-            qCDebug(dcSolax()) << "Error while setting charging:" << reply->error();
+            qCDebug(dcSolax())
+                    << "Error while setting charging:"
+                    << reply->error()
+                    << reply->errorString();
         }
     });
 }
@@ -2423,7 +2441,10 @@ void IntegrationPluginSolax::setEvcG2MaxChargingCurrent(SolaxEvcG2ModbusTcpConne
         if (reply->error() == QModbusDevice::NoError) {
             qCDebug(dcSolax()) << "Successfully set max. charging current";
         } else {
-            qCDebug(dcSolax()) << "Error while setting max. charging current:" << reply->error();
+            qCDebug(dcSolax())
+                    << "Error while setting max. charging current:"
+                    << reply->error()
+                    << reply->errorString();
         }
     });
 }
