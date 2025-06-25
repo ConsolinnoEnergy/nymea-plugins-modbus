@@ -183,19 +183,19 @@
             "values": [
                 {
                     "key": "Available",
-                    "value": 0
-                },
-                {
-                    "key": "Unavailable",
                     "value": 1
                 },
                 {
-                    "key": "StopCharge",
+                    "key": "Unavailable",
                     "value": 2
                 },
                 {
-                    "key": "StartCharge",
+                    "key": "StopCharge",
                     "value": 3
+                },
+                {
+                    "key": "StartCharge",
+                    "value": 4
                 }
             ]
         },
