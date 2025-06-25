@@ -1632,6 +1632,34 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                 }
             });
 
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::typePowerChanged, thing,
+            [thing](SolaxEvcG2ModbusTcpConnection::TypePower typePower) {
+                qCDebug(dcSolax()) << "Received wallbox power type information:" << typePower;
+                auto maxChargeCurrent = 16.f;
+                switch (typePower) {
+                    case SolaxEvcG2ModbusTcpConnection::TypePower6kW:
+                        maxChargeCurrent = 16.f;
+                        break;
+                    case SolaxEvcG2ModbusTcpConnection::TypePower7kW:
+                        maxChargeCurrent = 32.f;
+                        break;
+                    case SolaxEvcG2ModbusTcpConnection::TypePower11kW:
+                        maxChargeCurrent = 16.f;
+                        break;
+                    case SolaxEvcG2ModbusTcpConnection::TypePower22kW:
+                        maxChargeCurrent = 32.f;
+                        break;
+                    case SolaxEvcG2ModbusTcpConnection::TypePower4p6kW:
+                        maxChargeCurrent = 20.f;
+                        break;
+                    }
+                qCDebug(dcSolax())
+                        << "Setting maximum value of max. charge current to"
+                        << maxChargeCurrent;
+                thing->setStateMaxValue(solaxEvcG2MaxChargingCurrentStateTypeId,
+                                        maxChargeCurrent);
+            });
+
     connect(connection, &SolaxEvcG2ModbusTcpConnection::stateChanged, thing,
             [thing](SolaxEvcG2ModbusTcpConnection::State state) {
                 qCDebug(dcSolax()) << "State:" << state; // #TODO remove when testing finished
