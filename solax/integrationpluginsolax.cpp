@@ -1617,18 +1617,14 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
             });
 
     connect(connection, &SolaxEvcG2ModbusTcpConnection::initializationFinished, thing,
-            [=](bool success) {
+            [thing, connection, this](bool success) {
                 thing->setStateValue(solaxEvcG2ConnectedStateTypeId, success);
 
                 if (success) {
                     qCDebug(dcSolax()) << "Solax wallbox initialized.";
                     thing->setStateValue(solaxEvcG2FirmwareVersionStateTypeId,
                                          connection->firmwareVersion());
-                    // #TODO
-                    // - set StartChargeMode (to "PlugAndCharge"?)
-                    // - set EvseSceneRW (to "Standard")
-                    // - set EvseMode (to "Fast")
-                    // - set BoostMode (to "Normal")
+                    configureEvcG2(connection);
                 } else {
                     qCDebug(dcSolax()) << "Solax wallbox initialization failed.";
                     // Try to reconnect to device
@@ -1636,12 +1632,19 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                 }
             });
 
-    // #TODO
-    // - pluggedIn State
-
     connect(connection, &SolaxEvcG2ModbusTcpConnection::stateChanged, thing,
             [thing](SolaxEvcG2ModbusTcpConnection::State state) {
+                qCDebug(dcSolax()) << "State:" << state; // #TODO remove when testing finished
                 thing->setStateValue(solaxEvcG2StateStateTypeId, state);
+                thing->setStateValue(solaxEvcG2ChargingStateTypeId,
+                                     state == SolaxEvcG2ModbusTcpConnection::StateCharging);
+                if (state == SolaxEvcG2ModbusTcpConnection::StateAvailable ||
+                        state == SolaxEvcG2ModbusTcpConnection::StateUnavailable ||
+                        state == SolaxEvcG2ModbusTcpConnection::StateUpdate) {
+                    thing->setStateValue(solaxEvcG2PluggedInStateTypeId, false);
+                } else {
+                    thing->setStateValue(solaxEvcG2PluggedInStateTypeId, true);
+                }
                 thing->setStateValue(solaxEvcG2ChargingStateTypeId,
                                      state == SolaxEvcG2ModbusTcpConnection::StateCharging);
             });
@@ -1738,9 +1741,9 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
             [](float adjustChargePower) {
                 qCDebug(dcSolax()) << "Adjust Charge Power:" << adjustChargePower;
             });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::setEVSEModeChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::SetEVSEMode setEVSEMode) {
-                qCDebug(dcSolax()) << "Set EVSE Mode:" << setEVSEMode;
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::evseModeChanged, thing,
+            [](SolaxEvcG2ModbusTcpConnection::EvseMode EvseMode) {
+                qCDebug(dcSolax()) << "Set EVSE Mode:" << EvseMode;
             });
     connect(connection, &SolaxEvcG2ModbusTcpConnection::updateFinished, connection,
             [connection]() {
@@ -2300,6 +2303,69 @@ void IntegrationPluginSolax::setMaxCurrent(Thing *thing, double maxCurrent)
     } else {
         qCWarning(dcSolax()) << "setBatteryPower - Received incorrect thing";
     }
+}
+
+void IntegrationPluginSolax::configureEvcG2(SolaxEvcG2ModbusTcpConnection *connection)
+{
+    qCDebug(dcSolax()) << "Configuring Solax 2nd Gen wallbox...";
+
+    const auto startChargeModeReply =
+            connection->setStartChargeMode(SolaxEvcG2ModbusTcpConnection::StartChargeModePlugAndCharge);
+    connect(startChargeModeReply, &QModbusReply::finished,
+            startChargeModeReply, &QModbusReply::deleteLater);
+    connect(startChargeModeReply, &QModbusReply::finished, this, [startChargeModeReply]()
+    {
+        if (startChargeModeReply->error() == QModbusDevice::NoError) {
+            qCDebug(dcSolax()) << "Successfully set StartChargeMode to \"PlugAndCharge\"";
+        } else {
+            qCDebug(dcSolax()) << "Error while setting StartChargeMode:" << startChargeModeReply->error();
+        }
+    });
+
+    QTimer::singleShot(1000, connection, [connection]() {
+        const auto boostModeReply =
+                connection->setBoostMode(SolaxEvcG2ModbusTcpConnection::BoostModeNormal);
+        connect(boostModeReply, &QModbusReply::finished,
+                boostModeReply, &QModbusReply::deleteLater);
+        connect(boostModeReply, &QModbusReply::finished, boostModeReply, [boostModeReply]()
+        {
+            if (boostModeReply->error() == QModbusDevice::NoError) {
+                qCDebug(dcSolax()) << "Successfully set Boost Mode to \"Normal\"";
+            } else {
+                qCDebug(dcSolax()) << "Error while setting Boost Mode:" << boostModeReply->error();
+            }
+        });
+    });
+
+    QTimer::singleShot(2000, connection, [connection]() {
+        const auto evseSceneReply =
+                connection->setEvseSceneRW(SolaxEvcG2ModbusTcpConnection::EvseSceneStandard);
+        connect(evseSceneReply, &QModbusReply::finished,
+                evseSceneReply, &QModbusReply::deleteLater);
+        connect(evseSceneReply, &QModbusReply::finished, evseSceneReply, [evseSceneReply]()
+        {
+            if (evseSceneReply->error() == QModbusDevice::NoError) {
+                qCDebug(dcSolax()) << "Successfully set EVSE Scene to \"Standard\"";
+            } else {
+                qCDebug(dcSolax()) << "Error while setting EVSE Scene:" << evseSceneReply->error();
+            }
+        });
+    });
+
+    QTimer::singleShot(3000, connection, [connection]() {
+        const auto evseModeReply =
+                connection->setEvseMode(SolaxEvcG2ModbusTcpConnection::EvseModeFast);
+        connect(evseModeReply, &QModbusReply::finished,
+                evseModeReply, &QModbusReply::deleteLater);
+        connect(evseModeReply, &QModbusReply::finished, evseModeReply, [evseModeReply]()
+        {
+            if (evseModeReply->error() == QModbusDevice::NoError) {
+                qCDebug(dcSolax()) << "Successfully set EVSE Mode to \"Fast\"";
+            } else {
+                qCDebug(dcSolax()) << "Error while setting EVSE Mode:" << evseModeReply->error();
+            }
+        });
+    });
 }
 
 void IntegrationPluginSolax::setEvcG2Charging(SolaxEvcG2ModbusTcpConnection *connection,

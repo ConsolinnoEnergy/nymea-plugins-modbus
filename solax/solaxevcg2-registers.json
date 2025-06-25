@@ -200,7 +200,7 @@
             ]
         },
         {
-            "name": "SetEVSEMode",
+            "name": "EvseMode",
             "values": [
                 {
                     "key": "Fast",
@@ -665,14 +665,15 @@
             "access": "RW"
         },
         {
-            "id": "setEVSEMode",
+            "id": "evseMode",
             "address": 1641,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
             "readSchedule": "update",
-            "description": "Set EVSE Mode",
-            "enum": "SetEVSEMode",
+            "description": "EVSE Mode",
+            "enum": "EvseMode",
+            "defaultValue": "EvseModeFast",
             "access": "RW"
         }
     ]
