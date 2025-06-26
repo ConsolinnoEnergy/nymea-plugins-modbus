@@ -31,6 +31,7 @@
 #include "integrationpluginsolaxevc.h"
 #include "plugininfo.h"
 #include "discoverytcp.h"
+#include "discoverystandalone.h"
 
 #include <network/networkdevicediscovery.h>
 #include <hardwaremanager.h>
@@ -71,7 +72,7 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
                 Things existingThings =
                         myThings()
                                 .filterByThingClassId(solaxEvcThingClassId)
-                                .filterByParam(solaxEvcThingModbusIdParamTypeId,
+                                .filterByParam(solaxEvcThingMacAddressParamTypeId,
                                                result.networkDeviceInfo.macAddress());
                 if (!existingThings.isEmpty())
                     descriptor.setThingId(existingThings.first()->id());
@@ -83,6 +84,58 @@ void IntegrationPluginSolaxEvc::discoverThings(ThingDiscoveryInfo *info)
                                 result.networkDeviceInfo.macAddress());
                 params << Param(solaxEvcThingPortParamTypeId, result.port);
                 params << Param(solaxEvcThingModbusIdParamTypeId, result.modbusId);
+                descriptor.setParams(params);
+                info->addThingDescriptor(descriptor);
+            }
+
+            info->finish(Thing::ThingErrorNoError);
+        });
+
+        // Start the discovery process
+        discovery->startDiscovery();
+    } else if (info->thingClassId() == solaxEvcStandaloneThingClassId) {
+        if (!hardwareManager()->networkDeviceDiscovery()->available()) {
+            qCWarning(dcSolaxEvc()) << "The network discovery is not available on this platform.";
+            info->finish(Thing::ThingErrorUnsupportedFeature,
+                         QT_TR_NOOP("The network device discovery is not available."));
+            return;
+        }
+
+        // Create a discovery with the info as parent for auto deleting the object once the
+        // discovery info is done
+        SolaxEvcStandaloneDiscovery *discovery =
+                new SolaxEvcStandaloneDiscovery(hardwareManager()->networkDeviceDiscovery(), info);
+        connect(discovery, &SolaxEvcStandaloneDiscovery::discoveryFinished, info, [=]() {
+            foreach (const SolaxEvcStandaloneDiscovery::Result &result, discovery->discoveryResults()) {
+
+                ThingDescriptor descriptor(solaxEvcStandaloneThingClassId, supportedThings().findById(solaxEvcStandaloneThingClassId).displayName(),
+                                           result.networkDeviceInfo.address().toString());
+                qCInfo(dcSolaxEvc())
+                        << "Discovered:" << descriptor.title() << descriptor.description();
+
+                // TODO: CHECK IF RECONFIGURE WORKING
+                // Check if this device has already been configured. If yes, take it's ThingId. This
+                // does two things:
+                // - During normal configure, the discovery won't display devices that have a
+                // ThingId that already exists. So this prevents a device from beeing added twice.
+                // - During reconfigure, the discovery only displays devices that have a ThingId
+                // that already exists. For reconfigure to work, we need to set an already existing
+                // ThingId.
+                Things existingThings =
+                        myThings()
+                                .filterByThingClassId(solaxEvcStandaloneThingClassId)
+                                .filterByParam(solaxEvcStandaloneThingMacAddressParamTypeId,
+                                               result.networkDeviceInfo.macAddress());
+                if (!existingThings.isEmpty())
+                    descriptor.setThingId(existingThings.first()->id());
+
+                ParamList params;
+                params << Param(solaxEvcStandaloneThingIpAddressParamTypeId,
+                                result.networkDeviceInfo.address().toString());
+                params << Param(solaxEvcStandaloneThingMacAddressParamTypeId,
+                                result.networkDeviceInfo.macAddress());
+                params << Param(solaxEvcStandaloneThingPortParamTypeId, result.port);
+                params << Param(solaxEvcStandaloneThingModbusIdParamTypeId, result.modbusId);
                 descriptor.setParams(params);
                 info->addThingDescriptor(descriptor);
             }
@@ -158,6 +211,64 @@ void IntegrationPluginSolaxEvc::setupThing(ThingSetupInfo *info)
                         }
                     });
         }
+    } else if (thing->thingClassId() == solaxEvcStandaloneThingClassId) {
+
+        // Handle reconfigure
+        if (m_tcpConnections.contains(thing)) {
+            qCDebug(dcSolaxEvc()) << "Already have a Solax connection for this thing. Cleaning up "
+                                     "old connection and initializing new one...";
+            SolaxEvcStandaloneModbusTcpConnection *connection = m_standaloneConnections.take(thing);
+            connection->disconnectDevice();
+            connection->deleteLater();
+        } else {
+            qCDebug(dcSolaxEvc()) << "Setting up a new device: " << thing->params();
+        }
+
+        if (m_monitors.contains(thing))
+            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+
+        // Make sure we have a valid mac address, otherwise no monitor and no auto searching is
+        // possible. Testing for null is necessary, because registering a monitor with a zero mac
+        // adress will cause a segfault.
+        MacAddress macAddress =
+                MacAddress(thing->paramValue(solaxEvcStandaloneThingMacAddressParamTypeId).toString());
+        if (macAddress.isNull()) {
+            qCWarning(dcSolaxEvc())
+                    << "Failed to set up Solax wallbox because the MAC address is not valid:"
+                    << thing->paramValue(solaxEvcStandaloneThingMacAddressParamTypeId).toString()
+                    << macAddress.toString();
+            info->finish(Thing::ThingErrorInvalidParameter,
+                         QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device "
+                                    "to fix this."));
+            return;
+        }
+
+        // Create a monitor so we always get the correct IP in the network and see if the device is
+        // reachable without polling on our own. In this call, nymea is checking a list for known
+        // mac addresses and associated ip addresses
+        NetworkDeviceMonitor *monitor =
+                hardwareManager()->networkDeviceDiscovery()->registerMonitor(macAddress);
+        // If the mac address is not known, nymea is starting a internal network discovery.
+        // 'monitor' is returned while the discovery is still running -> monitor does not include ip
+        // address and is set to not reachable
+        m_monitors.insert(thing, monitor);
+
+        // If the ip address was not found in the cache, wait for the for the network discovery
+        // cache to be updated
+        qCDebug(dcSolaxEvc()) << "Monitor reachable" << monitor->reachable()
+                              << thing->paramValue(solaxEvcStandaloneThingMacAddressParamTypeId).toString();
+        m_setupTcpConnectionRunning = false;
+        if (monitor->reachable()) {
+            setupTcpConnection(info);
+        } else {
+            connect(hardwareManager()->networkDeviceDiscovery(),
+                    &NetworkDeviceDiscovery::cacheUpdated, info, [this, info]() {
+                        if (!m_setupTcpConnectionRunning) {
+                            m_setupTcpConnectionRunning = true;
+                            setupTcpConnection(info);
+                        }
+                    });
+        }
     }
 }
 
@@ -166,338 +277,658 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
     qCDebug(dcSolaxEvc()) << "Setup TCP connection.";
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
-    uint port = thing->paramValue(solaxEvcThingPortParamTypeId).toUInt();
-    quint16 modbusId = thing->paramValue(solaxEvcThingModbusIdParamTypeId).toUInt();
-    SolaxEvcModbusTcpConnection *connection = new SolaxEvcModbusTcpConnection(
-            monitor->networkDeviceInfo().address(), port, modbusId, this);
-    m_tcpConnections.insert(thing, connection);
 
-    connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
-        // Is this needed? How can setup be aborted at this point?
+    if (thing->thingClassId() == solaxEvcThingClassId) {
+        uint port = thing->paramValue(solaxEvcThingPortParamTypeId).toUInt();
+        quint16 modbusId = thing->paramValue(solaxEvcThingModbusIdParamTypeId).toUInt();
+        SolaxEvcModbusTcpConnection *connection = new SolaxEvcModbusTcpConnection(
+                monitor->networkDeviceInfo().address(), port, modbusId, this);
+        m_tcpConnections.insert(thing, connection);
 
-        // Clean up in case the setup gets aborted.
-        if (m_monitors.contains(thing)) {
-            qCDebug(dcSolaxEvc()) << "Unregister monitor because the setup has been aborted.";
-            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-        }
-    });
+        connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
+            // Is this needed? How can setup be aborted at this point?
 
-    // Reconnect on monitor reachable changed
-    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
-        qCDebug(dcSolaxEvc()) << "Network device monitor reachable changed for" << thing->name()
-                              << reachable;
-        if (reachable && !thing->stateValue(solaxEvcConnectedStateTypeId).toBool()) {
-            connection->setHostAddress(monitor->networkDeviceInfo().address());
-            connection->reconnectDevice();
-        } else {
-            // Note: We disable autoreconnect explicitly and we will
-            // connect the device once the monitor says it is reachable again
-            connection->disconnectDevice();
-        }
-    });
+            // Clean up in case the setup gets aborted.
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcSolaxEvc()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
+        });
 
-    connect(connection, &SolaxEvcModbusTcpConnection::reachableChanged, thing,
-            [this, connection, thing](bool reachable) {
-                qCDebug(dcSolaxEvc()) << "Reachable state changed to" << reachable;
-                if (reachable) {
-                    // Connected true will be set after successfull init.
-                    connection->initialize();
-                } else {
-                    thing->setStateValue(solaxEvcConnectedStateTypeId, false);
-                    thing->setStateValue(solaxEvcCurrentPowerStateTypeId, 0);
-                }
-            });
+        // Reconnect on monitor reachable changed
+        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
+            qCDebug(dcSolaxEvc()) << "Network device monitor reachable changed for" << thing->name()
+                                << reachable;
+            if (reachable && !thing->stateValue(solaxEvcConnectedStateTypeId).toBool()) {
+                connection->setHostAddress(monitor->networkDeviceInfo().address());
+                connection->reconnectDevice();
+            } else {
+                // Note: We disable autoreconnect explicitly and we will
+                // connect the device once the monitor says it is reachable again
+                connection->disconnectDevice();
+            }
+        });
 
-    connect(connection, &SolaxEvcModbusTcpConnection::typePowerChanged, thing,
-            [this, connection, thing](quint16 type) {
-                qCDebug(dcSolaxEvc()) << "Received info about EV type.";
-                if (type == 1) {
-                    thing->setStateMaxValue("maxChargingCurrent", 16);
-                } else {
-                    thing->setStateMaxValue("maxChargingCurrent", 32);
-                }
-            });
-
-    connect(connection, &SolaxEvcModbusTcpConnection::initializationFinished, thing,
-            [=](bool success) {
-                thing->setStateValue(solaxEvcConnectedStateTypeId, success);
-
-                if (success) {
-                    qCDebug(dcSolaxEvc()) << "Solax wallbox initialized.";
-                    thing->setStateValue(solaxEvcFirmwareVersionStateTypeId,
-                                         connection->firmwareVersion());
-                    thing->setStateValue(solaxEvcSerialNumberStateTypeId,
-                                         connection->serialNumber());
-                    m_lastState = 255;
-                } else {
-                    qCDebug(dcSolaxEvc()) << "Solax wallbox initialization failed.";
-                    // Try to reconnect to device
-                    connection->reconnectDevice();
-                }
-            });
-
-    // connect current charging power
-    connect(connection, &SolaxEvcModbusTcpConnection::totalPowerChanged, thing,
-            [thing](quint16 totalPower) {
-                qCDebug(dcSolaxEvc()) << "Total charging power changed" << totalPower << "W";
-                // EVC show 2-3W even when not charging, this fixes the displayed value
-                if (totalPower <= 100)
-                    totalPower = 0;
-
-                if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
-                    if (totalPower != 0) {
-                        thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
+        connect(connection, &SolaxEvcModbusTcpConnection::reachableChanged, thing,
+                [this, connection, thing](bool reachable) {
+                    qCDebug(dcSolaxEvc()) << "Reachable state changed to" << reachable;
+                    if (reachable) {
+                        // Connected true will be set after successfull init.
+                        connection->initialize();
+                    } else {
+                        thing->setStateValue(solaxEvcConnectedStateTypeId, false);
+                        thing->setStateValue(solaxEvcCurrentPowerStateTypeId, 0);
                     }
-                } else {
-                    thing->setStateValue(solaxEvcCurrentPowerStateTypeId, 0);
-                }
-            });
+                });
 
-    // connect energy consumption of current session
-    connect(connection, &SolaxEvcModbusTcpConnection::sessionEnergyChanged, thing,
-            [thing](double sessionEnergy) {
-                qCDebug(dcSolaxEvc()) << "Session energy changed" << sessionEnergy << "kWh";
-                thing->setStateValue(solaxEvcSessionEnergyStateTypeId, sessionEnergy);
-            });
-
-    // connect total energy consumption
-    connect(connection, &SolaxEvcModbusTcpConnection::totalEnergyChanged, thing, [thing](double totalEnergy) {
-                qCDebug(dcSolaxEvc()) << "Total energy changed" << totalEnergy << "kWh";
-                double oldEnergy = thing->stateValue(solaxEvcTotalEnergyConsumedStateTypeId).toDouble();
-                double diffEnergy = totalEnergy - oldEnergy;
-                
-                if (oldEnergy == 0 || (diffEnergy >= 0 && diffEnergy <= 100)) {
-                    thing->setStateValue(solaxEvcTotalEnergyConsumedStateTypeId, totalEnergy);
-                } else {
-                    qCWarning(dcSolaxEvc()) << "Old total Energy: " << oldEnergy;
-                    qCWarning(dcSolaxEvc()) << "New total Energy: " << totalEnergy;
-                    qCWarning(dcSolaxEvc()) << "Difference to previous energy is to high; or new "
-                                               "energy is 0, when is previously was not.";
-                }
-            });
-
-    // connect time of current charging session
-    connect(connection, &SolaxEvcModbusTcpConnection::chargingTimeChanged, thing,
-            [thing](quint32 time) {
-                qCDebug(dcSolaxEvc()) << "Charging Time changed" << time << "s";
-                quint32 oldTime = thing->stateValue(solaxEvcChargingStateTypeId).toUInt();
-                if ((time - oldTime) > 5000) {
-                    qCWarning(dcSolaxEvc()) << "Old time" << oldTime;
-                    qCWarning(dcSolaxEvc()) << "New time" << time;
-                    qCWarning(dcSolaxEvc()) << "Difference in charging time is to high.";
-                } else {
-                    thing->setStateValue(solaxEvcChargingTimeStateTypeId, time);
-                }
-            });
-
-    // connect max charging current
-    connect(connection, &SolaxEvcModbusTcpConnection::MaxCurrentChanged, thing,
-            [thing](float maxCurrent) {
-                qCDebug(dcSolaxEvc()) << "Max current changed" << maxCurrent << "A";
-                // Every once in a while, nonsense values are received, only change when value
-                // between 6 and 16 received
-                if (maxCurrent >= 6 && maxCurrent <= 32)
-                    thing->setStateValue(solaxEvcMaxChargingCurrentStateTypeId, maxCurrent);
-            });
-
-    connect(connection, &SolaxEvcModbusTcpConnection::deviceModeChanged, thing,
-            [this, thing, connection](quint16 mode) {
-                qCDebug(dcSolaxEvc()) << "Device mode changed" << mode;
-                // TODO: Test if this causes issues
-                // make app follow wallbox
-                if (thing->stateValue(solaxEvcPowerStateTypeId).toBool() == true) {
-                    if (mode == 1) {
-                        qCDebug(dcSolaxEvc()) << "Toggle charging true.";
-                        toggleCharging(connection, true);
-                        thing->setStateValue(solaxEvcPowerStateTypeId, true);
-                    } else if (mode == 0) {
-                        qCDebug(dcSolaxEvc())
-                                << "Charging allowed, but car says it is not charging.";
-                        // toggleCharging(connection, false);
-                        // thing->setStateValue(solaxEvcPowerStateTypeId, false);
+        connect(connection, &SolaxEvcModbusTcpConnection::typePowerChanged, thing,
+                [this, connection, thing](quint16 type) {
+                    qCDebug(dcSolaxEvc()) << "Received info about EV type.";
+                    if (type == 1) {
+                        thing->setStateMaxValue("maxChargingCurrent", 16);
+                    } else {
+                        thing->setStateMaxValue("maxChargingCurrent", 32);
                     }
-                } else {
-                    qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging disabled! Make sure the "
-                                             "wallbox does not charge.";
-                    toggleCharging(connection, false);
-                    thing->setStateValue(solaxEvcPowerStateTypeId, false);
-                }
-            });
+                });
 
-    connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseAChanged, thing,
-            [thing](double currentPhase) {
-                qCDebug(dcSolaxEvc()) << "Current PhaseA" << currentPhase << "A";
-                if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
-                    if (currentPhase != 0) {
-                        thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, currentPhase);
+        connect(connection, &SolaxEvcModbusTcpConnection::initializationFinished, thing,
+                [=](bool success) {
+                    thing->setStateValue(solaxEvcConnectedStateTypeId, success);
+
+                    if (success) {
+                        qCDebug(dcSolaxEvc()) << "Solax wallbox initialized.";
+                        thing->setStateValue(solaxEvcFirmwareVersionStateTypeId,
+                                            connection->firmwareVersion());
+                        thing->setStateValue(solaxEvcSerialNumberStateTypeId,
+                                            connection->serialNumber());
+                        m_lastState = 255;
+                    } else {
+                        qCDebug(dcSolaxEvc()) << "Solax wallbox initialization failed.";
+                        // Try to reconnect to device
+                        connection->reconnectDevice();
                     }
-                } else {
-                    thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, 0);
-                }
-            });
-    connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseBChanged, thing,
-            [thing](double currentPhase) {
-                qCDebug(dcSolaxEvc()) << "Current PhaseB" << currentPhase << "A";
-                if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
-                    if (currentPhase != 0) {
-                        thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, currentPhase);
+                });
+
+        // connect current charging power
+        connect(connection, &SolaxEvcModbusTcpConnection::totalPowerChanged, thing,
+                [thing](quint16 totalPower) {
+                    qCDebug(dcSolaxEvc()) << "Total charging power changed" << totalPower << "W";
+                    // EVC show 2-3W even when not charging, this fixes the displayed value
+                    if (totalPower <= 100)
+                        totalPower = 0;
+
+                    if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
+                        if (totalPower != 0) {
+                            thing->setStateValue(solaxEvcCurrentPowerStateTypeId, totalPower);
+                        }
+                    } else {
+                        thing->setStateValue(solaxEvcCurrentPowerStateTypeId, 0);
                     }
-                } else {
-                    thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, 0);
-                }
-            });
-    connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseCChanged, thing,
-            [thing](double currentPhase) {
-                qCDebug(dcSolaxEvc()) << "Current PhaseC" << currentPhase << "A";
-                if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
-                    if (currentPhase != 0) {
-                        thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
+                });
+
+        // connect energy consumption of current session
+        connect(connection, &SolaxEvcModbusTcpConnection::sessionEnergyChanged, thing,
+                [thing](double sessionEnergy) {
+                    qCDebug(dcSolaxEvc()) << "Session energy changed" << sessionEnergy << "kWh";
+                    thing->setStateValue(solaxEvcSessionEnergyStateTypeId, sessionEnergy);
+                });
+
+        // connect total energy consumption
+        connect(connection, &SolaxEvcModbusTcpConnection::totalEnergyChanged, thing, [thing](double totalEnergy) {
+                    qCDebug(dcSolaxEvc()) << "Total energy changed" << totalEnergy << "kWh";
+                    double oldEnergy = thing->stateValue(solaxEvcTotalEnergyConsumedStateTypeId).toDouble();
+                    double diffEnergy = totalEnergy - oldEnergy;
+                    
+                    if (oldEnergy == 0 || (diffEnergy >= 0 && diffEnergy <= 100)) {
+                        thing->setStateValue(solaxEvcTotalEnergyConsumedStateTypeId, totalEnergy);
+                    } else {
+                        qCWarning(dcSolaxEvc()) << "Old total Energy: " << oldEnergy;
+                        qCWarning(dcSolaxEvc()) << "New total Energy: " << totalEnergy;
+                        qCWarning(dcSolaxEvc()) << "Difference to previous energy is to high; or new "
+                                                "energy is 0, when is previously was not.";
                     }
-                } else {
-                    thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, 0);
-                }
-            });
+                });
 
-    // connect fault code
-    connect(connection, &SolaxEvcModbusTcpConnection::faultCodeChanged, thing,
-            [thing](quint32 code) {
-                qCDebug(dcSolaxEvc()) << "Fault code changed" << code;
-                QMap<int, QString> faultCodeMap = {
-                    { 0, "PowerSelect_Fault (0)" },   { 1, "Emergency Stop (1)" },
-                    { 2, "Overvoltage L1 (2)" },      { 3, "Undervoltage L1 (3)" },
-                    { 4, "Overvoltage L2 (4)" },      { 5, "Undervoltage L2 (5)" },
-                    { 6, "Overvoltage L3 (6)" },      { 7, "Undervoltage L2 (7)" },
-                    { 8, "Electronic Lock (8)" },     { 9, "Over Load (9)" },
-                    { 10, "Over Current (10)" },      { 11, "Over Temperature (11)" },
-                    { 12, "PE Ground (12)" },         { 13, "PE Leak Current (13)" },
-                    { 14, "Over Leak Current (14)" }, { 15, "Meter Communication (15)" },
-                    { 16, "485 Communication (16)" }, { 17, "CP Voltage (17)" }
-                };
-                if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Faulted") {
-                    thing->setStateValue(solaxEvcFaultCodeStateTypeId, faultCodeMap[code]);
-                } else {
-                    thing->setStateValue(solaxEvcFaultCodeStateTypeId, "No Error");
-                }
-            });
-
-    connect(connection, &SolaxEvcModbusTcpConnection::updateFinished, thing,
-            [this, thing, connection]() {
-                qCDebug(dcSolaxEvc()) << "Updated finished.";
-
-                quint16 state = connection->state();
-                qCDebug(dcSolaxEvc()) << "Received state" << state;
-
-                if (state <= 10 && (m_lastState == 255 || m_lastState == state)) {
-                    m_stateCounter++;
-                    qCDebug(dcSolaxEvc()) << "m_stateCounter is" << m_stateCounter;
-                } else if (state > 10 || m_lastState != state) {
-                    m_stateCounter = 0;
-                }
-
-                if (m_stateCounter == 5) {
-                    qCDebug(dcSolaxEvc()) << "m_stateCounter reached" << m_stateCounter;
-                    switch (state) {
-                    case SolaxEvcModbusTcpConnection::StateAvailable:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "Available");
-                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                        thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StatePreparing:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "Preparing");
-                        thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StateCharging:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "Charging");
-                        thing->setStateValue(solaxEvcChargingStateTypeId, true);
-                        thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StateFinishing:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "Plugged In");
-                        thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
-                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StateFaulted:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "Faulted");
-                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                        // thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StateUnavailable:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "Unavailable");
-                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StateReserved:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "Reserved");
-                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StateSuspendedEV:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEV");
-                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StateSuspendedEVSE:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEVSE");
-                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StateUpdate:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "Update");
-                        thing->setStateValue(solaxEvcChargingStateTypeId, false);
-                        break;
-                    case SolaxEvcModbusTcpConnection::StateCardActivation:
-                        thing->setStateValue(solaxEvcStateStateTypeId, "Card Activation");
-                        break;
-                    default:
-                        qCWarning(dcSolaxEvc()) << "State changed to unknown value";
-                        // thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
-                        break;
+        // connect time of current charging session
+        connect(connection, &SolaxEvcModbusTcpConnection::chargingTimeChanged, thing,
+                [thing](quint32 time) {
+                    qCDebug(dcSolaxEvc()) << "Charging Time changed" << time << "s";
+                    quint32 oldTime = thing->stateValue(solaxEvcChargingStateTypeId).toUInt();
+                    if ((time - oldTime) > 5000) {
+                        qCWarning(dcSolaxEvc()) << "Old time" << oldTime;
+                        qCWarning(dcSolaxEvc()) << "New time" << time;
+                        qCWarning(dcSolaxEvc()) << "Difference in charging time is to high.";
+                    } else {
+                        thing->setStateValue(solaxEvcChargingTimeStateTypeId, time);
                     }
+                });
 
-                    qCDebug(dcSolaxEvc()) << "Resetting m_stateCounter to 0";
-                    m_stateCounter = 0;
-                }
-                m_lastState = state;
+        // connect max charging current
+        connect(connection, &SolaxEvcModbusTcpConnection::MaxCurrentChanged, thing,
+                [thing](float maxCurrent) {
+                    qCDebug(dcSolaxEvc()) << "Max current changed" << maxCurrent << "A";
+                    // Every once in a while, nonsense values are received, only change when value
+                    // between 6 and 16 received
+                    if (maxCurrent >= 6 && maxCurrent <= 32)
+                        thing->setStateValue(solaxEvcMaxChargingCurrentStateTypeId, maxCurrent);
+                });
 
-                double currentPhaseA =
-                        thing->stateValue(solaxEvcCurrentPhaseAStateTypeId).toDouble();
-                double currentPhaseB =
-                        thing->stateValue(solaxEvcCurrentPhaseBStateTypeId).toDouble();
-                double currentPhaseC =
-                        thing->stateValue(solaxEvcCurrentPhaseCStateTypeId).toDouble();
-                int phaseCount = 0;
-                if (currentPhaseA > 0)
-                    phaseCount++;
-
-                if (currentPhaseB > 0)
-                    phaseCount++;
-
-                if (currentPhaseC > 0)
-                    phaseCount++;
-
-                thing->setStateValue(solaxEvcPhaseCountStateTypeId, qMax(phaseCount, 1));
-
-                if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
-                    if (thing->stateValue(solaxEvcPowerStateTypeId).toBool() == false) {
-                        qCDebug(dcSolaxEvc())
-                                << "Car charging, but disabled. Toggle charging false.";
+        connect(connection, &SolaxEvcModbusTcpConnection::deviceModeChanged, thing,
+                [this, thing, connection](quint16 mode) {
+                    qCDebug(dcSolaxEvc()) << "Device mode changed" << mode;
+                    // TODO: Test if this causes issues
+                    // make app follow wallbox
+                    if (thing->stateValue(solaxEvcPowerStateTypeId).toBool() == true) {
+                        if (mode == 1) {
+                            qCDebug(dcSolaxEvc()) << "Toggle charging true.";
+                            toggleCharging(connection, true);
+                            thing->setStateValue(solaxEvcPowerStateTypeId, true);
+                        } else if (mode == 0) {
+                            qCDebug(dcSolaxEvc())
+                                    << "Charging allowed, but car says it is not charging.";
+                            // toggleCharging(connection, false);
+                            // thing->setStateValue(solaxEvcPowerStateTypeId, false);
+                        }
+                    } else {
+                        qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging disabled! Make sure the "
+                                                "wallbox does not charge.";
                         toggleCharging(connection, false);
                         thing->setStateValue(solaxEvcPowerStateTypeId, false);
                     }
-                } else {
-                    qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging enabled! Make sure the "
-                                             "wallbox is charging.";
-                    if ((thing->stateValue(solaxEvcPowerStateTypeId).toBool() == true)
-                        && (thing->stateValue(solaxEvcPluggedInStateTypeId).toBool() == true)) {
-                        qCDebug(dcSolaxEvc()) << "Toggle charging true.";
-                        toggleCharging(connection, true);
-                        thing->setStateValue(solaxEvcPowerStateTypeId, true);
+                });
+
+        connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseAChanged, thing,
+                [thing](double currentPhase) {
+                    qCDebug(dcSolaxEvc()) << "Current PhaseA" << currentPhase << "A";
+                    if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
+                        if (currentPhase != 0) {
+                            thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, currentPhase);
+                        }
+                    } else {
+                        thing->setStateValue(solaxEvcCurrentPhaseAStateTypeId, 0);
                     }
-                }
-            });
+                });
+        connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseBChanged, thing,
+                [thing](double currentPhase) {
+                    qCDebug(dcSolaxEvc()) << "Current PhaseB" << currentPhase << "A";
+                    if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
+                        if (currentPhase != 0) {
+                            thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, currentPhase);
+                        }
+                    } else {
+                        thing->setStateValue(solaxEvcCurrentPhaseBStateTypeId, 0);
+                    }
+                });
+        connect(connection, &SolaxEvcModbusTcpConnection::currentPhaseCChanged, thing,
+                [thing](double currentPhase) {
+                    qCDebug(dcSolaxEvc()) << "Current PhaseC" << currentPhase << "A";
+                    if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
+                        if (currentPhase != 0) {
+                            thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, currentPhase);
+                        }
+                    } else {
+                        thing->setStateValue(solaxEvcCurrentPhaseCStateTypeId, 0);
+                    }
+                });
 
-    if (monitor->reachable())
-        connection->connectDevice();
+        // connect fault code
+        connect(connection, &SolaxEvcModbusTcpConnection::faultCodeChanged, thing,
+                [thing](quint32 code) {
+                    qCDebug(dcSolaxEvc()) << "Fault code changed" << code;
+                    QMap<int, QString> faultCodeMap = {
+                        { 0, "PowerSelect_Fault (0)" },   { 1, "Emergency Stop (1)" },
+                        { 2, "Overvoltage L1 (2)" },      { 3, "Undervoltage L1 (3)" },
+                        { 4, "Overvoltage L2 (4)" },      { 5, "Undervoltage L2 (5)" },
+                        { 6, "Overvoltage L3 (6)" },      { 7, "Undervoltage L2 (7)" },
+                        { 8, "Electronic Lock (8)" },     { 9, "Over Load (9)" },
+                        { 10, "Over Current (10)" },      { 11, "Over Temperature (11)" },
+                        { 12, "PE Ground (12)" },         { 13, "PE Leak Current (13)" },
+                        { 14, "Over Leak Current (14)" }, { 15, "Meter Communication (15)" },
+                        { 16, "485 Communication (16)" }, { 17, "CP Voltage (17)" }
+                    };
+                    if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Faulted") {
+                        thing->setStateValue(solaxEvcFaultCodeStateTypeId, faultCodeMap[code]);
+                    } else {
+                        thing->setStateValue(solaxEvcFaultCodeStateTypeId, "No Error");
+                    }
+                });
 
-    info->finish(Thing::ThingErrorNoError);
+        connect(connection, &SolaxEvcModbusTcpConnection::updateFinished, thing,
+                [this, thing, connection]() {
+                    qCDebug(dcSolaxEvc()) << "Updated finished.";
 
+                    quint16 state = connection->state();
+                    qCDebug(dcSolaxEvc()) << "Received state" << state;
+
+                    if (state <= 10 && (m_lastState == 255 || m_lastState == state)) {
+                        m_stateCounter++;
+                        qCDebug(dcSolaxEvc()) << "m_stateCounter is" << m_stateCounter;
+                    } else if (state > 10 || m_lastState != state) {
+                        m_stateCounter = 0;
+                    }
+
+                    if (m_stateCounter == 10) {
+                        qCDebug(dcSolaxEvc()) << "m_stateCounter reached" << m_stateCounter;
+                        switch (state) {
+                        case SolaxEvcModbusTcpConnection::StateAvailable:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "Available");
+                            thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                            thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StatePreparing:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "Preparing");
+                            thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                            thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StateCharging:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "Charging");
+                            thing->setStateValue(solaxEvcChargingStateTypeId, true);
+                            thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StateFinishing:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "Plugged In");
+                            thing->setStateValue(solaxEvcPluggedInStateTypeId, true);
+                            thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StateFaulted:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "Faulted");
+                            thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                            // thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StateUnavailable:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "Unavailable");
+                            thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StateReserved:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "Reserved");
+                            thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StateSuspendedEV:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEV");
+                            thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StateSuspendedEVSE:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "SuspendedEVSE");
+                            thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StateUpdate:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "Update");
+                            thing->setStateValue(solaxEvcChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcModbusTcpConnection::StateCardActivation:
+                            thing->setStateValue(solaxEvcStateStateTypeId, "Card Activation");
+                            break;
+                        default:
+                            qCWarning(dcSolaxEvc()) << "State changed to unknown value";
+                            // thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
+                            break;
+                        }
+
+                        qCDebug(dcSolaxEvc()) << "Resetting m_stateCounter to 0";
+                        m_stateCounter = 0;
+                    }
+                    m_lastState = state;
+
+                    double currentPhaseA =
+                            thing->stateValue(solaxEvcCurrentPhaseAStateTypeId).toDouble();
+                    double currentPhaseB =
+                            thing->stateValue(solaxEvcCurrentPhaseBStateTypeId).toDouble();
+                    double currentPhaseC =
+                            thing->stateValue(solaxEvcCurrentPhaseCStateTypeId).toDouble();
+                    int phaseCount = 0;
+                    if (currentPhaseA > 0)
+                        phaseCount++;
+
+                    if (currentPhaseB > 0)
+                        phaseCount++;
+
+                    if (currentPhaseC > 0)
+                        phaseCount++;
+
+                    thing->setStateValue(solaxEvcPhaseCountStateTypeId, qMax(phaseCount, 1));
+
+                    if (thing->stateValue(solaxEvcStateStateTypeId).toString() == "Charging") {
+                        if (thing->stateValue(solaxEvcPowerStateTypeId).toBool() == false) {
+                            qCDebug(dcSolaxEvc())
+                                    << "Car charging, but disabled. Toggle charging false.";
+                            toggleCharging(connection, false);
+                            thing->setStateValue(solaxEvcPowerStateTypeId, false);
+                        }
+                    } else {
+                        qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging enabled! Make sure the "
+                                                "wallbox is charging.";
+                        if ((thing->stateValue(solaxEvcPowerStateTypeId).toBool() == true)
+                            && (thing->stateValue(solaxEvcPluggedInStateTypeId).toBool() == true)) {
+                            qCDebug(dcSolaxEvc()) << "Toggle charging true.";
+                            toggleCharging(connection, true);
+                            thing->setStateValue(solaxEvcPowerStateTypeId, true);
+                        }
+                    }
+                });
+
+        if (monitor->reachable())
+            connection->connectDevice();
+
+        info->finish(Thing::ThingErrorNoError);
+    } else if (thing->thingClassId() == solaxEvcStandaloneThingClassId) {
+        uint port = thing->paramValue(solaxEvcStandaloneThingModbusIdParamTypeId).toUInt();
+        quint16 modbusId = thing->paramValue(solaxEvcThingModbusIdParamTypeId).toUInt();
+        SolaxEvcStandaloneModbusTcpConnection *connection = new SolaxEvcStandaloneModbusTcpConnection(
+                monitor->networkDeviceInfo().address(), port, modbusId, this);
+        m_standaloneConnections.insert(thing, connection);
+
+        connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
+            // Is this needed? How can setup be aborted at this point?
+
+            // Clean up in case the setup gets aborted.
+            if (m_monitors.contains(thing)) {
+                qCDebug(dcSolaxEvc()) << "Unregister monitor because the setup has been aborted.";
+                hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+            }
+        });
+
+        // Reconnect on monitor reachable changed
+        connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
+            qCDebug(dcSolaxEvc()) << "Network device monitor reachable changed for" << thing->name()
+                                << reachable;
+            if (reachable && !thing->stateValue(solaxEvcStandaloneConnectedStateTypeId).toBool()) {
+                connection->setHostAddress(monitor->networkDeviceInfo().address());
+                connection->reconnectDevice();
+            } else {
+                // Note: We disable autoreconnect explicitly and we will
+                // connect the device once the monitor says it is reachable again
+                connection->disconnectDevice();
+            }
+        });
+
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::reachableChanged, thing,
+                [this, connection, thing](bool reachable) {
+                    qCDebug(dcSolaxEvc()) << "Reachable state changed to" << reachable;
+                    if (reachable) {
+                        // Connected true will be set after successfull init.
+                        connection->initialize();
+                    } else {
+                        thing->setStateValue(solaxEvcStandaloneConnectedStateTypeId, false);
+                        thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
+                    }
+                });
+
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::typePowerChanged, thing,
+                [this, connection, thing](quint16 type) {
+                    qCDebug(dcSolaxEvc()) << "Received info about EV type.";
+                    if (type == 1) {
+                        thing->setStateMaxValue("maxChargingCurrent", 16);
+                    } else {
+                        thing->setStateMaxValue("maxChargingCurrent", 32);
+                    }
+                });
+
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::initializationFinished, thing,
+                [=](bool success) {
+                    thing->setStateValue(solaxEvcConnectedStateTypeId, success);
+
+                    if (success) {
+                        qCDebug(dcSolaxEvc()) << "Solax wallbox initialized.";
+                        thing->setStateValue(solaxEvcStandaloneFirmwareVersionStateTypeId,
+                                            connection->firmwareVersion());
+                        thing->setStateValue(solaxEvcStandaloneSerialNumberStateTypeId,
+                                            connection->serialNumber());
+                        m_lastState = 255;
+                    } else {
+                        qCDebug(dcSolaxEvc()) << "Solax wallbox initialization failed.";
+                        // Try to reconnect to device
+                        connection->reconnectDevice();
+                    }
+                });
+
+        // connect current charging power
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::totalPowerChanged, thing,
+                [thing](quint16 totalPower) {
+                    qCDebug(dcSolaxEvc()) << "Total charging power changed" << totalPower << "W";
+                    // EVC show 2-3W even when not charging, this fixes the displayed value
+                    if (totalPower <= 100)
+                        totalPower = 0;
+
+                    if (thing->stateValue(solaxEvcStandaloneStateStateTypeId).toString() == "Charging") {
+                        if (totalPower != 0) {
+                            thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, totalPower);
+                        }
+                    } else {
+                        thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
+                    }
+                });
+
+        // connect energy consumption of current session
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::sessionEnergyChanged, thing,
+                [thing](double sessionEnergy) {
+                    qCDebug(dcSolaxEvc()) << "Session energy changed" << sessionEnergy << "kWh";
+                    thing->setStateValue(solaxEvcStandaloneSessionEnergyStateTypeId, sessionEnergy);
+                });
+
+        // connect total energy consumption
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::totalEnergyChanged, thing, [thing](double totalEnergy) {
+                    qCDebug(dcSolaxEvc()) << "Total energy changed" << totalEnergy << "kWh";
+                    double oldEnergy = thing->stateValue(solaxEvcStandaloneTotalEnergyConsumedStateTypeId).toDouble();
+                    double diffEnergy = totalEnergy - oldEnergy;
+                    
+                    if (oldEnergy == 0 || (diffEnergy >= 0 && diffEnergy <= 100)) {
+                        thing->setStateValue(solaxEvcStandaloneTotalEnergyConsumedStateTypeId, totalEnergy);
+                    } else {
+                        qCWarning(dcSolaxEvc()) << "Old total Energy: " << oldEnergy;
+                        qCWarning(dcSolaxEvc()) << "New total Energy: " << totalEnergy;
+                        qCWarning(dcSolaxEvc()) << "Difference to previous energy is to high; or new "
+                                                "energy is 0, when is previously was not.";
+                    }
+                });
+
+        // connect max charging current
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::maxCurrentChanged, thing,
+                [thing](float maxCurrent) {
+                    qCDebug(dcSolaxEvc()) << "Max current changed" << maxCurrent << "A";
+                    // Every once in a while, nonsense values are received, only change when value
+                    // between 6 and 16 received
+                    if (maxCurrent >= 6 && maxCurrent <= 32)
+                        thing->setStateValue(solaxEvcStandaloneMaxChargingCurrentStateTypeId, maxCurrent);
+                });
+
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::deviceModeChanged, thing,
+                [this, thing, connection](quint16 mode) {
+                    qCDebug(dcSolaxEvc()) << "Device mode changed" << mode;
+                    // TODO: Test if this causes issues
+                    // make app follow wallbox
+                    if (thing->stateValue(solaxEvcStandalonePowerStateTypeId).toBool() == true) {
+                        if (mode == 1) {
+                            qCDebug(dcSolaxEvc()) << "Toggle charging true.";
+                            toggleCharging(connection, true);
+                            thing->setStateValue(solaxEvcStandalonePowerStateTypeId, true);
+                        } else if (mode == 0) {
+                            qCDebug(dcSolaxEvc())
+                                    << "Charging allowed, but car says it is not charging.";
+                            // toggleCharging(connection, false);
+                            // thing->setStateValue(solaxEvcPowerStateTypeId, false);
+                        }
+                    } else {
+                        qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging disabled! Make sure the "
+                                                "wallbox does not charge.";
+                        toggleCharging(connection, false);
+                        thing->setStateValue(solaxEvcStandalonePowerStateTypeId, false);
+                    }
+                });
+
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::currentPhaseAChanged, thing,
+                [thing](double currentPhase) {
+                    qCDebug(dcSolaxEvc()) << "Current PhaseA" << currentPhase << "A";
+                    if (thing->stateValue(solaxEvcStandaloneStateStateTypeId).toString() == "Charging") {
+                        if (currentPhase != 0) {
+                            thing->setStateValue(solaxEvcStandaloneCurrentPhaseAStateTypeId, currentPhase);
+                        }
+                    } else {
+                        thing->setStateValue(solaxEvcStandaloneCurrentPhaseAStateTypeId, 0);
+                    }
+                });
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::currentPhaseBChanged, thing,
+                [thing](double currentPhase) {
+                    qCDebug(dcSolaxEvc()) << "Current PhaseB" << currentPhase << "A";
+                    if (thing->stateValue(solaxEvcStandaloneStateStateTypeId).toString() == "Charging") {
+                        if (currentPhase != 0) {
+                            thing->setStateValue(solaxEvcStandaloneCurrentPhaseBStateTypeId, currentPhase);
+                        }
+                    } else {
+                        thing->setStateValue(solaxEvcStandaloneCurrentPhaseBStateTypeId, 0);
+                    }
+                });
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::currentPhaseCChanged, thing,
+                [thing](double currentPhase) {
+                    qCDebug(dcSolaxEvc()) << "Current PhaseC" << currentPhase << "A";
+                    if (thing->stateValue(solaxEvcStandaloneStateStateTypeId).toString() == "Charging") {
+                        if (currentPhase != 0) {
+                            thing->setStateValue(solaxEvcStandaloneCurrentPhaseCStateTypeId, currentPhase);
+                        }
+                    } else {
+                        thing->setStateValue(solaxEvcStandaloneCurrentPhaseCStateTypeId, 0);
+                    }
+                });
+
+        // connect fault code
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::faultCodeChanged, thing,
+                [thing](quint32 code) {
+                    qCDebug(dcSolaxEvc()) << "Fault code changed" << code;
+                    QMap<int, QString> faultCodeMap = {
+                        { 0, "PowerSelect_Fault (0)" },   { 1, "Emergency Stop (1)" },
+                        { 2, "Overvoltage L1 (2)" },      { 3, "Undervoltage L1 (3)" },
+                        { 4, "Overvoltage L2 (4)" },      { 5, "Undervoltage L2 (5)" },
+                        { 6, "Overvoltage L3 (6)" },      { 7, "Undervoltage L2 (7)" },
+                        { 8, "Electronic Lock (8)" },     { 9, "Over Load (9)" },
+                        { 10, "Over Current (10)" },      { 11, "Over Temperature (11)" },
+                        { 12, "PE Ground (12)" },         { 13, "PE Leak Current (13)" },
+                        { 14, "Over Leak Current (14)" }, { 15, "Meter Communication (15)" },
+                        { 16, "485 Communication (16)" }, { 17, "CP Voltage (17)" }
+                    };
+                    if (thing->stateValue(solaxEvcStandaloneStateStateTypeId).toString() == "Faulted") {
+                        thing->setStateValue(solaxEvcStandaloneFaultCodeStateTypeId, faultCodeMap[code]);
+                    } else {
+                        thing->setStateValue(solaxEvcStandaloneFaultCodeStateTypeId, "No Error");
+                    }
+                });
+
+        connect(connection, &SolaxEvcStandaloneModbusTcpConnection::updateFinished, thing,
+                [this, thing, connection]() {
+                    qCDebug(dcSolaxEvc()) << "Updated finished.";
+
+                    quint16 state = connection->state();
+                    qCDebug(dcSolaxEvc()) << "Received state" << state;
+
+                    if (state <= 10 && (m_lastState == 255 || m_lastState == state)) {
+                        m_stateCounter++;
+                        qCDebug(dcSolaxEvc()) << "m_stateCounter is" << m_stateCounter;
+                    } else if (state > 10 || m_lastState != state) {
+                        m_stateCounter = 0;
+                    }
+
+                    if (m_stateCounter == 10) {
+                        qCDebug(dcSolaxEvc()) << "m_stateCounter reached" << m_stateCounter;
+                        switch (state) {
+                        case SolaxEvcStandaloneModbusTcpConnection::StateAvailable:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Available");
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            thing->setStateValue(solaxEvcStandalonePluggedInStateTypeId, false);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StatePreparing:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Preparing");
+                            thing->setStateValue(solaxEvcStandalonePluggedInStateTypeId, true);
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StateCharging:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Charging");
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, true);
+                            thing->setStateValue(solaxEvcStandalonePluggedInStateTypeId, true);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StateFinishing:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Plugged In");
+                            thing->setStateValue(solaxEvcStandalonePluggedInStateTypeId, true);
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StateFaulted:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Faulted");
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            // thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StateUnavailable:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Unavailable");
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StateReserved:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Reserved");
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StateSuspendedEV:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "SuspendedEV");
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StateSuspendedEVSE:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "SuspendedEVSE");
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StateUpdate:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Update");
+                            thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            break;
+                        case SolaxEvcStandaloneModbusTcpConnection::StateCardActivation:
+                            thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Card Activation");
+                            break;
+                        default:
+                            qCWarning(dcSolaxEvc()) << "State changed to unknown value";
+                            // thing->setStateValue(solaxEvcStateStateTypeId, "Unknown");
+                            break;
+                        }
+
+                        qCDebug(dcSolaxEvc()) << "Resetting m_stateCounter to 0";
+                        m_stateCounter = 0;
+                    }
+                    m_lastState = state;
+
+                    double currentPhaseA =
+                            thing->stateValue(solaxEvcStandaloneCurrentPhaseAStateTypeId).toDouble();
+                    double currentPhaseB =
+                            thing->stateValue(solaxEvcStandaloneCurrentPhaseBStateTypeId).toDouble();
+                    double currentPhaseC =
+                            thing->stateValue(solaxEvcStandaloneCurrentPhaseCStateTypeId).toDouble();
+                    int phaseCount = 0;
+                    if (currentPhaseA > 0)
+                        phaseCount++;
+
+                    if (currentPhaseB > 0)
+                        phaseCount++;
+
+                    if (currentPhaseC > 0)
+                        phaseCount++;
+
+                    thing->setStateValue(solaxEvcStandalonePhaseCountStateTypeId, qMax(phaseCount, 1));
+
+                    if (thing->stateValue(solaxEvcStandaloneStateStateTypeId).toString() == "Charging") {
+                        if (thing->stateValue(solaxEvcStandalonePowerStateTypeId).toBool() == false) {
+                            qCDebug(dcSolaxEvc())
+                                    << "Car charging, but disabled. Toggle charging false.";
+                            toggleCharging(connection, false);
+                            thing->setStateValue(solaxEvcStandalonePowerStateTypeId, false);
+                        }
+                    } else {
+                        qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging enabled! Make sure the "
+                                                "wallbox is charging.";
+                        if ((thing->stateValue(solaxEvcStandalonePowerStateTypeId).toBool() == true)
+                            && (thing->stateValue(solaxEvcStandalonePluggedInStateTypeId).toBool() == true)) {
+                            qCDebug(dcSolaxEvc()) << "Toggle charging true.";
+                            toggleCharging(connection, true);
+                            thing->setStateValue(solaxEvcStandalonePowerStateTypeId, true);
+                        }
+                    }
+                });
+
+        if (monitor->reachable())
+            connection->connectDevice();
+
+        info->finish(Thing::ThingErrorNoError);
+    }
     return;
 }
 
@@ -512,6 +943,9 @@ void IntegrationPluginSolaxEvc::postSetupThing(Thing *thing)
         connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
             qCDebug(dcSolaxEvc()) << "Updating Solax EVC..";
             foreach (SolaxEvcModbusTcpConnection *connection, m_tcpConnections) {
+                connection->update();
+            }
+            foreach (SolaxEvcStandaloneModbusTcpConnection *connection, m_standaloneConnections) {
                 connection->update();
             }
         });
@@ -568,6 +1002,51 @@ void IntegrationPluginSolaxEvc::executeAction(ThingActionInfo *info)
                 thing->setStateValue(solaxEvcPowerStateTypeId, power);
             });
         }
+    } else if (thing->thingClassId() == solaxEvcStandaloneThingClassId) {
+        SolaxEvcStandaloneModbusTcpConnection *connection = m_standaloneConnections.value(thing);
+        // set the maximum charging current
+        if (info->action().actionTypeId() == solaxEvcStandaloneMaxChargingCurrentActionTypeId) {
+            // set maximal charging current
+            quint32 maxCurrent =
+                    info->action()
+                            .paramValue(
+                                    solaxEvcStandaloneMaxChargingCurrentActionMaxChargingCurrentParamTypeId)
+                            .toUInt();
+            QModbusReply *reply = connection->setMaxCurrent(maxCurrent);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, maxCurrent]() {
+                if (reply->error() == QModbusDevice::NoError) {
+                    thing->setStateValue(solaxEvcStandaloneMaxChargingCurrentStateTypeId, maxCurrent);
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcSolaxEvc())
+                            << "Error setting maximal charging current:" << reply->error()
+                            << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+            });
+        }
+
+        // toggle charging enabled
+        if (info->action().actionTypeId() == solaxEvcStandalonePowerActionTypeId) {
+            // start / stop the charging session
+            bool power = info->action().paramValue(solaxEvcStandalonePowerActionPowerParamTypeId).toBool();
+            QModbusReply *reply = connection->setControlCommand(
+                    power ? SolaxEvcStandaloneModbusTcpConnection::ControlCommand::ControlCommandStartCharging
+                          : SolaxEvcStandaloneModbusTcpConnection::ControlCommand::
+                                    ControlCommandStopCharging);
+            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+            connect(reply, &QModbusReply::finished, thing, [info, thing, reply, power]() {
+                if (reply->error() == QModbusDevice::NoError) {
+                    info->finish(Thing::ThingErrorNoError);
+                } else {
+                    qCWarning(dcSolaxEvc()) << "Error setting charging state: " << reply->error()
+                                            << reply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+                thing->setStateValue(solaxEvcStandalonePowerStateTypeId, power);
+            });
+        }
     }
 }
 
@@ -576,6 +1055,22 @@ void IntegrationPluginSolaxEvc::toggleCharging(SolaxEvcModbusTcpConnection *conn
     QModbusReply *reply = connection->setControlCommand(
             power ? SolaxEvcModbusTcpConnection::ControlCommand::ControlCommandStartCharging
                   : SolaxEvcModbusTcpConnection::ControlCommand::ControlCommandStopCharging);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, this, [this, reply, connection, power]() {
+        if (reply->error() == QModbusDevice::NoError) {
+        } else {
+            qCWarning(dcSolaxEvc())
+                    << "Error setting charging state: " << reply->error() << reply->errorString();
+            toggleCharging(connection, power);
+        }
+    });
+}
+
+void IntegrationPluginSolaxEvc::toggleCharging(SolaxEvcStandaloneModbusTcpConnection *connection, bool power)
+{
+    QModbusReply *reply = connection->setControlCommand(
+            power ? SolaxEvcStandaloneModbusTcpConnection::ControlCommand::ControlCommandStartCharging
+                  : SolaxEvcStandaloneModbusTcpConnection::ControlCommand::ControlCommandStopCharging);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, reply, connection, power]() {
         if (reply->error() == QModbusDevice::NoError) {
@@ -597,6 +1092,12 @@ void IntegrationPluginSolaxEvc::thingRemoved(Thing *thing)
 
     if (m_tcpConnections.contains(thing)) {
         SolaxEvcModbusTcpConnection *connection = m_tcpConnections.take(thing);
+        connection->disconnectDevice();
+        connection->deleteLater();
+    }
+
+    if (m_tcpConnections.contains(thing)) {
+        SolaxEvcStandaloneModbusTcpConnection *connection = m_standaloneConnections.take(thing);
         connection->disconnectDevice();
         connection->deleteLater();
     }
