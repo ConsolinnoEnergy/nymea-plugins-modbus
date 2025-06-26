@@ -1690,7 +1690,94 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
             });
     connect(connection, &SolaxEvcG2ModbusTcpConnection::faultCodeChanged, thing,
             [thing](quint32 faultCode) {
-                thing->setStateValue(solaxEvcG2FaultCodeStateTypeId, faultCode);
+                auto msg = QString{};
+                switch (faultCode) {
+                    case 0x0:
+                        msg = QT_TR_NOOP("No Error");
+                        break;
+                    case 0x1:
+                        msg = "Emergency Stop Fault";
+                        break;
+                    case 0x2:
+                        msg = "Overcurrent Fault";
+                        break;
+                    case 0x4:
+                        msg = "Temperature beyond limit";
+                        break;
+                    case 0x8:
+                        msg = "PE grounding fault";
+                        break;
+                    case 0x10:
+                        msg = "6mA leakage current fault";
+                        break;
+                    case 0x20:
+                        msg = "PE leakage current fault";
+                        break;
+                    case 0x40:
+                        msg = "Over power fault";
+                        break;
+                    case 0x100:
+                        msg = "L1 phase overvoltage fault";
+                        break;
+                    case 0x200:
+                        msg = "L1 phase undervoltage fault";
+                        break;
+                    case 0x400:
+                        msg = "L2 phase overvoltage fault";
+                        break;
+                    case 0x800:
+                        msg = "L2 phase undervoltage fault";
+                        break;
+                    case 0x1000:
+                        msg = "L3 phase overvoltage fault";
+                        break;
+                    case 0x2000:
+                        msg = "L3 phase undervoltage fault";
+                        break;
+                    case 0x4000:
+                        msg = "Metering chip communication fault";
+                        break;
+                    case 0x8000:
+                        msg = "RS485 communication fault";
+                        break;
+                    case 0x10000:
+                        msg = "Power selection fault";
+                        break;
+                    case 0x20000:
+                        msg = "CP voltage fault";
+                        break;
+                    case 0x40000:
+                        msg = "Electronic lock fault";
+                        break;
+                    case 0x80000:
+                        msg = "Meter type fault";
+                        break;
+                    case 0x100000:
+                        msg = "EV-Charger tampered alarm";
+                        break;
+                    case 0x200000:
+                        msg = "PEN relay fault";
+                        break;
+                    case 0x400000:
+                        msg = "Parallel communication fault";
+                        break;
+                    case 0x800000:
+                        msg = "First relay welding detection fault";
+                        break;
+                    case 0x1000000:
+                        msg = "First relay malfunction fault";
+                        break;
+                    case 0x2000000:
+                        msg = "Second relay welding detection fault";
+                        break;
+                    case 0x4000000:
+                        msg = "Second relay malfunction fault";
+                        break;
+                    default:
+                        msg = QString::number(faultCode, 16);
+                }
+
+                thing->setStateValue(solaxEvcG2FaultCodeStateTypeId, msg);
             });
     connect(connection, &SolaxEvcG2ModbusTcpConnection::totalPowerChanged, thing,
             [thing](float totalPower) {
