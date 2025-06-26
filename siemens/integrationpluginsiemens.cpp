@@ -130,7 +130,7 @@ void IntegrationPluginSiemens::setupThing(ThingSetupInfo *info)
             return;
 
         if (reachable && !thing->stateValue("connected").toBool()) {
-            connection->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
             connection->reconnectDevice();
         } else if (!reachable) {
             // Note: Auto reconnect is disabled explicitly and
