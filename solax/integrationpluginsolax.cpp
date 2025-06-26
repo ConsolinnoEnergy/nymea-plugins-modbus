@@ -1693,7 +1693,7 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                 auto msg = QString{};
                 switch (faultCode) {
                     case 0x0:
-                        msg = QT_TR_NOOP("No Error");
+                        msg = "No Error";
                         break;
                     case 0x1:
                         msg = "Emergency Stop Fault";
