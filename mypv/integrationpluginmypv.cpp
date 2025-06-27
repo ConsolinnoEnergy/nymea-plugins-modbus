@@ -31,10 +31,12 @@
 #include "plugininfo.h"
 #include "integrationpluginmypv.h"
 
+#include <network/networkdevicediscovery.h>
+
 #include <QUdpSocket>
 #include <QHostAddress>
-#include <network/networkdevicediscovery.h>
 #include <QEventLoop>
+#include <QNetworkDatagram>
 
 IntegrationPluginMyPv::IntegrationPluginMyPv()
 {
@@ -43,133 +45,232 @@ IntegrationPluginMyPv::IntegrationPluginMyPv()
 
 void IntegrationPluginMyPv::discoverThings(ThingDiscoveryInfo *info)
 {
-    if (info->thingClassId() == elwaThingClassId ||
+    if (info->thingClassId() == acElwa2ThingClassId ||
         info->thingClassId() == acThor9sThingClassId ||
         info->thingClassId() == acThorThingClassId) {
 
         if (!hardwareManager()->networkDeviceDiscovery()->available()) {
             qCWarning(dcMypv()) << "The network discovery is not available on this platform.";
-            info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
+            info->finish(Thing::ThingErrorUnsupportedFeature,
+                         QT_TR_NOOP("The network device discovery is not available."));
             return;
         }
 
         QUdpSocket *searchSocket = new QUdpSocket(this);
 
         // Note: This will fail, and it's not a problem, but it is required to force the socket to stick to IPv4...
-        searchSocket->bind(QHostAddress::AnyIPv4, 16124);
+        const auto bindSuccess = searchSocket->bind(QHostAddress::AnyIPv4, 16124);
+        qCDebug(dcMypv()) << "Search socket bind success:" << bindSuccess;
 
-        QByteArray discoveryString;
+        QByteArray discoveryDatagram;
         // TODO: These might need to be changed (at least for AC Thor, discovery worked for ELWA 2)
         // AC ELWA 2    - a4d93f16
         // AC THOR      - cb7a4e84
         // AC THOR 9s   - 84db4f4c
         // POWER METER  - 401e4e8e
-        discoveryString.resize(19);
-        discoveryString.fill(0);
-        discoveryString.insert(0, QByteArray::fromHex("86d93efc"));
-        discoveryString.insert(4, "AC ELWA-E");
+        if (info->thingClassId() == acElwa2ThingClassId) {
+            discoveryDatagram.append(QByteArray::fromHex("a4d93f16"));
+            discoveryDatagram.append(QString{"AC ELWA 2"}.toUtf8());
+            discoveryDatagram.append(32 - discoveryDatagram.size(), '\0');
+        } else if (info->thingClassId() == acThorThingClassId) {
+            discoveryDatagram.append(QByteArray::fromHex("cb7a4e84"));
+            discoveryDatagram.append(QString{"AC-THOR"}.toUtf8());
+            discoveryDatagram.append(32 - discoveryDatagram.size(), '\0');
+        } else if (info->thingClassId() == acThor9sThingClassId) {
+            discoveryDatagram.append(QByteArray::fromHex("84db4f4c"));
+            discoveryDatagram.append(QString{"AC-THOR 9s"}.toUtf8());
+            discoveryDatagram.append(32 - discoveryDatagram.size(), '\0');
+        }
 
-        qCDebug(dcMypv()) << "Send datagram:" << discoveryString << "length: " << discoveryString.length();
-        qint64 len = searchSocket->writeDatagram(discoveryString, QHostAddress("255.255.255.255"), 16124);
-        if (len != discoveryString.length()) {
+        auto receivedDatagrams = QList<QNetworkDatagram>{};
+        connect(searchSocket, &QUdpSocket::readyRead, this, [searchSocket, &receivedDatagrams]()
+        {
+            while (searchSocket->hasPendingDatagrams()) {
+                const auto datagram = searchSocket->receiveDatagram();
+                qCDebug(dcMypv()) << "Received datagram:" << datagram.data();
+                if (datagram.data().size() != 64) {
+                    qCDebug(dcMypv()) << "Datagram length != 64. Ignoring invalid datagram!";
+                    continue;
+                }
+                receivedDatagrams << datagram;
+            }
+        });
+
+        qCDebug(dcMypv()) << "Sending discovery datagram:" << discoveryDatagram << "length: " << discoveryDatagram.length();
+        qint64 len = searchSocket->writeDatagram(discoveryDatagram, QHostAddress("255.255.255.255"), 16124);
+        if (len != discoveryDatagram.length()) {
             searchSocket->deleteLater();
             info->finish(Thing::ThingErrorHardwareNotAvailable , tr("Error starting device discovery"));
             return;
         }
 
         NetworkDeviceDiscoveryReply *discoveryReply = hardwareManager()->networkDeviceDiscovery()->discover();
+        // Wait for discovery to finish to get MAC address.
+        if (hardwareManager()->networkDeviceDiscovery()->running()) {
+            QEventLoop loop;
+            connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+        } else {
+            // Wait some time to get UDP answers when discovery is not running.
+            QEventLoop loop;
+            QTimer::singleShot(5000, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
 
-        QTimer::singleShot(2000, this, [this, searchSocket, info, discoveryReply](){
-            QList<ThingDescriptor> descriptorList;
-            while(searchSocket->hasPendingDatagrams()) {
-                char buffer[1024];
-                QHostAddress senderAddress;
-
-                int len = searchSocket->readDatagram(buffer, 1024, &senderAddress);
-                QByteArray data = QByteArray::fromRawData(buffer, len);
-                qCDebug(dcMypv()) << "Have datagram:" << data;
-                if (data.length() < 64) {
-                    continue;
-                }
-
-                //Device Id AC•THOR = 0x4e84
-                //Device Id AC•THOR 9s = 0x4f4c
-                //Device Id Power  = 0x4e8e
-                //Device Id AC ELWA-E = 0x3efc
-                //Device Id AC ELWA-2 = 0x3f16
-                QString device;
-                qCDebug(dcMypv()) << "device Id:" << data.mid(2, 2);
-                if (data.mid(2, 2) == QByteArray::fromHex("3efc")) {
-                    qCDebug(dcMypv()) << "Found Device: AC ElWA-E";
-                    device = "AC ELWA-E";
-                    m_myDevice = AC_ELWA_E;
-                } else if (data.mid(2, 2) == QByteArray::fromHex("0x3f16")) {
-                    qCDebug(dcMypv()) << "Found Device: AC ELWA-2";
-                    device = "AC ELWA-2";
-                    m_myDevice = AC_ELWA_2;
-                } else if (data.mid(2, 2) == QByteArray::fromHex("0x4e8e")) {
-                    qCDebug(dcMypv()) << "Found Device: Powermeter";
-                    device = QT_TR_NOOP("my-PV Meter");
-                    m_myDevice = POWER_METER;
-                } else if (data.mid(2, 2) == QByteArray::fromHex("0x4e84")) {
-                    qCDebug(dcMypv()) << "Found Device: AC Thor";
-                    device = "AC Thor";
-                    m_myDevice = AC_THOR;
-                } else if (data.mid(2, 2) == QByteArray::fromHex("0x4f4c")) {
-                    qCDebug(dcMypv()) << "Found Device: AC Thor 9s";
-                    device = "AC Thor 9s";
-                    m_myDevice = AC_THOR_9s;
-                } else {
-                    qCDebug(dcMypv()) << "Failed to parse discovery datagram from" << senderAddress << data;
-                    device = "Invalid";
-                    continue;
-                }
-
-                ThingDescriptor thingDescriptors(info->thingClassId(), device, senderAddress.toString());
-                QByteArray serialNumber = data.mid(8, 16);
-
-                foreach (Thing *existingThing, myThings()) {
-                    if (serialNumber == existingThing->paramValue("serialNumber").toString()) {
-                        qCDebug(dcMypv()) << "Rediscovered device " << existingThing->name();
-                        thingDescriptors.setThingId(existingThing->id());
-                        break;
-                    }
-                }
-
-                if (hardwareManager()->networkDeviceDiscovery()->running()) {
-                    QEventLoop loop;
-                    connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, &loop, &QEventLoop::quit);
-                    loop.exec();
-                }
-                NetworkDeviceInfo heatingRod = discoveryReply->networkDeviceInfos().get(senderAddress);
-                if (heatingRod.macAddress().isNull()) {
-                    info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The device was found, but the MAC address is invalid. Try searching again."));
-                }
-
-                ParamList params;
-                if (info->thingClassId() == elwaThingClassId) {
-                    params << Param(elwaThingIpAddressParamTypeId, senderAddress.toString());
-                    params << Param(elwaThingSerialNumberParamTypeId, serialNumber);
-                    params << Param(elwaThingMacAddressParamTypeId, heatingRod.macAddress());
-                } else if (info->thingClassId() == acThorThingClassId) {
-                    params << Param(acThorThingIpAddressParamTypeId, senderAddress.toString());
-                    params << Param(acThorThingSerialNumberParamTypeId, serialNumber);
-                    params << Param(acThorThingMacAddressParamTypeId, heatingRod.macAddress());
-                } else if (info->thingClassId() == acThor9sThingClassId) {
-                    params << Param(acThor9sThingIpAddressParamTypeId, senderAddress.toString());
-                    params << Param(acThor9sThingSerialNumberParamTypeId, serialNumber);
-                    params << Param(acThor9sThingMacAddressParamTypeId, heatingRod.macAddress());
-                }
-
-                thingDescriptors.setParams(params);
-                descriptorList << thingDescriptors;
+        QList<ThingDescriptor> descriptorList;
+        foreach (const QNetworkDatagram &datagram, receivedDatagrams) {
+            const auto rawData = datagram.data();
+            const auto deviceId = rawData.mid(2, 2);
+            auto deviceType = QString{};
+            if (deviceId == QByteArray::fromHex("3f16")) {
+                deviceType = thingClass(acElwa2ThingClassId).displayName();
+            } else if (deviceId == QByteArray::fromHex("4e84")) {
+                deviceType = thingClass(acThorThingClassId).displayName();
+            } else if (deviceId == QByteArray::fromHex("4f4c")) {
+                deviceType = thingClass(acThor9sThingClassId).displayName();
+            } else {
+                deviceType = QString{};
             }
-            info->addThingDescriptors(descriptorList);;
-            searchSocket->deleteLater();
-            info->finish(Thing::ThingErrorNoError);
-        });
+            qCDebug(dcMypv())
+                    << "Found Device:"
+                    << (deviceType.isEmpty() ? QString{ "Unknown" } : deviceType);
+
+            if (deviceType.isEmpty()) {
+                qCDebug(dcMypv()) << "Ignoring unknown device!";
+                continue;
+            }
+
+            const auto senderAddress = datagram.senderAddress();
+            ThingDescriptor thingDescriptor(info->thingClassId(), deviceType, senderAddress.toString());
+            QByteArray serialNumber = rawData.mid(8, 16);
+
+            foreach (Thing *existingThing, myThings()) {
+                if (serialNumber == existingThing->paramValue("serialNumber").toString()) {
+                    qCDebug(dcMypv()) << "Rediscovered device " << existingThing->name();
+                    thingDescriptor.setThingId(existingThing->id());
+                    break;
+                }
+            }
+
+            const auto networkDeviceInfo = discoveryReply->networkDeviceInfos().get(senderAddress);
+            const auto macAddress = networkDeviceInfo.macAddress();
+            if (macAddress.isNull()) {
+                info->finish(Thing::ThingErrorInvalidParameter,
+                             QT_TR_NOOP("The device was found, but the MAC address is invalid. Try searching again."));
+            }
+            ParamList params;
+            if (info->thingClassId() == acElwa2ThingClassId) {
+                params << Param(acElwa2ThingIpAddressParamTypeId, senderAddress.toString());
+                params << Param(acElwa2ThingSerialNumberParamTypeId, serialNumber);
+                params << Param(acElwa2ThingMacAddressParamTypeId, macAddress);
+            } else if (info->thingClassId() == acThorThingClassId) {
+                params << Param(acThorThingIpAddressParamTypeId, senderAddress.toString());
+                params << Param(acThorThingSerialNumberParamTypeId, serialNumber);
+                params << Param(acThorThingMacAddressParamTypeId, macAddress);
+            } else if (info->thingClassId() == acThor9sThingClassId) {
+                params << Param(acThor9sThingIpAddressParamTypeId, senderAddress.toString());
+                params << Param(acThor9sThingSerialNumberParamTypeId, serialNumber);
+                params << Param(acThor9sThingMacAddressParamTypeId, macAddress);
+            }
+            thingDescriptor.setParams(params);
+            descriptorList << thingDescriptor;
+        }
+        info->addThingDescriptors(descriptorList);
+        searchSocket->deleteLater();
+        info->finish(Thing::ThingErrorNoError);
+
+//        QTimer::singleShot(2000, this, [this, searchSocket, info, discoveryReply](){
+//            QList<ThingDescriptor> descriptorList;
+//            while(searchSocket->hasPendingDatagrams()) {
+//                char buffer[1024];
+//                QHostAddress senderAddress;
+
+//                int len = searchSocket->readDatagram(buffer, 1024, &senderAddress);
+//                QByteArray data = QByteArray::fromRawData(buffer, len);
+//                qCDebug(dcMypv()) << "Have datagram:" << data;
+//                if (data.length() < 64) {
+//                    continue;
+//                }
+
+//                //Device Id AC•THOR = 0x4e84
+//                //Device Id AC•THOR 9s = 0x4f4c
+//                //Device Id Power  = 0x4e8e
+//                //Device Id AC ELWA-E = 0x3efc
+//                //Device Id AC ELWA-2 = 0x3f16
+//                QString device;
+//                qCDebug(dcMypv()) << "device Id:" << data.mid(2, 2);
+//                if (data.mid(2, 2) == QByteArray::fromHex("3efc")) {
+//                    qCDebug(dcMypv()) << "Found Device: AC ElWA-E";
+//                    device = "AC ELWA-E";
+//                    m_myDevice = AC_ELWA_E;
+//                } else if (data.mid(2, 2) == QByteArray::fromHex("0x3f16")) {
+//                    qCDebug(dcMypv()) << "Found Device: AC ELWA-2";
+//                    device = "AC ELWA-2";
+//                    m_myDevice = AC_ELWA_2;
+//                } else if (data.mid(2, 2) == QByteArray::fromHex("0x4e8e")) {
+//                    qCDebug(dcMypv()) << "Found Device: Powermeter";
+//                    device = QT_TR_NOOP("my-PV Meter");
+//                    m_myDevice = POWER_METER;
+//                } else if (data.mid(2, 2) == QByteArray::fromHex("0x4e84")) {
+//                    qCDebug(dcMypv()) << "Found Device: AC Thor";
+//                    device = "AC Thor";
+//                    m_myDevice = AC_THOR;
+//                } else if (data.mid(2, 2) == QByteArray::fromHex("0x4f4c")) {
+//                    qCDebug(dcMypv()) << "Found Device: AC Thor 9s";
+//                    device = "AC Thor 9s";
+//                    m_myDevice = AC_THOR_9s;
+//                } else {
+//                    qCDebug(dcMypv()) << "Failed to parse discovery datagram from" << senderAddress << data;
+//                    device = "Invalid";
+//                    continue;
+//                }
+
+//                ThingDescriptor thingDescriptors(info->thingClassId(), device, senderAddress.toString());
+//                QByteArray serialNumber = data.mid(8, 16);
+
+//                foreach (Thing *existingThing, myThings()) {
+//                    if (serialNumber == existingThing->paramValue("serialNumber").toString()) {
+//                        qCDebug(dcMypv()) << "Rediscovered device " << existingThing->name();
+//                        thingDescriptors.setThingId(existingThing->id());
+//                        break;
+//                    }
+//                }
+
+//                if (hardwareManager()->networkDeviceDiscovery()->running()) {
+//                    QEventLoop loop;
+//                    connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, &loop, &QEventLoop::quit);
+//                    loop.exec();
+//                }
+//                NetworkDeviceInfo heatingRod = discoveryReply->networkDeviceInfos().get(senderAddress);
+//                if (heatingRod.macAddress().isNull()) {
+//                    info->finish(Thing::ThingErrorInvalidParameter, QT_TR_NOOP("The device was found, but the MAC address is invalid. Try searching again."));
+//                }
+
+//                ParamList params;
+//                if (info->thingClassId() == acElwa2ThingClassId) {
+//                    params << Param(acElwa2ThingIpAddressParamTypeId, senderAddress.toString());
+//                    params << Param(acElwa2ThingSerialNumberParamTypeId, serialNumber);
+//                    params << Param(acElwa2ThingMacAddressParamTypeId, heatingRod.macAddress());
+//                } else if (info->thingClassId() == acThorThingClassId) {
+//                    params << Param(acThorThingIpAddressParamTypeId, senderAddress.toString());
+//                    params << Param(acThorThingSerialNumberParamTypeId, serialNumber);
+//                    params << Param(acThorThingMacAddressParamTypeId, heatingRod.macAddress());
+//                } else if (info->thingClassId() == acThor9sThingClassId) {
+//                    params << Param(acThor9sThingIpAddressParamTypeId, senderAddress.toString());
+//                    params << Param(acThor9sThingSerialNumberParamTypeId, serialNumber);
+//                    params << Param(acThor9sThingMacAddressParamTypeId, heatingRod.macAddress());
+//                }
+
+//                thingDescriptors.setParams(params);
+//                descriptorList << thingDescriptors;
+//            }
+//            info->addThingDescriptors(descriptorList);;
+//            searchSocket->deleteLater();
+//            info->finish(Thing::ThingErrorNoError);
+//        });
     } else {
-        Q_ASSERT_X(false, "discoverThings", QString("Unhandled thingClassId: %1").arg(info->thingClassId().toString()).toUtf8());
+        info->finish(Thing::ThingErrorThingClassNotFound,
+                     QT_TR_NOOP("Unknown thing class id: ") + info->thingClassId().toString());
     }
 }
 
@@ -178,7 +279,7 @@ void IntegrationPluginMyPv::setupThing(ThingSetupInfo *info)
     Thing *thing = info->thing();
     Q_UNUSED(thing)
 
-    if (thing->thingClassId() == elwaThingClassId ||
+    if (thing->thingClassId() == acElwa2ThingClassId ||
         thing->thingClassId() == acThor9sThingClassId ||
         thing->thingClassId() == acThorThingClassId) {
         // Make sure we have a valid mac address, otherwise no monitor and no auto searching is
@@ -191,7 +292,7 @@ void IntegrationPluginMyPv::setupThing(ThingSetupInfo *info)
                     << thing->paramValue("macAddress").toString()
                     << macAddress.toString();
             info->finish(Thing::ThingErrorInvalidParameter,
-                         QT_TR_NOOP("The MAC address is not vaild. Please reconfigure the device "
+                         QT_TR_NOOP("The MAC address is not valid. Please reconfigure the device "
                                     "to fix this."));
             return;
         }
@@ -219,30 +320,35 @@ void IntegrationPluginMyPv::setupThing(ThingSetupInfo *info)
         }
         info->finish(Thing::ThingErrorNoError);
     } else {
-        Q_ASSERT_X(false, "setupThing", QString("Unhandled thingClassId: %1").arg(thing->thingClassId().toString()).toUtf8());
+        info->finish(Thing::ThingErrorThingClassNotFound,
+                     QT_TR_NOOP("Unknown thing class id: ") + thing->thingClassId().toString());
     }
 }
 
 void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
 {
-    qCDebug(dcMypv()) << "Setup TCP connection.";
+    qCDebug(dcMypv()) << "Setting up TCP connection.";
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
     MyPvModbusTcpConnection *connection = new MyPvModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, this);
     m_tcpConnections.insert(thing, connection);
 
-    connect(info, &ThingSetupInfo::aborted, monitor, [=]() {
-        // Is this needed? How can setup be aborted at this point?
-
+    connect(info, &ThingSetupInfo::aborted, monitor, [this, thing]() {
         // Clean up in case the setup gets aborted.
         if (m_monitors.contains(thing)) {
             qCDebug(dcMypv()) << "Unregister monitor because the setup has been aborted.";
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
         }
+
+        if (m_tcpConnections.contains(thing)) {
+            MyPvModbusTcpConnection *connection = m_tcpConnections.take(thing);
+            connection->disconnectDevice();
+            connection->deleteLater();
+        }
     });
 
     // Reconnect on monitor reachable changed
-    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [=](bool reachable) {
+    connect(monitor, &NetworkDeviceMonitor::reachableChanged, thing, [thing, connection, monitor](bool reachable) {
         qCDebug(dcMypv()) << "Network device monitor reachable changed for" << thing->name()
                               << reachable;
         if (reachable && !thing->stateValue("connected").toBool()) {
@@ -257,7 +363,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
 
     // Initialize if device is reachable again, otherwise set connected state to false
     // and power to 0
-    connect(connection, &MyPvModbusTcpConnection::reachableChanged, thing, [this, connection, thing](bool reachable) {
+    connect(connection, &MyPvModbusTcpConnection::reachableChanged, thing, [connection, thing](bool reachable) {
         qCDebug(dcMypv()) << "Reachable state changed to" << reachable;
         if (reachable) {
             // Connected true will be set after successfull init.
@@ -272,14 +378,46 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue("connected", success);
         if (success) {
             qCDebug(dcMypv()) << "my-PV Heating Rod intialized.";
-            qCDebug(dcMypv()) << "Current device is" << m_myDevice;
-            qCDebug(dcMypv()) << "Max Power should be set to" << m_devicePower[m_myDevice];
-            thing->setStateMaxValue("heatingPower", m_devicePower[m_myDevice]);
+            qCDebug(dcMypv()) << "Device type:" << thing->thingClass().displayName();
         } else {
             qCDebug(dcMypv()) << "my-PV Heating Rod initialization failed.";
             connection->reconnectDevice();
         }
     });
+
+
+    connect(connection, &MyPvModbusTcpConnection::waterTemperatureChanged, thing,
+            [](quint16 waterTemperature) {
+        qCDebug(dcMypv()) << "Water Temperature:" << waterTemperature;
+        // #TODO set state
+    });
+    connect(connection, &MyPvModbusTcpConnection::targetWaterTemperatureChanged, thing,
+            [](quint16 targetWaterTemperature) {
+        qCDebug(dcMypv()) << "Target Water Temperature:" << targetWaterTemperature;
+        // #TODO set state
+    });
+    connect(connection, &MyPvModbusTcpConnection::statusChanged, thing,
+            [](quint16 status) {
+        qCDebug(dcMypv()) << "Status:" << status;
+        // #TODO generate readable status string from status code and set state
+    });
+    connect(connection, &MyPvModbusTcpConnection::powerTimeoutChanged, thing,
+            [](quint16 powerTimeout) {
+        qCDebug(dcMypv()) << "Power Timeout (s):" << powerTimeout;
+        // #TODO set state
+    });
+    connect(connection, &MyPvModbusTcpConnection::boostModeChanged, thing,
+            [](quint16 boostMode) {
+        qCDebug(dcMypv()) << "Boost Mode:" << boostMode;
+        // #TODO map to readable string and set state
+    });
+
+    // #TODO set max value to heating power state from device
+
+
+
+
+    // #TODO check/improve stuff below
 
     // Read the current power consumed by the device
     connect(connection, &MyPvModbusTcpConnection::currentPowerChanged, thing, [thing](quint16 power) {
@@ -385,9 +523,9 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     });
     */
 
-    if (monitor->reachable())
+    if (monitor->reachable()) {
         connection->connectDevice();
-
+    }
     info->finish(Thing::ThingErrorNoError);
 }
 
@@ -397,10 +535,9 @@ void IntegrationPluginMyPv::postSetupThing(Thing *thing)
     // Start plugin timer
     if (!m_refreshTimer) {
         qCDebug(dcMypv()) << "Starting plugin timer";
-        m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
+        m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
         connect(m_refreshTimer, &PluginTimer::timeout, this, [this] {
             foreach(MyPvModbusTcpConnection *connection, m_tcpConnections) {
-                qCDebug(dcMypv()) << "Updated my-PV Heating Rod";
                 connection->update();
             }
         });
@@ -427,6 +564,7 @@ void IntegrationPluginMyPv::thingRemoved(Thing *thing)
 
 void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
 {
+    // #TODO everything
     qCDebug(dcMypv()) << "Executing action for" << info->thing();
     Thing *thing = info->thing();
     Action action = info->action();
@@ -434,7 +572,7 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
     StateTypeId heatingPowerActionId = thing->state("heatingPower").stateTypeId();
     StateTypeId externalControlActionId = thing->state("externalControl").stateTypeId();
     
-    if (thing->thingClassId() == elwaThingClassId ||
+    if (thing->thingClassId() == acElwa2ThingClassId ||
         thing->thingClassId() == acThor9sThingClassId ||
         thing->thingClassId() == acThorThingClassId) {
         MyPvModbusTcpConnection *connection = m_tcpConnections.value(thing);
@@ -454,7 +592,7 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
                     qCDebug(dcMypv()) << "Error setting heating power";
                 }
             });
-            thing->setStateValue(elwaHeatingPowerStateTypeId, heatingPower);
+            thing->setStateValue(acElwa2HeatingPowerStateTypeId, heatingPower);
             info->finish(Thing::ThingErrorNoError);
         } else if (action.actionTypeId() == externalControlActionId) {
             // Manually start the heating rod
@@ -493,7 +631,7 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
                     qCDebug(dcMypv()) << "Error starting heating power";
                 }
             });
-            thing->setStateValue(elwaExternalControlStateTypeId, power);
+            thing->setStateValue(acElwa2ExternalControlStateTypeId, power);
             info->finish(Thing::ThingErrorNoError);
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled actionTypeId: %1").arg(action.actionTypeId().toString()).toUtf8());

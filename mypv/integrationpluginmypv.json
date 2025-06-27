@@ -9,8 +9,8 @@
             "id": "58c480aa-abbc-47b7-a3b8-d2828fa07f67",
             "thingClasses": [
                 {
-                    "name": "elwa",
-                    "displayName": "my-PV ELWA 2",
+                    "name": "acElwa2",
+                    "displayName": "my-PV AC ELWA 2",
                     "id": "39e0828b-8fc4-4a1c-a173-b02ef76e1a93",
                     "createMethods": ["Discovery"],
                     "interfaces": ["smartheatingrod", "connectable"],

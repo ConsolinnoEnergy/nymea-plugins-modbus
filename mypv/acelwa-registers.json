@@ -4,68 +4,9 @@
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "waterTemperature",
-    "enums": [
-        {
-            "name": "ElwaStatus",
-            "values": [
-                {
-                    "key": "Heating",
-                    "value": 2
-                },
-                {
-                    "key": "Standby",
-                    "value": 3
-                },
-                {
-                    "key": "Boosted",
-                    "value": 4
-                },
-                {
-                    "key": "HeatFinished",
-                    "value": 5
-                },
-                {
-                    "key": "Setup",
-                    "value": 9
-                },
-                {
-                    "key": "LageionellaBoost",
-                    "value": 20
-                },
-                {
-                    "key": "DeviceDisabled",
-                    "value": 21
-                },
-                {
-                    "key": "DeviceBlocked",
-                    "value": 22
-                },
-                {
-                    "key": "ErrorOvertempFuseBlown",
-                    "value": 201
-                },
-                {
-                    "key": "ErrorOvertempMeasured",
-                    "value": 202
-                },
-                {
-                    "key": "ErrorOvertempElectronics",
-                    "value": 203
-                },
-                {
-                    "key": "ErrorHardwareFault",
-                    "value": 204
-                },
-                {
-                    "key": "ErrorTempSensor",
-                    "value": 205
-                }
-            ]
-        }
-    ],
     "blocks": [
         {
-            "id": "realTimeValues",
+            "id": "values",
             "readSchedule": "update",
             "registers": [
                 {
@@ -93,59 +34,51 @@
                     "access": "RO"
                 },
                 {
-                    "id": "elwaStatus",
-                    "description": "Status of ELWA",
+                    "id": "status",
+                    "description": "Status",
                     "address": 1003,
                     "size": 1,
                     "type": "uint16",
-                    "enum": "ElwaStatus",
+                    "defaultValue": 0,
                     "registerType": "holdingRegister",
-                    "defaultValue": "ElwaStatusStandby",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerTimeout",
+                    "description": "Timeout of set power",
+                    "address": 1004,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "boostMode",
+                    "description": "Boost mode",
+                    "address": 1005,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "minTemperature",
+                    "description": "Min. temperature",
+                    "unit": "°C",
+                    "address": 1006,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
                     "access": "RO"
                 }
             ]
         },
         {
-            "id": "setPointValues",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "manualStart",
-                    "description": "Manual start",
-                    "address": 1012,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "defaultValue": 0,
-                    "readSchedule": "update",
-                    "access": "RW"
-                },
-                {
-                    "id": "deviceNumber",
-                    "description": "AC ELWA Number",
-                    "address": 1013,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "defaultValue": 0,
-                    "readSchedule": "update",
-                    "access": "RW"
-                },
-                {
-                    "id": "maxPower",
-                    "description": "Maximum power",
-                    "address": 1014,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "defaultValue": 0,
-                    "readSchedule": "update",
-                    "access": "RW"
-                }
-            ]
-        },
-        {
-            "id": "powerValues",
+            "id": "powerValues1",
             "readSchedule": "update",
             "registers": [
                 {
@@ -160,32 +93,21 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy0",
-                    "description": "Dummy0",
+                    "id": "controlType",
+                    "description": "Control Type",
                     "address": 1070,
-                    "size": 4,
-                    "type": "raw",
+                    "size": 1,
+                    "type": "uint16",
                     "registerType": "holdingRegister",
                     "readSchedule": "update",
                     "access": "RO"
                 },
                 {
-                    "id": "immHeaterPower",
-                    "description": "Power at ELWA immersion heater",
-                    "address": 1074,
+                    "id": "maxPowerAbs",
+                    "description": "Maximum power possible",
+                    "address": 1071,
                     "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "defaultValue": 0,
-                    "readSchedule": "update",
-                    "access": "RO"
-                },
-                {
-                    "id": "auxRelayPower",
-                    "description": "Power at AUX relay",
-                    "address": 1075,
-                    "size": 1,
-                    "type": "int16",
+                    "type": "uint16",
                     "registerType": "holdingRegister",
                     "defaultValue": 0,
                     "readSchedule": "update",
@@ -194,40 +116,40 @@
             ]
         },
         {
-            "id": "timeoutAndBoost",
+            "id": "powerValues2",
             "readSchedule": "update",
             "registers": [
                 {
-                    "id": "powerTimeout",
-                    "description": "Timeout of set power",
-                    "address": 1004,
+                    "id": "devicePower",
+                    "description": "Device power",
+                    "address": 1082,
                     "size": 1,
-                    "type": "uint16",
+                    "type": "int16",
                     "registerType": "holdingRegister",
                     "defaultValue": 0,
-                    "access": "RW"
+                    "readSchedule": "update",
+                    "access": "RO"
                 },
                 {
-                    "id": "boostMode",
-                    "description": "Boost mode",
-                    "address": 1005,
+                    "id": "devicePowerSolar",
+                    "description": "Solar part of device power",
+                    "address": 1083,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "defaultValue": 0,
-                    "access": "RW"
+                    "readSchedule": "update",
+                    "access": "RO"
                 },
                 {
-                    "id": "backTemperature",
-                    "description": "Backup target temperature",
-                    "unit": "°C",
-                    "address": 1006,
+                    "id": "devicePowerGrid",
+                    "description": "Grid part of device power",
+                    "address": 1084,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
                     "defaultValue": 0,
-                    "staticScaleFactor": -1,
-                    "access": "RW"
+                    "readSchedule": "update",
+                    "access": "RO"
                 }
             ]
         }
@@ -246,6 +168,17 @@
             "access": "RW"
         },
         {
+            "id": "maxPower",
+            "description": "Maximum power",
+            "address": 1014,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": 0,
+            "readSchedule": "update",
+            "access": "RO"
+        },
+        {
             "id": "externalTemperature",
             "description": "External temperature sensor",
             "unit": "°C",
@@ -255,6 +188,17 @@
             "registerType": "holdingRegister",
             "defaultValue": 0,
             "staticScaleFactor": -1,
+            "readSchedule": "update",
+            "access": "RO"
+        },
+        {
+            "id": "operationMode",
+            "description": "Operation mode",
+            "address": 1065,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": 0,
             "readSchedule": "update",
             "access": "RO"
         }
