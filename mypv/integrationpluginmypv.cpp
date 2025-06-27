@@ -642,7 +642,6 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         }
     });
 
-
     connect(connection, &MyPvModbusTcpConnection::waterTemperatureChanged, thing,
             [thing](float waterTemperature) {
         thing->setStateValue("waterTemperature", waterTemperature);
