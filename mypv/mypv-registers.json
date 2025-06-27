@@ -1,9 +1,11 @@
 {
     "className": "MyPv",
-    "protocol": "RTU",
+    "protocol": "TCP",
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "waterTemperature",
+    "queuedRequests": false,
+    "queuedRequestsDelay": 100,
     "blocks": [
         {
             "id": "values",
@@ -39,18 +41,17 @@
                     "address": 1003,
                     "size": 1,
                     "type": "uint16",
-                    "defaultValue": 0,
                     "registerType": "holdingRegister",
                     "access": "RO"
                 },
                 {
                     "id": "powerTimeout",
                     "description": "Timeout of set power",
+                    "unit": "s",
                     "address": 1004,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "defaultValue": 0,
                     "access": "RO"
                 },
                 {
@@ -60,12 +61,11 @@
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "defaultValue": 0,
                     "access": "RO"
                 },
                 {
-                    "id": "minTemperature",
-                    "description": "Min. temperature",
+                    "id": "minWaterTemperature",
+                    "description": "Min. water temperature",
                     "unit": "°C",
                     "address": 1006,
                     "size": 1,
@@ -84,11 +84,11 @@
                 {
                     "id": "meterPower",
                     "description": "Power at meter",
+                    "unit": "W",
                     "address": 1069,
                     "size": 1,
                     "type": "int16",
                     "registerType": "holdingRegister",
-                    "defaultValue": 0,
                     "readSchedule": "update",
                     "access": "RO"
                 },
@@ -105,11 +105,11 @@
                 {
                     "id": "maxPowerAbs",
                     "description": "Maximum power possible",
+                    "unit": "W",
                     "address": 1071,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "defaultValue": 0,
                     "readSchedule": "update",
                     "access": "RO"
                 }
@@ -122,17 +122,18 @@
                 {
                     "id": "devicePower",
                     "description": "Device power",
+                    "unit": "W",
                     "address": 1082,
                     "size": 1,
-                    "type": "int16",
+                    "type": "uint16",
                     "registerType": "holdingRegister",
-                    "defaultValue": 0,
                     "readSchedule": "update",
                     "access": "RO"
                 },
                 {
                     "id": "devicePowerSolar",
                     "description": "Solar part of device power",
+                    "unit": "W",
                     "address": 1083,
                     "size": 1,
                     "type": "uint16",
@@ -143,12 +144,38 @@
                 {
                     "id": "devicePowerGrid",
                     "description": "Grid part of device power",
+                    "unit": "W",
                     "address": 1084,
                     "size": 1,
                     "type": "uint16",
                     "registerType": "holdingRegister",
-                    "defaultValue": 0,
                     "readSchedule": "update",
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "firmwarePart1",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "controllerFirmwareMainVersion",
+                    "description": "Controller Firmware Main Version",
+                    "address": 1016,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerstageFirmwareVersion",
+                    "description": "Powerstage Firmware Version",
+                    "address": 1017,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
                     "access": "RO"
                 }
             ]
@@ -170,12 +197,22 @@
         {
             "id": "maxPower",
             "description": "Maximum power",
+            "unit": "W",
             "address": 1014,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "defaultValue": 0,
             "readSchedule": "update",
+            "access": "RO"
+        },
+        {
+            "id": "controllerFirmwareSubVersion",
+            "description": "Controller Firmware Sub Version",
+            "address": 1028,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
             "access": "RO"
         },
         {
@@ -186,7 +223,6 @@
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "defaultValue": 0,
             "staticScaleFactor": -1,
             "readSchedule": "update",
             "access": "RO"
@@ -198,7 +234,6 @@
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "defaultValue": 0,
             "readSchedule": "update",
             "access": "RO"
         }

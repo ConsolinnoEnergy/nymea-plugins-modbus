@@ -1,14 +1,12 @@
 include(../plugins.pri)
 
 # Generate modbus connection
-MODBUS_CONNECTIONS += acelwa-registers.json
+MODBUS_CONNECTIONS += mypv-registers.json
 
 include(../modbus.pri)
 
 SOURCES += \
-    integrationpluginmypv.cpp \
-    mypvmodbustcpconnection.cpp
+    integrationpluginmypv.cpp
 
 HEADERS += \
-    integrationpluginmypv.h \
-    mypvmodbustcpconnection.h
+    integrationpluginmypv.h

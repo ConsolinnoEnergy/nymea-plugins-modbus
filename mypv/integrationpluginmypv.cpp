@@ -38,6 +38,255 @@
 #include <QEventLoop>
 #include <QNetworkDatagram>
 
+QString statusString(quint16 status, ThingClassId thingClassId)
+{
+    auto statusStr = QString{};
+    if (thingClassId == acElwa2ThingClassId) {
+        switch (status) {
+            case 1:
+                statusStr = "No Control";
+                break;
+            case 2:
+                statusStr = "Heat";
+                break;
+            case 3:
+                statusStr = "Standby";
+                break;
+            case 4:
+                statusStr = "Boost heat";
+                break;
+            case 5:
+                statusStr = "Heat finished";
+                break;
+            case 20:
+                statusStr = "Legionella-Boost active";
+                break;
+            case 21:
+                statusStr = "Device disabled (devmode = 0)";
+                break;
+            case 22:
+                statusStr = "Device blocked";
+                break;
+            case 201:
+                statusStr = "STL triggered";
+                break;
+            case 202:
+                statusStr = "Powerstage Overtemp";
+                break;
+            case 203:
+                statusStr = "Powerstage PCB temp probe fault";
+                break;
+            case 204:
+                statusStr = "Hardware fault";
+                break;
+            case 205:
+                statusStr = "ELWA Temp Sensor fault";
+                break;
+            case 209:
+                statusStr = "Mainboard Error";
+                break;
+            default:
+                statusStr = "Unknown";
+                break;
+        }
+    } else if (thingClassId == acThor9sThingClassId ||
+               thingClassId == acThorThingClassId) {
+        if (status == 0) {
+            statusStr = "Off";
+        } else if (status >= 1 && status <= 8) {
+            statusStr = "Device Startup";
+        } else if (status == 9) {
+            statusStr = "Operation";
+        } else if (status >= 200) {
+            statusStr = "Error";
+        } else {
+            statusStr = "Unknown";
+        }
+    } else {
+        statusStr = "Unknown";
+    }
+    statusStr += " (" + QString::number(status) + ")";
+    return statusStr;
+}
+
+QString boostModeString(quint16 boostMode,
+                        quint16 operatingMode,
+                        ThingClassId thingClassId)
+{
+    auto boostModeStr = QString{};
+    if (thingClassId == acElwa2ThingClassId) {
+        if (boostMode == 0) {
+            boostModeStr = "Off";
+        } else if (boostMode == 1) {
+            if (operatingMode == 0) {
+                boostModeStr = "On (ELWA)";
+            } else if (operatingMode == 3) {
+                boostModeStr = "On (ELWA + AUX)";
+            } else {
+                boostModeStr = "Unknown";
+            }
+        } else if (boostMode == 4) {
+            boostModeStr = "SELV";
+        } else if (boostMode == 5) {
+            boostModeStr = "AUX";
+        } else {
+            boostModeStr = "Unknown";
+        }
+    } else if (thingClassId == acThor9sThingClassId ||
+               thingClassId == acThorThingClassId) {
+        if (boostMode == 0) {
+            boostModeStr = "Off";
+        } else if (boostMode == 1) {
+            boostModeStr = "On";
+        } else if (boostMode == 3) {
+            boostModeStr = "Relay Boost On";
+        } else {
+            boostModeStr = "Unknown";
+        }
+    } else {
+        boostModeStr = "Unknown";
+    }
+    boostModeStr += " (" + QString::number(boostMode) + ")";
+    return boostModeStr;
+}
+
+QString controlTypeString(quint16 controlType, ThingClassId thingClassId)
+{
+    if (thingClassId != acElwa2ThingClassId &&
+        thingClassId != acThor9sThingClassId &&
+        thingClassId != acThorThingClassId) {
+        return "Unknown";
+    }
+
+    const auto isElwa = (thingClassId == acElwa2ThingClassId);
+    const auto isThor = !isElwa;
+    auto controlTypeStr = QString{};
+    switch (controlType) {
+        case 0:
+            controlTypeStr = isElwa ? "Auto Detect" : "Unknown";
+            break;
+        case 1:
+            controlTypeStr = "HTTP";
+            break;
+        case 2:
+            controlTypeStr = "Modbus TCP";
+            break;
+        case 3:
+            controlTypeStr = "Fronius Auto";
+            break;
+        case 4:
+            controlTypeStr = "Fronius Manual";
+            break;
+        case 5:
+            controlTypeStr = "SMA Home Manager";
+            break;
+        case 6:
+            controlTypeStr = "Steca Auto";
+            break;
+        case 7:
+            controlTypeStr = "Varta Auto";
+            break;
+        case 8:
+            controlTypeStr = "Varta Manual";
+            break;
+        case 9:
+            controlTypeStr = isThor ? "my-PV Power Meter Auto" : "Unknown";
+            break;
+        case 10:
+            controlTypeStr = isThor ? "my-PV Power Meter Manual" : "RCT Power Manual";
+            break;
+        case 11:
+            controlTypeStr = isThor ? "my-PV Power Meter Direct" : "Unknown";
+            break;
+        case 12:
+            controlTypeStr = isElwa ? "my-PV Meter Auto" : "Unknown";
+            break;
+        case 13:
+            controlTypeStr = isElwa ? "my-PV Meter Manual" : "Unknown";
+            break;
+        case 14:
+            controlTypeStr = isElwa ? "my-PV Meter Direct" : "RCT Power Manual";
+            break;
+        case 15:
+            controlTypeStr = isElwa ? "SMA Direct meter communication Auto" : "Unknown";
+            break;
+        case 16:
+            controlTypeStr = isElwa ? "SMA Direct meter communication Manual" : "Unknown";
+            break;
+        case 17:
+            controlTypeStr = isThor ? "SMA Direct meter communication Auto" : "Unknown";
+            break;
+        case 18:
+            controlTypeStr = isThor ? "SMA Direct meter communication Manual" : "Unknown";
+            break;
+        case 19:
+            controlTypeStr = "Digital Meter P1";
+            break;
+        case 20:
+            controlTypeStr = "Frequency";
+            break;
+        case 100:
+            controlTypeStr = "Fronius Sunspec Manual";
+            break;
+        case 101:
+            controlTypeStr = isThor ? "KACO TL1 + TL3 Manual" : "Unknown";
+            break;
+        case 102:
+            controlTypeStr = "Kostal PIKO IQ Plenticore plus Manual";
+            break;
+        case 103:
+            controlTypeStr = "Kostal Smart Energy Meter Manual";
+            break;
+        case 104:
+            controlTypeStr = "MEC electronics Manual";
+            break;
+        case 105:
+            controlTypeStr = "SolarEdge Manual";
+            break;
+        case 106:
+            controlTypeStr = "Victron Energy 1ph Manual";
+            break;
+        case 107:
+            controlTypeStr = "Victron Energy 3ph Manual";
+            break;
+        case 108:
+            controlTypeStr = "Huawei (Modbus TCP) Manual";
+            break;
+        case 109:
+            controlTypeStr = "Carlo Gavazzi EM24 Manual";
+            break;
+        case 111:
+            controlTypeStr = "Sungrow Manual";
+            break;
+        case 112:
+            controlTypeStr = "Fronius Gen24 Manual";
+            break;
+        case 113:
+            controlTypeStr = isThor ? "GoodWe Manual" : "Unknown";
+            break;
+        case 200:
+            controlTypeStr = "Huawei (Modbus RTU)";
+            break;
+        case 201:
+            controlTypeStr = "Growatt (Modbus RTU)";
+            break;
+        case 202:
+            controlTypeStr = "Solax (Modbus RTU)";
+            break;
+        case 203:
+            controlTypeStr = "Qcells (Modbus RTU)";
+            break;
+        case 204:
+            controlTypeStr = "IME Conto D4 Modbus MID (Modbus RTU)";
+            break;
+        default:
+            controlTypeStr = "Unknown";
+            break;
+    }
+    controlTypeStr += " (" + QString::number(controlType) + ")";
+    return controlTypeStr;
+}
+
 IntegrationPluginMyPv::IntegrationPluginMyPv()
 {
 }
@@ -352,7 +601,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         qCDebug(dcMypv()) << "Network device monitor reachable changed for" << thing->name()
                               << reachable;
         if (reachable && !thing->stateValue("connected").toBool()) {
-            connection->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
             connection->reconnectDevice();
         } else {
             // Note: We disable autoreconnect explicitly and we will
@@ -374,11 +623,19 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     });
 
     // Check if initilization works correctly
-    connect(connection, &MyPvModbusTcpConnection::initializationFinished, thing, [this, connection, thing] (bool success) {
+    connect(connection, &MyPvModbusTcpConnection::initializationFinished, thing, [connection, thing] (bool success) {
         thing->setStateValue("connected", success);
         if (success) {
             qCDebug(dcMypv()) << "my-PV Heating Rod intialized.";
             qCDebug(dcMypv()) << "Device type:" << thing->thingClass().displayName();
+            const auto controllerFirmwareVersion =
+                    QString{ "e%1%2" }
+                    .arg(QString::number(connection->controllerFirmwareMainVersion()))
+                    .arg(QString::number(connection->controllerFirmwareSubVersion()));
+            thing->setStateValue("controllerFirmware", controllerFirmwareVersion);
+            const auto powerstageFirmwareVersion = QString{ "ep%1" }
+                    .arg(QString::number(connection->powerstageFirmwareVersion()));
+            thing->setStateValue("powerstageFirmware", powerstageFirmwareVersion);
         } else {
             qCDebug(dcMypv()) << "my-PV Heating Rod initialization failed.";
             connection->reconnectDevice();
@@ -387,38 +644,84 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
 
 
     connect(connection, &MyPvModbusTcpConnection::waterTemperatureChanged, thing,
-            [](quint16 waterTemperature) {
-        qCDebug(dcMypv()) << "Water Temperature:" << waterTemperature;
-        // #TODO set state
+            [thing](float waterTemperature) {
+        thing->setStateValue("waterTemperature", waterTemperature);
     });
     connect(connection, &MyPvModbusTcpConnection::targetWaterTemperatureChanged, thing,
-            [](quint16 targetWaterTemperature) {
-        qCDebug(dcMypv()) << "Target Water Temperature:" << targetWaterTemperature;
-        // #TODO set state
+            [thing](float targetWaterTemperature) {
+        thing->setStateValue("targetWaterTemperature", targetWaterTemperature);
     });
     connect(connection, &MyPvModbusTcpConnection::statusChanged, thing,
-            [](quint16 status) {
-        qCDebug(dcMypv()) << "Status:" << status;
-        // #TODO generate readable status string from status code and set state
+            [thing](quint16 status) {
+        const auto statusStr = statusString(status, thing->thingClassId());
+        thing->setStateValue("status", statusStr);
     });
     connect(connection, &MyPvModbusTcpConnection::powerTimeoutChanged, thing,
-            [](quint16 powerTimeout) {
-        qCDebug(dcMypv()) << "Power Timeout (s):" << powerTimeout;
-        // #TODO set state
+            [thing](quint16 powerTimeout) {
+        thing->setStateValue("powerTimeout", powerTimeout);
     });
     connect(connection, &MyPvModbusTcpConnection::boostModeChanged, thing,
-            [](quint16 boostMode) {
-        qCDebug(dcMypv()) << "Boost Mode:" << boostMode;
-        // #TODO map to readable string and set state
+            [thing, connection](quint16 boostMode) {
+        const auto boostModeStr = boostModeString(boostMode,
+                                                  connection->operationMode(),
+                                                  thing->thingClassId());
+        thing->setStateValue("boostMode", boostModeStr);
+    });
+    connect(connection, &MyPvModbusTcpConnection::minWaterTemperatureChanged, thing,
+            [thing](float minWaterTemperature) {
+        thing->setStateValue("minWaterTemperature", minWaterTemperature);
+    });
+    connect(connection, &MyPvModbusTcpConnection::meterPowerChanged, thing,
+            [thing](qint16 meterPower) {
+        thing->setStateValue("meterPower", meterPower);
+    });
+    connect(connection, &MyPvModbusTcpConnection::controlTypeChanged, thing,
+            [thing](quint16 controlType) {
+        const auto controlTypeStr = controlTypeString(controlType,
+                                                      thing->thingClassId());
+        thing->setStateValue("controlType", controlTypeStr);
+    });
+    connect(connection, &MyPvModbusTcpConnection::maxPowerAbsChanged, thing,
+            [thing](quint16 maxPowerAbs) {
+        thing->setStateValue("maxPowerAbs", maxPowerAbs);
+    });
+    connect(connection, &MyPvModbusTcpConnection::devicePowerChanged, thing,
+            [thing](quint16 devicePower) {
+        thing->setStateValue("devicePower", devicePower);
+    });
+    connect(connection, &MyPvModbusTcpConnection::devicePowerSolarChanged, thing,
+            [thing](quint16 devicePowerSolar) {
+        thing->setStateValue("devicePowerSolar", devicePowerSolar);
+    });
+    connect(connection, &MyPvModbusTcpConnection::devicePowerGridChanged, thing,
+            [thing](quint16 devicePowerGrid) {
+        thing->setStateValue("devicePowerGrid", devicePowerGrid);
+    });
+    connect(connection, &MyPvModbusTcpConnection::currentPowerChanged, thing,
+            [thing](quint16 currentPower) {
+        thing->setStateValue("heatingPower", currentPower);
+    });
+    connect(connection, &MyPvModbusTcpConnection::maxPowerChanged, thing,
+            [thing](quint16 maxPower) {
+        thing->setStateValue("maxPower", maxPower);
+        thing->setStateMaxValue("heatingPower", maxPower);
+    });
+    connect(connection, &MyPvModbusTcpConnection::externalTemperatureChanged, thing,
+            [thing](float externalTemperature) {
+        thing->setStateValue("externalTemperature", externalTemperature);
+    });
+    connect(connection, &MyPvModbusTcpConnection::operationModeChanged, thing,
+            [thing](quint16 operationMode) {
+        thing->setStateValue("operationMode", operationMode);
     });
 
-    // #TODO set max value to heating power state from device
-
-
+    connect(connection, &MyPvModbusTcpConnection::updateFinished, connection, [connection]() {
+        qCDebug(dcMypv()) << connection;
+    });
 
 
     // #TODO check/improve stuff below
-
+    /*
     // Read the current power consumed by the device
     connect(connection, &MyPvModbusTcpConnection::currentPowerChanged, thing, [thing](quint16 power) {
         qCDebug(dcMypv()) << "Current power changed" << power << "W";
@@ -471,6 +774,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         qCDebug(dcMypv()) << "Power timeout changed to" << timeout;
         thing->setStateValue("powerTimeout", timeout);
     });
+    */
 
     // Read the current status of the heating rod
     /*
@@ -564,7 +868,9 @@ void IntegrationPluginMyPv::thingRemoved(Thing *thing)
 
 void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
 {
+    Q_UNUSED(info);
     // #TODO everything
+    /*
     qCDebug(dcMypv()) << "Executing action for" << info->thing();
     Thing *thing = info->thing();
     Action action = info->action();
@@ -639,4 +945,5 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
     } else {
         Q_ASSERT_X(false, "executeAction", QString("Unhandled thingClassId: %1").arg(thing->thingClassId().toString()).toUtf8());
     }
+    */
 }

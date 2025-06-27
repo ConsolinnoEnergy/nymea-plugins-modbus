@@ -43,7 +43,6 @@
                             "id": "ae1aea74-abac-424a-9fbb-58837636035a",
                             "name": "connected",
                             "displayName": "Connected",
-                            "displayNameEvent": "Connected changed",
                             "type": "bool",
                             "defaultValue": false,
                             "cached": false
@@ -52,7 +51,6 @@
                             "id": "b18d9582-2bf9-42fa-991f-5f6b6df2f721",
                             "name": "externalControl",
                             "displayName": "External Control",
-                            "displayNameEvent": "External Control changed",
                             "displayNameAction": "Change external control",
                             "type": "bool",
                             "defaultValue": 0,
@@ -62,7 +60,6 @@
                             "id": "c6cac0e7-ca01-4f26-951c-e5a7636707b4",
                             "name": "heatingPower",
                             "displayName": "Power consumption",
-                            "displayNameEvent": "Heating power consumption changed",
                             "displayNameAction": "Change power consumption",
                             "type": "uint",
                             "unit": "Watt",
@@ -73,9 +70,8 @@
                         },
                         {
                             "id": "a7aa8879-d095-477b-af3c-5f493949db42",
-                            "name": "temperature",
+                            "name": "waterTemperature",
                             "displayName": "Water temperature",
-                            "displayNameEvent": "Water temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "defaultValue": 0,
@@ -85,17 +81,23 @@
                             "id": "522c0d49-f62e-406a-bb54-c89d5f4ca783",
                             "name": "targetWaterTemperature",
                             "displayName": "Target water temperature",
-                            "displayNameEvent": "Target water temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "cached": false,
                             "defaultValue": 0
                         },
                         {
+                            "id": "0fe6b442-2a09-4bbe-8fd0-77bb6a139060",
+                            "name": "status",
+                            "displayName": "Status",
+                            "type": "QString",
+                            "cached": false,
+                            "defaultValue": ""
+                        },
+                        {
                             "id": "6aaabfd8-82e4-4f54-bd84-fee30e5a5cc5",
-                            "name": "backTemperature",
-                            "displayName": "Backup temperature",
-                            "displayNameEvent": "Backup temperature changed",
+                            "name": "minWaterTemperature",
+                            "displayName": "Minimal water temperature",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "defaultValue": 0,
@@ -105,19 +107,8 @@
                             "id": "a0b74c06-994a-4274-b88d-36c65fb303dc",
                             "name": "externalTemperature",
                             "displayName": "External temperature",
-                            "displayNameEvent": "External temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "fe6c7f4b-a231-484a-b2b7-8756784edc5f",
-                            "name": "immersionHeaterPower",
-                            "displayName": "Immersion Heater power",
-                            "displayNameEvent": "Immersion Heater power consumption changed",
-                            "type": "double",
-                            "unit": "Watt",
                             "defaultValue": 0,
                             "cached": false
                         },
@@ -125,17 +116,6 @@
                             "id": "63f72157-f1c0-46b1-900f-c9d3d7511651",
                             "name": "meterPower",
                             "displayName": "Meter power",
-                            "displayNameEvent": "Meter power consumption changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "0cb3ddf6-0a7a-4d89-a59e-3c1da2078196",
-                            "name": "auxRelayPower",
-                            "displayName": "Aux Relay power",
-                            "displayNameEvent": "Aux Relay power consumption changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0,
@@ -145,7 +125,15 @@
                             "id": "67c2943e-3262-4ac5-820a-4ba0b52e6bb9",
                             "name": "maxPower",
                             "displayName": "Maximum power of heating rod",
-                            "displayNameEvent": "Max power of heating rod changed",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "63df3e48-032a-4747-937f-6c04dceee97d",
+                            "name": "maxPowerAbs",
+                            "displayName": "Absolute maximum power of heating rod",
                             "type": "uint",
                             "unit": "Watt",
                             "cached": false,
@@ -155,29 +143,77 @@
                             "id": "dc9893e8-fc18-4d8d-a995-3d78030c51cd",
                             "name": "powerTimeout",
                             "displayName": "Power timeout of heating rod",
-                            "displayNameEvent": "Power timeoutheating rod changed",
                             "type": "uint",
                             "unit": "Seconds",
                             "cached": false,
                             "defaultValue": 0
                         },
                         {
-                            "id": "6fe7f7de-5c86-460b-b906-a62b27438eba",
-                            "name": "oldBoostMode",
-                            "displayName": "Saved boost mode",
-                            "displayNameEvent": "Saved boost mode changed",
-                            "type": "uint",
-                            "cached": true,
-                            "defaultValue": 0
+                            "id": "ef165b2f-3b70-42f0-8ca4-ae4cfd3758e8",
+                            "name": "boostMode",
+                            "displayName": "Boost mode",
+                            "type": "QString",
+                            "cached": false,
+                            "defaultValue": ""
                         },
                         {
-                            "id": "79346eb9-6875-4952-8b00-ed286044a851",
-                            "name": "oldBoostActive",
-                            "displayName": "Saved boost active",
+                            "id": "b66e2dc6-3fd4-4064-86cf-30ba2bd9c9b8",
+                            "name": "controlType",
+                            "displayName": "Control Type",
+                            "type": "QString",
+                            "cached": false,
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "2d68d91a-2b8f-47ba-a466-43fece2fcb4c",
+                            "name": "operationMode",
+                            "displayName": "Operation mode",
                             "type": "uint",
-                            "displayNameEvent": "Saved boost active changed",
-                            "cached": true,
-                            "defaultValue": 0
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "15e2a660-7fcb-466f-9142-04bd02ea6508",
+                            "name": "devicePower",
+                            "displayName": "Device power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "5cd483fb-ae13-483d-b045-6527963544d7",
+                            "name": "devicePowerSolar",
+                            "displayName": "Device power solar part",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "656f5ad9-b8ea-42f0-99cc-cec688141efc",
+                            "name": "devicePowerGrid",
+                            "displayName": "Device power grid part",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "dc1f7be8-89bf-4a98-b4cd-40b068f53243",
+                            "name": "controllerFirmware",
+                            "displayName": "Controller firmware",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "9eb3e992-c381-40eb-b6ff-c774ddf50633",
+                            "name": "powerstageFirmware",
+                            "displayName": "Powerstage firmware",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
                         }
                     ]
                 },
@@ -216,7 +252,6 @@
                             "id": "1b7d9c76-c54a-49ee-b541-db44e7cf0e5f",
                             "name": "connected",
                             "displayName": "Connected",
-                            "displayNameEvent": "Connected changed",
                             "type": "bool",
                             "defaultValue": false,
                             "cached": false
@@ -225,7 +260,6 @@
                             "id": "f0487048-0951-4434-a6cd-b06132d84b66",
                             "name": "externalControl",
                             "displayName": "External Control",
-                            "displayNameEvent": "External Control changed",
                             "displayNameAction": "Change external control",
                             "type": "bool",
                             "defaultValue": 0,
@@ -235,7 +269,6 @@
                             "id": "3a745987-d583-4db4-9fa9-409d2fd29fed",
                             "name": "heatingPower",
                             "displayName": "Power consumption",
-                            "displayNameEvent": "Heating power consumption changed",
                             "displayNameAction": "Change power consumption",
                             "type": "uint",
                             "unit": "Watt",
@@ -246,9 +279,8 @@
                         },
                         {
                             "id": "d04fb302-20a2-4576-9459-654ede6e1c53",
-                            "name": "temperature",
+                            "name": "waterTemperature",
                             "displayName": "Water temperature",
-                            "displayNameEvent": "Water temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "defaultValue": 0,
@@ -258,17 +290,23 @@
                             "id": "e7b12a26-01dd-4f3e-bc2c-7b08c2d083fe",
                             "name": "targetWaterTemperature",
                             "displayName": "Target water temperature",
-                            "displayNameEvent": "Target water temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "cached": false,
                             "defaultValue": 0
                         },
                         {
+                            "id": "03da9d28-aae2-460a-8572-687169cefc6e",
+                            "name": "status",
+                            "displayName": "Status",
+                            "type": "QString",
+                            "cached": false,
+                            "defaultValue": ""
+                        },
+                        {
                             "id": "8dab39ac-ebe1-4ed6-ba89-5f52e1b78e8d",
-                            "name": "backTemperature",
-                            "displayName": "Backup temperature",
-                            "displayNameEvent": "Backup temperature changed",
+                            "name": "minWaterTemperature",
+                            "displayName": "Minimal water temperature",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "defaultValue": 0,
@@ -278,19 +316,8 @@
                             "id": "bb2d3a4e-14cd-487a-978f-634a0d84b062",
                             "name": "externalTemperature",
                             "displayName": "External temperature",
-                            "displayNameEvent": "External temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "0ca2d93a-1fc2-4151-840f-af6ea6893e26",
-                            "name": "immersionHeaterPower",
-                            "displayName": "Immersion Heater power",
-                            "displayNameEvent": "Immersion Heater power consumption changed",
-                            "type": "double",
-                            "unit": "Watt",
                             "defaultValue": 0,
                             "cached": false
                         },
@@ -298,17 +325,6 @@
                             "id": "2a0018ba-efc6-4324-806a-9fe1d341f3ea",
                             "name": "meterPower",
                             "displayName": "Meter power",
-                            "displayNameEvent": "Meter power consumption changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "7bfa71c8-45f1-4216-9bca-a3b327b9d61d",
-                            "name": "auxRelayPower",
-                            "displayName": "Aux Relay power",
-                            "displayNameEvent": "Aux Relay power consumption changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0,
@@ -318,7 +334,15 @@
                             "id": "93261aef-a8e4-458d-b56a-39a402058faf",
                             "name": "maxPower",
                             "displayName": "Maximum power of heating rod",
-                            "displayNameEvent": "Max power of heating rod changed",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "3508f048-5e94-4312-8188-330856fa3972",
+                            "name": "maxPowerAbs",
+                            "displayName": "Absolute maximum power of heating rod",
                             "type": "uint",
                             "unit": "Watt",
                             "cached": false,
@@ -328,29 +352,77 @@
                             "id": "3191e449-1046-466f-bf7e-ccce4d37e113",
                             "name": "powerTimeout",
                             "displayName": "Power timeout of heating rod",
-                            "displayNameEvent": "Power timeoutheating rod changed",
                             "type": "uint",
                             "unit": "Seconds",
                             "cached": false,
                             "defaultValue": 0
                         },
                         {
-                            "id": "e5e206a0-14c2-40b9-bd6a-ac97df11f238",
-                            "name": "oldBoostMode",
-                            "displayName": "Saved boost mode",
-                            "displayNameEvent": "Saved boost mode changed",
-                            "type": "uint",
-                            "cached": true,
-                            "defaultValue": 0
+                            "id": "d919f51d-f85a-4b2d-a376-609a72c3112f",
+                            "name": "boostMode",
+                            "displayName": "Boost mode",
+                            "type": "QString",
+                            "cached": false,
+                            "defaultValue": ""
                         },
                         {
-                            "id": "c0838d87-a831-4752-a9f5-06c625723598",
-                            "name": "oldBoostActive",
-                            "displayName": "Saved boost active",
-                            "displayNameEvent": "Saved boost active changed",
-                            "type": "uint",
-                            "cached": true,
-                            "defaultValue": 0
+                            "id": "062f6276-6aec-4c79-9785-924c2e9679a7",
+                            "name": "controlType",
+                            "displayName": "Control Type",
+                            "type": "QString",
+                            "cached": false,
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "e180eac7-8a21-41e3-a5fb-fe9d3f16e45e",
+                            "name": "operationMode",
+                            "displayName": "Operation mode",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "b29359d3-f094-417f-8d18-6376b117d42e",
+                            "name": "devicePower",
+                            "displayName": "Device power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "8e1748ae-64bc-4ef4-be5a-9bf9ace5c390",
+                            "name": "devicePowerSolar",
+                            "displayName": "Device power solar part",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "9103803b-54b0-4621-bf99-53d02453697b",
+                            "name": "devicePowerGrid",
+                            "displayName": "Device power grid part",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "88e94f59-d592-4125-8505-fbc932fc6a1b",
+                            "name": "controllerFirmware",
+                            "displayName": "Controller firmware",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "3307ce51-b874-4f19-a2a2-28532ee6774a",
+                            "name": "powerstageFirmware",
+                            "displayName": "Powerstage firmware",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
                         }
                     ]
                 },
@@ -389,7 +461,6 @@
                             "id": "5a30c2ae-5708-4816-b106-86ff94e35ccf",
                             "name": "connected",
                             "displayName": "Connected",
-                            "displayNameEvent": "Connected changed",
                             "type": "bool",
                             "defaultValue": false,
                             "cached": false
@@ -398,7 +469,6 @@
                             "id": "16cae965-42fd-4335-9b06-ae8e3da5b9ca",
                             "name": "externalControl",
                             "displayName": "External Control",
-                            "displayNameEvent": "External Control changed",
                             "displayNameAction": "Change external control",
                             "type": "bool",
                             "defaultValue": 0,
@@ -408,7 +478,6 @@
                             "id": "f16dfecc-893d-479f-99a4-ceb68a2dda4a",
                             "name": "heatingPower",
                             "displayName": "Power consumption",
-                            "displayNameEvent": "Heating power consumption changed",
                             "displayNameAction": "Change power consumption",
                             "type": "uint",
                             "unit": "Watt",
@@ -419,9 +488,8 @@
                         },
                         {
                             "id": "2ae943dd-0468-4ae1-be54-d44c61fb1a99",
-                            "name": "temperature",
+                            "name": "waterTemperature",
                             "displayName": "Water temperature",
-                            "displayNameEvent": "Water temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "defaultValue": 0,
@@ -431,17 +499,23 @@
                             "id": "cd03cb54-8c1c-4db9-8d09-5de8a6a8c44d",
                             "name": "targetWaterTemperature",
                             "displayName": "Target water temperature",
-                            "displayNameEvent": "Target water temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "cached": false,
                             "defaultValue": 0
                         },
                         {
+                            "id": "5361dba8-325f-4988-90d2-8cd930651b42",
+                            "name": "status",
+                            "displayName": "Status",
+                            "type": "QString",
+                            "cached": false,
+                            "defaultValue": ""
+                        },
+                        {
                             "id": "05b3bfa9-d7c7-4cba-8f12-74f2f541bedc",
-                            "name": "backTemperature",
-                            "displayName": "Backup temperature",
-                            "displayNameEvent": "Backup temperature changed",
+                            "name": "minWaterTemperature",
+                            "displayName": "Minimal water temperature",
                             "type": "double",
                             "unit": "DegreeCelsius",
                             "defaultValue": 0,
@@ -451,19 +525,8 @@
                             "id": "fbe47355-e0ea-44fe-b5e7-7ac407802601",
                             "name": "externalTemperature",
                             "displayName": "External temperature",
-                            "displayNameEvent": "External temperature changed",
                             "type": "double",
                             "unit": "DegreeCelsius",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "7215c979-f982-4d67-8614-f1b05ed38ec8",
-                            "name": "immersionHeaterPower",
-                            "displayName": "Immersion Heater power",
-                            "displayNameEvent": "Immersion Heater power consumption changed",
-                            "type": "double",
-                            "unit": "Watt",
                             "defaultValue": 0,
                             "cached": false
                         },
@@ -471,17 +534,6 @@
                             "id": "2f33ce76-4491-4c0a-9e45-dbd070c7d680",
                             "name": "meterPower",
                             "displayName": "Meter power",
-                            "displayNameEvent": "Meter power consumption changed",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "d02ee4e4-5d51-4d45-bb1c-b33135a72145",
-                            "name": "auxRelayPower",
-                            "displayName": "Aux Relay power",
-                            "displayNameEvent": "Aux Relay power consumption changed",
                             "type": "double",
                             "unit": "Watt",
                             "defaultValue": 0,
@@ -491,7 +543,15 @@
                             "id": "c426facc-7eb3-4c14-9208-3d594644c9a1",
                             "name": "maxPower",
                             "displayName": "Maximum power of heating rod",
-                            "displayNameEvent": "Max power of heating rod changed",
+                            "type": "uint",
+                            "unit": "Watt",
+                            "cached": false,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "8d6e61ee-0a2a-4ebf-8193-7652efa237a1",
+                            "name": "maxPowerAbs",
+                            "displayName": "Absolute maximum power of heating rod",
                             "type": "uint",
                             "unit": "Watt",
                             "cached": false,
@@ -501,29 +561,77 @@
                             "id": "32e54965-41c0-4de3-a86d-473ca7f2ac94",
                             "name": "powerTimeout",
                             "displayName": "Power timeout of heating rod",
-                            "displayNameEvent": "Power timeoutheating rod changed",
                             "type": "uint",
                             "unit": "Seconds",
                             "cached": false,
                             "defaultValue": 0
                         },
                         {
-                            "id": "e1544cc2-bbc6-4783-81fb-73a0c9150583",
-                            "name": "oldBoostMode",
-                            "displayName": "Saved boost mode",
-                            "displayNameEvent": "Saved boost mode changed",
-                            "type": "uint",
-                            "cached": true,
-                            "defaultValue": 0
+                            "id": "461b244d-af7d-4ca5-9f42-d714d20723e4",
+                            "name": "boostMode",
+                            "displayName": "Boost mode",
+                            "type": "QString",
+                            "cached": false,
+                            "defaultValue": ""
                         },
                         {
-                            "id": "2ac051c9-209d-431b-8486-2ae96a19e214",
-                            "name": "oldBoostActive",
-                            "displayName": "Saved boost active",
-                            "displayNameEvent": "Saved boost active changed",
-                            "type": "uint",
-                            "cached": true,
-                            "defaultValue": 0
+                            "id": "7f2ffc9a-ef44-40b1-9ee6-1f2fbb12c2d4",
+                            "name": "controlType",
+                            "displayName": "Control Type",
+                            "type": "QString",
+                            "cached": false,
+                            "defaultValue": ""
+                        },
+                        {
+                            "id": "2808164c-0e1f-4c54-bd4a-6e349d0d2096",
+                            "name": "operationMode",
+                            "displayName": "Operation mode",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "4c0ff199-1558-4bf6-81ad-587df8651f0d",
+                            "name": "devicePower",
+                            "displayName": "Device power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "07866742-b591-4414-86cf-0f4ee57fd1b3",
+                            "name": "devicePowerSolar",
+                            "displayName": "Device power solar part",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "dacc1fa9-8b49-4eb6-b07f-55881017814e",
+                            "name": "devicePowerGrid",
+                            "displayName": "Device power grid part",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "34faa997-754d-4ca8-a28a-6c9d456a46d1",
+                            "name": "controllerFirmware",
+                            "displayName": "Controller firmware",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
+                        },
+                        {
+                            "id": "04fa3745-a8f3-4f9a-a4f3-a0e23bf95526",
+                            "name": "powerstageFirmware",
+                            "displayName": "Powerstage firmware",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "cached": false
                         }
                     ]
                 }
