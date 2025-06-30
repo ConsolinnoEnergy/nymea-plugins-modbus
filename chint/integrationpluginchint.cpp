@@ -127,9 +127,16 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
         qCDebug(dcChint()) << "Setup after rediscovery, cleaning up ...";
         m_dtsu666Connections.take(thing)->deleteLater();
     }
+
     if (m_dtsu666Data.contains(thing)) {
         m_dtsu666Data.remove(thing);
     }
+
+    if (m_energyConsumedValues.contains(thing))
+        m_energyConsumedValues.remove(thing);
+
+    if (m_energyProducedValues.contains(thing))
+        m_energyProducedValues.remove(thing);
 
     DTSU666ModbusRtuConnection *dtsuConnection =
             new DTSU666ModbusRtuConnection(hardwareManager()->modbusRtuResource()->getModbusRtuMaster(uuid),
@@ -186,6 +193,12 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
                                  dtsuConnection->softwareversion());
             m_dtsu666Data[thing].currentTransformerRate = dtsuConnection->currentTransformerRate();
             m_dtsu666Data[thing].voltageTransformerRate = dtsuConnection->voltageTransformerRate();
+
+            QList<float> energyConsumedList{};
+            m_energyConsumedValues.insert(info->thing(), energyConsumedList);
+            QList<float> energyProducedList{};
+            m_energyProducedValues.insert(info->thing(), energyProducedList);
+
             dtsuConnection->update();
         } else {
             qCWarning(dcChint()) << "DTSU666 smartmeter Modbus RTU initialization failed.";
@@ -261,14 +274,42 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
                 m_dtsu666Data[thing].getEffectiveCurrentTransformerRate();
         thing->setStateValue(dtsu666CurrentPowerPhaseCStateTypeId, powerPhaseC / 10.f * factor);
     });
+
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::totalForwardActiveEnergyChanged, thing,
             [this, thing](float totalForwardActiveEnergy)
     {
         const auto factor =
                 m_dtsu666Data[thing].getEffectiveVoltageTransformerRate() *
                 m_dtsu666Data[thing].getEffectiveCurrentTransformerRate();
-        thing->setStateValue(dtsu666TotalEnergyConsumedStateTypeId, totalForwardActiveEnergy * factor);
+        float newTotalValue = totalForwardActiveEnergy * factor;
+
+        if (m_energyConsumedValues.contains(thing)) {
+            QList<float>& valueList = m_energyConsumedValues.operator[](thing);
+            valueList.append(newTotalValue);
+            if (valueList.length() > m_windowLength) {
+                valueList.removeFirst();
+                uint centerIndex;
+                if (m_windowLength % 2 == 0) {
+                    centerIndex = m_windowLength / 2;
+                } else {
+                    centerIndex = (m_windowLength - 1)/ 2;
+                }
+                float testValue{valueList.at(centerIndex)};
+                if (isOutlier(valueList)) {
+                    qCDebug(dcChint()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                } else {
+                    //qCDebug(dcChint()) << "Outlier check: the value" << testValue << " is legit.";
+
+                    float currentValue{thing->stateValue(dtsu666TotalEnergyConsumedStateTypeId).toFloat()};
+                    if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                        //qCDebug(dcChint()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                        thing->setStateValue(dtsu666TotalEnergyConsumedStateTypeId, testValue);
+                    }
+                }
+            }
+        }
     });
+
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::forwardActiveEnergyPhaseAChanged, thing,
             [this, thing](float forwardActiveEnergyPhaseA)
     {
@@ -299,7 +340,33 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
         const auto factor =
                 m_dtsu666Data[thing].getEffectiveVoltageTransformerRate() *
                 m_dtsu666Data[thing].getEffectiveCurrentTransformerRate();
-        thing->setStateValue(dtsu666TotalEnergyProducedStateTypeId, totalReverseActiveEnergy * factor);
+        float newTotalValue = totalReverseActiveEnergy * factor;
+
+        if (m_energyProducedValues.contains(thing)) {
+            QList<float>& valueList = m_energyProducedValues.operator[](thing);
+            valueList.append(newTotalValue);
+            if (valueList.length() > m_windowLength) {
+                valueList.removeFirst();
+                uint centerIndex;
+                if (m_windowLength % 2 == 0) {
+                    centerIndex = m_windowLength / 2;
+                } else {
+                    centerIndex = (m_windowLength - 1)/ 2;
+                }
+                float testValue{valueList.at(centerIndex)};
+                if (isOutlier(valueList)) {
+                    qCDebug(dcChint()) << "Outlier check: the value" << testValue << " is an outlier. Sample window:" << valueList;
+                } else {
+                    //qCDebug(dcChint()) << "Outlier check: the value" << testValue << " is legit.";
+
+                    float currentValue{thing->stateValue(dtsu666TotalEnergyProducedStateTypeId).toFloat()};
+                    if (testValue != currentValue) {    // Yes, we are comparing floats here! This is one of the rare cases where you can actually do that. Tested, works as intended.
+                        //qCDebug(dcChint()) << "Outlier check: the new value is different than the current value (" << currentValue << "). Writing new value to state.";
+                        thing->setStateValue(dtsu666TotalEnergyProducedStateTypeId, testValue);
+                    }
+                }
+            }
+        }
     });
     connect(dtsuConnection, &DTSU666ModbusRtuConnection::reverseActiveEnergyPhaseAChanged, thing,
             [this, thing](float reverseActiveEnergyPhaseA)
@@ -352,12 +419,21 @@ void IntegrationPluginChint::postSetupThing(Thing *thing)
 void IntegrationPluginChint::thingRemoved(Thing *thing)
 {
     qCDebug(dcChint()) << "Thing removed" << thing->name();
+
     if (m_dtsu666Connections.contains(thing)) {
         m_dtsu666Connections.take(thing)->deleteLater();
     }
+
     if (m_dtsu666Data.contains(thing)) {
         m_dtsu666Data.remove(thing);
     }
+
+    if (m_energyProducedValues.contains(thing))
+        m_energyProducedValues.remove(thing);
+
+    if (m_energyConsumedValues.contains(thing))
+        m_energyConsumedValues.remove(thing);
+
     if (myThings().isEmpty() && m_refreshTimer) {
         qCDebug(dcChint()) << "Stopping reconnect timer";
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
@@ -373,4 +449,51 @@ float IntegrationPluginChint::DTSU666Data::getEffectiveVoltageTransformerRate() 
 float IntegrationPluginChint::DTSU666Data::getEffectiveCurrentTransformerRate() const
 {
 return hasCTClamps ? currentTransformerRate : 1.f;
+}
+
+// This method uses the Hampel identifier (https://blogs.sas.com/content/iml/2021/06/01/hampel-filter-robust-outliers.html) to test if the value in the center of the window is an outlier or not.
+// The input is a list of floats that contains the window of values to look at. The method will return true if the center value of that list is an outlier according to the Hampel
+// identifier. If the value is not an outlier, the method will return false.
+// The center value of the list is the one at (length / 2) for even length and ((length - 1) / 2) for odd length.
+bool IntegrationPluginChint::isOutlier(const QList<float>& list)
+{
+    int const windowLength{list.length()};
+    if (windowLength < 3) {
+        qCWarning(dcChint()) << "Outlier check not working. Not enough values in the list.";
+        return true;    // Unknown if the value is an outlier, but return true to not use the value because it can't be checked.
+    }
+
+    // This is the variable you can change to tweak outlier detection. It scales the size of the range in which values are deemed not an outlier. Increase the number to increase the
+    // range (less values classified as an outlier), lower the number to reduce the range (more values classified as an outlier).
+    uint const hampelH{3};
+
+    float const madNormalizeFactor{1.4826};
+    //qCDebug(dcChint()) << "Hampel identifier: the input list -" << list;
+    QList<float> sortedList{list};
+    std::sort(sortedList.begin(), sortedList.end());
+    //qCDebug(dcChint()) << "Hampel identifier: the sorted list -" << sortedList;
+    uint medianIndex;
+    if (windowLength % 2 == 0) {
+        medianIndex = windowLength / 2;
+    } else {
+        medianIndex = (windowLength - 1)/ 2;
+    }
+    float const median{sortedList.at(medianIndex)};
+    //qCDebug(dcChint()) << "Hampel identifier: the median -" << median;
+
+    QList<float> madList;
+    for (int i = 0; i < windowLength; ++i) {
+        madList.append(std::abs(median - sortedList.at(i)));
+    }
+    //qCDebug(dcChint()) << "Hampel identifier: the mad list -" << madList;
+
+    std::sort(madList.begin(), madList.end());
+    //qCDebug(dcChint()) << "Hampel identifier: the sorted mad list -" << madList;
+    float const hampelIdentifier{hampelH * madNormalizeFactor * madList.at(medianIndex)};
+    //qCDebug(dcChint()) << "Hampel identifier: the calculated Hampel identifier" << hampelIdentifier;
+
+    bool isOutlier{std::abs(list.at(medianIndex) - median) > hampelIdentifier};
+    //qCDebug(dcChint()) << "Hampel identifier: the value" << list.at(medianIndex) << " is an outlier?" << isOutlier;
+
+    return isOutlier;
 }
