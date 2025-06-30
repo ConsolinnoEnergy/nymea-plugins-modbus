@@ -611,8 +611,9 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
 
         info->finish(Thing::ThingErrorNoError);
     } else if (thing->thingClassId() == solaxEvcStandaloneThingClassId) {
+        qCDebug(dcSolaxEvc()) << "Setup Standalone TCP connection.";
         uint port = thing->paramValue(solaxEvcStandaloneThingModbusIdParamTypeId).toUInt();
-        quint16 modbusId = thing->paramValue(solaxEvcThingModbusIdParamTypeId).toUInt();
+        quint16 modbusId = thing->paramValue(solaxEvcStandaloneThingModbusIdParamTypeId).toUInt();
         SolaxEvcStandaloneModbusTcpConnection *connection = new SolaxEvcStandaloneModbusTcpConnection(
                 monitor->networkDeviceInfo().address(), port, modbusId, this);
         m_standaloneConnections.insert(thing, connection);
@@ -924,6 +925,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                     }
                 });
 
+        qCDebug(dcSolaxEvc()) << "Monitor is reachable?" << monitor->reachable();
         if (monitor->reachable())
             connection->connectDevice();
 
