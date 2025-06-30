@@ -500,7 +500,7 @@ void IntegrationPluginSma::setupThing(ThingSetupInfo *info)
                 }
                 
                 // PV power based on battery power and total AC inverter power
-                double solarPower = -1*inverter->totalAcPower() + batteryPower;
+                double solarPower = -1*inverter->totalAcPower() - batteryPower;
                 thing->setStateValue(speedwireInverterCurrentPowerStateTypeId, solarPower);
             }
         });
