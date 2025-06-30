@@ -517,7 +517,7 @@ void IntegrationPluginSma::setupThing(ThingSetupInfo *info)
         thing->setStateValue(speedwireBatteryCapacityStateTypeId, thing->setting(speedwireBatterySettingsCapacityParamTypeId).toDouble());
 
         // Set battery capacity on settings change.
-        connect(thing, &Thing::settingChanged, this, [this, thing] (const ParamTypeId &paramTypeId, const QVariant &value) {
+        connect(thing, &Thing::settingChanged, thing, [thing] (const ParamTypeId &paramTypeId, const QVariant &value) {
             if (paramTypeId == speedwireBatterySettingsCapacityParamTypeId) {
                 qCDebug(dcSma()) << "Battery capacity changed to" << value.toDouble() << "kWh";
                 thing->setStateValue(speedwireBatteryCapacityStateTypeId, value.toDouble());
