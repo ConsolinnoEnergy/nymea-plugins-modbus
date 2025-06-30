@@ -194,20 +194,16 @@ void IntegrationPluginChint::setupThing(ThingSetupInfo *info)
             m_dtsu666Data[thing].currentTransformerRate = dtsuConnection->currentTransformerRate();
             m_dtsu666Data[thing].voltageTransformerRate = dtsuConnection->voltageTransformerRate();
 
+            qCWarning(dcChint()) << "Initializing outlier detection";    
+            QList<float> energyConsumedList{};
+            m_energyConsumedValues.insert(thing, energyConsumedList);
+            QList<float> energyProducedList{};
+            m_energyProducedValues.insert(thing, energyProducedList);
+
             dtsuConnection->update();
         } else {
             qCWarning(dcChint()) << "DTSU666 smartmeter Modbus RTU initialization failed.";
             dtsuConnection->initialize();
-        }
-    });
-
-    connect(dtsuConnection, &DTSU666ModbusRtuConnection::initializationFinished, info, [info, this](bool success) {
-        if (success) {
-            qCWarning(dcChint()) << "Initializing outlier detection";    
-            QList<float> energyConsumedList{};
-            m_energyConsumedValues.insert(info->thing(), energyConsumedList);
-            QList<float> energyProducedList{};
-            m_energyProducedValues.insert(info->thing(), energyProducedList);
         }
     });
 
