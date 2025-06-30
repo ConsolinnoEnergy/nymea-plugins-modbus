@@ -595,10 +595,10 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                             thing->setStateValue(solaxEvcPowerStateTypeId, false);
                         }
                     } else {
-                        qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging enabled! Make sure the "
-                                                "wallbox is charging.";
                         if ((thing->stateValue(solaxEvcPowerStateTypeId).toBool() == true)
                             && (thing->stateValue(solaxEvcPluggedInStateTypeId).toBool() == true)) {
+                            qCDebug(dcSolaxEvc()) << "EV Plugged In; Charging enabled! Make sure the "
+                                                "wallbox is charging.";
                             qCDebug(dcSolaxEvc()) << "Toggle charging true.";
                             toggleCharging(connection, true);
                             thing->setStateValue(solaxEvcPowerStateTypeId, true);
@@ -612,7 +612,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
         info->finish(Thing::ThingErrorNoError);
     } else if (thing->thingClassId() == solaxEvcStandaloneThingClassId) {
         qCDebug(dcSolaxEvc()) << "Setup Standalone TCP connection.";
-        uint port = thing->paramValue(solaxEvcStandaloneThingModbusIdParamTypeId).toUInt();
+        uint port = thing->paramValue(solaxEvcStandaloneThingPortParamTypeId).toUInt();
         quint16 modbusId = thing->paramValue(solaxEvcStandaloneThingModbusIdParamTypeId).toUInt();
         SolaxEvcStandaloneModbusTcpConnection *connection = new SolaxEvcStandaloneModbusTcpConnection(
                 monitor->networkDeviceInfo().address(), port, modbusId, this);
@@ -666,7 +666,7 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxEvcStandaloneModbusTcpConnection::initializationFinished, thing,
                 [=](bool success) {
-                    thing->setStateValue(solaxEvcConnectedStateTypeId, success);
+                    thing->setStateValue(solaxEvcStandaloneConnectedStateTypeId, success);
 
                     if (success) {
                         qCDebug(dcSolaxEvc()) << "Solax wallbox initialized.";
