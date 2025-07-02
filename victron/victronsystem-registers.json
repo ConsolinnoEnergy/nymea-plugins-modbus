@@ -183,7 +183,27 @@
                     "description": "battery state; 0=idle, 1=charging; 2=discharging",
                     "defaultValue": "0",
                     "access": "RO"
+                },
+                {
+                    "id": "dummy3",
+                    "address": 845,
+                    "size": 5,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "description": "none",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPvDc",
+                    "address": 850,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "description": "PV - DC-coupled power",
+                    "defaultValue": "0",
+                    "access": "RO"
                 }
+                
             ]
         }
     ],
