@@ -380,17 +380,6 @@
             "access": "RO"
         },
         {
-            "id": "chargePhase",
-            "address": 40,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "inputRegister",
-            "readSchedule": "update",
-            "description": "Charge Phase",
-            "enum": "ChargePhase",
-            "access": "RO"
-        },
-        {
             "id": "chargingTime",
             "address": 43,
             "size": 2,
@@ -434,6 +423,17 @@
             "readSchedule": "init",
             "description": "EVSE Scene (R/W)",
             "enum": "EvseScene",
+            "access": "RW"
+        },
+        {
+            "id": "chargePhase",
+            "address": 1573,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "description": "Charge Phase",
+            "enum": "ChargePhase",
             "access": "RW"
         },
         {
