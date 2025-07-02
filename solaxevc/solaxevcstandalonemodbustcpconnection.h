@@ -394,7 +394,7 @@ protected:
     void testReachability();
 
 private:
-    ModbusDataUtils::ByteOrder m_endianness = ModbusDataUtils::ByteOrderLittleEndian;
+    ModbusDataUtils::ByteOrder m_endianness = ModbusDataUtils::ByteOrderBigEndian;
     quint16 m_slaveId = 1;
 
     bool m_reachable = false;
