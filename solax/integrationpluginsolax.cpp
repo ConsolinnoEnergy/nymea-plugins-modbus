@@ -2508,7 +2508,7 @@ void IntegrationPluginSolax::setEvcG2Charging(SolaxEvcG2ModbusTcpConnection *con
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [reply]() {
         if (reply->error() == QModbusDevice::NoError) {
-            qCDebug(dcSolax()) << "Successfully set charging";
+            qCDebug(dcSolax()) << "Successfully set charging"; // #TODO remove when testing finished
         } else {
             qCDebug(dcSolax())
                     << "Error while setting charging:"
@@ -2526,7 +2526,7 @@ void IntegrationPluginSolax::setEvcG2MaxChargingCurrent(SolaxEvcG2ModbusTcpConne
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [reply]() {
         if (reply->error() == QModbusDevice::NoError) {
-            qCDebug(dcSolax()) << "Successfully set max. charging current";
+            qCDebug(dcSolax()) << "Successfully set max. charging current"; // #TODO remove when testing finished
         } else {
             qCDebug(dcSolax())
                     << "Error while setting max. charging current:"
