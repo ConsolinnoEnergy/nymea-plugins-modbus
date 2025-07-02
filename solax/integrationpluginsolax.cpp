@@ -1746,20 +1746,6 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                     thing->setStateValue(solaxEvcG2PhaseCountStateTypeId,
                                          chargePhaseToPhaseCount(connection->chargePhase()));
                 }
-
-                // Make wallbox follow our charging instructions.
-                if (state == SolaxEvcG2ModbusTcpConnection::StateCharging) {
-                    if (!thing->stateValue(solaxEvcG2PowerStateTypeId).toBool()) {
-                        qCDebug(dcSolax()) << "EV charging but instructed not to. Disable charging...";
-                        setEvcG2Charging(connection, false);
-                    }
-                } else {
-                    if (thing->stateValue(solaxEvcG2PluggedInStateTypeId).toBool() &&
-                            thing->stateValue(solaxEvcG2PowerStateTypeId).toBool()) {
-                        qCDebug(dcSolax()) << "EV plugged in and instructed to charge. Enable charging...";
-                        setEvcG2Charging(connection, true);
-                    }
-                }
             });
     connect(connection, &SolaxEvcG2ModbusTcpConnection::faultCodeChanged, thing,
             [thing](quint32 faultCode) {
@@ -1900,6 +1886,23 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
             [thing](float maxChargeCurrent) {
                 thing->setStateValue(solaxEvcG2MaxChargingCurrentStateTypeId, maxChargeCurrent);
             });
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::updateFinished, thing,
+            [this, thing, connection]() {
+        // Make wallbox follow our charging instructions.
+        const auto state = connection->state();
+        if (state == SolaxEvcG2ModbusTcpConnection::StateCharging) {
+            if (!thing->stateValue(solaxEvcG2PowerStateTypeId).toBool()) {
+                qCDebug(dcSolax()) << "EV charging but instructed not to. Disable charging...";
+                setEvcG2Charging(connection, false);
+            }
+        } else {
+            if (thing->stateValue(solaxEvcG2PluggedInStateTypeId).toBool() &&
+                    thing->stateValue(solaxEvcG2PowerStateTypeId).toBool()) {
+                qCDebug(dcSolax()) << "EV plugged in and instructed to charge. Enable charging...";
+                setEvcG2Charging(connection, true);
+            }
+        }
+    });
 
     if (monitor->reachable()) {
         connection->connectDevice();
