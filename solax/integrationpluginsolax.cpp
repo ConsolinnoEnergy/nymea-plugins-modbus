@@ -32,6 +32,58 @@
 #include <QEventLoop>
 #include <QtMath>
 
+QString evcG2StateToString(SolaxEvcG2ModbusTcpConnection::State state) {
+    auto stateStr = QString{};
+    switch (state) {
+        case SolaxEvcG2ModbusTcpConnection::StateAvailable:
+            stateStr = "Available";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StatePreparing:
+            stateStr = "Preparing";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateCharging:
+            stateStr = "Charging";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateFinish:
+            stateStr = "Finish";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateFaulted:
+            stateStr = "Faulted";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateUnavailable:
+            stateStr = "Unavailable";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateReserved:
+            stateStr = "Reserved";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateSuspendedEV:
+            stateStr = "Suspended EV";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateSuspendedEVSE:
+            stateStr = "Suspended EVSE";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateUpdate:
+            stateStr = "Update";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateCardActivation:
+            stateStr = "Card Activation";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateStartDelay:
+            stateStr = "Start Delay";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateChargePause:
+            stateStr = "Charge Pause";
+            break;
+        case SolaxEvcG2ModbusTcpConnection::StateStopping:
+            stateStr = "Stopping";
+            break;
+        default:
+            stateStr = "Unknown";
+            break;
+    }
+    return stateStr;
+}
+
 IntegrationPluginSolax::IntegrationPluginSolax()
 {
 
@@ -1663,7 +1715,7 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
     connect(connection, &SolaxEvcG2ModbusTcpConnection::stateChanged, thing,
             [this, thing, connection](SolaxEvcG2ModbusTcpConnection::State state) {
                 qCDebug(dcSolax()) << "State changed to:" << state; // #TODO remove when testing finished
-                thing->setStateValue(solaxEvcG2StateStateTypeId, state);
+                thing->setStateValue(solaxEvcG2StateStateTypeId, evcG2StateToString(state));
                 thing->setStateValue(solaxEvcG2ChargingStateTypeId,
                                      state == SolaxEvcG2ModbusTcpConnection::StateCharging);
                 if (state == SolaxEvcG2ModbusTcpConnection::StateAvailable ||
