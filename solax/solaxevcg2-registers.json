@@ -325,7 +325,6 @@
                     "registerType": "inputRegister",
                     "description": "State",
                     "enum": "State",
-                    "defaultValue": "StateAvailable",
                     "access": "RO"
                 },
                 {
@@ -376,7 +375,6 @@
             "registerType": "inputRegister",
             "readSchedule": "init",
             "description": "Firmware version",
-            "defaultValue": 0,
             "access": "RO"
         },
         {
@@ -399,7 +397,6 @@
             "readSchedule": "init",
             "description": "Start Charge Mode",
             "enum": "StartChargeMode",
-            "defaultValue": "StartChargeModePlugAndCharge",
             "access": "RW"
         },
         {
@@ -411,7 +408,6 @@
             "readSchedule": "init",
             "description": "Boost Mode",
             "enum": "BoostMode",
-            "defaultValue": "BoostModeNormal",
             "access": "RW"
         },
         {
@@ -445,7 +441,6 @@
             "readSchedule": "update",
             "description": "Control Command",
             "enum": "ControlCommand",
-            "defaultValue": "ControlCommandAvailable",
             "access": "RW"
         },
         {
