@@ -32,7 +32,8 @@
 #include <QEventLoop>
 #include <QtMath>
 
-QString evcG2StateToString(SolaxEvcG2ModbusTcpConnection::State state) {
+QString evcG2StateToString(SolaxEvcG2ModbusTcpConnection::State state)
+{
     auto stateStr = QString{};
     switch (state) {
         case SolaxEvcG2ModbusTcpConnection::StateAvailable:
@@ -82,6 +83,11 @@ QString evcG2StateToString(SolaxEvcG2ModbusTcpConnection::State state) {
             break;
     }
     return stateStr;
+}
+
+quint16 chargePhaseToPhaseCount(SolaxEvcG2ModbusTcpConnection::ChargePhase chargePhase)
+{
+    return (chargePhase == SolaxEvcG2ModbusTcpConnection::ChargePhaseThreePhase) ? 3 : 1;
 }
 
 IntegrationPluginSolax::IntegrationPluginSolax()
@@ -1714,7 +1720,6 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
 
     connect(connection, &SolaxEvcG2ModbusTcpConnection::stateChanged, thing,
             [this, thing, connection](SolaxEvcG2ModbusTcpConnection::State state) {
-                qCDebug(dcSolax()) << "State changed to:" << state; // #TODO remove when testing finished
                 thing->setStateValue(solaxEvcG2StateStateTypeId, evcG2StateToString(state));
                 thing->setStateValue(solaxEvcG2ChargingStateTypeId,
                                      state == SolaxEvcG2ModbusTcpConnection::StateCharging);
@@ -1722,8 +1727,11 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                         state == SolaxEvcG2ModbusTcpConnection::StateUnavailable ||
                         state == SolaxEvcG2ModbusTcpConnection::StateUpdate) {
                     thing->setStateValue(solaxEvcG2PluggedInStateTypeId, false);
+                    thing->setStateValue(solaxEvcG2PhaseCountStateTypeId, 0);
                 } else {
                     thing->setStateValue(solaxEvcG2PluggedInStateTypeId, true);
+                    thing->setStateValue(solaxEvcG2PhaseCountStateTypeId,
+                                         chargePhaseToPhaseCount(connection->chargePhase()));
                 }
 
                 // Make wallbox follow our charging instructions.
@@ -1847,12 +1855,17 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
             [thing](SolaxEvcG2ModbusTcpConnection::TypePhase typePhase) {
                 switch (typePhase) {
                     case SolaxEvcG2ModbusTcpConnection::TypePhaseSinglePhase:
-                        thing->setStateValue(solaxEvcG2PhaseCountStateTypeId, 1);
+                        thing->setStateMaxValue(solaxEvcG2PhaseCountStateTypeId, 1);
                         break;
                     case SolaxEvcG2ModbusTcpConnection::TypePhaseThreePhase:
-                        thing->setStateValue(solaxEvcG2PhaseCountStateTypeId, 3);
+                        thing->setStateMaxValue(solaxEvcG2PhaseCountStateTypeId, 3);
                         break;
                 }
+            });
+    connect(connection, &SolaxEvcG2ModbusTcpConnection::chargePhaseChanged, thing,
+            [thing](SolaxEvcG2ModbusTcpConnection::ChargePhase chargePhase) {
+                thing->setStateValue(solaxEvcG2PhaseCountStateTypeId,
+                                     chargePhaseToPhaseCount(chargePhase));
             });
     connect(connection, &SolaxEvcG2ModbusTcpConnection::chargingTimeChanged, thing,
             [thing](quint32 chargingTime) {
@@ -1873,60 +1886,6 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
     connect(connection, &SolaxEvcG2ModbusTcpConnection::maxChargeCurrentChanged, thing,
             [thing](float maxChargeCurrent) {
                 thing->setStateValue(solaxEvcG2MaxChargingCurrentStateTypeId, maxChargeCurrent);
-            });
-
-    // #TODO remove when testing finished
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::evseSceneChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::EvseScene evseScene) {
-                qCDebug(dcSolax()) << "EVSE Scene:" << evseScene;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::ecoGearChanged, thing,
-            [](quint16 ecoGear) {
-                qCDebug(dcSolax()) << "Eco Gear:" << ecoGear;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::greenGearChanged, thing,
-            [](quint16 greenGear) {
-                qCDebug(dcSolax()) << "Green Gear:" << greenGear;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::startChargeModeChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::StartChargeMode startChargeMode) {
-                qCDebug(dcSolax()) << "Start Charge Mode:" << startChargeMode;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::boostModeChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::BoostMode boostMode) {
-                qCDebug(dcSolax()) << "Boost Mode:" << boostMode;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::userSetContractedCurrentChanged, thing,
-            [](quint16 userSetContractedCurrent) {
-                qCDebug(dcSolax()) << "User Set Contracted Current:" << userSetContractedCurrent;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::evseSceneRWChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::EvseScene evseScene) {
-                qCDebug(dcSolax()) << "EVSE Scene (RW):" << evseScene;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::chargePhaseRWChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::ChargePhase chargePhase) {
-                qCDebug(dcSolax()) << "Charge Phase (RW):" << chargePhase;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::controlCommandChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::ControlCommand controlCommand) {
-                qCDebug(dcSolax()) << "Control Command:" << controlCommand;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::adjustChargeCurrentChanged, thing,
-            [](float adjustChargeCurrent) {
-                qCDebug(dcSolax()) << "Adjust Charge Current:" << adjustChargeCurrent;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::adjustChargePowerChanged, thing,
-            [](float adjustChargePower) {
-                qCDebug(dcSolax()) << "Adjust Charge Power:" << adjustChargePower;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::evseModeChanged, thing,
-            [](SolaxEvcG2ModbusTcpConnection::EvseMode EvseMode) {
-                qCDebug(dcSolax()) << "Set EVSE Mode:" << EvseMode;
-            });
-    connect(connection, &SolaxEvcG2ModbusTcpConnection::updateFinished, connection,
-            [connection]() {
-                qCDebug(dcSolax()) << "Current control command:" << connection->controlCommand();
             });
 
     if (monitor->reachable()) {

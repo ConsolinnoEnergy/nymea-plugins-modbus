@@ -223,54 +223,6 @@
             "readSchedule": "update",
             "registers": [
                 {
-                    "id": "voltagePhaseA",
-                    "address": 0,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Voltage phase A",
-                    "unit": "V",
-                    "defaultValue": 0,
-                    "staticScaleFactor": -2,
-                    "access": "RO"
-                },
-                {
-                    "id": "voltagePhaseB",
-                    "address": 1,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Voltage phase B",
-                    "unit": "V",
-                    "defaultValue": 0,
-                    "staticScaleFactor": -2,
-                    "access": "RO"
-                },
-                {
-                    "id": "voltagePhaseC",
-                    "address": 2,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Voltage phase C",
-                    "unit": "V",
-                    "defaultValue": 0,
-                    "staticScaleFactor": -2,
-                    "access": "RO"
-                },
-                {
-                    "id": "voltagePe",
-                    "address": 3,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Voltage PE",
-                    "unit": "V",
-                    "defaultValue": 0,
-                    "staticScaleFactor": -2,
-                    "access": "RO"
-                },
-                {
                     "id": "currentPhaseA",
                     "address": 4,
                     "size": 1,
@@ -307,48 +259,12 @@
                     "access": "RO"
                 },
                 {
-                    "id": "currentPe",
+                    "id": "dummy0",
                     "address": 7,
-                    "size": 1,
-                    "type": "uint16",
+                    "size": 4,
+                    "type": "raw",
                     "registerType": "inputRegister",
-                    "description": "Current PE",
-                    "unit": "A",
-                    "defaultValue": 0,
-                    "staticScaleFactor": -3,
-                    "access": "RO"
-                },
-                {
-                    "id": "powerPhaseA",
-                    "address": 8,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Power phase A",
-                    "unit": "W",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "powerPhaseB",
-                    "address": 9,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Power phase B",
-                    "unit": "W",
-                    "defaultValue": 0,
-                    "access": "RO"
-                },
-                {
-                    "id": "powerPhaseC",
-                    "address": 10,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Power phase C",
-                    "unit": "W",
-                    "defaultValue": 0,
+                    "description": "Dummy0",
                     "access": "RO"
                 },
                 {
@@ -363,39 +279,12 @@
                     "access": "RO"
                 },
                 {
-                    "id": "frequencyPhaseA",
+                    "id": "dummy1",
                     "address": 12,
-                    "size": 1,
-                    "type": "uint16",
+                    "size": 3,
+                    "type": "raw",
                     "registerType": "inputRegister",
-                    "description": "Frequency phase A",
-                    "unit": "Hz",
-                    "defaultValue": 0,
-                    "staticScaleFactor": -2,
-                    "access": "RO"
-                },
-                {
-                    "id": "frequencyPhaseB",
-                    "address": 13,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Frequency phase B",
-                    "unit": "Hz",
-                    "defaultValue": 0,
-                    "staticScaleFactor": -2,
-                    "access": "RO"
-                },
-                {
-                    "id": "frequencyPhaseC",
-                    "address": 14,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "Frequency phase C",
-                    "unit": "Hz",
-                    "defaultValue": 0,
-                    "staticScaleFactor": -2,
+                    "description": "Dummy1",
                     "access": "RO"
                 },
                 {
@@ -453,7 +342,7 @@
         },
         {
             "id": "wallboxInfo",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "registers": [
                 {
                     "id": "typePower",
@@ -463,7 +352,6 @@
                     "registerType": "inputRegister",
                     "description": "Wallbox Power Type",
                     "enum": "TypePower",
-                    "defaultValue": "TypePower6kW",
                     "access": "RO"
                 },
                 {
@@ -474,86 +362,7 @@
                     "registerType": "inputRegister",
                     "description": "Wallbox is single or three phase",
                     "enum": "TypePhase",
-                    "defaultValue": "TypePhaseThreePhase",
                     "access": "RO"
-                },
-                {
-                    "id": "evseScene",
-                    "address": 35,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "inputRegister",
-                    "description": "EVSE Scene",
-                    "enum": "EvseScene",
-                    "defaultValue": "EvseSceneStandard",
-                    "access": "RO"
-                }
-            ]
-        },
-        {
-            "id": "deviceSettings",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "ecoGear",
-                    "address": 1550,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "description": "ECO Gear",
-                    "defaultValue": 0,
-                    "access": "RW"
-                },
-                {
-                    "id": "greenGear",
-                    "address": 1551,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "description": "Green Gear",
-                    "defaultValue": 0,
-                    "access": "RW"
-                },
-                {
-                    "id": "startChargeMode",
-                    "address": 1552,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "description": "Start Charge Mode",
-                    "enum": "StartChargeMode",
-                    "defaultValue": "StartChargeModePlugAndCharge",
-                    "access": "RW"
-                }
-            ]
-        },
-        {
-            "id": "deviceSettings2",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "boostMode",
-                    "address": 1555,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "description": "Boost Mode",
-                    "enum": "BoostMode",
-                    "defaultValue": "BoostModeNormal",
-                    "access": "RW"
-                },
-                {
-                    "id": "userSetContractedCurrent",
-                    "address": 1556,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "description": "Contracted Current",
-                    "unit": "A",
-                    "defaultValue": 16,
-                    "minValue": 16,
-                    "maxValue": 300,
-                    "access": "RW"
                 }
             ]
         }
@@ -579,7 +388,6 @@
             "readSchedule": "update",
             "description": "Charge Phase",
             "enum": "ChargePhase",
-            "defaultValue": "ChargePhaseThreePhase",
             "access": "RO"
         },
         {
@@ -594,27 +402,38 @@
             "access": "RO"
         },
         {
+            "id": "startChargeMode",
+            "address": 1552,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "Start Charge Mode",
+            "enum": "StartChargeMode",
+            "defaultValue": "StartChargeModePlugAndCharge",
+            "access": "RW"
+        },
+        {
+            "id": "boostMode",
+            "address": 1555,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "description": "Boost Mode",
+            "enum": "BoostMode",
+            "defaultValue": "BoostModeNormal",
+            "access": "RW"
+        },
+        {
             "id": "evseSceneRW",
             "address": 1564,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "description": "EVSE Scene (R/W)",
             "enum": "EvseScene",
-            "defaultValue": "EvseSceneStandard",
-            "access": "RW"
-        },
-        {
-            "id": "chargePhaseRW",
-            "address": 1573,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Charge Phase (R/W)",
-            "enum": "ChargePhase",
-            "defaultValue": "ChargePhaseThreePhase",
             "access": "RW"
         },
         {
@@ -627,29 +446,6 @@
             "description": "Control Command",
             "enum": "ControlCommand",
             "defaultValue": "ControlCommandAvailable",
-            "access": "RW"
-        },
-        {
-            "id": "adjustChargeCurrent",
-            "address": 1576,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Adjust Charge Current",
-            "unit": "A",
-            "staticScaleFactor": -2,
-            "access": "RW"
-        },
-        {
-            "id": "adjustChargePower",
-            "address": 1603,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "description": "Adjust Charge Power",
-            "unit": "W",
             "access": "RW"
         },
         {
@@ -670,10 +466,9 @@
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "description": "EVSE Mode",
             "enum": "EvseMode",
-            "defaultValue": "EvseModeFast",
             "access": "RW"
         }
     ]
