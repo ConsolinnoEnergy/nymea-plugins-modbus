@@ -4,34 +4,34 @@
 <context>
     <name>IntegrationPluginSolax</name>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="91"/>
-        <location filename="../integrationpluginsolax.cpp" line="167"/>
+        <location filename="../integrationpluginsolax.cpp" line="172"/>
+        <location filename="../integrationpluginsolax.cpp" line="248"/>
         <source>The network device discovery is not available.</source>
         <translation>Die Network Device Discovery ist nicht verfügbar.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="129"/>
+        <location filename="../integrationpluginsolax.cpp" line="210"/>
         <source>No Modbus RTU interface available. Please set up a Modbus RTU interface first.</source>
         <translation>Kein Modbus RTU Interface verfügbar. Bitte zuerst ein Modbus RTU Interface konfigurieren.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="136"/>
+        <location filename="../integrationpluginsolax.cpp" line="217"/>
         <source>No modbus RTU master with appropriate settings found.</source>
         <translation>Kein Modbus RTU Master mit zum Gerät passenden Einstellungen verfügbar. Bitte zuerst einen Modbus RTU Master entsprechend konfigurieren.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="246"/>
-        <location filename="../integrationpluginsolax.cpp" line="946"/>
+        <location filename="../integrationpluginsolax.cpp" line="327"/>
+        <location filename="../integrationpluginsolax.cpp" line="1027"/>
         <source>The MAC address is not vaild. Please reconfigure the device to fix this.</source>
         <translation>Die MAC Adresse ist ungültig. Bitte Gerät neu konfigurieren.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="279"/>
+        <location filename="../integrationpluginsolax.cpp" line="360"/>
         <source>The Modbus address not valid. It must be a value between 1 and 247.</source>
         <translation>Ungültige Modbus ID. Die ID muss einen Wert zwischen 1 und 247 haben.</translation>
     </message>
     <message>
-        <location filename="../integrationpluginsolax.cpp" line="286"/>
+        <location filename="../integrationpluginsolax.cpp" line="367"/>
         <source>The Modbus RTU resource is not available.</source>
         <translation>Der ausgewählte Modbus RTU Master ist nicht verfügbar.</translation>
     </message>
