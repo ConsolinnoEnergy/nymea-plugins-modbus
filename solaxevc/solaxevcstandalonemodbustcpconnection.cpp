@@ -135,7 +135,7 @@ SolaxEvcStandaloneModbusTcpConnection::ControlCommand SolaxEvcStandaloneModbusTc
 
 QModbusReply *SolaxEvcStandaloneModbusTcpConnection::setControlCommand(ControlCommand controlCommand)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(static_cast<quint32>((0x0C80 << 16) | controlCommand), m_endianness);
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(static_cast<quint32>((0x0C80 << 16) | controlCommand), ModbusDataUtils::ByteOrderLittleEndian);
     qCDebug(dcSolaxEvcStandaloneModbusTcpConnection()) << "--> Write \"Control command\" register:" << 1575 << "size:" << 2 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1575, values.count());
     request.setValues(values);
@@ -149,7 +149,7 @@ float SolaxEvcStandaloneModbusTcpConnection::maxCurrent() const
 
 QModbusReply *SolaxEvcStandaloneModbusTcpConnection::setMaxCurrent(float maxCurrent)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(static_cast<quint32>(maxCurrent  * 1.0 / pow(10, -2)), m_endianness);
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt32(static_cast<quint32>(maxCurrent  * 1.0 / pow(10, -2)), ModbusDataUtils::ByteOrderLittleEndian);
     qCDebug(dcSolaxEvcStandaloneModbusTcpConnection()) << "--> Write \"Maximum current fast mode\" register:" << 1615 << "size:" << 2 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 1615, values.count());
     request.setValues(values);
