@@ -1740,7 +1740,7 @@ void IntegrationPluginSolax::setupEvcG2TcpConnection(ThingSetupInfo *info)
                         state == SolaxEvcG2ModbusTcpConnection::StateUnavailable ||
                         state == SolaxEvcG2ModbusTcpConnection::StateUpdate) {
                     thing->setStateValue(solaxEvcG2PluggedInStateTypeId, false);
-                    thing->setStateValue(solaxEvcG2PhaseCountStateTypeId, 0);
+                    thing->setStateValue(solaxEvcG2PhaseCountStateTypeId, 1);
                 } else {
                     thing->setStateValue(solaxEvcG2PluggedInStateTypeId, true);
                     thing->setStateValue(solaxEvcG2PhaseCountStateTypeId,
