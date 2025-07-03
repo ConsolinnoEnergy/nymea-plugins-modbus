@@ -287,9 +287,10 @@ QString controlTypeString(quint16 controlType, ThingClassId thingClassId)
     return controlTypeStr;
 }
 
-int heatingPowerInterval(Thing *thing)
+int heatingPowerInterval(MyPvModbusTcpConnection *connection)
 {
-    return thing->stateValue("powerTimeout").toUInt() - 3000;
+    const auto timeoutSeconds = connection->powerTimeout();
+    return timeoutSeconds < 5 ? 5000 : (timeoutSeconds - 3) * 1000;
 }
 
 IntegrationPluginMyPv::IntegrationPluginMyPv()
@@ -568,10 +569,10 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue("status", statusStr);
     });
     connect(connection, &MyPvModbusTcpConnection::powerTimeoutChanged, thing,
-            [this, thing](quint16 powerTimeout) {
+            [this, thing, connection](quint16 powerTimeout) {
         thing->setStateValue("powerTimeout", powerTimeout);
         const auto timer = m_controlTimer.value(thing);
-        timer->setInterval(heatingPowerInterval(thing));
+        timer->setInterval(heatingPowerInterval(connection));
     });
     connect(connection, &MyPvModbusTcpConnection::boostModeChanged, thing,
             [thing, connection](quint16 boostMode) {
@@ -636,11 +637,11 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     const auto timer = new QTimer{ thing };
     timer->setSingleShot(true);
     m_controlTimer.insert(thing, timer);
-    connect(timer, &QTimer::timeout, thing, [this, thing, timer]() {
+    connect(timer, &QTimer::timeout, thing, [this, thing, timer, connection]() {
         writeHeatingPower(thing);
         // Restart timer to write heating power again before the last
         // written heating power value becomes invalid.
-        timer->setInterval(heatingPowerInterval(thing));
+        timer->setInterval(heatingPowerInterval(connection));
         timer->start();
     });
 
@@ -735,6 +736,14 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
                 << "Unhandled thing class:"
                 << thing->thingClass().displayName()
                 << thing->thingClassId();
+        info->finish(Thing::ThingErrorThingClassNotFound,
+                     QT_TR_NOOP("Unknown thing class"));
+        return;
+    }
+    if (!m_tcpConnections.contains(thing)) {
+        qCWarning(dcMypv()) << "Can not find TCP connection for thing" << thing;
+        info->finish(Thing::ThingErrorHardwareFailure,
+                     QT_TR_NOOP("TCP connection not available"));
         return;
     }
 
@@ -756,6 +765,7 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
         enableHeating = action.paramValue(acThor9sExternalControlActionExternalControlParamTypeId).toBool();
     }
 
+    const auto connection = m_tcpConnections.value(thing);
     if (action.actionTypeId() == acElwa2HeatingPowerActionTypeId ||
             action.actionTypeId() == acThorHeatingPowerActionTypeId ||
             action.actionTypeId() == acThor9sHeatingPowerActionTypeId) {
@@ -765,22 +775,26 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
         if (timer->isActive()) {
             timer->stop();
             writeHeatingPower(thing);
-            timer->setInterval(heatingPowerInterval(thing));
+            timer->setInterval(heatingPowerInterval(connection));
             timer->start();
         }
+        info->finish(Thing::ThingErrorNoError);
     } else if (action.actionTypeId() == acElwa2ExternalControlActionTypeId ||
                action.actionTypeId() == acThorExternalControlActionTypeId ||
                action.actionTypeId() == acThor9sExternalControlActionTypeId) {
         const auto timer = m_controlTimer.value(thing);
         if (enableHeating) {
             writeHeatingPower(thing);
-            timer->setInterval(heatingPowerInterval(thing));
+            timer->setInterval(heatingPowerInterval(connection));
             timer->start();
         } else {
             timer->stop();
         }
+        info->finish(Thing::ThingErrorNoError);
     } else {
         qCWarning(dcMypv()) << "Unhandled action type id:" << action.actionTypeId().toString();
+        info->finish(Thing::ThingErrorActionTypeNotFound,
+                     QT_TR_NOOP("Action type not found"));
     }
 }
 
