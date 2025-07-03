@@ -494,21 +494,16 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     qCDebug(dcMypv()) << "Setting up TCP connection.";
     Thing *thing = info->thing();
     NetworkDeviceMonitor *monitor = m_monitors.value(info->thing());
-    MyPvModbusTcpConnection *connection = new MyPvModbusTcpConnection(monitor->networkDeviceInfo().address(), 502, 1, this);
+    MyPvModbusTcpConnection *connection =
+            new MyPvModbusTcpConnection(monitor->networkDeviceInfo().address(),
+                                        502,
+                                        1,
+                                        this);
     m_tcpConnections.insert(thing, connection);
 
     connect(info, &ThingSetupInfo::aborted, monitor, [this, thing]() {
-        // Clean up in case the setup gets aborted.
-        if (m_monitors.contains(thing)) {
-            qCDebug(dcMypv()) << "Unregister monitor because the setup has been aborted.";
-            hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-        }
-
-        if (m_tcpConnections.contains(thing)) {
-            MyPvModbusTcpConnection *connection = m_tcpConnections.take(thing);
-            connection->disconnectDevice();
-            connection->deleteLater();
-        }
+        qCDebug(dcMypv()) << "Cleaning up because the setup has been aborted.";
+        cleanUpThing(thing);
     });
 
     // Reconnect on monitor reachable changed
@@ -720,27 +715,7 @@ void IntegrationPluginMyPv::postSetupThing(Thing *thing)
 
 void IntegrationPluginMyPv::thingRemoved(Thing *thing)
 {
-    if (m_monitors.contains(thing)) {
-        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
-    }
-
-    if (m_tcpConnections.contains(thing)) {
-        MyPvModbusTcpConnection *connection = m_tcpConnections.take(thing);
-        connection->disconnectDevice();
-        connection->deleteLater();
-    }
-
-    if (m_setHeatingPower.contains(thing)) {
-        m_setHeatingPower.remove(thing);
-    }
-
-    if (m_controlTimer.contains(thing)) {
-        const auto timer = m_controlTimer.take(thing);
-        if (timer->isActive()) {
-            timer->stop();
-        }
-        timer->deleteLater();
-    }
+    cleanUpThing(thing);
 
     if (myThings().isEmpty()) {
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
@@ -806,5 +781,30 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
         }
     } else {
         qCWarning(dcMypv()) << "Unhandled action type id:" << action.actionTypeId().toString();
+    }
+}
+
+void IntegrationPluginMyPv::cleanUpThing(Thing *thing)
+{
+    if (m_monitors.contains(thing)) {
+        hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(m_monitors.take(thing));
+    }
+
+    if (m_tcpConnections.contains(thing)) {
+        MyPvModbusTcpConnection *connection = m_tcpConnections.take(thing);
+        connection->disconnectDevice();
+        connection->deleteLater();
+    }
+
+    if (m_setHeatingPower.contains(thing)) {
+        m_setHeatingPower.remove(thing);
+    }
+
+    if (m_controlTimer.contains(thing)) {
+        const auto timer = m_controlTimer.take(thing);
+        if (timer->isActive()) {
+            timer->stop();
+        }
+        timer->deleteLater();
     }
 }

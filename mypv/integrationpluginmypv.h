@@ -65,6 +65,7 @@ private:
     QHash<Thing *, quint16> m_setHeatingPower;
     QHash<Thing *, QTimer *> m_controlTimer;
 
+    void cleanUpThing(Thing *thing);
     void setupTcpConnection(ThingSetupInfo *info);
     void configureConnection(MyPvModbusTcpConnection *connection);
     void writeHeatingPower(Thing *thing);
