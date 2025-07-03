@@ -13,7 +13,7 @@
                     "displayName": "my-PV AC ELWA 2",
                     "id": "39e0828b-8fc4-4a1c-a173-b02ef76e1a93",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["smartheatingrod", "connectable"],
+                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
                     "paramTypes": [
                         {
                             "id": "d54a05fc-e7e0-44b9-a49f-28d125f4a850",
@@ -53,20 +53,37 @@
                             "displayName": "External Control",
                             "displayNameAction": "Change external control",
                             "type": "bool",
-                            "defaultValue": 0,
+                            "defaultValue": false,
                             "writable": true
                         },
                         {
                             "id": "c6cac0e7-ca01-4f26-951c-e5a7636707b4",
                             "name": "heatingPower",
-                            "displayName": "Power consumption",
-                            "displayNameAction": "Change power consumption",
+                            "displayName": "Heating power setpoint",
+                            "displayNameAction": "Change heating power setpoint",
                             "type": "uint",
                             "unit": "Watt",
                             "minValue": 0,
                             "maxValue": 1000,
                             "defaultValue": 0,
                             "writable": true
+                        },
+                        {
+                            "id": "4fe52374-3bdf-4d01-a0e8-0ef91e08ee29",
+                            "name": "currentPower",
+                            "displayName": "Heating power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "5ebc9e8a-1b2b-427d-b78e-dca669daa86e",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total heating energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": true
                         },
                         {
                             "id": "a7aa8879-d095-477b-af3c-5f493949db42",
@@ -87,14 +104,6 @@
                             "defaultValue": 0
                         },
                         {
-                            "id": "0fe6b442-2a09-4bbe-8fd0-77bb6a139060",
-                            "name": "status",
-                            "displayName": "Status",
-                            "type": "QString",
-                            "cached": false,
-                            "defaultValue": ""
-                        },
-                        {
                             "id": "6aaabfd8-82e4-4f54-bd84-fee30e5a5cc5",
                             "name": "minWaterTemperature",
                             "displayName": "Minimal water temperature",
@@ -104,100 +113,12 @@
                             "cached": false
                         },
                         {
-                            "id": "a0b74c06-994a-4274-b88d-36c65fb303dc",
-                            "name": "externalTemperature",
-                            "displayName": "External temperature",
-                            "type": "double",
-                            "unit": "DegreeCelsius",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "63f72157-f1c0-46b1-900f-c9d3d7511651",
-                            "name": "meterPower",
-                            "displayName": "Meter power",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "67c2943e-3262-4ac5-820a-4ba0b52e6bb9",
-                            "name": "maxPower",
-                            "displayName": "Maximum power of heating rod",
-                            "type": "uint",
-                            "unit": "Watt",
-                            "cached": false,
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "63df3e48-032a-4747-937f-6c04dceee97d",
-                            "name": "maxPowerAbs",
-                            "displayName": "Absolute maximum power of heating rod",
-                            "type": "uint",
-                            "unit": "Watt",
-                            "cached": false,
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "dc9893e8-fc18-4d8d-a995-3d78030c51cd",
-                            "name": "powerTimeout",
-                            "displayName": "Power timeout of heating rod",
-                            "type": "uint",
-                            "unit": "Seconds",
-                            "cached": false,
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "ef165b2f-3b70-42f0-8ca4-ae4cfd3758e8",
-                            "name": "boostMode",
-                            "displayName": "Boost mode",
+                            "id": "0fe6b442-2a09-4bbe-8fd0-77bb6a139060",
+                            "name": "status",
+                            "displayName": "Status",
                             "type": "QString",
                             "cached": false,
                             "defaultValue": ""
-                        },
-                        {
-                            "id": "b66e2dc6-3fd4-4064-86cf-30ba2bd9c9b8",
-                            "name": "controlType",
-                            "displayName": "Control Type",
-                            "type": "QString",
-                            "cached": false,
-                            "defaultValue": ""
-                        },
-                        {
-                            "id": "2d68d91a-2b8f-47ba-a466-43fece2fcb4c",
-                            "name": "operationMode",
-                            "displayName": "Operation mode",
-                            "type": "uint",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "15e2a660-7fcb-466f-9142-04bd02ea6508",
-                            "name": "devicePower",
-                            "displayName": "Device power",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "5cd483fb-ae13-483d-b045-6527963544d7",
-                            "name": "devicePowerSolar",
-                            "displayName": "Device power solar part",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "656f5ad9-b8ea-42f0-99cc-cec688141efc",
-                            "name": "devicePowerGrid",
-                            "displayName": "Device power grid part",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
                         },
                         {
                             "id": "dc1f7be8-89bf-4a98-b4cd-40b068f53243",
@@ -222,7 +143,7 @@
                     "displayName": "my-PV AC Thor",
                     "id": "8f52cb8a-dec8-4419-b024-d4e6dfa3f9a4",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["smartheatingrod", "connectable"],
+                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
                     "paramTypes": [
                         {
                             "id": "35373d72-d3fc-49f2-bf2f-d06382dfe463",
@@ -262,20 +183,37 @@
                             "displayName": "External Control",
                             "displayNameAction": "Change external control",
                             "type": "bool",
-                            "defaultValue": 0,
+                            "defaultValue": false,
                             "writable": true
                         },
                         {
                             "id": "3a745987-d583-4db4-9fa9-409d2fd29fed",
                             "name": "heatingPower",
-                            "displayName": "Power consumption",
-                            "displayNameAction": "Change power consumption",
+                            "displayName": "Heating power setpoint",
+                            "displayNameAction": "Change heating power setpoint",
                             "type": "uint",
                             "unit": "Watt",
                             "minValue": 0,
                             "maxValue": 1000,
                             "defaultValue": 0,
                             "writable": true
+                        },
+                        {
+                            "id": "3a01e5e4-0c7a-425e-a5b1-52eb07303f83",
+                            "name": "currentPower",
+                            "displayName": "Heating power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "db4066c3-ce92-46c8-a768-02a6bb44b449",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total heating energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": true
                         },
                         {
                             "id": "d04fb302-20a2-4576-9459-654ede6e1c53",
@@ -296,14 +234,6 @@
                             "defaultValue": 0
                         },
                         {
-                            "id": "03da9d28-aae2-460a-8572-687169cefc6e",
-                            "name": "status",
-                            "displayName": "Status",
-                            "type": "QString",
-                            "cached": false,
-                            "defaultValue": ""
-                        },
-                        {
                             "id": "8dab39ac-ebe1-4ed6-ba89-5f52e1b78e8d",
                             "name": "minWaterTemperature",
                             "displayName": "Minimal water temperature",
@@ -313,100 +243,12 @@
                             "cached": false
                         },
                         {
-                            "id": "bb2d3a4e-14cd-487a-978f-634a0d84b062",
-                            "name": "externalTemperature",
-                            "displayName": "External temperature",
-                            "type": "double",
-                            "unit": "DegreeCelsius",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "2a0018ba-efc6-4324-806a-9fe1d341f3ea",
-                            "name": "meterPower",
-                            "displayName": "Meter power",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "93261aef-a8e4-458d-b56a-39a402058faf",
-                            "name": "maxPower",
-                            "displayName": "Maximum power of heating rod",
-                            "type": "uint",
-                            "unit": "Watt",
-                            "cached": false,
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "3508f048-5e94-4312-8188-330856fa3972",
-                            "name": "maxPowerAbs",
-                            "displayName": "Absolute maximum power of heating rod",
-                            "type": "uint",
-                            "unit": "Watt",
-                            "cached": false,
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "3191e449-1046-466f-bf7e-ccce4d37e113",
-                            "name": "powerTimeout",
-                            "displayName": "Power timeout of heating rod",
-                            "type": "uint",
-                            "unit": "Seconds",
-                            "cached": false,
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "d919f51d-f85a-4b2d-a376-609a72c3112f",
-                            "name": "boostMode",
-                            "displayName": "Boost mode",
+                            "id": "03da9d28-aae2-460a-8572-687169cefc6e",
+                            "name": "status",
+                            "displayName": "Status",
                             "type": "QString",
                             "cached": false,
                             "defaultValue": ""
-                        },
-                        {
-                            "id": "062f6276-6aec-4c79-9785-924c2e9679a7",
-                            "name": "controlType",
-                            "displayName": "Control Type",
-                            "type": "QString",
-                            "cached": false,
-                            "defaultValue": ""
-                        },
-                        {
-                            "id": "e180eac7-8a21-41e3-a5fb-fe9d3f16e45e",
-                            "name": "operationMode",
-                            "displayName": "Operation mode",
-                            "type": "QString",
-                            "defaultValue": "",
-                            "cached": false
-                        },
-                        {
-                            "id": "b29359d3-f094-417f-8d18-6376b117d42e",
-                            "name": "devicePower",
-                            "displayName": "Device power",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "8e1748ae-64bc-4ef4-be5a-9bf9ace5c390",
-                            "name": "devicePowerSolar",
-                            "displayName": "Device power solar part",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "9103803b-54b0-4621-bf99-53d02453697b",
-                            "name": "devicePowerGrid",
-                            "displayName": "Device power grid part",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
                         },
                         {
                             "id": "88e94f59-d592-4125-8505-fbc932fc6a1b",
@@ -431,7 +273,7 @@
                     "displayName": "my-PV AC Thor 9s",
                     "id": "400ee515-6e99-4f66-9c9e-a7777de5c461",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["smartheatingrod", "connectable"],
+                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
                     "paramTypes": [
                         {
                             "id": "4b9524fb-3aea-4ff7-9e89-4e3b4d670ff4",
@@ -471,20 +313,37 @@
                             "displayName": "External Control",
                             "displayNameAction": "Change external control",
                             "type": "bool",
-                            "defaultValue": 0,
+                            "defaultValue": false,
                             "writable": true
                         },
                         {
                             "id": "f16dfecc-893d-479f-99a4-ceb68a2dda4a",
                             "name": "heatingPower",
-                            "displayName": "Power consumption",
-                            "displayNameAction": "Change power consumption",
+                            "displayName": "Heating power setpoint",
+                            "displayNameAction": "Change heating power setpoint",
                             "type": "uint",
                             "unit": "Watt",
                             "minValue": 0,
                             "maxValue": 1000,
                             "defaultValue": 0,
                             "writable": true
+                        },
+                        {
+                            "id": "02da0523-a72e-473d-918e-931479a34461",
+                            "name": "currentPower",
+                            "displayName": "Heating power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "2b873e17-6597-48cc-bd4d-6e5371f7ed9d",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total heating energy",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0,
+                            "cached": true
                         },
                         {
                             "id": "2ae943dd-0468-4ae1-be54-d44c61fb1a99",
@@ -505,14 +364,6 @@
                             "defaultValue": 0
                         },
                         {
-                            "id": "5361dba8-325f-4988-90d2-8cd930651b42",
-                            "name": "status",
-                            "displayName": "Status",
-                            "type": "QString",
-                            "cached": false,
-                            "defaultValue": ""
-                        },
-                        {
                             "id": "05b3bfa9-d7c7-4cba-8f12-74f2f541bedc",
                             "name": "minWaterTemperature",
                             "displayName": "Minimal water temperature",
@@ -522,100 +373,12 @@
                             "cached": false
                         },
                         {
-                            "id": "fbe47355-e0ea-44fe-b5e7-7ac407802601",
-                            "name": "externalTemperature",
-                            "displayName": "External temperature",
-                            "type": "double",
-                            "unit": "DegreeCelsius",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "2f33ce76-4491-4c0a-9e45-dbd070c7d680",
-                            "name": "meterPower",
-                            "displayName": "Meter power",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "c426facc-7eb3-4c14-9208-3d594644c9a1",
-                            "name": "maxPower",
-                            "displayName": "Maximum power of heating rod",
-                            "type": "uint",
-                            "unit": "Watt",
-                            "cached": false,
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "8d6e61ee-0a2a-4ebf-8193-7652efa237a1",
-                            "name": "maxPowerAbs",
-                            "displayName": "Absolute maximum power of heating rod",
-                            "type": "uint",
-                            "unit": "Watt",
-                            "cached": false,
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "32e54965-41c0-4de3-a86d-473ca7f2ac94",
-                            "name": "powerTimeout",
-                            "displayName": "Power timeout of heating rod",
-                            "type": "uint",
-                            "unit": "Seconds",
-                            "cached": false,
-                            "defaultValue": 0
-                        },
-                        {
-                            "id": "461b244d-af7d-4ca5-9f42-d714d20723e4",
-                            "name": "boostMode",
-                            "displayName": "Boost mode",
+                            "id": "5361dba8-325f-4988-90d2-8cd930651b42",
+                            "name": "status",
+                            "displayName": "Status",
                             "type": "QString",
                             "cached": false,
                             "defaultValue": ""
-                        },
-                        {
-                            "id": "7f2ffc9a-ef44-40b1-9ee6-1f2fbb12c2d4",
-                            "name": "controlType",
-                            "displayName": "Control Type",
-                            "type": "QString",
-                            "cached": false,
-                            "defaultValue": ""
-                        },
-                        {
-                            "id": "2808164c-0e1f-4c54-bd4a-6e349d0d2096",
-                            "name": "operationMode",
-                            "displayName": "Operation mode",
-                            "type": "QString",
-                            "defaultValue": "",
-                            "cached": false
-                        },
-                        {
-                            "id": "4c0ff199-1558-4bf6-81ad-587df8651f0d",
-                            "name": "devicePower",
-                            "displayName": "Device power",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "07866742-b591-4414-86cf-0f4ee57fd1b3",
-                            "name": "devicePowerSolar",
-                            "displayName": "Device power solar part",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
-                        },
-                        {
-                            "id": "dacc1fa9-8b49-4eb6-b07f-55881017814e",
-                            "name": "devicePowerGrid",
-                            "displayName": "Device power grid part",
-                            "type": "double",
-                            "unit": "Watt",
-                            "defaultValue": 0,
-                            "cached": false
                         },
                         {
                             "id": "34faa997-754d-4ca8-a28a-6c9d456a46d1",

@@ -45,20 +45,11 @@
                     "access": "RO"
                 },
                 {
-                    "id": "dummy0",
-                    "description": "Dummy0",
+                    "id": "dummy",
+                    "description": "Dummy",
                     "address": 1004,
-                    "size": 1,
+                    "size": 2,
                     "type": "raw",
-                    "registerType": "holdingRegister",
-                    "access": "RO"
-                },
-                {
-                    "id": "boostMode",
-                    "description": "Boost mode",
-                    "address": 1005,
-                    "size": 1,
-                    "type": "uint16",
                     "registerType": "holdingRegister",
                     "access": "RO"
                 },
@@ -72,83 +63,6 @@
                     "registerType": "holdingRegister",
                     "defaultValue": 0,
                     "staticScaleFactor": -1,
-                    "access": "RO"
-                }
-            ]
-        },
-        {
-            "id": "powerValues1",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "meterPower",
-                    "description": "Power at meter",
-                    "unit": "W",
-                    "address": 1069,
-                    "size": 1,
-                    "type": "int16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "access": "RO"
-                },
-                {
-                    "id": "dummy1",
-                    "description": "Dummy1",
-                    "address": 1070,
-                    "size": 1,
-                    "type": "raw",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "access": "RO"
-                },
-                {
-                    "id": "maxPowerAbs",
-                    "description": "Maximum power possible",
-                    "unit": "W",
-                    "address": 1071,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "access": "RO"
-                }
-            ]
-        },
-        {
-            "id": "powerValues2",
-            "readSchedule": "update",
-            "registers": [
-                {
-                    "id": "devicePower",
-                    "description": "Device power",
-                    "unit": "W",
-                    "address": 1082,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "access": "RO"
-                },
-                {
-                    "id": "devicePowerSolar",
-                    "description": "Solar part of device power",
-                    "unit": "W",
-                    "address": 1083,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
-                    "access": "RO"
-                },
-                {
-                    "id": "devicePowerGrid",
-                    "description": "Grid part of device power",
-                    "unit": "W",
-                    "address": 1084,
-                    "size": 1,
-                    "type": "uint16",
-                    "registerType": "holdingRegister",
-                    "readSchedule": "update",
                     "access": "RO"
                 }
             ]
@@ -226,35 +140,13 @@
             "access": "RO"
         },
         {
-            "id": "externalTemperature",
-            "description": "External temperature sensor",
-            "unit": "°C",
-            "address": 1030,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "staticScaleFactor": -1,
-            "readSchedule": "update",
-            "access": "RO"
-        },
-        {
-            "id": "operationMode",
-            "description": "Operation mode",
-            "address": 1065,
-            "size": 1,
-            "type": "uint16",
-            "registerType": "holdingRegister",
-            "readSchedule": "update",
-            "access": "RO"
-        },
-        {
             "id": "controlType",
             "description": "Control Type",
             "address": 1070,
             "size": 1,
             "type": "uint16",
             "registerType": "holdingRegister",
-            "readSchedule": "update",
+            "readSchedule": "init",
             "access": "RW"
         }
     ]

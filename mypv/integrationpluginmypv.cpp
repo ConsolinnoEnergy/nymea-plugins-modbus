@@ -109,188 +109,9 @@ QString statusString(quint16 status, ThingClassId thingClassId)
     return statusStr;
 }
 
-QString boostModeString(quint16 boostMode,
-                        quint16 operatingMode,
-                        ThingClassId thingClassId)
+int powerTimerInterval(quint16 powerTimeoutSeconds)
 {
-    auto boostModeStr = QString{};
-    if (thingClassId == acElwa2ThingClassId) {
-        if (boostMode == 0) {
-            boostModeStr = "Off";
-        } else if (boostMode == 1) {
-            if (operatingMode == 0) {
-                boostModeStr = "On (ELWA)";
-            } else if (operatingMode == 3) {
-                boostModeStr = "On (ELWA + AUX)";
-            } else {
-                boostModeStr = "Unknown";
-            }
-        } else if (boostMode == 4) {
-            boostModeStr = "SELV";
-        } else if (boostMode == 5) {
-            boostModeStr = "AUX";
-        } else {
-            boostModeStr = "Unknown";
-        }
-    } else if (thingClassId == acThor9sThingClassId ||
-               thingClassId == acThorThingClassId) {
-        if (boostMode == 0) {
-            boostModeStr = "Off";
-        } else if (boostMode == 1) {
-            boostModeStr = "On";
-        } else if (boostMode == 3) {
-            boostModeStr = "Relay Boost On";
-        } else {
-            boostModeStr = "Unknown";
-        }
-    } else {
-        boostModeStr = "Unknown";
-    }
-    boostModeStr += " (" + QString::number(boostMode) + ")";
-    return boostModeStr;
-}
-
-QString controlTypeString(quint16 controlType, ThingClassId thingClassId)
-{
-    if (thingClassId != acElwa2ThingClassId &&
-        thingClassId != acThor9sThingClassId &&
-        thingClassId != acThorThingClassId) {
-        return "Unknown";
-    }
-
-    const auto isElwa = (thingClassId == acElwa2ThingClassId);
-    const auto isThor = !isElwa;
-    auto controlTypeStr = QString{};
-    switch (controlType) {
-        case 0:
-            controlTypeStr = isElwa ? "Auto Detect" : "Unknown";
-            break;
-        case 1:
-            controlTypeStr = "HTTP";
-            break;
-        case 2:
-            controlTypeStr = "Modbus TCP";
-            break;
-        case 3:
-            controlTypeStr = "Fronius Auto";
-            break;
-        case 4:
-            controlTypeStr = "Fronius Manual";
-            break;
-        case 5:
-            controlTypeStr = "SMA Home Manager";
-            break;
-        case 6:
-            controlTypeStr = "Steca Auto";
-            break;
-        case 7:
-            controlTypeStr = "Varta Auto";
-            break;
-        case 8:
-            controlTypeStr = "Varta Manual";
-            break;
-        case 9:
-            controlTypeStr = isThor ? "my-PV Power Meter Auto" : "Unknown";
-            break;
-        case 10:
-            controlTypeStr = isThor ? "my-PV Power Meter Manual" : "RCT Power Manual";
-            break;
-        case 11:
-            controlTypeStr = isThor ? "my-PV Power Meter Direct" : "Unknown";
-            break;
-        case 12:
-            controlTypeStr = isElwa ? "my-PV Meter Auto" : "Unknown";
-            break;
-        case 13:
-            controlTypeStr = isElwa ? "my-PV Meter Manual" : "Unknown";
-            break;
-        case 14:
-            controlTypeStr = isElwa ? "my-PV Meter Direct" : "RCT Power Manual";
-            break;
-        case 15:
-            controlTypeStr = isElwa ? "SMA Direct meter communication Auto" : "Unknown";
-            break;
-        case 16:
-            controlTypeStr = isElwa ? "SMA Direct meter communication Manual" : "Unknown";
-            break;
-        case 17:
-            controlTypeStr = isThor ? "SMA Direct meter communication Auto" : "Unknown";
-            break;
-        case 18:
-            controlTypeStr = isThor ? "SMA Direct meter communication Manual" : "Unknown";
-            break;
-        case 19:
-            controlTypeStr = "Digital Meter P1";
-            break;
-        case 20:
-            controlTypeStr = "Frequency";
-            break;
-        case 100:
-            controlTypeStr = "Fronius Sunspec Manual";
-            break;
-        case 101:
-            controlTypeStr = isThor ? "KACO TL1 + TL3 Manual" : "Unknown";
-            break;
-        case 102:
-            controlTypeStr = "Kostal PIKO IQ Plenticore plus Manual";
-            break;
-        case 103:
-            controlTypeStr = "Kostal Smart Energy Meter Manual";
-            break;
-        case 104:
-            controlTypeStr = "MEC electronics Manual";
-            break;
-        case 105:
-            controlTypeStr = "SolarEdge Manual";
-            break;
-        case 106:
-            controlTypeStr = "Victron Energy 1ph Manual";
-            break;
-        case 107:
-            controlTypeStr = "Victron Energy 3ph Manual";
-            break;
-        case 108:
-            controlTypeStr = "Huawei (Modbus TCP) Manual";
-            break;
-        case 109:
-            controlTypeStr = "Carlo Gavazzi EM24 Manual";
-            break;
-        case 111:
-            controlTypeStr = "Sungrow Manual";
-            break;
-        case 112:
-            controlTypeStr = "Fronius Gen24 Manual";
-            break;
-        case 113:
-            controlTypeStr = isThor ? "GoodWe Manual" : "Unknown";
-            break;
-        case 200:
-            controlTypeStr = "Huawei (Modbus RTU)";
-            break;
-        case 201:
-            controlTypeStr = "Growatt (Modbus RTU)";
-            break;
-        case 202:
-            controlTypeStr = "Solax (Modbus RTU)";
-            break;
-        case 203:
-            controlTypeStr = "Qcells (Modbus RTU)";
-            break;
-        case 204:
-            controlTypeStr = "IME Conto D4 Modbus MID (Modbus RTU)";
-            break;
-        default:
-            controlTypeStr = "Unknown";
-            break;
-    }
-    controlTypeStr += " (" + QString::number(controlType) + ")";
-    return controlTypeStr;
-}
-
-int heatingPowerInterval(MyPvModbusTcpConnection *connection)
-{
-    const auto timeoutSeconds = connection->powerTimeout();
-    return timeoutSeconds < 5 ? 5000 : (timeoutSeconds - 3) * 1000;
+    return powerTimeoutSeconds < 5 ? 5000 : (powerTimeoutSeconds - 3) * 1000;
 }
 
 IntegrationPluginMyPv::IntegrationPluginMyPv()
@@ -569,65 +390,37 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue("status", statusStr);
     });
     connect(connection, &MyPvModbusTcpConnection::powerTimeoutChanged, thing,
-            [this, thing, connection](quint16 powerTimeout) {
-        thing->setStateValue("powerTimeout", powerTimeout);
+            [this, thing](quint16 powerTimeout) {
         const auto timer = m_controlTimer.value(thing);
-        timer->setInterval(heatingPowerInterval(connection));
-    });
-    connect(connection, &MyPvModbusTcpConnection::boostModeChanged, thing,
-            [thing, connection](quint16 boostMode) {
-        const auto boostModeStr = boostModeString(boostMode,
-                                                  connection->operationMode(),
-                                                  thing->thingClassId());
-        thing->setStateValue("boostMode", boostModeStr);
+        timer->setInterval(powerTimerInterval(powerTimeout));
     });
     connect(connection, &MyPvModbusTcpConnection::minWaterTemperatureChanged, thing,
             [thing](float minWaterTemperature) {
         thing->setStateValue("minWaterTemperature", minWaterTemperature);
     });
-    connect(connection, &MyPvModbusTcpConnection::meterPowerChanged, thing,
-            [thing](qint16 meterPower) {
-        thing->setStateValue("meterPower", meterPower);
-    });
     connect(connection, &MyPvModbusTcpConnection::controlTypeChanged, thing,
-            [thing](quint16 controlType) {
-        const auto controlTypeStr = controlTypeString(controlType,
-                                                      thing->thingClassId());
-        thing->setStateValue("controlType", controlTypeStr);
-    });
-    connect(connection, &MyPvModbusTcpConnection::maxPowerAbsChanged, thing,
-            [thing](quint16 maxPowerAbs) {
-        thing->setStateValue("maxPowerAbs", maxPowerAbs);
-    });
-    connect(connection, &MyPvModbusTcpConnection::devicePowerChanged, thing,
-            [thing](quint16 devicePower) {
-        thing->setStateValue("devicePower", devicePower);
-    });
-    connect(connection, &MyPvModbusTcpConnection::devicePowerSolarChanged, thing,
-            [thing](quint16 devicePowerSolar) {
-        thing->setStateValue("devicePowerSolar", devicePowerSolar);
-    });
-    connect(connection, &MyPvModbusTcpConnection::devicePowerGridChanged, thing,
-            [thing](quint16 devicePowerGrid) {
-        thing->setStateValue("devicePowerGrid", devicePowerGrid);
+            [](quint16 controlType) {
+        qCInfo(dcMypv()) << "Control Type changed to" << controlType;
+        if (controlType != 2) {
+            qCWarning(dcMypv())
+                    << "Control type is not \"Modbus TCP\". Thing may not work correctly!";
+        }
     });
     connect(connection, &MyPvModbusTcpConnection::currentPowerChanged, thing,
             [thing](quint16 currentPower) {
-        thing->setStateValue("heatingPower", currentPower);
+        thing->setStateValue("currentPower", currentPower);
     });
     connect(connection, &MyPvModbusTcpConnection::maxPowerChanged, thing,
             [thing](quint16 maxPower) {
-        thing->setStateValue("maxPower", maxPower);
         thing->setStateMaxValue("heatingPower", maxPower);
     });
-    connect(connection, &MyPvModbusTcpConnection::externalTemperatureChanged, thing,
-            [thing](float externalTemperature) {
-        thing->setStateValue("externalTemperature", externalTemperature);
+    connect(connection, &MyPvModbusTcpConnection::updateFinished, thing,
+            [this, thing]() {
+        const auto power = thing->stateValue("currentPower").toDouble();
+        updatePowerConsumption(thing, power);
+        m_lastUpdateTimestamp[thing] = QDateTime::currentDateTime();
     });
-    connect(connection, &MyPvModbusTcpConnection::operationModeChanged, thing,
-            [thing](quint16 operationMode) {
-        thing->setStateValue("operationMode", operationMode);
-    });
+
 
     const auto timer = new QTimer{ thing };
     timer->setSingleShot(true);
@@ -636,7 +429,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         writeHeatingPower(thing);
         // Restart timer to write heating power again before the last
         // written heating power value becomes invalid.
-        timer->setInterval(heatingPowerInterval(connection));
+        timer->setInterval(powerTimerInterval(connection->powerTimeout()));
         timer->start();
     });
 
@@ -680,7 +473,8 @@ void IntegrationPluginMyPv::configureConnection(MyPvModbusTcpConnection *connect
 void IntegrationPluginMyPv::writeHeatingPower(Thing *thing)
 {
     auto connection = m_tcpConnections.value(thing);
-    const auto heatingPower = m_setHeatingPower.value(thing, quint16{ 0 });
+    // #TODO can m_setHeatingPower be removed with this contruct?
+    const auto heatingPower = static_cast<quint16>(thing->stateValue("heatingPower").toUInt());
     qCDebug(dcMypv()) << "Setting heating power to" << heatingPower; // #TODO remove when testing finished
     const auto reply = connection->setCurrentPower(heatingPower);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
@@ -692,6 +486,30 @@ void IntegrationPluginMyPv::writeHeatingPower(Thing *thing)
                     << reply->errorString();
         }
     });
+}
+
+void IntegrationPluginMyPv::updatePowerConsumption(Thing *thing, double power)
+{
+    const auto lastUpdateTimepoint = m_lastUpdateTimestamp.value(thing, QDateTime{});
+    if (!lastUpdateTimepoint.isValid()) { return; }
+    const auto duration = QDateTime::currentMSecsSinceEpoch() - lastUpdateTimepoint.toMSecsSinceEpoch();
+    const auto powerkWh = power / 1000.;
+    const auto durationHours = duration / (1000. * 60. * 60.);
+    const auto energyDiff = powerkWh * durationHours;
+    const auto oldEnergy = thing->stateValue("totalEnergyConsumed").toDouble();
+    const auto newEnergy = oldEnergy + energyDiff;
+    thing->setStateValue("totalEnergyConsumed", newEnergy);
+    qCDebug(dcMypv())
+            << "Duration (ms):"
+            << duration
+            << "Power:"
+            << power
+            << "Old Energy:"
+            << oldEnergy
+            << "Energy Diff:"
+            << energyDiff
+            << "New Energy:"
+            << newEnergy;
 }
 
 void IntegrationPluginMyPv::postSetupThing(Thing *thing)
@@ -764,23 +582,23 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
     if (action.actionTypeId() == acElwa2HeatingPowerActionTypeId ||
             action.actionTypeId() == acThorHeatingPowerActionTypeId ||
             action.actionTypeId() == acThor9sHeatingPowerActionTypeId) {
-        qCDebug(dcMypv()) << "New heating power to set:" << heatingPower;
-        m_setHeatingPower[thing] = heatingPower;
+        thing->setStateValue("heatingPower", heatingPower);
         const auto timer = m_controlTimer.value(thing);
         if (timer->isActive()) {
             timer->stop();
             writeHeatingPower(thing);
-            timer->setInterval(heatingPowerInterval(connection));
+            timer->setInterval(powerTimerInterval(connection->powerTimeout()));
             timer->start();
         }
         info->finish(Thing::ThingErrorNoError);
     } else if (action.actionTypeId() == acElwa2ExternalControlActionTypeId ||
                action.actionTypeId() == acThorExternalControlActionTypeId ||
                action.actionTypeId() == acThor9sExternalControlActionTypeId) {
+        thing->setStateValue("externalControl", enableHeating);
         const auto timer = m_controlTimer.value(thing);
         if (enableHeating) {
             writeHeatingPower(thing);
-            timer->setInterval(heatingPowerInterval(connection));
+            timer->setInterval(powerTimerInterval(connection->powerTimeout()));
             timer->start();
         } else {
             timer->stop();
@@ -805,8 +623,8 @@ void IntegrationPluginMyPv::cleanUpThing(Thing *thing)
         connection->deleteLater();
     }
 
-    if (m_setHeatingPower.contains(thing)) {
-        m_setHeatingPower.remove(thing);
+    if (m_lastUpdateTimestamp.contains(thing)) {
+        m_lastUpdateTimestamp.remove(thing);
     }
 
     if (m_controlTimer.contains(thing)) {

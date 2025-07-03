@@ -62,13 +62,14 @@ private:
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, MyPvModbusTcpConnection *> m_tcpConnections;
-    QHash<Thing *, quint16> m_setHeatingPower;
+    QHash<Thing *, QDateTime> m_lastUpdateTimestamp;
     QHash<Thing *, QTimer *> m_controlTimer;
 
     void cleanUpThing(Thing *thing);
     void setupTcpConnection(ThingSetupInfo *info);
     void configureConnection(MyPvModbusTcpConnection *connection);
     void writeHeatingPower(Thing *thing);
+    void updatePowerConsumption(Thing *thing, double power);
 };
 
 #endif // INTEGRATIONPLUGINMYPV_H
