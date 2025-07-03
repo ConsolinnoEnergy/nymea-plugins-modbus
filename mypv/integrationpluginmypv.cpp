@@ -629,11 +629,6 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue("operationMode", operationMode);
     });
 
-    // #TODO remove when testing finished
-    connect(connection, &MyPvModbusTcpConnection::updateFinished, connection, [connection]() {
-        qCDebug(dcMypv()) << connection;
-    });
-
     const auto timer = new QTimer{ thing };
     timer->setSingleShot(true);
     m_controlTimer.insert(thing, timer);
