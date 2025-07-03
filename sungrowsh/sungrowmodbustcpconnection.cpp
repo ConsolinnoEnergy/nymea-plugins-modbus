@@ -300,7 +300,7 @@ float SungrowModbusTcpConnection::batteryCurrent() const
     return m_batteryCurrent;
 }
 
-quint16 SungrowModbusTcpConnection::batteryPower() const
+qint16 SungrowModbusTcpConnection::batteryPower() const
 {
     return m_batteryPower;
 }
@@ -1952,7 +1952,7 @@ void SungrowModbusTcpConnection::processBatteryCurrentRegisterValues(const QVect
 
 void SungrowModbusTcpConnection::processBatteryPowerRegisterValues(const QVector<quint16> values)
 {
-    quint16 receivedBatteryPower = ModbusDataUtils::convertToUInt16(values);
+    quint16 receivedBatteryPower = ModbusDataUtils::convertToInt16(values);
     emit batteryPowerReadFinished(receivedBatteryPower);
 
     if (m_batteryPower != receivedBatteryPower) {
@@ -2351,4 +2351,3 @@ QDebug operator<<(QDebug debug, SungrowModbusTcpConnection *sungrowModbusTcpConn
     debug.nospace().noquote() << "    - Set batter power: " << sungrowModbusTcpConnection->chargePower() << "\n";
     return debug.quote().space();
 }
-
