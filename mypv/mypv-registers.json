@@ -45,12 +45,11 @@
                     "access": "RO"
                 },
                 {
-                    "id": "powerTimeout",
-                    "description": "Timeout of set power",
-                    "unit": "s",
+                    "id": "dummy0",
+                    "description": "Dummy0",
                     "address": 1004,
                     "size": 1,
-                    "type": "uint16",
+                    "type": "raw",
                     "registerType": "holdingRegister",
                     "access": "RO"
                 },
@@ -93,11 +92,11 @@
                     "access": "RO"
                 },
                 {
-                    "id": "controlType",
-                    "description": "Control Type",
+                    "id": "dummy1",
+                    "description": "Dummy1",
                     "address": 1070,
                     "size": 1,
-                    "type": "uint16",
+                    "type": "raw",
                     "registerType": "holdingRegister",
                     "readSchedule": "update",
                     "access": "RO"
@@ -195,6 +194,17 @@
             "access": "RW"
         },
         {
+            "id": "powerTimeout",
+            "description": "Timeout of set power",
+            "unit": "s",
+            "address": 1004,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "access": "RW"
+        },
+        {
             "id": "maxPower",
             "description": "Maximum power",
             "unit": "W",
@@ -236,6 +246,16 @@
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "access": "RO"
+        },
+        {
+            "id": "controlType",
+            "description": "Control Type",
+            "address": 1070,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "access": "RW"
         }
     ]
 }

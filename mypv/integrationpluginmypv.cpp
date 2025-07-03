@@ -287,6 +287,11 @@ QString controlTypeString(quint16 controlType, ThingClassId thingClassId)
     return controlTypeStr;
 }
 
+int heatingPowerInterval(Thing *thing)
+{
+    return thing->stateValue("powerTimeout").toUInt() - 3000;
+}
+
 IntegrationPluginMyPv::IntegrationPluginMyPv()
 {
 }
@@ -533,7 +538,8 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     });
 
     // Check if initilization works correctly
-    connect(connection, &MyPvModbusTcpConnection::initializationFinished, thing, [connection, thing] (bool success) {
+    connect(connection, &MyPvModbusTcpConnection::initializationFinished, thing,
+            [this, connection, thing] (bool success) {
         thing->setStateValue("connected", success);
         if (success) {
             qCDebug(dcMypv()) << "my-PV Heating Rod intialized.";
@@ -546,6 +552,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
             const auto powerstageFirmwareVersion = QString{ "ep%1" }
                     .arg(QString::number(connection->powerstageFirmwareVersion()));
             thing->setStateValue("powerstageFirmware", powerstageFirmwareVersion);
+            configureConnection(connection);
         } else {
             qCDebug(dcMypv()) << "my-PV Heating Rod initialization failed.";
             connection->reconnectDevice();
@@ -566,8 +573,10 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue("status", statusStr);
     });
     connect(connection, &MyPvModbusTcpConnection::powerTimeoutChanged, thing,
-            [thing](quint16 powerTimeout) {
+            [this, thing](quint16 powerTimeout) {
         thing->setStateValue("powerTimeout", powerTimeout);
+        const auto timer = m_controlTimer.value(thing);
+        timer->setInterval(heatingPowerInterval(thing));
     });
     connect(connection, &MyPvModbusTcpConnection::boostModeChanged, thing,
             [thing, connection](quint16 boostMode) {
@@ -624,14 +633,74 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
         thing->setStateValue("operationMode", operationMode);
     });
 
+    // #TODO remove when testing finished
     connect(connection, &MyPvModbusTcpConnection::updateFinished, connection, [connection]() {
         qCDebug(dcMypv()) << connection;
+    });
+
+    const auto timer = new QTimer{ thing };
+    timer->setSingleShot(true);
+    m_controlTimer.insert(thing, timer);
+    connect(timer, &QTimer::timeout, thing, [this, thing, timer]() {
+        writeHeatingPower(thing);
+        // Restart timer to write heating power again before the last
+        // written heating power value becomes invalid.
+        timer->setInterval(heatingPowerInterval(thing));
+        timer->start();
     });
 
     if (monitor->reachable()) {
         connection->connectDevice();
     }
     info->finish(Thing::ThingErrorNoError);
+}
+
+void IntegrationPluginMyPv::configureConnection(MyPvModbusTcpConnection *connection)
+{
+    qCDebug(dcMypv()) << "Setting control type to \"Modbus TCP\"";
+    const auto controlTypeModbusTCP = quint16{ 2 };
+    const auto reply = connection->setControlType(controlTypeModbusTCP);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, reply, [reply]() {
+        if (reply->error() != QModbusDevice::NoError) {
+            qCWarning(dcMypv())
+                    << "Setting control type failed:"
+                    << reply->error()
+                    << reply->errorString();
+        }
+    });
+
+    QTimer::singleShot(1000, connection, [connection]() {
+        qCDebug(dcMypv()) << "Setting power timeout to 10s";
+        const auto powerTimeoutSeconds = quint16{ 10 };
+        const auto reply = connection->setPowerTimeout(powerTimeoutSeconds);
+        connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+        connect(reply, &QModbusReply::finished, reply, [reply]() {
+            if (reply->error() != QModbusDevice::NoError) {
+                qCWarning(dcMypv())
+                        << "Setting power timeout failed:"
+                        << reply->error()
+                        << reply->errorString();
+            }
+        });
+    });
+}
+
+void IntegrationPluginMyPv::writeHeatingPower(Thing *thing)
+{
+    auto connection = m_tcpConnections.value(thing);
+    const auto heatingPower = m_setHeatingPower.value(thing, quint16{ 0 });
+    qCDebug(dcMypv()) << "Setting heating power to" << heatingPower; // #TODO remove when testing finished
+    const auto reply = connection->setCurrentPower(heatingPower);
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, reply, [reply]() {
+        if (reply->error() != QModbusDevice::NoError) {
+            qCWarning(dcMypv())
+                    << "Setting heating power failed:"
+                    << reply->error()
+                    << reply->errorString();
+        }
+    });
 }
 
 void IntegrationPluginMyPv::postSetupThing(Thing *thing)
@@ -661,6 +730,18 @@ void IntegrationPluginMyPv::thingRemoved(Thing *thing)
         connection->deleteLater();
     }
 
+    if (m_setHeatingPower.contains(thing)) {
+        m_setHeatingPower.remove(thing);
+    }
+
+    if (m_controlTimer.contains(thing)) {
+        const auto timer = m_controlTimer.take(thing);
+        if (timer->isActive()) {
+            timer->stop();
+        }
+        timer->deleteLater();
+    }
+
     if (myThings().isEmpty()) {
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
         m_refreshTimer = nullptr;
@@ -669,6 +750,64 @@ void IntegrationPluginMyPv::thingRemoved(Thing *thing)
 
 void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
 {
+    Thing *thing = info->thing();
+    Action action = info->action();
+
+    if (thing->thingClassId() != acElwa2ThingClassId &&
+        thing->thingClassId() != acThor9sThingClassId &&
+        thing->thingClassId() != acThorThingClassId) {
+        qCWarning(dcMypv())
+                << "Unhandled thing class:"
+                << thing->thingClass().displayName()
+                << thing->thingClassId();
+        return;
+    }
+
+    auto heatingPower = quint16{ 0 };
+    if (action.actionTypeId() == acElwa2HeatingPowerActionTypeId) {
+        heatingPower = action.paramValue(acElwa2HeatingPowerActionHeatingPowerParamTypeId).toUInt();
+    } else if (action.actionTypeId() == acThorHeatingPowerActionTypeId) {
+        heatingPower = action.paramValue(acThorHeatingPowerActionHeatingPowerParamTypeId).toUInt();
+    } else if (action.actionTypeId() == acThor9sHeatingPowerActionTypeId) {
+        heatingPower = action.paramValue(acThor9sHeatingPowerActionHeatingPowerParamTypeId).toUInt();
+    }
+
+    auto enableHeating = false;
+    if (action.actionTypeId() == acElwa2ExternalControlActionTypeId) {
+        enableHeating = action.paramValue(acElwa2ExternalControlActionExternalControlParamTypeId).toBool();
+    } else if (action.actionTypeId() == acThorExternalControlActionTypeId) {
+        enableHeating = action.paramValue(acThorExternalControlActionExternalControlParamTypeId).toBool();
+    } else if (action.actionTypeId() == acThor9sExternalControlActionTypeId) {
+        enableHeating = action.paramValue(acThor9sExternalControlActionExternalControlParamTypeId).toBool();
+    }
+
+    if (action.actionTypeId() == acElwa2HeatingPowerActionTypeId ||
+            action.actionTypeId() == acThorHeatingPowerActionTypeId ||
+            action.actionTypeId() == acThor9sHeatingPowerActionTypeId) {
+        qCDebug(dcMypv()) << "New heating power to set:" << heatingPower;
+        m_setHeatingPower[thing] = heatingPower;
+        const auto timer = m_controlTimer.value(thing);
+        if (timer->isActive()) {
+            timer->stop();
+            writeHeatingPower(thing);
+            timer->setInterval(heatingPowerInterval(thing));
+            timer->start();
+        }
+    } else if (action.actionTypeId() == acElwa2ExternalControlActionTypeId ||
+               action.actionTypeId() == acThorExternalControlActionTypeId ||
+               action.actionTypeId() == acThor9sExternalControlActionTypeId) {
+        const auto timer = m_controlTimer.value(thing);
+        if (enableHeating) {
+            writeHeatingPower(thing);
+            timer->setInterval(heatingPowerInterval(thing));
+            timer->start();
+        } else {
+            timer->stop();
+        }
+    } else {
+        qCWarning(dcMypv()) << "Unhandled action type id:" << action.actionTypeId().toString();
+    }
+
     Q_UNUSED(info);
     // #TODO everything
     /*
