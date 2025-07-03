@@ -988,7 +988,7 @@
                             "type": "uint",
                             "minValue": 0,
                             "maxValue": 3,
-                            "defaultValue": 1,
+                            "defaultValue": 0,
                             "cached": false
                         },
                         {
