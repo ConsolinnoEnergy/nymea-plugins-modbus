@@ -140,7 +140,7 @@
                 },
                 {
                     "name": "acThor",
-                    "displayName": "my-PV AC Thor",
+                    "displayName": "my-PV AC-THOR",
                     "id": "8f52cb8a-dec8-4419-b024-d4e6dfa3f9a4",
                     "createMethods": ["Discovery"],
                     "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
@@ -270,7 +270,7 @@
                 },
                 {
                     "name": "acThor9s",
-                    "displayName": "my-PV AC Thor 9s",
+                    "displayName": "my-PV AC-Thor 9s",
                     "id": "400ee515-6e99-4f66-9c9e-a7777de5c461",
                     "createMethods": ["Discovery"],
                     "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
