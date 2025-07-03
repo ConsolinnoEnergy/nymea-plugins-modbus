@@ -37,9 +37,6 @@
 
 #include "mypvmodbustcpconnection.h"
 
-#include <QUdpSocket>
-#include <QUuid>
-
 class NetworkDeviceMonitor;
 
 class IntegrationPluginMyPv: public IntegrationPlugin
