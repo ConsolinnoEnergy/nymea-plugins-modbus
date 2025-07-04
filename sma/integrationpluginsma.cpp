@@ -452,7 +452,9 @@ void IntegrationPluginSma::setupThing(ThingSetupInfo *info)
             thing->setStateValue(speedwireInverterConnectedStateTypeId, true);
             thing->setStateValue(speedwireInverterTotalEnergyProducedStateTypeId, inverter->totalEnergyProduced());
             thing->setStateValue(speedwireInverterEnergyProducedTodayStateTypeId, inverter->todayEnergyProduced());
-            thing->setStateValue(speedwireInverterCurrentPowerStateTypeId, -inverter->totalAcPower());
+            if (!inverter->batteryAvailable()) {
+                thing->setStateValue(speedwireInverterCurrentPowerStateTypeId, -inverter->totalAcPower());
+            }
             thing->setStateValue(speedwireInverterFrequencyStateTypeId, inverter->gridFrequency());
 
             thing->setStateValue(speedwireInverterVoltagePhaseAStateTypeId, inverter->voltageAcPhase1());
@@ -496,6 +498,10 @@ void IntegrationPluginSma::setupThing(ThingSetupInfo *info)
                 } else if (batteryPower > 0) {
                     batteryThing->setStateValue(speedwireBatteryChargingStateStateTypeId, "charging");
                 }
+                
+                // PV power based on battery power and total AC inverter power
+                double solarPower = -1*inverter->totalAcPower() - batteryPower;
+                thing->setStateValue(speedwireInverterCurrentPowerStateTypeId, solarPower);
             }
         });
 
@@ -506,6 +512,17 @@ void IntegrationPluginSma::setupThing(ThingSetupInfo *info)
 
         qCDebug(dcSma()) << "Battery: Setup SMA battery" << thing;
         info->finish(Thing::ThingErrorNoError);
+
+        // Set battery capacity from settings on restart.
+        thing->setStateValue(speedwireBatteryCapacityStateTypeId, thing->setting(speedwireBatterySettingsCapacityParamTypeId).toDouble());
+
+        // Set battery capacity on settings change.
+        connect(thing, &Thing::settingChanged, thing, [thing] (const ParamTypeId &paramTypeId, const QVariant &value) {
+            if (paramTypeId == speedwireBatterySettingsCapacityParamTypeId) {
+                qCDebug(dcSma()) << "Battery capacity changed to" << value.toDouble() << "kWh";
+                thing->setStateValue(speedwireBatteryCapacityStateTypeId, value.toDouble());
+            }
+        });
 
     } else if (thing->thingClassId() == modbusSolarInverterThingClassId) {
 

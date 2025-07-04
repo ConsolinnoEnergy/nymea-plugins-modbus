@@ -2,6 +2,7 @@ nymea-plugins-modbus (1.7.017) jammy; urgency=medium
 
   * Added Zhejiang Chint DTSU666 smart meter
   * Added Support for AlphaInnotec Smart Home Interface
+  * Fix for Chint DTSU66 with CT clamps
   * Growatt: support for LPP changed: limit power input (W) instead of rate (%)
   * Sofarsolar HYD / Azzurro hybrid inverters: LPP added
   * Fix Alfen wrong energy value ESEMS-1800
@@ -10,8 +11,13 @@ nymea-plugins-modbus (1.7.017) jammy; urgency=medium
   * Lambda: 
     - accuracy improvements and warning suppression
     - added LPC GPIO interface
-  * SMA: Reduce warnings, add fixes from nymea team
+  * SMA: 
+    - Reduce warnings, add fixes from nymea team
+    - speedwireInverter: hybrid inverter support, add battery capacity
   * Siemens PAC2200: Initial Support
+  * Kostal: fixed Meter totalEnergyProduced
+  * Sungrow SH: Fix battery power
+  * Victron: fix total PV power
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 28 May 2025 08:49:00 +0200
 
