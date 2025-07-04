@@ -199,6 +199,17 @@
             "access": "RO"
         },
         {
+            "id": "powerPvDc",
+            "address": 850,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "PV - DC-coupled power",
+            "defaultValue": "0",
+            "access": "RO"
+        },
+        {
             "id": "essMode",
             "address": 2902,
             "size": 1,
