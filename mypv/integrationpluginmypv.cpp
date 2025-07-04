@@ -477,7 +477,7 @@ void IntegrationPluginMyPv::configureConnection(MyPvModbusTcpConnection *connect
 void IntegrationPluginMyPv::writeHeatingPower(Thing *thing)
 {
     auto connection = m_tcpConnections.value(thing);
-    const auto heatingPower = static_cast<quint16>(thing->stateValue("powerSetpointConsumer").toUInt());
+    const auto heatingPower = static_cast<quint16>(thing->stateValue("powerSetpointConsumer").toDouble());
     const auto reply = connection->setCurrentPower(heatingPower);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, reply, [reply]() {
@@ -551,13 +551,13 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
         return;
     }
 
-    auto heatingPower = quint16{ 0 };
+    auto heatingPower = 0.;
     if (action.actionTypeId() == acElwa2PowerSetpointConsumerActionTypeId) {
-        heatingPower = action.paramValue(acElwa2PowerSetpointConsumerActionPowerSetpointConsumerParamTypeId).toUInt();
+        heatingPower = action.paramValue(acElwa2PowerSetpointConsumerActionPowerSetpointConsumerParamTypeId).toDouble();
     } else if (action.actionTypeId() == acThorPowerSetpointConsumerActionTypeId) {
-        heatingPower = action.paramValue(acThorPowerSetpointConsumerActionPowerSetpointConsumerParamTypeId).toUInt();
+        heatingPower = action.paramValue(acThorPowerSetpointConsumerActionPowerSetpointConsumerParamTypeId).toDouble();
     } else if (action.actionTypeId() == acThor9sPowerSetpointConsumerActionTypeId) {
-        heatingPower = action.paramValue(acThor9sPowerSetpointConsumerActionPowerSetpointConsumerParamTypeId).toUInt();
+        heatingPower = action.paramValue(acThor9sPowerSetpointConsumerActionPowerSetpointConsumerParamTypeId).toDouble();
     }
 
     auto enableHeating = false;
