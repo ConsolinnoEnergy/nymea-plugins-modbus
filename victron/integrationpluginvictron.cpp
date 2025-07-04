@@ -261,7 +261,7 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
 
             // Update inverter states
             double powerPV=systemConnection->inverterPowerPvOutA()+systemConnection->inverterPowerPvOutB()+systemConnection->inverterPowerPvOutC()\
-                +systemConnection->inverterPowerPvInpA()+systemConnection->inverterPowerPvInpB()+systemConnection->inverterPowerPvInpC();
+                +systemConnection->inverterPowerPvInpA()+systemConnection->inverterPowerPvInpB()+systemConnection->inverterPowerPvInpC()+systemConnection->powerPvDc();
             thing->setStateValue(victronInverterTcpCurrentPowerStateTypeId, powerPV * -1);
             // thing->setStateValue(victronInverterTcpTemperatureStateTypeId, systemConnection->inverterTemperature());
             // thing->setStateValue(victronInverterTcpTotalEnergyProducedStateTypeId, systemConnection->totalPVGeneration());
