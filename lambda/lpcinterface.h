@@ -42,7 +42,7 @@ public:
 
     explicit LpcInterface(int gpioNumber1, QObject *parent = nullptr);
     
-    bool setLimitPowerConsumption(bool limitPowerConsumption);
+    bool setLimitPowerConsumption(bool gpioSetting);
 
     bool setup(bool gpio1Enabled);
     bool isValid() const;
@@ -50,7 +50,7 @@ public:
     Gpio *gpio1() const;
 
 signals:
-    void limitPowerConsumptionChanged(bool limitPowerConsumption);
+    void limitPowerConsumptionChanged();
 
 private:
     int m_gpioNumber1 = -1;

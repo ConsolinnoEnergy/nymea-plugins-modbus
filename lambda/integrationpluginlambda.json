@@ -574,7 +574,19 @@
                             "displayNameEvent": "Relay 1 enabled changed",
                             "type": "bool",
                             "cached": true,
-                            "defaultValue": false
+                            "defaultValue": false,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "eb24bca7-9480-4bc9-b009-5a6c715537f6",                            
+                            "name": "controllableLocalSystem",
+                            "displayName": "controllable local systems (CLS)",
+                            "displayNameAction": "Set controllable local systems (CLS)",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": true,
+                            "writable": true,
+                            "suggestLogging": true
                         }
                     ],
                     "actionTypes": []

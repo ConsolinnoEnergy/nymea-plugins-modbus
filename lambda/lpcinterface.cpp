@@ -38,20 +38,25 @@ LpcInterface::LpcInterface(int gpioNumber1, QObject *parent) :
 
 }
 
-bool LpcInterface::setLimitPowerConsumption(bool limitPowerConsumption)
+bool LpcInterface::setLimitPowerConsumption(bool gpioSetting)
 {
     if (!isValid())
         return false;
 
     // Lambda uses an "EVU Freigabe", which means that the relais S1 shall be always switched on if LPC is inactive
-    bool gpioSetting = !limitPowerConsumption;
+    // If the CLS is false, the relais shall be inactive
+    // CLS     LPC     Output: Relais State / EVU Freigabe
+    // 0	    0	    0
+    // 0	    1	    0
+    // 1	    0	    1
+    // 1	    1	    0
 
     if (!m_gpio1->setValue(gpioSetting ? Gpio::ValueHigh : Gpio::ValueLow)) {
-        qCWarning(dcLambda()) << "Could not switch GPIO 1 for setting LPC to " << limitPowerConsumption;
+        qCWarning(dcLambda()) << "Could not switch GPIO 1 to " << gpioSetting;
         return false;
     }   
-
-    emit limitPowerConsumptionChanged(limitPowerConsumption);
+        
+    emit limitPowerConsumptionChanged();
 
     qCWarning(dcLambda()) << "Set GPIO 1 to " << gpioSetting;
 
@@ -66,8 +71,7 @@ bool LpcInterface::setup(bool gpio1Enabled)
         return false;
     }
 
-    bool limitPowerConsumption = !gpio1Enabled;    
-    emit limitPowerConsumptionChanged(limitPowerConsumption);
+    emit limitPowerConsumptionChanged();
 
     return true;
 }
