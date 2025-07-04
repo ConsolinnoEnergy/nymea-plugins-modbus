@@ -13,7 +13,7 @@
                     "displayName": "my-PV AC ELWA 2",
                     "id": "39e0828b-8fc4-4a1c-a173-b02ef76e1a93",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
+                    "interfaces": ["heatingrod", "controllableconsumer", "connectable", "smartmeterconsumer"],
                     "paramTypes": [
                         {
                             "id": "d54a05fc-e7e0-44b9-a49f-28d125f4a850",
@@ -49,23 +49,25 @@
                         },
                         {
                             "id": "b18d9582-2bf9-42fa-991f-5f6b6df2f721",
-                            "name": "externalControl",
+                            "name": "activateControlConsumer",
                             "displayName": "External Control",
                             "displayNameAction": "Change external control",
                             "type": "bool",
                             "defaultValue": false,
+                            "cached": true,
                             "writable": true
                         },
                         {
                             "id": "c6cac0e7-ca01-4f26-951c-e5a7636707b4",
-                            "name": "heatingPower",
+                            "name": "powerSetpointConsumer",
                             "displayName": "Heating power setpoint",
                             "displayNameAction": "Change heating power setpoint",
-                            "type": "uint",
+                            "type": "double",
                             "unit": "Watt",
                             "minValue": 0,
                             "maxValue": 1000,
                             "defaultValue": 0,
+                            "cached": true,
                             "writable": true
                         },
                         {
@@ -143,7 +145,7 @@
                     "displayName": "my-PV AC-THOR",
                     "id": "8f52cb8a-dec8-4419-b024-d4e6dfa3f9a4",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
+                    "interfaces": ["heatingrod", "controllableconsumer", "connectable", "smartmeterconsumer"],
                     "paramTypes": [
                         {
                             "id": "35373d72-d3fc-49f2-bf2f-d06382dfe463",
@@ -179,23 +181,25 @@
                         },
                         {
                             "id": "f0487048-0951-4434-a6cd-b06132d84b66",
-                            "name": "externalControl",
+                            "name": "activateControlConsumer",
                             "displayName": "External Control",
                             "displayNameAction": "Change external control",
                             "type": "bool",
                             "defaultValue": false,
+                            "cached": true,
                             "writable": true
                         },
                         {
                             "id": "3a745987-d583-4db4-9fa9-409d2fd29fed",
-                            "name": "heatingPower",
+                            "name": "powerSetpointConsumer",
                             "displayName": "Heating power setpoint",
                             "displayNameAction": "Change heating power setpoint",
-                            "type": "uint",
+                            "type": "double",
                             "unit": "Watt",
                             "minValue": 0,
                             "maxValue": 1000,
                             "defaultValue": 0,
+                            "cached": true,
                             "writable": true
                         },
                         {
@@ -273,7 +277,7 @@
                     "displayName": "my-PV AC-Thor 9s",
                     "id": "400ee515-6e99-4f66-9c9e-a7777de5c461",
                     "createMethods": ["Discovery"],
-                    "interfaces": ["smartheatingrod", "connectable", "smartmeterconsumer"],
+                    "interfaces": ["heatingrod", "controllableconsumer", "connectable", "smartmeterconsumer"],
                     "paramTypes": [
                         {
                             "id": "4b9524fb-3aea-4ff7-9e89-4e3b4d670ff4",
@@ -309,23 +313,25 @@
                         },
                         {
                             "id": "16cae965-42fd-4335-9b06-ae8e3da5b9ca",
-                            "name": "externalControl",
+                            "name": "activateControlConsumer",
                             "displayName": "External Control",
                             "displayNameAction": "Change external control",
                             "type": "bool",
                             "defaultValue": false,
+                            "cached": true,
                             "writable": true
                         },
                         {
                             "id": "f16dfecc-893d-479f-99a4-ceb68a2dda4a",
-                            "name": "heatingPower",
+                            "name": "powerSetpointConsumer",
                             "displayName": "Heating power setpoint",
                             "displayNameAction": "Change heating power setpoint",
-                            "type": "uint",
+                            "type": "double",
                             "unit": "Watt",
                             "minValue": 0,
                             "maxValue": 1000,
                             "defaultValue": 0,
+                            "cached": true,
                             "writable": true
                         },
                         {
