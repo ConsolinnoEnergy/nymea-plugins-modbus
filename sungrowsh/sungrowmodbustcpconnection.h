@@ -256,7 +256,7 @@ public:
     float batteryCurrent() const;
 
     /* Battery power [W] - Address: 13021, Size: 1 */
-    quint16 batteryPower() const;
+    qint16 batteryPower() const;
 
     /* Battery level [%] - Address: 13022, Size: 1 */
     float batteryLevel() const;
@@ -674,8 +674,8 @@ signals:
     void batteryVoltageReadFinished(float batteryVoltage);
     void batteryCurrentChanged(float batteryCurrent);
     void batteryCurrentReadFinished(float batteryCurrent);
-    void batteryPowerChanged(quint16 batteryPower);
-    void batteryPowerReadFinished(quint16 batteryPower);
+    void batteryPowerChanged(qint16 batteryPower);
+    void batteryPowerReadFinished(qint16 batteryPower);
     void batteryLevelChanged(float batteryLevel);
     void batteryLevelReadFinished(float batteryLevel);
     void batteryHealthStateChanged(float batteryHealthState);
@@ -752,7 +752,7 @@ protected:
     QVector<quint16> m_dummy2;
     float m_batteryVoltage = 0;
     float m_batteryCurrent = 0;
-    quint16 m_batteryPower = 0;
+    qint16 m_batteryPower = 0;
     float m_batteryLevel = 0;
     float m_batteryHealthState = 0;
     float m_batteryTemperature = 0;

@@ -215,7 +215,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
             // Update the meter if available
             Thing *meterThing = getMeterThing(thing);
             if (meterThing) {
-                auto runningState = sungrowConnection->runningState();
+                quint16 runningState = sungrowConnection->runningState();
                 qCDebug(dcSungrow()) << "Power generated from PV:" << (runningState & (0x1 << 0) ? "true" : "false");
                 qCDebug(dcSungrow()) << "Battery charging:" << (runningState & (0x1 << 1) ? "true" : "false");
                 qCDebug(dcSungrow()) << "Battery discharging:" << (runningState & (0x1 << 2) ? "true" : "false");
@@ -244,18 +244,22 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 batteryThing->setStateValue(sungrowBatteryBatteryCriticalStateTypeId, sungrowConnection->batteryLevel() < 5);
                 batteryThing->setStateValue(sungrowBatteryCapacityStateTypeId, sungrowConnection->totalBatteryCapacity());
 
+                // Note: since firmware 2024 this is a int16 value, and we can use the value directly without convertion
+                if (sungrowConnection->batteryPower() < 0) {
+                    batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, -1*sungrowConnection->batteryPower());
+                } else {
+                    qint16 batteryPower = (sungrowConnection->runningState() & (0x1 << 1) ? sungrowConnection->batteryPower() : sungrowConnection->batteryPower() * -1);
+                    batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, batteryPower);
+                }
+
                 quint16 runningState = sungrowConnection->runningState();
-                double batteryPower = static_cast<double>(sungrowConnection->batteryPower());
                 if (runningState & (0x1 << 1)) { //Bit 1: Battery charging bit
                     batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "charging");
-                    batteryPower = batteryPower;
                 } else if (runningState & (0x1 << 2)) { //Bit 2: Battery discharging bit
                     batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "discharging");
-                    batteryPower = -1 * batteryPower;
                 } else {
                     batteryThing->setStateValue(sungrowBatteryChargingStateStateTypeId, "idle");
                 }
-                batteryThing->setStateValue(sungrowBatteryCurrentPowerStateTypeId, batteryPower);
             }
 
             // Mode: 170 - ON | Export will be limited to chosen value
