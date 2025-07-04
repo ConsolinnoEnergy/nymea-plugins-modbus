@@ -416,7 +416,7 @@ void IntegrationPluginMyPv::setupTcpConnection(ThingSetupInfo *info)
     });
     connect(connection, &MyPvModbusTcpConnection::maxPowerChanged, thing,
             [thing](quint16 maxPower) {
-        thing->setStateMaxValue("heatingPower", maxPower);
+        thing->setStateMaxValue("powerSetpointConsumer", maxPower);
     });
     connect(connection, &MyPvModbusTcpConnection::updateFinished, thing,
             [this, thing]() {
@@ -477,7 +477,7 @@ void IntegrationPluginMyPv::configureConnection(MyPvModbusTcpConnection *connect
 void IntegrationPluginMyPv::writeHeatingPower(Thing *thing)
 {
     auto connection = m_tcpConnections.value(thing);
-    const auto heatingPower = static_cast<quint16>(thing->stateValue("heatingPower").toUInt());
+    const auto heatingPower = static_cast<quint16>(thing->stateValue("powerSetpointConsumer").toUInt());
     const auto reply = connection->setCurrentPower(heatingPower);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, reply, [reply]() {
@@ -552,28 +552,28 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
     }
 
     auto heatingPower = quint16{ 0 };
-    if (action.actionTypeId() == acElwa2HeatingPowerActionTypeId) {
-        heatingPower = action.paramValue(acElwa2HeatingPowerActionHeatingPowerParamTypeId).toUInt();
-    } else if (action.actionTypeId() == acThorHeatingPowerActionTypeId) {
-        heatingPower = action.paramValue(acThorHeatingPowerActionHeatingPowerParamTypeId).toUInt();
-    } else if (action.actionTypeId() == acThor9sHeatingPowerActionTypeId) {
-        heatingPower = action.paramValue(acThor9sHeatingPowerActionHeatingPowerParamTypeId).toUInt();
+    if (action.actionTypeId() == acElwa2PowerSetpointConsumerActionTypeId) {
+        heatingPower = action.paramValue(acElwa2PowerSetpointConsumerActionPowerSetpointConsumerParamTypeId).toUInt();
+    } else if (action.actionTypeId() == acThorPowerSetpointConsumerActionTypeId) {
+        heatingPower = action.paramValue(acThorPowerSetpointConsumerActionPowerSetpointConsumerParamTypeId).toUInt();
+    } else if (action.actionTypeId() == acThor9sPowerSetpointConsumerActionTypeId) {
+        heatingPower = action.paramValue(acThor9sPowerSetpointConsumerActionPowerSetpointConsumerParamTypeId).toUInt();
     }
 
     auto enableHeating = false;
-    if (action.actionTypeId() == acElwa2ExternalControlActionTypeId) {
-        enableHeating = action.paramValue(acElwa2ExternalControlActionExternalControlParamTypeId).toBool();
-    } else if (action.actionTypeId() == acThorExternalControlActionTypeId) {
-        enableHeating = action.paramValue(acThorExternalControlActionExternalControlParamTypeId).toBool();
-    } else if (action.actionTypeId() == acThor9sExternalControlActionTypeId) {
-        enableHeating = action.paramValue(acThor9sExternalControlActionExternalControlParamTypeId).toBool();
+    if (action.actionTypeId() == acElwa2ActivateControlConsumerActionTypeId) {
+        enableHeating = action.paramValue(acElwa2ActivateControlConsumerActionActivateControlConsumerParamTypeId).toBool();
+    } else if (action.actionTypeId() == acThorActivateControlConsumerActionTypeId) {
+        enableHeating = action.paramValue(acThorActivateControlConsumerActionActivateControlConsumerParamTypeId).toBool();
+    } else if (action.actionTypeId() == acThor9sActivateControlConsumerActionTypeId) {
+        enableHeating = action.paramValue(acThor9sActivateControlConsumerActionActivateControlConsumerParamTypeId).toBool();
     }
 
     const auto connection = m_tcpConnections.value(thing);
-    if (action.actionTypeId() == acElwa2HeatingPowerActionTypeId ||
-            action.actionTypeId() == acThorHeatingPowerActionTypeId ||
-            action.actionTypeId() == acThor9sHeatingPowerActionTypeId) {
-        thing->setStateValue("heatingPower", heatingPower);
+    if (action.actionTypeId() == acElwa2PowerSetpointConsumerActionTypeId ||
+            action.actionTypeId() == acThorPowerSetpointConsumerActionTypeId ||
+            action.actionTypeId() == acThor9sPowerSetpointConsumerActionTypeId) {
+        thing->setStateValue("powerSetpointConsumer", heatingPower);
         const auto timer = m_controlTimer.value(thing);
         if (timer->isActive()) {
             timer->stop();
@@ -582,10 +582,10 @@ void IntegrationPluginMyPv::executeAction(ThingActionInfo *info)
             timer->start();
         }
         info->finish(Thing::ThingErrorNoError);
-    } else if (action.actionTypeId() == acElwa2ExternalControlActionTypeId ||
-               action.actionTypeId() == acThorExternalControlActionTypeId ||
-               action.actionTypeId() == acThor9sExternalControlActionTypeId) {
-        thing->setStateValue("externalControl", enableHeating);
+    } else if (action.actionTypeId() == acElwa2ActivateControlConsumerActionTypeId ||
+               action.actionTypeId() == acThorActivateControlConsumerActionTypeId ||
+               action.actionTypeId() == acThor9sActivateControlConsumerActionTypeId) {
+        thing->setStateValue("activateControlConsumer", enableHeating);
         const auto timer = m_controlTimer.value(thing);
         if (enableHeating) {
             writeHeatingPower(thing);
