@@ -15,6 +15,7 @@ nymea-plugins-modbus (1.7.017) jammy; urgency=medium
   * Siemens PAC2200: Initial Support
   * Kostal: fixed Meter totalEnergyProduced
   * Sungrow SH: Fix battery power
+  * Victron: fix total PV power
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 28 May 2025 08:49:00 +0200
 
