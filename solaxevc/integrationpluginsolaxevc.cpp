@@ -833,11 +833,13 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                             thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Available");
                             thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
                             thing->setStateValue(solaxEvcStandalonePluggedInStateTypeId, false);
+                            thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
                             break;
                         case SolaxEvcStandaloneModbusTcpConnection::StatePreparing:
                             thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Preparing");
                             thing->setStateValue(solaxEvcStandalonePluggedInStateTypeId, true);
                             thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
                             break;
                         case SolaxEvcStandaloneModbusTcpConnection::StateCharging:
                             thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Charging");
@@ -848,26 +850,32 @@ void IntegrationPluginSolaxEvc::setupTcpConnection(ThingSetupInfo *info)
                             thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Plugged In");
                             thing->setStateValue(solaxEvcStandalonePluggedInStateTypeId, true);
                             thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
                             break;
                         case SolaxEvcStandaloneModbusTcpConnection::StateFaulted:
                             thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Faulted");
                             thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
+                            thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
                             // thing->setStateValue(solaxEvcPluggedInStateTypeId, false);
                             break;
                         case SolaxEvcStandaloneModbusTcpConnection::StateUnavailable:
                             thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Unavailable");
+                            thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
                             thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
                             break;
                         case SolaxEvcStandaloneModbusTcpConnection::StateReserved:
                             thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "Reserved");
+                            thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
                             thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
                             break;
                         case SolaxEvcStandaloneModbusTcpConnection::StateSuspendedEV:
                             thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "SuspendedEV");
+                            thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
                             thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
                             break;
                         case SolaxEvcStandaloneModbusTcpConnection::StateSuspendedEVSE:
                             thing->setStateValue(solaxEvcStandaloneStateStateTypeId, "SuspendedEVSE");
+                            thing->setStateValue(solaxEvcStandaloneCurrentPowerStateTypeId, 0);
                             thing->setStateValue(solaxEvcStandaloneChargingStateTypeId, false);
                             break;
                         case SolaxEvcStandaloneModbusTcpConnection::StateUpdate:
