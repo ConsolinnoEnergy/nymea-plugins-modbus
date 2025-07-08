@@ -18,7 +18,8 @@
                     "interfaces": [
                         "pvsurplusheatpump",
                         "connectable",
-                        "smartmeterconsumer"
+                        "smartmeterconsumer",
+                        "limitableconsumer"
                     ],
                     "paramTypes": [
                         {
