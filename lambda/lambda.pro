@@ -9,10 +9,8 @@ include(../modbus.pri)
 
 SOURCES += \
     integrationpluginlambda.cpp \
-    lambdamodbustcpconnection.cpp \
     lpcinterface.cpp
 
 HEADERS += \
     integrationpluginlambda.h \
-    lambdamodbustcpconnection.h \
     lpcinterface.h

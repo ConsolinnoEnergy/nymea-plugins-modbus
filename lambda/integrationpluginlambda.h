@@ -56,8 +56,11 @@ public:
     void executeAction(ThingActionInfo *info) override;
 
 private:
+    void writePowerDemand(Thing *thing);
+
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, LambdaModbusTcpConnection *> m_connections;
+    QHash<Thing *, qint16> m_demandPowers;
     QHash<Thing *, LpcInterface *> m_lpcInterfaces;
 };
 
