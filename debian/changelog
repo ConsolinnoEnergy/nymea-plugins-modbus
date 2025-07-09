@@ -8,9 +8,11 @@ nymea-plugins-modbus (1.7.017) jammy; urgency=medium
   * Fix Alfen wrong energy value ESEMS-1800
   * Add support for FoxESS R-Series
     - Combine Wallbox and Inverter into one plugin
-  * Lambda: accuracy improvements and warning suppression
   * Update libnymea-modbus
   * sungrowsh: Use queued requests
+  * Lambda: 
+    - accuracy improvements and warning suppression
+    - added LPC GPIO interface
   * SMA: 
     - Reduce warnings, add fixes from nymea team
     - speedwireInverter: hybrid inverter support, add battery capacity
