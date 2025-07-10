@@ -283,7 +283,8 @@ def getConversionToValueMethod(registerDefinition):
     elif registerDefinition['type'] == 'float64':
         return ('ModbusDataUtils::convertFromFloat64(%s, m_endianness)' % propertyName)
     elif registerDefinition['type'] == 'string':
-        return ('ModbusDataUtils::convertFromString(%s)' % propertyName)    
+        size = registerDefinition['size']
+        return ('ModbusDataUtils::convertFromString(%s, %s)' % (propertyName, size))    
 
 
 def getValueConversionMethod(registerDefinition):
