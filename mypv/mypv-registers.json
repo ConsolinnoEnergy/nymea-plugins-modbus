@@ -4,7 +4,7 @@
     "endianness": "BigEndian",
     "errorLimitUntilNotReachable": 10,
     "checkReachableRegister": "waterTemperature",
-    "queuedRequests": false,
+    "queuedRequests": true,
     "queuedRequestsDelay": 100,
     "blocks": [
         {
