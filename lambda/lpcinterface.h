@@ -41,6 +41,7 @@ class LpcInterface : public QObject
 public:  
 
     explicit LpcInterface(int gpioNumber1, QObject *parent = nullptr);
+    ~LpcInterface();
     
     bool setLimitPowerConsumption(bool gpioSetting);
 

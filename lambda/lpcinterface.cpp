@@ -35,7 +35,15 @@ LpcInterface::LpcInterface(int gpioNumber1, QObject *parent) :
     QObject(parent),
     m_gpioNumber1(gpioNumber1)
 {
+    m_gpio1 = nullptr;
+}
 
+LpcInterface::~LpcInterface()
+{
+    if (m_gpio1)
+    {
+        delete m_gpio1;
+    }
 }
 
 bool LpcInterface::setLimitPowerConsumption(bool gpioSetting)
@@ -65,6 +73,10 @@ bool LpcInterface::setLimitPowerConsumption(bool gpioSetting)
 
 bool LpcInterface::setup(bool gpio1Enabled)
 {
+
+    if (m_gpio1)
+        delete m_gpio1;
+
     m_gpio1 = setupGpio(m_gpioNumber1, gpio1Enabled);
     if (!m_gpio1) {
         qCWarning(dcLambda()) << "Failed to set up LPC interface gpio 1" << m_gpioNumber1;

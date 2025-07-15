@@ -34,6 +34,9 @@
 #include <network/networkdevicediscovery.h>
 #include <hardwaremanager.h>
 
+
+#define GPIO_ADDRESS_RELAIS 496
+
 IntegrationPluginLambda::IntegrationPluginLambda()
 {
 
@@ -112,12 +115,10 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
         if (!Gpio::isAvailable()) {
             qCWarning(dcLambda()) << "There are no GPIOs available on this plattform";
         } else {
-            int gpioNumber1{496};
-            
             // if CLS is true, relais shall be activated to ensure "EVU Freigabe" after init
             bool clsState = thing->stateValue(lambdaTCPControllableLocalSystemStateTypeId).toBool();
                         
-            LpcInterface *lpcInterface = new LpcInterface(gpioNumber1, this);
+            LpcInterface *lpcInterface = new LpcInterface(GPIO_ADDRESS_RELAIS, this);
             if (!lpcInterface->setup(clsState)) {
                 qCWarning(dcLambda()) << "Setup" << thing << "failed because the GPIO could not be set up correctly.";
                 //: Error message if LPC GPIOs setup failed
@@ -126,12 +127,12 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             }
 
             // Intially set values according to relais states
-            thing->setStateValue(lambdaTCPGpio1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);            
+            thing->setStateValue(lambdaTCPRelais1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);            
 
             // Reflect the GPIO change
             connect(lpcInterface, &LpcInterface::limitPowerConsumptionChanged, this, [thing, lpcInterface](){
                 qCDebug(dcLambda()) << "GPIO changed to" << (lpcInterface->gpio1()->value() == Gpio::ValueHigh);
-                thing->setStateValue(lambdaTCPGpio1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);
+                thing->setStateValue(lambdaTCPRelais1StateStateTypeId, lpcInterface->gpio1()->value() == Gpio::ValueHigh);
             });        
 
             m_lpcInterfaces.insert(thing, lpcInterface);
@@ -676,28 +677,28 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
         if (!lpcInterface || !lpcInterface->isValid()) {
             qCWarning(dcLambda()) << "Failed to execute action. There is no interface available for" << thing;
         } else { 
+            bool lpcRequest = false;
+            bool clsState = false;
+            bool gpioSetting = false;
+
             if (info->action().actionTypeId() == lambdaTCPActivateLpcActionTypeId) {
-                bool lpcRequest = info->action().paramValue(lambdaTCPActivateLpcActionActivateLpcParamTypeId).toBool();
-                bool clsState = thing->stateValue(lambdaTCPControllableLocalSystemStateTypeId).toBool();
+                lpcRequest = info->action().paramValue(lambdaTCPActivateLpcActionActivateLpcParamTypeId).toBool();
+                clsState = thing->stateValue(lambdaTCPControllableLocalSystemStateTypeId).toBool();
                 thing->setStateValue(lambdaTCPActivateLpcStateTypeId, lpcRequest);
                 
                 qCDebug(dcLambda()) << "LPC activation action, value:" << lpcRequest;
                 
-                bool gpioSetting = clsState && !lpcRequest;
-                if (!lpcInterface->setLimitPowerConsumption(gpioSetting)) {
-                        qCWarning(dcLambda()) << "Failed to set LPC relais on" << thing << "to" << gpioSetting;
-                }
             } else if(info->action().actionTypeId() == lambdaTCPControllableLocalSystemActionTypeId) {                
-                bool clsState = info->action().paramValue(lambdaTCPControllableLocalSystemActionControllableLocalSystemParamTypeId).toBool();
+                clsState = info->action().paramValue(lambdaTCPControllableLocalSystemActionControllableLocalSystemParamTypeId).toBool();
                 thing->setStateValue(lambdaTCPControllableLocalSystemStateTypeId, clsState);
-                bool lpcRequest = thing->stateValue(lambdaTCPActivateLpcStateTypeId).toBool();
+                lpcRequest = thing->stateValue(lambdaTCPActivateLpcStateTypeId).toBool();
 
                 qCDebug(dcLambda()) << "CLS state action, value:" << clsState;
+            }
 
-                bool gpioSetting = clsState && !lpcRequest;
-                if (!lpcInterface->setLimitPowerConsumption(gpioSetting)) {
-                        qCWarning(dcLambda()) << "Failed to set LPC relais on" << thing << "to" << gpioSetting;
-                }
+            gpioSetting = clsState && !lpcRequest;
+            if (!lpcInterface->setLimitPowerConsumption(gpioSetting)) {
+                    qCWarning(dcLambda()) << "Failed to set LPC relais on" << thing << "to" << gpioSetting;
             }
         }
 }
