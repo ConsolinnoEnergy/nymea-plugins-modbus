@@ -687,19 +687,21 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
                 thing->setStateValue(lambdaTCPActivateLpcStateTypeId, lpcRequest);
                 
                 qCDebug(dcLambda()) << "LPC activation action, value:" << lpcRequest;
-                
+                gpioSetting = clsState && !lpcRequest;
+                if (!lpcInterface->setLimitPowerConsumption(gpioSetting)) {
+                        qCWarning(dcLambda()) << "Failed to set LPC relais on" << thing << "to" << gpioSetting;
+                }
             } else if(info->action().actionTypeId() == lambdaTCPControllableLocalSystemActionTypeId) {                
                 clsState = info->action().paramValue(lambdaTCPControllableLocalSystemActionControllableLocalSystemParamTypeId).toBool();
                 thing->setStateValue(lambdaTCPControllableLocalSystemStateTypeId, clsState);
                 lpcRequest = thing->stateValue(lambdaTCPActivateLpcStateTypeId).toBool();
 
                 qCDebug(dcLambda()) << "CLS state action, value:" << clsState;
-            }
-
-            gpioSetting = clsState && !lpcRequest;
-            if (!lpcInterface->setLimitPowerConsumption(gpioSetting)) {
-                    qCWarning(dcLambda()) << "Failed to set LPC relais on" << thing << "to" << gpioSetting;
-            }
+                gpioSetting = clsState && !lpcRequest;
+                if (!lpcInterface->setLimitPowerConsumption(gpioSetting)) {
+                        qCWarning(dcLambda()) << "Failed to set LPC relais on" << thing << "to" << gpioSetting;
+                }
+            }            
         }
 }
 
