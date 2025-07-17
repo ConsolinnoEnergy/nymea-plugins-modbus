@@ -45,7 +45,7 @@
 #include <modbusdatautils.h>
 #include <modbustcpmaster.h>
 
-class SolaxEvcStandaloneModbusTcpConnection : public ModbusTCPMaster
+class SolaxEvcStandaloneModbusTcpConnection : public ModbusTcpMaster
 {
     Q_OBJECT
 public:
