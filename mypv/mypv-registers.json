@@ -2,7 +2,7 @@
     "className": "MyPv",
     "protocol": "TCP",
     "endianness": "BigEndian",
-    "errorLimitUntilNotReachable": 10,
+    "errorLimitUntilNotReachable": 5,
     "checkReachableRegister": "waterTemperature",
     "queuedRequests": true,
     "queuedRequestsDelay": 100,
