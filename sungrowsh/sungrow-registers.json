@@ -1,6 +1,6 @@
 {
     "className": "Sungrow",
-    "protocol": "BOTH",
+    "protocol": "TCP",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 5,
     "checkReachableRegister": "totalPVPower",
