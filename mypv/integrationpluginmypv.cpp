@@ -297,17 +297,7 @@ void IntegrationPluginMyPv::setupThing(ThingSetupInfo *info)
         m_monitors.insert(thing, monitor);
 
         qCDebug(dcMypv()) << "Monitor reachable" << monitor->reachable() << thing->paramValue("macAddress").toString();
-        m_setupTcpConnectionRunning = false;
-        if (monitor->reachable()) {
-            setupTcpConnection(info);
-        } else {
-            connect(monitor, &NetworkDeviceMonitor::reachableChanged, info, [this, info]() {
-                    if (!m_setupTcpConnectionRunning) {
-                        m_setupTcpConnectionRunning = true;
-                        setupTcpConnection(info);
-                    }
-            });
-        }
+        setupTcpConnection(info);
         info->finish(Thing::ThingErrorNoError);
     } else {
         info->finish(Thing::ThingErrorThingClassNotFound,

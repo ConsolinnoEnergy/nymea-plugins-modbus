@@ -58,7 +58,6 @@ public:
 
 private:
     PluginTimer *m_refreshTimer = nullptr;
-    bool m_setupTcpConnectionRunning = false;
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, MyPvModbusTcpConnection *> m_tcpConnections;
