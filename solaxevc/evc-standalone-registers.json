@@ -1,0 +1,358 @@
+{
+    "className": "SolaxEvcStandalone",
+    "protocol": "RTU",
+    "endianness": "LittleEndian",
+    "errorLimitUntilNotReachable": 10,
+    "checkReachableRegister": "firmwareVersion",
+    "enums": [
+        {
+            "name": "ControlCommand",
+            "values": [
+                {
+                    "key": "Undefined",
+                    "value": 0
+                },
+                {
+                    "key": "Available",
+                    "value": 1
+                },
+                {
+                    "key": "Unavailable",
+                    "value": 2
+                },
+                {
+                    "key": "StopCharging",
+                    "value": 3
+                },
+                {
+                    "key": "StartCharging",
+                    "value": 4
+                },
+                {
+                    "key": "Reserve",
+                    "value": 5
+                },
+                {
+                    "key": "CancelReservation",
+                    "value": 6
+                }
+            ]
+        },
+        {
+            "name": "State",
+            "values": [
+                {
+                    "key": "Available",
+                    "value": 0
+                },
+                {
+                    "key": "Preparing",
+                    "value": 1
+                },
+                {
+                    "key": "Charging",
+                    "value": 2
+                },
+                {
+                    "key": "Finishing",
+                    "value": 3
+                },
+                {
+                    "key": "Faulted",
+                    "value": 4
+                },
+                {
+                    "key": "Unavailable",
+                    "value": 5
+                },
+                {
+                    "key": "Reserved",
+                    "value": 6
+                },
+                {
+                    "key": "SuspendedEV",
+                    "value": 7
+                },
+                {
+                    "key": "SuspendedEVSE",
+                    "value": 8
+                },
+                {
+                    "key": "Update",
+                    "value": 9
+                },
+                {
+                    "key": "CardActivation",
+                    "value": 10
+                }
+            ]
+        }
+    ],
+    "blocks": [
+        {
+            "id": "meterValues",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "currentPhaseA",
+                    "address": 4,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current phase A",
+                    "unit": "A",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseB",
+                    "address": 5,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current phase B",
+                    "unit": "A",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPhaseC",
+                    "address": 6,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current phase C",
+                    "unit": "A",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "currentPe",
+                    "address": 7,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Current PE",
+                    "unit": "A",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -3,
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPhaseA",
+                    "address": 8,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power phase A",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPhaseB",
+                    "address": 9,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power phase B",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPhaseC",
+                    "address": 10,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Power phase C",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "totalPower",
+                    "address": 11,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Total charging power",
+                    "unit": "W",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "frequencyPhaseA",
+                    "address": 12,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Frequency phase A",
+                    "unit": "Hz",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "frequencyPhaseB",
+                    "address": 13,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Frequency phase B",
+                    "unit": "Hz",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "frequencyPhaseC",
+                    "address": 14,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Frequency phase C",
+                    "unit": "Hz",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -2,
+                    "access": "RO"
+                },
+                {
+                    "id": "sessionEnergy",
+                    "address": 15,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Single charge energy",
+                    "unit": "kWh",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "totalEnergy",
+                    "address": 16,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "description": "Accumulated charging energy",
+                    "unit": "kWh",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "wallboxStatus",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "state",
+                    "address": 29,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "State",
+                    "enum": "State",
+                    "defaultValue": "StateAvailable",
+                    "access": "RO"
+                },
+                {
+                    "id": "faultCode",
+                    "address": 30,
+                    "size": 2,
+                    "type": "uint32",
+                    "registerType": "inputRegister",
+                    "description": "Fault code",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "typeCase",
+                    "address": 32,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Wallbox model case type",
+                    "defaultValue": 0,
+                    "access": "RO"
+                },
+                {
+                    "id": "typePower",
+                    "address": 33,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "inputRegister",
+                    "description": "Wallbox is 7kW, 11kW or 22kW",
+                    "defaultValue": 0,
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "deviceMode",
+            "address": 1549,
+            "size": 1,
+            "type": "uint16",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Device mode",
+            "defaultValue": 0,
+            "access": "RW"
+        },
+        {
+            "id": "serialNumber",
+            "address": 1536,
+            "size": 14,
+            "type": "string",
+            "readSchedule": "init",
+            "registerType": "holdingRegister",
+            "description": "Version",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "firmwareVersion",
+            "address": 37,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "inputRegister",
+            "readSchedule": "init",
+            "description": "Firmware version",
+            "defaultValue": 0,
+            "access": "RO"
+        },
+        {
+            "id": "controlCommand",
+            "address": 1575,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Control command",
+            "enum": "ControlCommand",
+            "defaultValue": "ControlCommandUndefined",
+            "access": "RW"
+        },
+        {
+            "id": "maxCurrent",
+            "address": 1615,
+            "size": 2,
+            "type": "uint32",
+            "readSchedule": "update",
+            "registerType": "holdingRegister",
+            "description": "Maximum current fast mode",
+            "staticScaleFactor": -2,
+            "unit": "A",
+            "defaultValue": 0,
+            "access": "RW"
+        }
+    ]
+}
