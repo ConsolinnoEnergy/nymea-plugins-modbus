@@ -1,6 +1,7 @@
 nymea-plugins-modbus (1.7.017) jammy; urgency=medium
 
   * Added Zhejiang Chint DTSU666 smart meter
+    - Added outlier detection
   * Added Support for AlphaInnotec Smart Home Interface
   * Fix for Chint DTSU66 with CT clamps
   * Growatt: support for LPP changed: limit power input (W) instead of rate (%)
@@ -15,6 +16,7 @@ nymea-plugins-modbus (1.7.017) jammy; urgency=medium
     - Reduce warnings, add fixes from nymea team
     - speedwireInverter: hybrid inverter support, add battery capacity
   * Siemens PAC2200: Initial Support
+  * Add a standalone Solax X3 EVC integration
   * Kostal: fixed Meter totalEnergyProduced
   * Sungrow SH: Fix battery power
   * Victron: fix total PV power
