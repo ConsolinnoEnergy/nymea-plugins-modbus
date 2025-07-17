@@ -45,7 +45,7 @@
 #include <modbusdatautils.h>
 #include <modbustcpmaster.h>
 
-class VictronVebusModbusTcpConnection : public ModbusTCPMaster
+class VictronVebusModbusTcpConnection : public ModbusTcpMaster
 {
     Q_OBJECT
 public:

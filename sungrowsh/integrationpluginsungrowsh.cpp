@@ -128,7 +128,7 @@ void IntegrationPluginSungrow::setupThing(ThingSetupInfo *info)
                 return;
 
             if (reachable && !thing->stateValue("connected").toBool()) {
-                sungrowConnection->setHostAddress(monitor->networkDeviceInfo().address());
+                sungrowConnection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                 sungrowConnection->reconnectDevice();
             } else if (!reachable) {
                 // Note: Auto reconnect is disabled explicitly and
@@ -388,7 +388,7 @@ void IntegrationPluginSungrow::postSetupThing(Thing *thing)
                     auto connection = m_tcpConnections.value(thing);
 
                     if (connection->reachable()) {
-                        qCDebug(dcSungrow()) << "Updating connection" << connection->hostAddress().toString();
+                        qCDebug(dcSungrow()) << "Updating connection" << connection->modbusTcpMaster()->hostAddress().toString();
                         connection->update();
                     } else {
                         qCDebug(dcSungrow()) << "Device not reachable. Probably a TCP connection error. Reconnecting TCP socket";
@@ -461,7 +461,7 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
             return;
         }
 
-        if (!connection->connected()) {
+        if (!connection->modbusTcpMaster()->connected()) {
             qCWarning(dcSungrow()) << "Could not execute action. Modbus connection is not connected.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
@@ -498,7 +498,7 @@ void IntegrationPluginSungrow::executeAction(ThingActionInfo *info)
             return;
         }
 
-        if (!connection->connected()) {
+        if (!connection->modbusTcpMaster()->connected()) {
             qCWarning(dcSungrow()) << "Could not execute action. Modbus connection is not connected.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;

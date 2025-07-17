@@ -50,7 +50,7 @@ SchneiderWallbox::~SchneiderWallbox()
         });
     }
 
-    qCDebug(dcSchneiderElectric()) << "Deleting SchneiderWallbox object for device with address" << m_modbusTcpConnection->hostAddress();
+    qCDebug(dcSchneiderElectric()) << "Deleting SchneiderWallbox object for device with address" << m_modbusTcpConnection->modbusTcpMaster()->hostAddress();
     delete m_modbusTcpConnection;
 }
 
@@ -62,7 +62,7 @@ SchneiderWallboxModbusTcpConnection *SchneiderWallbox::modbusTcpConnection()
 
 void SchneiderWallbox::update()
 {
-    if (!m_modbusTcpConnection->connected()) {
+    if (!m_modbusTcpConnection->modbusTcpMaster()->connected()) {
         return;
     }
 
@@ -212,7 +212,7 @@ void SchneiderWallbox::update()
 
 bool SchneiderWallbox::enableOutput(bool state)
 {
-    if (!m_modbusTcpConnection->connected()) {
+    if (!m_modbusTcpConnection->modbusTcpMaster()->connected()) {
         qCDebug(dcSchneiderElectric()) << "Can't set charging on/off, device is not connected.";
         return false;
     }
@@ -229,7 +229,7 @@ bool SchneiderWallbox::enableOutput(bool state)
 
 bool SchneiderWallbox::setMaxAmpere(int ampereValue)
 {
-    if (!m_modbusTcpConnection->connected()) {
+    if (!m_modbusTcpConnection->modbusTcpMaster()->connected()) {
         qCDebug(dcSchneiderElectric()) << "Can't set current limit, device is not connected.";
         return false;
     }

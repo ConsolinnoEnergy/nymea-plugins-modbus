@@ -1,24 +1,31 @@
-# Copyright (C) 2021 - 2022 nymea GmbH <developer@nymea.io>
+# Copyright 2021 - 2024, nymea GmbH
+# Contact: contact@nymea.io
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This file is part of nymea.
+# This project including source code and documentation is protected by
+# copyright law, and remains the property of nymea GmbH. All rights, including
+# reproduction, publication, editing and translation, are reserved. The use of
+# this project is subject to the terms of a license agreement to be concluded
+# with nymea GmbH in accordance with the terms of use of nymea GmbH, available
+# under https://nymea.io/license
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU General Public License Usage
+# Alternatively, this project may be redistributed and/or modified under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, GNU version 3. This project is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+# Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# You should have received a copy of the GNU General Public License along with
+# this project. If not, see <https://www.gnu.org/licenses/>.
+#
+# For any further details and any questions please contact us under
+# contact@nymea.io or see our FAQ/Licensing Information on
+# https://nymea.io/license/faq
 
-import os
 import re
-import sys
 import json
-import shutil
 import datetime
 import logging
 
@@ -283,7 +290,7 @@ def getConversionToValueMethod(registerDefinition):
     elif registerDefinition['type'] == 'float64':
         return ('ModbusDataUtils::convertFromFloat64(%s, m_endianness)' % propertyName)
     elif registerDefinition['type'] == 'string':
-        return ('ModbusDataUtils::convertFromString(%s)' % propertyName)    
+        return ('ModbusDataUtils::convertFromString(%s, m_stringEndianness)' % propertyName)
 
 
 def getValueConversionMethod(registerDefinition):
@@ -340,7 +347,7 @@ def getValueConversionMethod(registerDefinition):
     elif registerDefinition['type'] == 'float64':
         return ('ModbusDataUtils::convertToFloat64(values, m_endianness)')
     elif registerDefinition['type'] == 'string':
-        return ('ModbusDataUtils::convertToString(values)')
+        return ('ModbusDataUtils::convertToString(values, m_stringEndianness)')
     elif registerDefinition['type'] == 'bytearray':
         return ('ModbusDataUtils::convertToByteArray(values)')
     elif registerDefinition['type'] == 'raw':
@@ -362,11 +369,11 @@ def writeBlockGetMethodDeclarations(fileDescriptor, registerDefinitions):
 
 def writePropertyUpdateMethodDeclarations(fileDescriptor, registerDefinitions):
     for registerDefinition in registerDefinitions:
-        if 'readSchedule' in registerDefinition and registerDefinition['readSchedule'] == 'init':
-            continue
+        if 'access' in registerDefinition:
+            if not 'R' in registerDefinition['access']:
+                continue
 
         propertyName = registerDefinition['id']
-        propertyTyp = getCppDataType(registerDefinition)
         writeLine(fileDescriptor, '    void update%s();' % (propertyName[0].upper() + propertyName[1:]))
 
 
@@ -443,12 +450,23 @@ def writeBlocksUpdateMethodDeclarations(fileDescriptor, blockDefinitions):
 
 def writeRegistersDebugLine(fileDescriptor, debugObjectParamName, registerDefinitions):
     for registerDefinition in registerDefinitions:
-        if not 'R' in registerDefinition['access']:
-            continue
+        if 'access' in registerDefinition:
+            if not 'R' in registerDefinition['access']:
+                continue
 
         propertyName = registerDefinition['id']
-        propertyTyp = getCppDataType(registerDefinition)
-        line = ('"    - %s: " << %s->%s()' % (registerDefinition['description'], debugObjectParamName, propertyName))
+        registerType = registerDefinition['registerType']
+        typeString = ''
+        if registerType == 'holdingRegister':
+            typeString = 'holding '
+        elif registerType == 'inputRegister':
+            typeString = 'input   '
+        elif registerType == 'coils':
+            typeString = 'coils   '
+        elif registerType == 'discreteInputs':
+            typeString = 'discrete'
+
+        line = ('"    - %s %s | %s: " << %s->%s()' % (typeString, registerDefinition['address'], registerDefinition['description'], debugObjectParamName, propertyName))
         if 'unit' in registerDefinition and registerDefinition['unit'] != '':
             line += (' << " [%s]"' % registerDefinition['unit'])
         writeLine(fileDescriptor, '    debug.nospace().noquote() << %s << "\\n";' % (line))
@@ -456,8 +474,9 @@ def writeRegistersDebugLine(fileDescriptor, debugObjectParamName, registerDefini
 
 def writePropertyChangedSignals(fileDescriptor, registerDefinitions):
     for registerDefinition in registerDefinitions:
-        if not 'R' in registerDefinition['access']:
-            continue
+        if 'access' in registerDefinition:
+            if not 'R' in registerDefinition['access']:
+                    continue
 
         propertyName = registerDefinition['id']
         propertyTyp = getCppDataType(registerDefinition)
@@ -471,8 +490,9 @@ def writePropertyChangedSignals(fileDescriptor, registerDefinitions):
 
 def writeProtectedPropertyMembers(fileDescriptor, registerDefinitions):
     for registerDefinition in registerDefinitions:
-        if not 'R' in registerDefinition['access']:
-            continue
+        if 'access' in registerDefinition:
+            if not 'R' in registerDefinition['access']:
+                        continue
 
         propertyName = registerDefinition['id']
         propertyTyp = getCppDataType(registerDefinition)
@@ -481,15 +501,16 @@ def writeProtectedPropertyMembers(fileDescriptor, registerDefinitions):
         else:
             writeLine(fileDescriptor, '    %s m_%s;' % (propertyTyp, propertyName))
 
+##############################################################
 
 def writePropertyProcessMethodDeclaration(fileDescriptor, registerDefinitions):
-    propertyVariables = []
     for registerDefinition in registerDefinitions:
-        if not 'R' in registerDefinition['access']:
-            continue
+        if 'access' in registerDefinition:
+            if not 'R' in registerDefinition['access']:
+                continue
 
         propertyName = registerDefinition['id']
-        writeLine(fileDescriptor, '    void process%sRegisterValues(const QVector<quint16> values);' % (propertyName[0].upper() + propertyName[1:]))
+        writeLine(fileDescriptor, '    void process%sRegisterValues(const QVector<quint16> &values);' % (propertyName[0].upper() + propertyName[1:]))
 
     writeLine(fileDescriptor)
     
@@ -519,22 +540,140 @@ def writePropertyBlockScalingImplementation(sourceFile, blockDefinition):
     writeLine(sourceFile, f'    m_block{formattedBlockName}Scaling = {{{scalingValues}}};')
 
 def writePropertyProcessMethodImplementations(fileDescriptor, className, registerDefinitions):
-    propertyVariables = []
     for registerDefinition in registerDefinitions:
-        if not 'R' in registerDefinition['access']:
-            continue
+        if 'access' in registerDefinition:
+            if not 'R' in registerDefinition['access']:
+                continue
 
-        propertyName = registerDefinition['id']
         propertyTyp = getCppDataType(registerDefinition)
+        propertyName = registerDefinition['id']
 
-        writeLine(fileDescriptor, 'void %s::process%sRegisterValues(const QVector<quint16> values)' % (className, propertyName[0].upper() + propertyName[1:]))
+        writeLine(fileDescriptor, 'void %s::process%sRegisterValues(const QVector<quint16> &values)' % (className, propertyName[0].upper() + propertyName[1:]))
         writeLine(fileDescriptor, '{')
-        writeLine(fileDescriptor, '    %s received%s = %s;' % (propertyTyp, propertyName[0].upper() + propertyName[1:], getValueConversionMethod(registerDefinition)))
-        writeLine(fileDescriptor, '    emit %sReadFinished(received%s);' % (propertyName, propertyName[0].upper() + propertyName[1:]))
+        writeLine(fileDescriptor, '    qCDebug(dc%s()) << "<-- Response from \\"%s\\" register" << %s << "size:" << %s << values;' % (className, registerDefinition['description'], registerDefinition['address'], registerDefinition['size']))
+        writeLine(fileDescriptor, '    if (values.size() == %s) {' % (registerDefinition['size']))
+        writeLine(fileDescriptor, '        %s received%s = %s;' % (propertyTyp, propertyName[0].upper() + propertyName[1:], getValueConversionMethod(registerDefinition)))
+        writeLine(fileDescriptor, '        emit %sReadFinished(received%s);' % (propertyName, propertyName[0].upper() + propertyName[1:]))
         writeLine(fileDescriptor)
-        writeLine(fileDescriptor, '    if (m_%s != received%s) {' % (propertyName, propertyName[0].upper() + propertyName[1:]))
-        writeLine(fileDescriptor, '        m_%s = received%s;' % (propertyName, propertyName[0].upper() + propertyName[1:]))
-        writeLine(fileDescriptor, '        emit %sChanged(m_%s);' % (propertyName, propertyName))
+        writeLine(fileDescriptor, '        if (m_%s != received%s) {' % (propertyName, propertyName[0].upper() + propertyName[1:]))
+        writeLine(fileDescriptor, '            m_%s = received%s;' % (propertyName, propertyName[0].upper() + propertyName[1:]))
+        writeLine(fileDescriptor, '            emit %sChanged(m_%s);' % (propertyName, propertyName))
+        writeLine(fileDescriptor, '        }')
+        writeLine(fileDescriptor, '    } else {')
+        writeLine(fileDescriptor, '        qCWarning(dc%s()) << "Reading from \\"%s\\" registers" << %s << "size:" << %s << "returned different size than requested. Ignoring incomplete data" << values;' % (className, registerDefinition['description'], registerDefinition['address'], registerDefinition['size']))
         writeLine(fileDescriptor, '    }')
         writeLine(fileDescriptor, '}')
         writeLine(fileDescriptor)
+
+##############################################################
+
+def writeBlockPropertiesProcessMethodDeclaration(fileDescriptor, blockDefinitions):
+
+    for blockDefinition in blockDefinitions:
+        blockName = blockDefinition['id']
+        blockRegisters = blockDefinition['registers']
+        blockStartAddress = 0
+        blockSize = 0
+        registerCount = 0
+
+        writeLine(fileDescriptor, '    /* Process block data from start addess %s with size of %s registers containing following %s properties:' % (blockStartAddress, blockSize, registerCount))
+        for i, registerDefinition in enumerate(blockRegisters):
+            if 'unit' in registerDefinition and registerDefinition['unit'] != '':
+                writeLine(fileDescriptor, '     - %s [%s] - Address: %s, Size: %s' % (registerDefinition['description'], registerDefinition['unit'], registerDefinition['address'], registerDefinition['size']))
+            else:
+                writeLine(fileDescriptor, '     - %s - Address: %s, Size: %s' % (registerDefinition['description'], registerDefinition['address'], registerDefinition['size']))
+        
+        writeLine(fileDescriptor, '    */' )
+        writeLine(fileDescriptor, '    void processBlock%sRegisterValues(const QVector<quint16> &blockValues);' % (blockName[0].upper() + blockName[1:]))
+        writeLine(fileDescriptor)
+    
+
+def writeBlockPropertiesProcessMethodImplementations(fileDescriptor, className, blockDefinitions):
+    for blockDefinition in blockDefinitions:
+        blockName = blockDefinition['id']
+        blockRegisters = blockDefinition['registers']
+        blockStartAddress = 0
+        blockSize = 0
+        registerCount = 0
+
+        for i, blockRegister in enumerate(blockRegisters):
+            if i == 0:
+                blockStartAddress = blockRegister['address']
+
+            registerCount += 1
+            blockSize += blockRegister['size']
+
+        writeLine(fileDescriptor, 'void %s::processBlock%sRegisterValues(const QVector<quint16> &blockValues)' % (className, blockName[0].upper() + blockName[1:]))
+        writeLine(fileDescriptor, '{')
+        writeLine(fileDescriptor, '    qCDebug(dc%s()) << "<-- Response from reading block \\"%s\\" register" << %s << "size:" << %s << blockValues;' % (className, blockName, blockStartAddress, blockSize))
+        writeLine(fileDescriptor, '    if (blockValues.size() == %s) {' % (blockSize))
+
+        # Start parsing the registers using offsets
+        offset = 0
+        for i, blockRegister in enumerate(blockRegisters):
+            propertyName = blockRegister['id']
+            writeLine(fileDescriptor, '        process%sRegisterValues(blockValues.mid(%s, %s));' % (propertyName[0].upper() + propertyName[1:], offset, blockRegister['size']))
+            offset += blockRegister['size']
+
+        writeLine(fileDescriptor, '    } else {')
+        writeLine(fileDescriptor, '        qCWarning(dc%s()) << "Reading from \\"%s\\" block registers" << %s << "size:" << %s << "returned different size than requested. Ignoring incomplete data" << blockValues;' % (className, blockName, blockStartAddress, blockSize))
+        writeLine(fileDescriptor, '    }')
+        writeLine(fileDescriptor, '}')
+        writeLine(fileDescriptor)
+
+##############################################################
+
+def writeSendNextQueuedInitRequestMethodImplementation(fileDescriptor, className):
+    writeLine(fileDescriptor, 'void %s::sendNextQueuedInitRequest()' % (className))
+    writeLine(fileDescriptor, '{')
+    writeLine(fileDescriptor, '    if (m_initRequestQueue.isEmpty())')
+    writeLine(fileDescriptor, '        return;')
+    writeLine(fileDescriptor)
+    writeLine(fileDescriptor, '    if (m_currentInitReply)')
+    writeLine(fileDescriptor, '        return;')
+    writeLine(fileDescriptor)
+    writeLine(fileDescriptor, '    %s::Function function = m_initRequestQueue.dequeue();' % (className))
+    writeLine(fileDescriptor, '    (this->*function)();')
+    writeLine(fileDescriptor, '}')
+    writeLine(fileDescriptor)
+
+
+def writeEnqueueInitRequestMethodImplementation(fileDescriptor, className):
+    writeLine(fileDescriptor, 'void %s::enqueueInitRequest(%s::Function function)' % (className, className))
+    writeLine(fileDescriptor, '{')
+    writeLine(fileDescriptor, '    if (m_initRequestQueue.contains(function))')
+    writeLine(fileDescriptor, '        return;')
+    writeLine(fileDescriptor)
+    writeLine(fileDescriptor, '    m_initRequestQueue.enqueue(function);')
+    writeLine(fileDescriptor, '}')
+    writeLine(fileDescriptor)
+
+
+def writeSendNextQueuedRequestMethodImplementation(fileDescriptor, className):
+    writeLine(fileDescriptor, 'void %s::sendNextQueuedRequest()' % (className))
+    writeLine(fileDescriptor, '{')
+    writeLine(fileDescriptor, '    if (m_updateRequestQueue.isEmpty()) {')
+    writeLine(fileDescriptor, '        qCDebug(dc%s()) << "Do not send next request since there are no requests left...";' % className)
+    writeLine(fileDescriptor, '        return;')
+    writeLine(fileDescriptor, '    }')
+    writeLine(fileDescriptor)
+    writeLine(fileDescriptor, '    if (m_currentUpdateReply) {')
+    writeLine(fileDescriptor, '        qCDebug(dc%s()) << "Do not send next request since there is already a request pending...";' % className)
+    writeLine(fileDescriptor, '        return;')
+    writeLine(fileDescriptor, '    }')
+    writeLine(fileDescriptor)
+    writeLine(fileDescriptor, '    %s::Function function = m_updateRequestQueue.dequeue();' % (className))
+    writeLine(fileDescriptor, '    (this->*function)();')
+    writeLine(fileDescriptor, '}')
+    writeLine(fileDescriptor)
+
+
+def writeEnqueueRequestMethodImplementation(fileDescriptor, className):
+    writeLine(fileDescriptor, 'void %s::enqueueRequest(%s::Function function)' % (className, className))
+    writeLine(fileDescriptor, '{')
+    writeLine(fileDescriptor, '    if (m_updateRequestQueue.contains(function))')
+    writeLine(fileDescriptor, '        return;')
+    writeLine(fileDescriptor)
+    writeLine(fileDescriptor, '    m_updateRequestQueue.enqueue(function);')
+    writeLine(fileDescriptor, '}')
+    writeLine(fileDescriptor)

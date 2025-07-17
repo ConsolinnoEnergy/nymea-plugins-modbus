@@ -205,7 +205,7 @@ void IntegrationPluginStiebelEltron::executeActionWpm(ThingActionInfo *info) {
     Thing *thing = info->thing();
     WpmModbusTcpConnection *connection = m_wpmConnections.value(thing);
 
-    if (!connection->connected()) {
+    if (!connection->modbusTcpMaster()->connected()) {
         qCWarning(dcStiebelEltron()) << "Could not execute action. The modbus connection is currently not available.";
         info->finish(Thing::ThingErrorHardwareNotAvailable);
         return;
@@ -295,7 +295,7 @@ void IntegrationPluginStiebelEltron::executeActionLwz(ThingActionInfo *info) {
     Thing *thing = info->thing();
     LwzModbusTcpConnection *connection = m_lwzConnections.value(thing);
 
-    if (!connection->connected()) {
+    if (!connection->modbusTcpMaster()->connected()) {
         qCWarning(dcStiebelEltron()) << "Could not execute action. The modbus connection is currently not available.";
         info->finish(Thing::ThingErrorHardwareNotAvailable);
         return;
@@ -435,7 +435,7 @@ void IntegrationPluginStiebelEltron::setupWpmConnection(ThingSetupInfo *info) {
                 if (monitorReachable) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
                     qCDebug(dcStiebelEltron()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_wpmConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_wpmConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_wpmConnections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
@@ -461,7 +461,7 @@ void IntegrationPluginStiebelEltron::setupWpmConnection(ThingSetupInfo *info) {
                 // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
                 if (m_wpmConnections.contains(thing)) {
                     qCDebug(dcStiebelEltron()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_wpmConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_wpmConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_wpmConnections.value(thing)->reconnectDevice();
                 }
             } else {
@@ -492,7 +492,7 @@ void IntegrationPluginStiebelEltron::setupWpmConnection(ThingSetupInfo *info) {
                 if (monitor->reachable()) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
                     qCDebug(dcStiebelEltron()) << "Connection is not working. Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_wpmConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_wpmConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_wpmConnections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
@@ -532,7 +532,7 @@ void IntegrationPluginStiebelEltron::setupWpmConnection(ThingSetupInfo *info) {
                 // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
                 if (m_wpmConnections.contains(thing)) {
                     qCDebug(dcStiebelEltron()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_wpmConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_wpmConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_wpmConnections.value(thing)->reconnectDevice();
                 }
             }
@@ -541,7 +541,7 @@ void IntegrationPluginStiebelEltron::setupWpmConnection(ThingSetupInfo *info) {
 
     connect(connection, &WpmModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcStiebelEltron()) << "Connection init finished with errors" << thing->name() << connection->hostAddress().toString();
+            qCWarning(dcStiebelEltron()) << "Connection init finished with errors" << thing->name() << connection->modbusTcpMaster()->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             connection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Error communicating with the heat pump."));
@@ -749,7 +749,7 @@ void IntegrationPluginStiebelEltron::setupLwzConnection(ThingSetupInfo *info) {
                 if (monitorReachable) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
                     qCDebug(dcStiebelEltron()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_lwzConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_lwzConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_lwzConnections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
@@ -775,7 +775,7 @@ void IntegrationPluginStiebelEltron::setupLwzConnection(ThingSetupInfo *info) {
                 // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
                 if (m_lwzConnections.contains(thing)) {
                     qCDebug(dcStiebelEltron()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_lwzConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_lwzConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_lwzConnections.value(thing)->reconnectDevice();
                 }
             } else {
@@ -806,7 +806,7 @@ void IntegrationPluginStiebelEltron::setupLwzConnection(ThingSetupInfo *info) {
                 if (monitor->reachable()) {
                     // Modbus communication is not working. Monitor says device is reachable. Set IP again (maybe it changed), then reconnect.
                     qCDebug(dcStiebelEltron()) << "Connection is not working. Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_lwzConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_lwzConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_lwzConnections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.
@@ -845,7 +845,7 @@ void IntegrationPluginStiebelEltron::setupLwzConnection(ThingSetupInfo *info) {
                 // Get the connection from the list. If thing is not in the list, something else is going on and we should not reconnect.
                 if (m_lwzConnections.contains(thing)) {
                     qCDebug(dcStiebelEltron()) << "Setting thing IP address to" << monitor->networkDeviceInfo().address() << "and reconnecting.";
-                    m_lwzConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_lwzConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_lwzConnections.value(thing)->reconnectDevice();
                 }
             }
@@ -854,7 +854,7 @@ void IntegrationPluginStiebelEltron::setupLwzConnection(ThingSetupInfo *info) {
 
     connect(connection, &LwzModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcStiebelEltron()) << "Connection init finished with errors" << thing->name() << connection->hostAddress().toString();
+            qCWarning(dcStiebelEltron()) << "Connection init finished with errors" << thing->name() << connection->modbusTcpMaster()->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             connection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Error communicating with the heat pump."));

@@ -811,7 +811,7 @@ void IntegrationPluginSma::setupModbusSolarInverterConnection(ThingSetupInfo *in
             return;
 
         if (reachable && !thing->stateValue("connected").toBool()) {
-            connection->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
             connection->connectDevice();
         } else if (!reachable) {
             // Note: We disable autoreconnect explicitly and we will
@@ -853,7 +853,7 @@ void IntegrationPluginSma::setupModbusSolarInverterConnection(ThingSetupInfo *in
 
     connect(connection, &SmaSolarInverterModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcSma()) << "Connection init finished with errors" << thing->name() << connection->hostAddress().toString();
+            qCWarning(dcSma()) << "Connection init finished with errors" << thing->name() << connection->modbusTcpMaster()->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             connection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Could not initialize the communication with the inverter."));
@@ -945,7 +945,7 @@ void IntegrationPluginSma::setupModbusBatteryInverterConnection(ThingSetupInfo *
             return;
 
         if (reachable && !thing->stateValue("connected").toBool()) {
-            connection->setHostAddress(monitor->networkDeviceInfo().address());
+            connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
             connection->connectDevice();
         } else if (!reachable) {
             // Note: We disable autoreconnect explicitly and we will
@@ -984,7 +984,7 @@ void IntegrationPluginSma::setupModbusBatteryInverterConnection(ThingSetupInfo *
 
     connect(connection, &SmaBatteryInverterModbusTcpConnection::initializationFinished, info, [=](bool success){
         if (!success) {
-            qCWarning(dcSma()) << "Connection init finished with errors" << thing->name() << connection->hostAddress().toString();
+            qCWarning(dcSma()) << "Connection init finished with errors" << thing->name() << connection->modbusTcpMaster()->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             connection->deleteLater();
             info->finish(Thing::ThingErrorHardwareFailure, QT_TR_NOOP("Could not initialize the communication with the battery inverter."));

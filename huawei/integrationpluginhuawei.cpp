@@ -536,7 +536,7 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
     // Why this is done like this is probably because the inverter is quite slow and error prone on TCP and may take a few seconds before reachable actually becomes true.
     connect(connection, &HuaweiFusionSolar::reachableChanged, info, [=](bool reachable){
         if (!reachable) {
-            qCWarning(dcHuawei()) << "Connection init finished with errors" << thing->name() << connection->hostAddress().toString();
+            qCWarning(dcHuawei()) << "Connection init finished with errors" << thing->name() << connection->modbusTcpMaster()->hostAddress().toString();
             hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
             connection->disconnectDevice();
             connection->deleteLater();
@@ -570,7 +570,7 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
                     connection->disconnectDevice();
                 } else {
                     // If the monitor is reachable, set the IP address (it might have changed) and connect the device.
-                    connection->setHostAddress(monitor->networkDeviceInfo().address());
+                    connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     connection->connectDevice();
                 }
             }
@@ -616,7 +616,7 @@ void IntegrationPluginHuawei::setupFusionSolar(ThingSetupInfo *info)
                 // assume modbus calls won't be answered anyway and it makes no sense to send any. When the monitor says the device can be reached, set the
                 // IP address (it might have changed) and connect the device (this starts modbus communication).
                 if (reachable) {
-                    connection->setHostAddress(monitor->networkDeviceInfo().address());
+                    connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     connection->connectDevice();
                 } else {
                     connection->disconnectDevice();

@@ -73,8 +73,8 @@ void AITDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
 
     qCDebug(dcAlphaInnotec()) << "Creating AIT SHI Modbus TCP connection for" << networkDeviceInfo.address() << "Port:" << m_port << "Slave Address" << m_modbusAddress;
     aitShiModbusTcpConnection *connection = new aitShiModbusTcpConnection(networkDeviceInfo.address(), m_port, m_modbusAddress, this);
-    connection->setTimeout(5000);
-    connection->setNumberOfRetries(0);
+    connection->modbusTcpMaster()->setTimeout(5000);
+    connection->modbusTcpMaster()->setNumberOfRetries(0);
     m_connections.append(connection);
 
     connect(connection, &aitShiModbusTcpConnection::reachableChanged, this, [=](bool reachable){
@@ -109,14 +109,14 @@ void AITDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
     });
 
     // In case of an error skip the host
-    connect(connection, &ModbusTCPMaster::connectionStateChanged, this, [=](bool connected){
+    connect(connection->modbusTcpMaster(), &ModbusTcpMaster::connectionStateChanged, this, [=](bool connected){
         if (connected) {
             qCDebug(dcAlphaInnotec()) << "Discovery: Connected with" << networkDeviceInfo.address().toString() << m_port;
         }
     });
 
     // In case of an error skip the host
-    connect(connection, &ModbusTCPMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
+    connect(connection->modbusTcpMaster(), &ModbusTcpMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
         if (error != QModbusDevice::NoError) {
             qCDebug(dcAlphaInnotec()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";
             cleanupConnection(connection);

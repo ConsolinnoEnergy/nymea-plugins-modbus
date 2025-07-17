@@ -113,7 +113,7 @@ void SolaxEvcStandaloneDiscovery::checkNetworkDevice(const NetworkDeviceInfo &ne
         cleanupConnection(connection);
     });
 
-    connect(connection, &ModbusTCPMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
+    connect(connection, &ModbusTcpMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
         if (error != QModbusDevice::NoError) {
             qCDebug(dcSolaxEvc()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";
             cleanupConnection(connection);

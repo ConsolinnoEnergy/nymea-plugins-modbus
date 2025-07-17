@@ -45,7 +45,7 @@
 #include <modbusdatautils.h>
 #include <modbustcpmaster.h>
 
-class WebastoNextModbusTcpConnection : public ModbusTCPMaster
+class WebastoNextModbusTcpConnection : public ModbusTcpMaster
 {
     Q_OBJECT
 public:

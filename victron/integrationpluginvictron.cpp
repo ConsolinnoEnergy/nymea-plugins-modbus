@@ -147,11 +147,11 @@ void IntegrationPluginVictron::setupThing(ThingSetupInfo *info)
                 return;
 
             if (reachable && !thing->stateValue("connected").toBool()) {
-                systemConnection->setHostAddress(monitor->networkDeviceInfo().address());
+                systemConnection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                 systemConnection->reconnectDevice();
                 vebusConnection->setHostAddress(monitor->networkDeviceInfo().address());
                 vebusConnection->reconnectDevice();
-                gridConnection->setHostAddress(monitor->networkDeviceInfo().address());
+                gridConnection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                 gridConnection->reconnectDevice();
             } else if (!reachable) {
                 // Note: Auto reconnect is disabled explicitly and
@@ -431,7 +431,7 @@ void IntegrationPluginVictron::postSetupThing(Thing *thing)
                     auto connection = m_systemTcpConnections.value(thing);
 
                     if (connection->reachable()) {
-                        qCDebug(dcVictron()) << "System: Updating connection" << connection->hostAddress().toString();
+                        qCDebug(dcVictron()) << "System: Updating connection" << connection->modbusTcpMaster()->hostAddress().toString();
                         connection->update();
                     }
 
@@ -447,7 +447,7 @@ void IntegrationPluginVictron::postSetupThing(Thing *thing)
                     auto gridConnection = m_gridTcpConnections.value(thing);
 
                     if (gridConnection->reachable()) {
-                        qCDebug(dcVictron()) << "Grid: Updating connection" << gridConnection->hostAddress().toString();
+                        qCDebug(dcVictron()) << "Grid: Updating connection" << gridConnection->modbusTcpMaster()->hostAddress().toString();
                         gridConnection->update();
                     }
                 }

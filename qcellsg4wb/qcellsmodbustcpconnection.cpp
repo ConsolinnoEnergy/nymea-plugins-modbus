@@ -46,10 +46,10 @@
 NYMEA_LOGGING_CATEGORY(dcQCellsModbusTcpConnection, "QCellsModbusTcpConnection")
 
 QCellsModbusTcpConnection::QCellsModbusTcpConnection(const QHostAddress &hostAddress, uint port, quint16 slaveId, QObject *parent) :
-    ModbusTCPMaster(hostAddress, port, parent),
+    ModbusTcpMaster(hostAddress, port, parent),
     m_slaveId(slaveId)
 {
-    connect(this, &ModbusTCPMaster::connectionStateChanged, this, [this](bool status){
+    connect(this, &ModbusTcpMaster::connectionStateChanged, this, [this](bool status){
         if (status) {
            qCDebug(dcQCellsModbusTcpConnection()) << "Modbus TCP connection" << m_hostAddress.toString() << "connected. Start testing if the connection is reachable...";
             // Cleanup before starting to initialize

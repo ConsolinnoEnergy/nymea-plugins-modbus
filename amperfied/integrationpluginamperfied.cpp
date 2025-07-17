@@ -189,7 +189,7 @@ void IntegrationPluginAmperfied::postSetupThing(Thing *thing)
                 connection->update();
             }
             foreach(AmperfiedModbusTcpConnection *connection, m_tcpConnections) {
-                qCDebug(dcAmperfied()) << "Updating connection" << connection->hostAddress();
+                qCDebug(dcAmperfied()) << "Updating connection" << connection->modbusTcpMaster()->hostAddress();
                 connection->update();
             }
         });
@@ -445,7 +445,7 @@ void IntegrationPluginAmperfied::setupTcpConnection(ThingSetupInfo *info)
             if (!thing->stateValue(connectHomeConnectedStateTypeId).toBool()) {
                 // connectedState switches to false when modbus calls don't work. This code should not execute when modbus is still working.
                 if (reachable) {
-                    m_tcpConnections.value(thing)->setHostAddress(monitor->networkDeviceInfo().address());
+                    m_tcpConnections.value(thing)->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                     m_tcpConnections.value(thing)->reconnectDevice();
                 } else {
                     // Modbus is not working and the monitor is not reachable. We can stop sending modbus calls now.

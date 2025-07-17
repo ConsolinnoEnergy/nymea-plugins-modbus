@@ -157,7 +157,7 @@ void WebastoDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
     });
 
     // If we get any error...skip this host...
-    connect(connection, &ModbusTCPMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
+    connect(connection, &ModbusTcpMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
         if (error != QModbusDevice::NoError) {
             qCDebug(dcWebasto()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";;
             cleanupConnection(connection);
