@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
+* Copyright 2013 - 2021, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,39 +28,37 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINLAMBDA_H
-#define INTEGRATIONPLUGINLAMBDA_H
+#ifndef LPCINTERFACE_H
+#define LPCINTERFACE_H
 
-#include <plugintimer.h>
-#include <integrations/integrationplugin.h>
+#include <QObject>
 
-#include "lambdamodbustcpconnection.h"
-#include "lpcinterface.h"
+#include "gpio.h"
 
-class IntegrationPluginLambda: public IntegrationPlugin
+class LpcInterface : public QObject
 {
     Q_OBJECT
+public:  
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginlambda.json")
-    Q_INTERFACES(IntegrationPlugin)
+    explicit LpcInterface(int gpioNumber1, QObject *parent = nullptr);
+    ~LpcInterface();
+    
+    bool setLimitPowerConsumption(bool gpioSetting);
 
-public:
-    explicit IntegrationPluginLambda();
+    bool setup(bool gpio1Enabled);
+    bool isValid() const;
 
-    void init() override;
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void startMonitoringAutoThings() override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
+    Gpio *gpio1() const;
+
+signals:
+    void limitPowerConsumptionChanged();
 
 private:
-    PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, LambdaModbusTcpConnection *> m_connections;
-    QHash<Thing *, LpcInterface *> m_lpcInterfaces;
+    int m_gpioNumber1 = -1;
+
+    Gpio *m_gpio1 = nullptr;
+
+    Gpio *setupGpio(int gpioNumber, bool initialValue);
 };
 
-#endif // INTEGRATIONPLUGINLAMBDA_H
-
-
+#endif // LPCINTERFACE_H
