@@ -1,18 +1,28 @@
-# Copyright (C) 2021 - 2022 nymea GmbH <developer@nymea.io>
+# Copyright 2021 - 2024, nymea GmbH
+# Contact: contact@nymea.io
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This file is part of nymea.
+# This project including source code and documentation is protected by
+# copyright law, and remains the property of nymea GmbH. All rights, including
+# reproduction, publication, editing and translation, are reserved. The use of
+# this project is subject to the terms of a license agreement to be concluded
+# with nymea GmbH in accordance with the terms of use of nymea GmbH, available
+# under https://nymea.io/license
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU General Public License Usage
+# Alternatively, this project may be redistributed and/or modified under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, GNU version 3. This project is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+# Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# You should have received a copy of the GNU General Public License along with
+# this project. If not, see <https://www.gnu.org/licenses/>.
+#
+# For any further details and any questions please contact us under
+# contact@nymea.io or see our FAQ/Licensing Information on
+# https://nymea.io/license/faq
 
 import logging
 
@@ -79,7 +89,7 @@ def writePropertyGetSetMethodImplementationsRtu(fileDescriptor, className, regis
 
 def writePropertyUpdateMethodImplementationsRtu(fileDescriptor, className, registerDefinitions):
     for registerDefinition in registerDefinitions:
-        if 'readSchedule' in registerDefinition and registerDefinition['readSchedule'] == 'init':
+        if not 'readSchedule' in registerDefinition or registerDefinition['readSchedule'] == 'init':
             continue
 
         propertyName = registerDefinition['id']
@@ -99,7 +109,6 @@ def writePropertyUpdateMethodImplementationsRtu(fileDescriptor, className, regis
         writeLine(fileDescriptor, '            handleModbusError(reply->error());')
         writeLine(fileDescriptor, '            if (reply->error() == ModbusRtuReply::NoError) {')
         writeLine(fileDescriptor, '                QVector<quint16> values = reply->result();')
-        writeLine(fileDescriptor, '                qCDebug(dc%s()) << "<-- Response from \\"%s\\" register" << %s << "size:" << %s << values;' % (className, registerDefinition['description'], registerDefinition['address'], registerDefinition['size']))
         writeLine(fileDescriptor, '                process%sRegisterValues(values);' % (propertyName[0].upper() + propertyName[1:]))
         writeLine(fileDescriptor, '            }')
         writeLine(fileDescriptor, '        });')
@@ -158,14 +167,18 @@ def writeBlockUpdateMethodImplementationsRtu(fileDescriptor, className, blockDef
         writeLine(fileDescriptor, '            if (reply->error() == ModbusRtuReply::NoError) {')
         writeLine(fileDescriptor, '                QVector<quint16> blockValues = reply->result();')
         writeLine(fileDescriptor, '                qCDebug(dc%s()) << "<-- Response from reading block \\"%s\\" register" << %s << "size:" << %s << blockValues;' % (className, blockName, blockStartAddress, blockSize))
-        
+        writeLine(fileDescriptor, '                if (blockValues.size() == %s) {' % (blockSize))
+
         # Start parsing the registers using offsets
         offset = 0
         for i, blockRegister in enumerate(blockRegisters):
             propertyName = blockRegister['id']
-            writeLine(fileDescriptor, '                process%sRegisterValues(blockValues.mid(%s, %s));' % (propertyName[0].upper() + propertyName[1:], offset, blockRegister['size']))
+            writeLine(fileDescriptor, '                    process%sRegisterValues(blockValues.mid(%s, %s));' % (propertyName[0].upper() + propertyName[1:], offset, blockSize))
             offset += blockRegister['size']
 
+        writeLine(fileDescriptor, '                } else {')
+        writeLine(fileDescriptor, '                    qCWarning(dc%s()) << "Reading from \\"%s\\" register" << %s << "size:" << %s << "returned different size than requested. Ignoring incomplete data" << blockValues;' % (className, blockName, blockStartAddress, blockSize))
+        writeLine(fileDescriptor, '                }')
         writeLine(fileDescriptor, '            }')
         writeLine(fileDescriptor, '        });')
         writeLine(fileDescriptor)
@@ -403,7 +416,6 @@ def writeInitMethodImplementationRtu(fileDescriptor, className, registerDefiniti
                 writeLine(fileDescriptor, '        }')
                 writeLine(fileDescriptor)
                 writeLine(fileDescriptor, '        QVector<quint16> values = reply->result();')
-                writeLine(fileDescriptor, '        qCDebug(dc%s()) << "<-- Response from \\"%s\\" init register" << %s << "size:" << %s << values;' % (className, registerDefinition['description'], registerDefinition['address'], registerDefinition['size']))
                 writeLine(fileDescriptor, '        process%sRegisterValues(values);' % (propertyName[0].upper() + propertyName[1:]))
                 writeLine(fileDescriptor, '        verifyInitFinished();')
                 writeLine(fileDescriptor, '    });')
@@ -458,6 +470,7 @@ def writeInitMethodImplementationRtu(fileDescriptor, className, registerDefiniti
                 writeLine(fileDescriptor)
                 writeLine(fileDescriptor, '        QVector<quint16> blockValues = reply->result();')
                 writeLine(fileDescriptor, '        qCDebug(dc%s()) << "<-- Response from reading init block \\"%s\\" register" << %s << "size:" << %s << blockValues;' % (className, blockName, blockStartAddress, blockSize))
+                writeLine(fileDescriptor, '        if (blockValues.size() == %s) {' % (blockSize))
 
                 # Start parsing the registers using offsets
                 offset = 0
@@ -467,6 +480,9 @@ def writeInitMethodImplementationRtu(fileDescriptor, className, registerDefiniti
                     writeLine(fileDescriptor, '        process%sRegisterValues(blockValues.mid(%s, %s));' % (propertyName[0].upper() + propertyName[1:], offset, blockRegister['size']))
                     offset += blockRegister['size']
 
+                writeLine(fileDescriptor, '        } else {')
+                writeLine(fileDescriptor, '            qCWarning(dc%s()) << "Reading from \\"%s\\" register" << %s << "size:" << %s << "returned different size than requested. Ignoring incomplete data" << blockValues;' % (className, blockName, blockStartAddress, blockSize))
+                writeLine(fileDescriptor, '        }')  
                 writeLine(fileDescriptor, '        verifyInitFinished();')
                 writeLine(fileDescriptor, '    });')
                 writeLine(fileDescriptor)
@@ -552,7 +568,6 @@ def writeUpdateMethodRtu(fileDescriptor, className, registerDefinitions, blockDe
                 writeLine(fileDescriptor, '        }')
                 writeLine(fileDescriptor)
                 writeLine(fileDescriptor, '        QVector<quint16> values = reply->result();')
-                writeLine(fileDescriptor, '        qCDebug(dc%s()) << "<-- Response from \\"%s\\" register" << %s << "size:" << %s << values;' % (className, registerDefinition['description'], registerDefinition['address'], registerDefinition['size']))
                 writeLine(fileDescriptor, '        process%sRegisterValues(values);' % (propertyName[0].upper() + propertyName[1:]))
                 writeLine(fileDescriptor, '        verifyUpdateFinished();')
                 writeLine(fileDescriptor, '    });')
@@ -605,6 +620,7 @@ def writeUpdateMethodRtu(fileDescriptor, className, registerDefinitions, blockDe
                 writeLine(fileDescriptor)
                 writeLine(fileDescriptor, '        QVector<quint16> blockValues = reply->result();')
                 writeLine(fileDescriptor, '        qCDebug(dc%s()) << "<-- Response from reading block \\"%s\\" register" << %s << "size:" << %s << blockValues;' % (className, blockName, blockStartAddress, blockSize))
+                writeLine(fileDescriptor, '        if (blockValues.size() == %s) {' % (blockSize))
 
                 # Start parsing the registers using offsets
                 offset = 0
@@ -614,6 +630,9 @@ def writeUpdateMethodRtu(fileDescriptor, className, registerDefinitions, blockDe
                     writeLine(fileDescriptor, '        process%sRegisterValues(blockValues.mid(%s, %s));' % (propertyName[0].upper() + propertyName[1:], offset, blockRegister['size']))
                     offset += blockRegister['size']
 
+                writeLine(fileDescriptor, '        } else {')
+                writeLine(fileDescriptor, '            qCWarning(dc%s()) << "Reading from \\"%s\\" register" << %s << "size:" << %s << "returned different size than requested. Ignoring incomplete data" << blockValues;' % (className, blockName, blockStartAddress, blockSize))
+                writeLine(fileDescriptor, '        }')
                 writeLine(fileDescriptor, '        verifyUpdateFinished();')
                 writeLine(fileDescriptor, '    });')
                 writeLine(fileDescriptor)

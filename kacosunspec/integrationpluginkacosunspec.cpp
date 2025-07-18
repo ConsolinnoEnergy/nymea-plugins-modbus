@@ -228,7 +228,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
         quint16 slaveId = thing->paramValue(kacosunspecInverterTCPThingSlaveIdParamTypeId).toUInt();
 
         KacoSunSpecModbusTcpConnection *connection = new KacoSunSpecModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
-        connection->setTimeout(4500);
+        connection->modbusTcpMaster()->setTimeout(4500);
         connect(info, &ThingSetupInfo::aborted, connection, &KacoSunSpecModbusTcpConnection::deleteLater);
 
         connect(connection, &KacoSunSpecModbusTcpConnection::reachableChanged, this, [connection, thing](bool reachable){
@@ -405,7 +405,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
         quint16 slaveId = thing->paramValue(kaconh3ThingSlaveIdParamTypeId).toUInt();
 
         KacoNH3ModbusTcpConnection *connection = new KacoNH3ModbusTcpConnection(monitor->networkDeviceInfo().address(), port, slaveId, this);
-        connection->setTimeout(4500);
+        connection->modbusTcpMaster()->setTimeout(4500);
         connect(info, &ThingSetupInfo::aborted, connection, &KacoNH3ModbusTcpConnection::deleteLater);
 
         connect(connection, &KacoNH3ModbusTcpConnection::initializationFinished, thing, [=](bool success){
@@ -444,7 +444,7 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 return;
 
             if (reachable && !thing->stateValue("connected").toBool()) {
-                connection->setHostAddress(monitor->networkDeviceInfo().address());
+                connection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                 connection->reconnectDevice();
             } else if (!reachable) {
                 // Note: Auto reconnect is disabled explicitly and
@@ -645,14 +645,14 @@ void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(KacoSunSpecModbusTcpConnection *connection, m_tcpConnections) {
-                    if (connection->connected()) {
+                    if (connection->modbusTcpMaster()->connected()) {
                         connection->update();
                     }
                 }
 
                 foreach(KacoNH3ModbusTcpConnection *connection, m_nh3Connections) {
                     qCDebug(dcKacoSunSpec()) << "NH3 connected for upate?";
-                    if (connection->connected()) {
+                    if (connection->modbusTcpMaster()->connected()) {
                         qCDebug(dcKacoSunSpec()) << "Updating NH3";
                         connection->update();
                     }

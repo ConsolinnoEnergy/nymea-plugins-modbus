@@ -277,7 +277,7 @@ void IntegrationPluginSungrow::postSetupThing(Thing *thing)
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach(SungrowModbusTcpConnection *connection, m_tcpConnections) {
-                    if (connection->connected()) {
+                    if (connection->modbusTcpMaster()->connected()) {
                         connection->update();
                     }
                 }

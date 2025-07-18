@@ -71,6 +71,13 @@ private:
     PluginTimer *m_refreshTimer = nullptr;
     QHash<Thing *, DTSU666ModbusRtuConnection *> m_dtsu666Connections;
     QHash<Thing *, DTSU666Data> m_dtsu666Data;
+
+    // Outlier detection
+    bool isOutlier(const QList<float>& list);
+
+    int m_windowLength = 7;
+    QHash<Thing *, QList<float>> m_energyConsumedValues;
+    QHash<Thing *, QList<float>> m_energyProducedValues;
 };
 
 #endif // INTEGRATIONPLUGINCHINT_H

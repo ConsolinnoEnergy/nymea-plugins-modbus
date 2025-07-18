@@ -38,6 +38,7 @@
 #include "extern-plugininfo.h"
 
 #include "solaxevcmodbustcpconnection.h"
+#include "solaxevcstandalonemodbustcpconnection.h"
 
 class IntegrationPluginSolaxEvc : public IntegrationPlugin
 {
@@ -59,9 +60,11 @@ private:
     PluginTimer *m_pluginTimer = nullptr;
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, SolaxEvcModbusTcpConnection *> m_tcpConnections;
+    QHash<Thing *, SolaxEvcStandaloneModbusTcpConnection *> m_standaloneConnections;
     bool m_setupTcpConnectionRunning = false;
 
     void toggleCharging(SolaxEvcModbusTcpConnection *connection, bool power);
+    void toggleCharging(SolaxEvcStandaloneModbusTcpConnection *connection, bool power);
     void setupTcpConnection(ThingSetupInfo *info);
 
     quint16 m_lastState = 255;

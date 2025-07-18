@@ -72,8 +72,8 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
 
     qCDebug(dcVictron()) << "Creating Victron Modbus TCP connection for" << networkDeviceInfo.address() << "Port:" << m_port << "Slave Address" << m_modbusAddress;
     VictronSystemModbusTcpConnection *connection = new VictronSystemModbusTcpConnection(networkDeviceInfo.address(), m_port, m_modbusAddress, this);
-    connection->setTimeout(5000);
-    connection->setNumberOfRetries(0);
+    connection->modbusTcpMaster()->setTimeout(5000);
+    connection->modbusTcpMaster()->setNumberOfRetries(0);
     m_connections.append(connection);
 
     connect(connection, &VictronSystemModbusTcpConnection::reachableChanged, this, [=](bool reachable){
@@ -109,14 +109,14 @@ void VictronDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
     });
 
     // In case of an error skip the host
-    connect(connection, &ModbusTCPMaster::connectionStateChanged, this, [=](bool connected){
+    connect(connection->modbusTcpMaster(), &ModbusTcpMaster::connectionStateChanged, this, [=](bool connected){
         if (connected) {
             qCDebug(dcVictron()) << "Discovery: Connected with" << networkDeviceInfo.address().toString() << m_port;
         }
     });
 
     // In case of an error skip the host
-    connect(connection, &ModbusTCPMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
+    connect(connection->modbusTcpMaster(), &ModbusTcpMaster::connectionErrorOccurred, this, [=](QModbusDevice::Error error){
         if (error != QModbusDevice::NoError) {
             qCDebug(dcVictron()) << "Discovery: Connection error on" << networkDeviceInfo.address().toString() << "Continue...";
             cleanupConnection(connection);

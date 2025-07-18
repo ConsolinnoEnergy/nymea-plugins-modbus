@@ -45,7 +45,7 @@
 #include <modbusdatautils.h>
 #include <modbustcpmaster.h>
 
-class QCellsModbusTcpConnection : public ModbusTCPMaster
+class QCellsModbusTcpConnection : public ModbusTcpMaster
 {
     Q_OBJECT
 public:

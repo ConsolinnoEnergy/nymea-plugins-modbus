@@ -148,7 +148,7 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
         quint16 slaveId = thing->paramValue(alphaConnectThingSlaveIdParamTypeId).toUInt();
 
         AlphaInnotecModbusTcpConnection *alphaConnectTcpConnection = new AlphaInnotecModbusTcpConnection(hostAddress, port, slaveId, this);
-        connect(alphaConnectTcpConnection, &AlphaInnotecModbusTcpConnection::connectionStateChanged, this, [thing, alphaConnectTcpConnection](bool status){
+        connect(alphaConnectTcpConnection->modbusTcpMaster(), &ModbusTcpMaster::connectionStateChanged, this, [thing, alphaConnectTcpConnection](bool status){
             qCDebug(dcAlphaInnotec()) << "Connected changed to" << status << "for" << thing;
             if (status) {
                 alphaConnectTcpConnection->update();
@@ -384,7 +384,7 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
                 return;
 
             if (reachable && !thing->stateValue("connected").toBool()) {
-                aitShiConnection->setHostAddress(monitor->networkDeviceInfo().address());
+                aitShiConnection->modbusTcpMaster()->setHostAddress(monitor->networkDeviceInfo().address());
                 aitShiConnection->reconnectDevice();
             } else if (!reachable) {
                 // Note: Auto reconnect is disabled explicitly and
@@ -578,13 +578,13 @@ void IntegrationPluginAlphaInnotec::postSetupThing(Thing *thing)
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(10);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach (AlphaInnotecModbusTcpConnection *connection, m_connections) {
-                    if (connection->connected()) {
+                    if (connection->modbusTcpMaster()->connected()) {
                         connection->update();
                     }
                 }
 
                 foreach (aitShiModbusTcpConnection *connection, m_aitShiConnections) {
-                    if (connection->connected()) {
+                    if (connection->modbusTcpMaster()->connected()) {
                         connection->update();
                     }
                 }
@@ -624,7 +624,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
     if (thing->thingClassId() == alphaConnectThingClassId) {
         AlphaInnotecModbusTcpConnection *connection = m_connections.value(thing);
 
-        if (!connection->connected()) {
+        if (!connection->modbusTcpMaster()->connected()) {
             qCWarning(dcAlphaInnotec()) << "Could not execute action. The modbus connection is currently not available.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
@@ -752,7 +752,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
     if (thing->thingClassId() == aitSmartHomeThingClassId) {
         aitShiModbusTcpConnection *connection = m_aitShiConnections.value(thing);
 
-        if (!connection->connected()) {
+        if (!connection->modbusTcpMaster()->connected()) {
             qCWarning(dcAlphaInnotec()) << "Could not execute action. The modbus connection is currently not available.";
             info->finish(Thing::ThingErrorHardwareNotAvailable);
             return;
@@ -986,7 +986,7 @@ void IntegrationPluginAlphaInnotec::writeHotWaterOffsetTemp(Thing *thing)
 
     aitShiModbusTcpConnection *connection = m_aitShiConnections.value(thing);
 
-    if (!connection->connected()) {
+    if (!connection->modbusTcpMaster()->connected()) {
         qCWarning(dcAlphaInnotec()) << "Could not execute action. The modbus connection is currently not available.";
         return;
     }
@@ -1019,7 +1019,7 @@ void IntegrationPluginAlphaInnotec::writeHeatingOffsetTemp(Thing *thing)
 
     aitShiModbusTcpConnection *connection = m_aitShiConnections.value(thing);
 
-    if (!connection->connected()) {
+    if (!connection->modbusTcpMaster()->connected()) {
         qCWarning(dcAlphaInnotec()) << "Could not execute action. The modbus connection is currently not available.";
         return;
     }

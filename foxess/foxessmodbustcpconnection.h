@@ -45,7 +45,7 @@
 #include <modbusdatautils.h>
 #include <modbustcpmaster.h>
 
-class FoxESSModbusTcpConnection : public ModbusTCPMaster
+class FoxESSModbusTcpConnection : public ModbusTcpMaster
 {
     Q_OBJECT
 public:

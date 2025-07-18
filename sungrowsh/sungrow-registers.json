@@ -1,9 +1,11 @@
 {
     "className": "Sungrow",
-    "protocol": "RTU",
+    "protocol": "TCP",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 5,
     "checkReachableRegister": "totalPVPower",
+    "queuedRequests": true,
+    "queuedRequestsDelay": 400,
     "enums": [
         {
             "name": "SystemState",

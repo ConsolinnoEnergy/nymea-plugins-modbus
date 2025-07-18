@@ -42,7 +42,7 @@
 
 // information about e3DC is provided here: https://community.symcon.de/uploads/short-url/z6Yc7LiO6m9lJt8r5Aif539GbHI.pdf
 
-class TCP_ModbusConnection : public ModbusTCPMaster
+class TCP_ModbusConnection : public ModbusTcpMaster
 {
     Q_OBJECT
 public:
