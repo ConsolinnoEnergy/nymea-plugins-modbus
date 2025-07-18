@@ -1,0 +1,154 @@
+{
+    "className": "MyPv",
+    "protocol": "TCP",
+    "endianness": "BigEndian",
+    "errorLimitUntilNotReachable": 5,
+    "checkReachableRegister": "waterTemperature",
+    "queuedRequests": true,
+    "queuedRequestsDelay": 100,
+    "blocks": [
+        {
+            "id": "values",
+            "readSchedule": "update",
+            "registers": [
+                {
+                    "id": "waterTemperature",
+                    "description": "Actual water temperature",
+                    "unit": "°C",
+                    "address": 1001,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "targetWaterTemperature",
+                    "description": "Target water temperature",
+                    "unit": "°C",
+                    "address": 1002,
+                    "size": 1,
+                    "type": "int16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                },
+                {
+                    "id": "status",
+                    "description": "Status",
+                    "address": 1003,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "access": "RO"
+                },
+                {
+                    "id": "dummy",
+                    "description": "Dummy",
+                    "address": 1004,
+                    "size": 2,
+                    "type": "raw",
+                    "registerType": "holdingRegister",
+                    "access": "RO"
+                },
+                {
+                    "id": "minWaterTemperature",
+                    "description": "Min. water temperature",
+                    "unit": "°C",
+                    "address": 1006,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "defaultValue": 0,
+                    "staticScaleFactor": -1,
+                    "access": "RO"
+                }
+            ]
+        },
+        {
+            "id": "firmwarePart1",
+            "readSchedule": "init",
+            "registers": [
+                {
+                    "id": "controllerFirmwareMainVersion",
+                    "description": "Controller Firmware Main Version",
+                    "address": 1016,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerstageFirmwareVersion",
+                    "description": "Powerstage Firmware Version",
+                    "address": 1017,
+                    "size": 1,
+                    "type": "uint16",
+                    "registerType": "holdingRegister",
+                    "readSchedule": "init",
+                    "access": "RO"
+                }
+            ]
+        }
+    ],
+    "registers": [
+        {
+            "id": "currentPower",
+            "description": "Current power",
+            "unit": "W",
+            "address": 1000,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "defaultValue": 0,
+            "readSchedule": "update",
+            "access": "RW"
+        },
+        {
+            "id": "powerTimeout",
+            "description": "Timeout of set power",
+            "unit": "s",
+            "address": 1004,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "access": "RW"
+        },
+        {
+            "id": "maxPower",
+            "description": "Maximum power",
+            "unit": "W",
+            "address": 1014,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "update",
+            "access": "RO"
+        },
+        {
+            "id": "controllerFirmwareSubVersion",
+            "description": "Controller Firmware Sub Version",
+            "address": 1028,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "controlType",
+            "description": "Control Type",
+            "address": 1070,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "readSchedule": "init",
+            "access": "RW"
+        }
+    ]
+}
+
