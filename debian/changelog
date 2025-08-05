@@ -1,3 +1,9 @@
+nymea-plugins-modbus (1.7.018) jammy; urgency=medium
+
+  * Modbus code generator: Fix writing string registers
+
+ -- Oliver Wieland <o.wieland@consolinno.de>  Tue, 05 Aug 2025 08:43:18 +0200
+
 nymea-plugins-modbus (1.7.017-1) jammy; urgency=medium
 
   * Added Zhejiang Chint DTSU666 smart meter
