@@ -87,6 +87,26 @@
                             "defaultValue": "Off",
                             "displayNameEvent": "Operating state changed",
                             "cached": false
+                        },
+                        {
+                          "id": "458090b9-8af2-40e4-ae0b-c6f9ac555739",
+                          "name": "enableExportLimit",
+                          "displayName": "Enable Export Limit",
+                          "displayNameAction": "Enable Export limit",
+                          "type": "bool",
+                          "writable": true,
+                          "defaultValue": false
+                        },
+                        {
+                          "id": "b6bbc529-ac76-488b-9480-9998b82ba038",
+                          "name": "exportLimit",
+                          "displayName": "Export Limit",
+                          "displayNameAction": "Set export limit",
+                          "type": "double",
+                          "unit": "Watt",
+                          "writable": true,
+                          "defaultValue": 0,
+                          "minValue": 0
                         }
                     ],
                     "actionTypes": [ ]
@@ -173,6 +193,26 @@
                             "defaultValue": "Off",
                             "displayNameEvent": "Operating state changed",
                             "cached": false
+                        },
+                        {
+                          "id": "f8fac752-76f7-484b-8e76-416993e3e0f9",
+                          "name": "enableExportLimit",
+                          "displayName": "Enable Export Limit",
+                          "displayNameAction": "Enable Export limit",
+                          "type": "bool",
+                          "writable": true,
+                          "defaultValue": false
+                        },
+                        {
+                          "id": "15e27ff3-9982-41e2-8671-d67477f56a03",
+                          "name": "exportLimit",
+                          "displayName": "Export Limit",
+                          "displayNameAction": "Set export limit",
+                          "type": "double",
+                          "unit": "Watt",
+                          "writable": true,
+                          "defaultValue": 0,
+                          "minValue": 0
                         }
                     ],
                     "actionTypes": [ ]

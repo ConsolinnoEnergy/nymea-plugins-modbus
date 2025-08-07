@@ -249,6 +249,14 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
                 m_monitors.insert(thing, monitor);
                 ScaleFactors scalefactors{};
                 m_scalefactors.insert(thing, scalefactors);
+
+                bool isLimitEnabled = connection->productionLimitEnable() == 0 ? false : true;
+                thing->setStateValue(kacosunspecInverterTCPEnableExportLimitStateTypeId, isLimitEnabled);
+                auto maxPowerProduction = connection->maxPowerProduction();
+                auto maxPowerProductionSf = connection->maxPowerProductionSf();
+                double nominalPower = maxPowerProduction * std::pow(10.0, (double)maxPowerProductionSf);
+                thing->setStateMaxValue(kacosunspecInverterTCPExportLimitStateTypeId, nominalPower);
+
                 info->finish(Thing::ThingErrorNoError);
             } else {
                 hardwareManager()->networkDeviceDiscovery()->unregisterMonitor(monitor);
@@ -359,6 +367,17 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
             setOperatingState(thing, operatingState);
         });
 
+        connect(connection, &KacoSunSpecModbusRtuConnection::initializationFinished, this, [this, thing, connection](bool success){
+            if (success) {
+                bool isLimitEnabled = connection->productionLimitEnable() == 0 ? false : true;                
+                thing->setStateValue(kacosunspecInverterRTUEnableExportLimitStateTypeId, isLimitEnabled);
+
+                auto maxPowerProduction = connection->maxPowerProduction();
+                auto maxPowerProductionSf = connection->maxPowerProductionSf();
+                double nominalPower = maxPowerProduction * std::pow(10.0, (double)maxPowerProductionSf);
+                thing->setStateMaxValue(kacosunspecInverterRTUExportLimitStateTypeId, nominalPower);
+            }
+        });
 
         // FIXME: make async and check if this is really a kaco sunspec
         //
@@ -635,6 +654,111 @@ void IntegrationPluginKacoSunSpec::setupThing(ThingSetupInfo *info)
     }
 }
 
+void IntegrationPluginKacoSunSpec::executeAction(ThingActionInfo *info)
+{
+    Thing *thing = info->thing();
+
+    if (thing->thingClassId() == kacosunspecInverterRTUThingClassId) {
+        KacoSunSpecModbusRtuConnection *connection = m_rtuConnections.value(thing);
+        if (!connection) {
+            qCWarning(dcKacoSunSpec()) << "Could not execute action. The modbus connection is currently not available.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (info->action().actionTypeId() == kacosunspecInverterRTUEnableExportLimitActionTypeId) {
+            // RTU Enable / Disable Limit
+            bool enabled = info->action().paramValue(kacosunspecInverterRTUEnableExportLimitActionEnableExportLimitParamTypeId).toBool();
+
+            auto *reply = connection->setProductionLimitEnable(enabled ? 1 : 0);
+            auto success = handleReply(reply);
+            qCDebug(dcKacoSunSpec()) << "Inverter (RTU) " << (enabled ? "ENABLE" : "DISABLE") << " power export limit";
+
+            if (success) {
+                thing->setStateValue(kacosunspecInverterRTUEnableExportLimitStateTypeId, enabled);
+                info->finish(Thing::ThingErrorNoError);
+            } else {
+                info->finish(Thing::ThingErrorHardwareNotAvailable);
+                qCWarning(dcKacoSunSpec()) << "Inverter (RTU) failed to set export limit";
+            }
+        }
+        if (info->action().actionTypeId() == kacosunspecInverterTCPExportLimitActionTypeId) {
+            // RTU set export limmit
+            double limitWats = info->action().paramValue(kacosunspecInverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
+
+            auto maxPowerProductionWats = connection->maxPowerProduction(); // WMax
+            auto maxPowerProductionSf = connection->maxPowerProductionSf(); // WMax_SF
+            auto limitPercentSf = connection->productionLimitSf(); // WMaxLimPct_SF
+
+            double nominalPowerWats = maxPowerProductionWats * std::pow(10.0, (double)maxPowerProductionSf);
+            double limitPercent = absolutePower2PowerRate(nominalPowerWats, limitWats);
+            double scalledLimitPercent = (double)limitPercent / std::pow((double)10, (double)limitPercentSf);
+
+            qCDebug(dcKacoSunSpec()) << "Setting Inverter export limit to: " << limitWats << "W (" << limitPercent << "% of nominal: " <<
+                nominalPowerWats  << "W) (limitPercentSf: " << limitPercentSf << ", scalledLimitPercent: " << scalledLimitPercent;
+
+            auto *reply = connection->setProductionLimit(scalledLimitPercent);
+            auto success = handleReply(reply);
+            if (success) {
+                thing->setStateValue(kacosunspecInverterTCPExportLimitStateTypeId, limitWats);
+                info->finish(Thing::ThingErrorNoError);
+            } else {
+                info->finish(Thing::ThingErrorHardwareNotAvailable);
+            }
+        }
+    } else if (thing->thingClassId() == kacosunspecInverterTCPThingClassId) {
+        KacoSunSpecModbusTcpConnection *connection = m_tcpConnections.value(thing);
+        if (!connection) {
+            qCWarning(dcKacoSunSpec()) << "Could not execute action. The modbus connection is currently not available.";
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+            return;
+        }
+
+        if (info->action().actionTypeId() == kacosunspecInverterTCPEnableExportLimitActionTypeId) {
+            // TCP Enable / Disable Limit
+            bool enabled = info->action().paramValue(kacosunspecInverterTCPEnableExportLimitActionEnableExportLimitParamTypeId).toBool();
+
+            auto *reply = connection->setProductionLimitEnable(enabled ? 1 : 0);
+            auto success = handleReply(reply);
+            qCDebug(dcKacoSunSpec()) << "Inverter (TCP) " << (enabled ? "ENABLE" : "DISABLE") << " power export limit";
+
+            if (success) {
+                thing->setStateValue(kacosunspecInverterTCPEnableExportLimitStateTypeId, enabled);
+                info->finish(Thing::ThingErrorNoError);
+            } else {
+                info->finish(Thing::ThingErrorHardwareNotAvailable);
+                qCWarning(dcKacoSunSpec()) << "Inverter (TCP) failed to set export limit";
+            }
+        }
+        if (info->action().actionTypeId() == kacosunspecInverterTCPExportLimitActionTypeId) {
+            // TCP set export limmit
+            double limitWats = info->action().paramValue(kacosunspecInverterTCPExportLimitActionExportLimitParamTypeId).toDouble();
+
+            auto maxPowerProductionWats = connection->maxPowerProduction(); // WMax
+            auto maxPowerProductionSf = connection->maxPowerProductionSf(); // WMax_SF
+            auto limitPercentSf = connection->productionLimitSf(); // WMaxLimPct_SF
+
+            double nominalPowerWats = maxPowerProductionWats * std::pow(10.0, (double)maxPowerProductionSf);
+            double limitPercent = absolutePower2PowerRate(nominalPowerWats, limitWats);
+            double scalledLimitPercent = (double)limitPercent / std::pow((double)10, (double)limitPercentSf);
+
+            qCDebug(dcKacoSunSpec()) << "Setting Inverter export limit to: " << limitWats << "W (" << limitPercent << "% of nominal: " <<
+                 nominalPowerWats  << "W) (limitPercentSf: " << limitPercentSf << ", scalledLimitPercent: " << scalledLimitPercent;
+
+            auto *reply = connection->setProductionLimit(scalledLimitPercent);
+            auto success = handleReply(reply);
+            if (success) {
+                thing->setStateValue(kacosunspecInverterTCPExportLimitStateTypeId, limitWats);
+                info->finish(Thing::ThingErrorNoError);
+            } else {
+                info->finish(Thing::ThingErrorHardwareNotAvailable);
+            }
+        }
+    }
+
+
+}
+
 void IntegrationPluginKacoSunSpec::postSetupThing(Thing *thing)
 {
     if (thing->thingClassId() == kacosunspecInverterTCPThingClassId ||
@@ -877,4 +1001,40 @@ Thing *IntegrationPluginKacoSunSpec::getBatteryThing(Thing *parentThing)
         return nullptr;
 
     return batteryThings.first();
+}
+
+bool IntegrationPluginKacoSunSpec::handleReply(ModbusRtuReply *reply)
+{
+    if (!reply) {
+        qCWarning(dcKacoSunSpec()) << "Sending modbus command failed because the reply could not be created.";
+        return false;
+    }
+    connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
+    connect(reply, &ModbusRtuReply::errorOccurred, this, [reply](ModbusRtuReply::Error error) {
+        qCWarning(dcKacoSunSpec()) << "Modbus reply error occurred while writing modbus" << error << reply->errorString();
+        emit reply->finished(); // To make sure it will be deleted
+    });
+    return true;
+}
+bool IntegrationPluginKacoSunSpec::handleReply(QModbusReply *reply)
+{
+    if (!reply) {
+        qCWarning(dcKacoSunSpec()) << "Sending modbus command failed because the reply could not be created.";
+        return false;
+    }
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::errorOccurred, this, [reply](QModbusDevice::Error error) {
+        qCWarning(dcKacoSunSpec()) << "Modbus reply error occurred while writing modbus" << error << reply->errorString();
+        emit reply->finished(); // To make sure it will be deleted
+    });
+    return true;
+}
+
+double IntegrationPluginKacoSunSpec::absolutePower2PowerRate(double nominalPower, double absoluteValue)
+{
+    if (nominalPower > 0) {
+        return absoluteValue * 100 / nominalPower;
+    }
+
+    return 0.0;
 }
