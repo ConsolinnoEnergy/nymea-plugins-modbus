@@ -682,7 +682,7 @@ void IntegrationPluginKacoSunSpec::executeAction(ThingActionInfo *info)
                 qCWarning(dcKacoSunSpec()) << "Inverter (RTU) failed to set export limit";
             }
         }
-        if (info->action().actionTypeId() == kacosunspecInverterTCPExportLimitActionTypeId) {
+        if (info->action().actionTypeId() == kacosunspecInverterRTUExportLimitActionTypeId) {
             // RTU set export limmit
             double limitWats = info->action().paramValue(kacosunspecInverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
 
