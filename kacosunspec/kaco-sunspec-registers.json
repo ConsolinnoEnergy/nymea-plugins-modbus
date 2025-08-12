@@ -329,7 +329,58 @@
             "description": "Sunspec model 103",
             "defaultValue": "0",
             "access": "RO"
+        },
+        {
+            "id": "maxPowerProduction",
+            "address": 40152,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Max. rated power production",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "maxPowerProductionSf",
+            "address": 40172,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "description": "Max. rated power production Scale factor",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "productionLimit",
+            "address": 40187,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Setting for max power production in %",
+            "readSchedule": "init",
+            "access": "RW"
+        },
+        {
+            "id": "productionLimitSf",
+            "address": 40205,
+            "size": 1,
+            "type": "int16",
+            "registerType": "holdingRegister",
+            "description": "Scalefactor for 40187",
+            "readSchedule": "init",
+            "access": "RO"
+        },
+        {
+            "id": "productionLimitEnable",
+            "address": 40191,
+            "size": 1,
+            "type": "uint16",
+            "registerType": "holdingRegister",
+            "description": "Enable or disable throttling of power production",
+            "readSchedule": "init",
+            "access": "RW"
         }
+
     ]
 }
 
