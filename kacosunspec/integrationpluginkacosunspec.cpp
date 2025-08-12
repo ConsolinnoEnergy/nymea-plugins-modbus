@@ -686,16 +686,17 @@ void IntegrationPluginKacoSunSpec::executeAction(ThingActionInfo *info)
         if (info->action().actionTypeId() == kacosunspecInverterRTUEnableExportLimitActionTypeId) {
             // RTU Enable / Disable Limit
             bool enabled = info->action().paramValue(kacosunspecInverterRTUEnableExportLimitActionEnableExportLimitParamTypeId).toBool();
+            bool success = true;
 
             if (!enabled) {
                 // set the 100% limit value first (simply disabling the limit doesn't change the currently set value)
                 double scalledLimitPercent = (double)100.0 / std::pow((double)10, (double)m_exporLimitValues.value(thing).limitPercentSf);
                 auto *reply = connection->setProductionLimit(scalledLimitPercent);
-                handleReply(reply);
+                success &= handleReply(reply);
             }
 
             auto *reply = connection->setProductionLimitEnable(enabled ? 1 : 0);
-            auto success = handleReply(reply);
+            success &= handleReply(reply);
             qCDebug(dcKacoSunSpec()) << "Inverter (RTU) " << (enabled ? "ENABLE" : "DISABLE") << " power export limit";
 
             if (enabled) {
@@ -704,7 +705,7 @@ void IntegrationPluginKacoSunSpec::executeAction(ThingActionInfo *info)
                 if (lastSetLimitWat.isValid()) {
                     double scalledLimitPercent = calcScalledLimitPercent(thing, lastSetLimitWat.toDouble());
                     auto *reply = connection->setProductionLimit(scalledLimitPercent);
-                    handleReply(reply);
+                    success &= handleReply(reply);
                 }
             }
 
@@ -745,16 +746,17 @@ void IntegrationPluginKacoSunSpec::executeAction(ThingActionInfo *info)
         if (info->action().actionTypeId() == kacosunspecInverterTCPEnableExportLimitActionTypeId) {
             // TCP Enable / Disable Limit
             bool enabled = info->action().paramValue(kacosunspecInverterTCPEnableExportLimitActionEnableExportLimitParamTypeId).toBool();
+            bool success = true;
 
             if (!enabled) {
                 // set the 100% limit value first (simply disabling the limit doesn't change the currently set value)
                 double scalledLimitPercent = (double)100.0 / std::pow((double)10, (double)m_exporLimitValues.value(thing).limitPercentSf);
                 auto *reply = connection->setProductionLimit(scalledLimitPercent);
-                handleReply(reply);
+                success &= handleReply(reply);
             }
 
             auto *reply = connection->setProductionLimitEnable(enabled ? 1 : 0);
-            auto success = handleReply(reply);
+            success &= handleReply(reply);
             qCDebug(dcKacoSunSpec()) << "Inverter (TCP) " << (enabled ? "ENABLE" : "DISABLE") << " power export limit";
 
             if (enabled) {
@@ -763,7 +765,7 @@ void IntegrationPluginKacoSunSpec::executeAction(ThingActionInfo *info)
                 if (lastSetLimitWat.isValid()) {
                     double scalledLimitPercent = calcScalledLimitPercent(thing, lastSetLimitWat.toDouble());
                     auto *reply = connection->setProductionLimit(scalledLimitPercent);
-                    handleReply(reply);
+                    success &= handleReply(reply);
                 }
             }
 
