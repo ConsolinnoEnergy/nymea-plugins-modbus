@@ -16,7 +16,7 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "integrationpluginsolaxultra.h"
+#include "integrationpluginsolaxonly.h"
 #include "plugininfo.h"
 #include "discoverytcp.h"
 

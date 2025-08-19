@@ -35,7 +35,7 @@ class IntegrationPluginSolax: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginsolaxultra.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginsolaxonly.json")
     Q_INTERFACES(IntegrationPlugin)
 
 public:
