@@ -1,10 +1,10 @@
 {
-    "name": "SolaxUltra",
+    "name": "SolaxOnly",
     "displayName": "Solax",
     "id": "135cb30e-4697-4189-a60f-052a5431145f",
     "vendors": [
         {
-            "name": "solaxultra",
+            "name": "solax",
             "displayName": "Solax",
             "id": "093a76b1-f60d-41de-8d34-0ffe74a62c19",
             "thingClasses": [

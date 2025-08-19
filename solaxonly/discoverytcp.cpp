@@ -41,15 +41,15 @@ DiscoveryTcp::DiscoveryTcp(NetworkDeviceDiscovery *networkDeviceDiscovery, QObje
 
 void DiscoveryTcp::startDiscovery()
 {
-    qCInfo(dcSolaxUltra()) << "Discovery: Searching for Solax inverters in the network...";
+    qCInfo(dcSolaxOnly()) << "Discovery: Searching for Solax inverters in the network...";
     NetworkDeviceDiscoveryReply *discoveryReply = m_networkDeviceDiscovery->discover();
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::networkDeviceInfoAdded, this, &DiscoveryTcp::checkNetworkDevice);
     connect(discoveryReply, &NetworkDeviceDiscoveryReply::finished, this, [=](){
-        qCDebug(dcSolaxUltra()) << "Discovery: Network discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "network devices";
+        qCDebug(dcSolaxOnly()) << "Discovery: Network discovery finished. Found" << discoveryReply->networkDeviceInfos().count() << "network devices";
 
         // Give the last connections added right before the network discovery finished a chance to check the device...
         QTimer::singleShot(3000, this, [this](){
-            qCDebug(dcSolaxUltra()) << "Discovery: Grace period timer triggered.";
+            qCDebug(dcSolaxOnly()) << "Discovery: Grace period timer triggered.";
             finishDiscovery();
         });
         discoveryReply->deleteLater();
@@ -65,7 +65,7 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
 {
     int port = 502;     // Default modbus port.
     int modbusId = 1;    // The solax responds to any modbus ID on modbus TCP. So the ID does not matter.
-    qCDebug(dcSolaxUltra()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << modbusId;
+    qCDebug(dcSolaxOnly()) << "Checking network device:" << networkDeviceInfo << "Port:" << port << "Slave ID:" << modbusId;
 
     // This can be improved by first checking if port 502 is open. If that port is not open, it is not a modbus device.
 
@@ -82,7 +82,7 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
         // Modbus TCP connected...ok, let's try to initialize it!
         connect(connection, &SolaxModbusTcpConnection::initializationFinished, this, [=](bool success){
             if (!success) {
-                qCDebug(dcSolaxUltra()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString();
+                qCDebug(dcSolaxOnly()) << "Discovery: Initialization failed on" << networkDeviceInfo.address().toString();
                 cleanupConnection(connection);
                 return;
             }
@@ -110,12 +110,12 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
                 result.powerRating = ratedPower;
                 result.networkDeviceInfo = networkDeviceInfo;
                 m_discoveryResults.append(result);
-                qCDebug(dcSolaxUltra()) << "Discovery: --> Found" << result.networkDeviceInfo
+                qCDebug(dcSolaxOnly()) << "Discovery: --> Found" << result.networkDeviceInfo
                                    << ", Manufacturer: " << result.manufacturerName
                                    << ", Module name: " << result.productName
                                    << QString(" with rated power of %1").arg(ratedPower);
             } else {
-                qCDebug(dcSolaxUltra()) << QString("The value in holding register 0xBA is %1, which does not seem to be a power rating. This is not a Solax inverter.").arg(ratedPower);
+                qCDebug(dcSolaxOnly()) << QString("The value in holding register 0xBA is %1, which does not seem to be a power rating. This is not a Solax inverter.").arg(ratedPower);
             }
 
             // Done with this connection
@@ -123,14 +123,14 @@ void DiscoveryTcp::checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo
         });
 
         if (!connection->initialize()) {
-            qCDebug(dcSolaxUltra()) << "Discovery: Unable to initialize connection on" << networkDeviceInfo.address().toString();
+            qCDebug(dcSolaxOnly()) << "Discovery: Unable to initialize connection on" << networkDeviceInfo.address().toString();
             cleanupConnection(connection);
         }
     });
 
     // If check reachability failed...skip this host...
     connect(connection, &SolaxModbusTcpConnection::checkReachabilityFailed, this, [=](){
-        qCDebug(dcSolaxUltra()) << "Discovery: Checking reachability failed on" << networkDeviceInfo.address().toString();
+        qCDebug(dcSolaxOnly()) << "Discovery: Checking reachability failed on" << networkDeviceInfo.address().toString();
         cleanupConnection(connection);
     });
 
@@ -153,7 +153,7 @@ void DiscoveryTcp::finishDiscovery()
     foreach (SolaxModbusTcpConnection *connection, m_connections)
         cleanupConnection(connection);
 
-    qCInfo(dcSolaxUltra()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count()
+    qCInfo(dcSolaxOnly()) << "Discovery: Finished the discovery process. Found" << m_discoveryResults.count()
                        << "Solax inverters in" << QTime::fromMSecsSinceStartOfDay(durationMilliSeconds).toString("mm:ss.zzz");
 
     emit discoveryFinished();
