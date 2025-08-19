@@ -1,5 +1,5 @@
 {
-    "className": "Solax",
+    "className": "SolaxIes",
     "protocol": "RTU",
     "endianness": "LittleEndian",
     "errorLimitUntilNotReachable": 15,

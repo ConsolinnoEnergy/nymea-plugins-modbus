@@ -277,6 +277,244 @@
                     "actionTypes": [ ]
                 },
                 {
+                    "name": "solaxX3InverterTCP",
+                    "displayName": "Solax X3 IES",
+                    "id": "b1cb3137-b293-4df2-ae4f-b662c6835653",
+                    "createMethods": ["discovery"],
+                    "interfaces": ["solarinverter", "connectable"],
+                    "providedInterfaces": ["solarinverter", "energymeter", "controllablebattery"],
+                    "paramTypes": [
+                        {
+                            "id": "f2089b5c-407b-47d1-a250-cd201292c769",
+                            "name": "ipAddress",
+                            "displayName": "IP address",
+                            "type": "QString",
+                            "inputType": "IPv4Address",
+                            "defaultValue": "127.0.0.1",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "83ffc100-a926-4590-87d4-4e69f3aa7948",
+                            "name": "macAddress",
+                            "displayName": "MAC address",
+                            "type": "QString",
+                            "defaultValue": "",
+                            "readOnly": true
+                        },
+                        {
+                            "id": "dbac37a7-f311-4083-b56f-fd0490f1afcc",
+                            "name": "port",
+                            "displayName": "Port",
+                            "type": "int",
+                            "defaultValue": 502,
+                            "readOnly": true
+                        },
+                        {
+                            "id": "6ee3b4a1-b41e-4594-9002-eef12f8c2a08",
+                            "name": "modbusId",
+                            "displayName": "Modbus ID",
+                            "type": "uint",
+                            "defaultValue": 1,
+                            "readOnly": true
+                        },
+                        {
+                            "id": "c2986cf6-65e0-4a80-9f6e-9cdd1fb839f1",
+                            "name": "batteryCapacity",
+                            "displayName": "Battery capacity (if present) [kWh]",
+                            "type": "uint",
+                            "defaultValue": 0
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "badb5699-4022-4cbe-b856-7623b088def4",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "33aaf5de-8307-455f-930e-3cdd5a8387f2",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "ae43476d-763b-4d75-a8eb-fddb46cd1e14",
+                            "name": "inverterVoltage",
+                            "displayName": "Inverter voltage",
+                            "displayNameEvent": "Inverter voltage changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "6c0486b0-45ac-4623-86cb-b556a5a3f263",
+                            "name": "inverterCurrent",
+                            "displayName": "Inverter current",
+                            "displayNameEvent": "Inverter current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "448bc272-6ad5-4c53-8646-b52b004c2fe6",
+                            "name": "energyProducedToday",
+                            "displayName": "Energy produced today",
+                            "displayNameEvent": "Energy produced today changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        },
+                        {
+                            "id": "077dfd18-4785-4069-8af5-f94a00389ede",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        },
+                        {
+                            "id": "0084168f-3ea3-4d79-b275-447d145587aa",
+                            "name": "inverterStatus",
+                            "displayName": "Inverter status",
+                            "displayNameEvent": "Inverter status changed",
+                            "type": "QString",
+                            "defaultValue": "Unknown",
+                            "cached": false
+                        },
+                        {
+                            "id": "e2c14c76-7d93-4dee-bb4e-5b6f18b20633",
+                            "name": "nominalPower",
+                            "displayName": "Rated power",
+                            "displayNameEvent": "Rated power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "749d3c0d-2102-4f74-852c-2ae2cb7e8f32",
+                            "name": "firmwareVersion",
+                            "displayName": "Firmware version",
+                            "displayNameEvent": "Firmware version changed",
+                            "type": "uint",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "21d03306-a98e-4973-835c-2d41d3c64573",
+                            "name": "pv1Power",
+                            "displayName": "PV1 power",
+                            "displayNameEvent": "PV1 power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "fa3f1289-5900-4311-9d3a-5cf3249f9145",
+                            "name": "pv1Voltage",
+                            "displayName": "PV1 voltage",
+                            "displayNameEvent": "PV1 voltage changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
+                            "id": "ff1827dc-88db-4765-8a80-9b1d8a192281",
+                            "name": "pv1Current",
+                            "displayName": "PV1 current",
+                            "displayNameEvent": "PV1 current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
+                            "id": "53432bf2-900e-485b-9d72-04a9d2d2c8fd",
+                            "name": "pv2Power",
+                            "displayName": "PV2 power",
+                            "displayNameEvent": "PV2 power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "1b857285-b735-43ac-aec5-041f78d58fff",
+                            "name": "pv2Voltage",
+                            "displayName": "PV2 voltage",
+                            "displayNameEvent": "PV2 voltage changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
+                            "id": "6e62add8-72de-401b-840b-0e52365ddb1c",
+                            "name": "pv2Current",
+                            "displayName": "PV2 current",
+                            "displayNameEvent": "PV2 current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
+                            "id": "ca61046c-abf2-423d-8a48-5864d3940d57",
+                            "name": "temperature",
+                            "displayName": "Temperature",
+                            "displayNameEvent": "Temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
+                            "id": "ff0f093a-5be6-4086-8c82-9b12ec902213",
+                            "name": "exportLimit",
+                            "displayName": "Export power limit",
+                            "displayNameEvent": "Export power limit changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0
+                        }
+
+                    ],
+                    "actionTypes": [ 
+                        {
+                            "id": "4142896c-da53-4ba8-b0de-14f0dd24ae5c",
+                            "name": "setExportLimit",
+                            "displayName": "Set Grid export limit",
+                            "paramTypes": [
+                                {
+                                    "id": "bb8548d9-d318-49f8-92a1-2c947faf8836",
+                                    "name": "exportLimit",
+                                    "displayName": "Grid Export Limit (percent of inverter nominal power)",
+                                    "type": "int",
+                                    "unit": "Percentage",
+                                    "defaultValue": 100,
+                                    "minValue": 0,
+                                    "maxValue": 100
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
                     "name": "solaxMeter",
                     "displayName": "Solax Meter",
                     "id": "8817b092-186a-422d-a8dd-117951ff65e5",
@@ -731,13 +969,13 @@
                 {
                     "name": "solaxBattery",
                     "displayName": "Solax Battery",
-                    "id": "78a1e040-ece9-44e2-a223-ec9fb873bd32",
+                    "id": "a08dfd8a-931a-466f-ba83-c96b17825953",
                     "createMethods": ["auto"],
                     "interfaces": ["controllablebattery", "limitablebattery", "connectable"],
                     "paramTypes": [ ],
                     "stateTypes": [
                         {
-                            "id": "f6664d81-00f0-44ac-89da-850e3d91fdb5",
+                            "id": "72615b71-2d28-497b-a211-8547987980bb",
                             "name": "connected",
                             "displayName": "Connected",
                             "displayNameEvent": "Connected changed",
@@ -746,7 +984,7 @@
                             "cached": false
                         },
                         {
-                            "id": "f69d54b4-8776-451e-b3bb-19293b1c5847",
+                            "id": "0a88966b-356c-4265-8a6f-963103f13142",
                             "name": "batteryLevel",
                             "displayName": "Battery charge percent",
                             "displayNameEvent": "Battery charge percent changed",
@@ -758,7 +996,7 @@
                             "cached": true
                         },
                         {
-                            "id": "37a7e7d8-15e8-49a3-ae8e-66d60f1bb0bd",
+                            "id": "4dba154c-f74e-46f0-9709-5336c0c71127",
                             "name": "minBatteryLevel",
                             "displayName": "min. Battery level",
                             "displayNameEvent": "min Battery level changed",
@@ -772,7 +1010,7 @@
                             "cached": true
                         },
                         {
-                            "id": "ca329350-a179-4cb6-b155-464dd64e1cd4",
+                            "id": "c4bfc775-e192-4210-a902-f426e84df13b",
                             "name": "batteryCritical",
                             "displayName": "Battery low charge",
                             "displayNameEvent": "Battery low charge changed",
@@ -781,7 +1019,7 @@
                             "cached": false
                         },
                         {
-                            "id": "bd99eeea-845b-4dee-8fb5-0493579f1cba",
+                            "id": "246cd806-4224-4789-8f55-d6cbbc85b737",
                             "name": "currentPower",
                             "displayName": "Battery power input/output",
                             "displayNameEvent": "Battery power input/output changed",
@@ -791,7 +1029,7 @@
                             "cached": false
                         },
                         {
-                            "id": "ca3e32bc-d292-448c-88f6-ba99a9f5a9da",
+                            "id": "dc08e452-0765-47ae-b874-88d25f80ef31",
                             "name": "chargingState",
                             "displayName": "Charging state",
                             "displayNameEvent": "Charging state changed",
@@ -801,7 +1039,7 @@
                             "cached": false
                         },
                         {
-                            "id": "6e8974ce-a6e2-42c9-8dcc-8d753a4dcda6",
+                            "id": "c6f74f73-c956-4697-a024-8c71f1ef6355",
                             "name": "batteryVoltage",
                             "displayName": "Battery voltage",
                             "displayNameEvent": "Battery voltage changed",
@@ -811,7 +1049,7 @@
                             "cached": false
                         },
                         {
-                            "id": "2a148ecf-4e1b-48fa-823c-7f1a03c5a91b",
+                            "id": "1ab243fb-cfd4-4b44-9a78-3bed57c6cc90",
                             "name": "batteryCurrent",
                             "displayName": "Battery current",
                             "displayNameEvent": "Battery current changed",
@@ -821,7 +1059,7 @@
                             "cached": false
                         },
                         {
-                            "id": "183f2272-b0d0-4737-855e-98a71bb11ae3",
+                            "id": "7c57ab69-3227-4b74-b088-f42045e8d2d1",
                             "name": "temperature",
                             "displayName": "Temperature",
                             "displayNameEvent": "Temperature changed",
@@ -831,7 +1069,7 @@
                             "cached": false
                         },
                         {
-                            "id": "a0fbe039-4060-47ab-ab85-59eb6d177ae1",
+                            "id": "91b6feb2-231c-4c4a-a31b-de747ed6009f",
                             "name": "capacity",
                             "displayName": "Battery capacity",
                             "displayNameEvent": "Battery capacity changed",
@@ -841,7 +1079,7 @@
                             "cached": false
                         },
                         {
-                            "id": "474521d3-f76d-47c6-b5f3-d0e6783b9272",
+                            "id": "39f69639-e34c-41f2-86a6-fab01e8511af",
                             "name": "nominalPowerBattery",
                             "displayName": "Nominal Power for control",
                             "displayNameEvent": "Nominal power changed",
@@ -850,7 +1088,7 @@
                             "defaultValue": 10000
                         },
                         {
-                            "id": "9653cc60-b10d-4221-97ab-e4722c0a9a16",
+                            "id": "d9aa5ae5-f103-43f1-a3fc-efbbe836767d",
                             "name": "enableForcePower",
                             "displayName": "Battery manual mode",
                             "displayNameEvent": "Battery manual mode",
@@ -860,7 +1098,7 @@
                             "writable": true
                         },
                         {
-                            "id": "0a1ac539-1387-45fc-bc98-2906e9166be7",
+                            "id": "a741b3a7-beee-4ba3-b7db-9f15474ca9d2",
                             "name": "enableForcePowerState",
                             "displayName": "Battery manual mode enabled",
                             "displayNameEvent": "Battery manual mode state changed",
@@ -868,7 +1106,7 @@
                             "defaultValue": false
                         },
                         {
-                            "id": "7d58f5fe-ede7-4408-942a-55c0dc447ef3",
+                            "id": "432d9fff-a075-427f-b46c-ec2d710b115f",
                             "name": "forcePower",
                             "displayName": "Battery force power (+:charge, -:discharge)",
                             "displayNameEvent": "Battery force power changed",
@@ -880,7 +1118,7 @@
                             "cached": true
                         },
                         {
-                            "id": "1125e0eb-c468-40aa-a152-e6a06101b08b",
+                            "id": "50cc1015-38e6-4585-80a7-42a9faad8a3f",
                             "name": "forcePowerTimeout",
                             "displayName": "Battery force power timeout",
                             "displayNameEvent": "Battery force power timeout changed",
@@ -892,7 +1130,7 @@
                             "cached": true
                         },
                         {
-                            "id": "8a0f8851-fdca-4d3a-a767-71bf5ac91661",
+                            "id": "21f0c7a6-f1a1-469f-a691-84a241e9ef99",
                             "name": "forcePowerTimeoutCountdown",
                             "displayName": "Timeout countdown",
                             "displayNameEvent": "timeout countdown changed",
@@ -902,7 +1140,7 @@
                             "cached": true
                         },
                         {
-                            "id": "53bf48fc-b386-41e5-850c-6bf606f39ec0",
+                            "id": "3c8bd8a1-8298-4de7-b8de-f19f847b9990",
                             "name": "maxChargingCurrent",
                             "displayName": "Battery max charging current",
                             "displayNameEvent": "Battery max charging current changed",
@@ -916,7 +1154,7 @@
                             "cached": true
                         },
                         {
-                            "id": "96b20033-3a61-4332-8c2f-6910d0a75b86",
+                            "id": "4fb769b3-eb2c-4705-9f83-542b746923cd",
                             "name": "enableMaxChargingCurrent",
                             "displayName": "enable setting of battery max charging current",
                             "displayNameEvent": "Battery enable max charging current changed",
