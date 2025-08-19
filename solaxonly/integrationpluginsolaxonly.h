@@ -78,7 +78,7 @@ private:
     void setBmsWarningMessage(Thing *thing);
 
     void setupTcpConnection(ThingSetupInfo *info);
-    void setupIESTcpConnection(ThingSetupInfo *info);
+    void setupIesTcpConnection(ThingSetupInfo *info);
 
     void writePasswordToInverter(Thing *thing);
     void disableRemoteControl(Thing *thing);

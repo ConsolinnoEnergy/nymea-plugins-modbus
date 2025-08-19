@@ -19,6 +19,7 @@
 #include "integrationpluginsolaxonly.h"
 #include "plugininfo.h"
 #include "discoverytcp.h"
+#include "discoveryIES.h"
 
 #include <network/networkdevicediscovery.h>
 #include <types/param.h>
@@ -950,7 +951,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         return;
 }
 
-void IntegrationPluginSolax::setupIESTcpConnection(ThingSetupInfo *info)
+void IntegrationPluginSolax::setupIesTcpConnection(ThingSetupInfo *info)
 {
         qCDebug(dcSolaxOnly()) << "Setup IES TCP connection.";
         Thing *thing = info->thing();
@@ -1101,7 +1102,7 @@ void IntegrationPluginSolax::setupIESTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(solaxIESInverterTCPPv2CurrentStateTypeId, pvCurrent2);
         });
 
-        connect(connection, &SolaxIesModbusTcpConnection::runModeChanged, thing, [this, thing](SolaxModbusTcpConnection::RunMode runMode){
+        connect(connection, &SolaxIesModbusTcpConnection::runModeChanged, thing, [this, thing](SolaxIesModbusTcpConnection::RunMode runMode){
             qCDebug(dcSolaxOnly()) << "Inverter run mode recieved" << runMode;
             quint16 runModeAsInt = runMode;
             setRunMode(thing, runModeAsInt);
