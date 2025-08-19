@@ -8,9 +8,13 @@ include(../modbus.pri)
 HEADERS += \
     integrationpluginsolaxonly.h \
     solaxmodbustcpconnection.h \
-    discoverytcp.h
+    solaxiesmodbustcpconnection.h \
+    discoverytcp.h \
+    discoveryIES.h
 
 SOURCES += \
     integrationpluginsolaxonly.cpp \
     solaxmodbustcpconnection.cpp \
-    discoverytcp.cpp
+    solaxiesmodbustcpconnection.cpp \
+    discoverytcp.cpp \
+    discoveryIES.cpp

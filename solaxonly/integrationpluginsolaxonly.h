@@ -24,6 +24,7 @@
 
 #include "extern-plugininfo.h"
 #include "solaxmodbustcpconnection.h"
+#include "solaxiesmodbustcpconnection.h"
 
 #include <QObject>
 #include <QHostAddress>
