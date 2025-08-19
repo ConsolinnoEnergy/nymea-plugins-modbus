@@ -457,7 +457,57 @@
                     "actionTypes": [ ]
                 },
                 {
-                    "name": "solaxBattery",
+                    "name": "solaxMeterSecondary",
+                    "displayName": "Solax Meter  2",
+                    "id": "20c879b7-dadf-4bd8-a8ad-69e20e049fa9",
+                    "createMethods": ["auto"],
+                    "interfaces": ["solarinverter", "connectable"],
+                    "paramTypes": [ ],
+                    "stateTypes": [
+                        {
+                            "id": "a9e34483-12d2-423b-a52e-002d4e75f0a0",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "263e6de8-08d4-4b96-a536-68119f2e07b7",
+                            "name": "currentPower",
+                            "displayName": "Active power",
+                            "displayNameEvent": "Active power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "01cafa43-9c94-40ac-9e1a-872e48e2e8d3",
+                            "name": "totalEnergyProduced",
+                            "displayName": "Total energy produced",
+                            "displayNameEvent": "Total energy produced changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        },
+                        {
+                            "id": "63f36407-f622-4650-841a-b1eed6cebac4",
+                            "name": "totalEnergyConsumed",
+                            "displayName": "Total energy consumed",
+                            "displayNameEvent": "Total energy consumed changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.0,
+                            "cached": true
+                        }
+                    ],
+                    "actionTypes": [ ]
+                },
+                {
+                    "name": "solaxUltraBattery",
                     "displayName": "Solax Battery",
                     "id": "dc4135e5-8d19-4c57-8c79-cbaa9b6e6a97",
                     "createMethods": ["auto"],
@@ -568,7 +618,7 @@
                     "actionTypes": [ ]
                 },
                 {
-                    "name": "solaxBattery2",
+                    "name": "solaxUltraBattery2",
                     "displayName": "Solax Battery 2",
                     "id": "62dc49a9-05df-49f8-ba23-ed761ea69cd1",
                     "createMethods": ["auto"],
@@ -674,6 +724,206 @@
                             "unit": "KiloWattHour",
                             "defaultValue": 0.00,
                             "cached": false
+                        }
+                    ],
+                    "actionTypes": [ ]
+                },
+                {
+                    "name": "solaxBattery",
+                    "displayName": "Solax Battery",
+                    "id": "78a1e040-ece9-44e2-a223-ec9fb873bd32",
+                    "createMethods": ["auto"],
+                    "interfaces": ["controllablebattery", "limitablebattery", "connectable"],
+                    "paramTypes": [ ],
+                    "stateTypes": [
+                        {
+                            "id": "f6664d81-00f0-44ac-89da-850e3d91fdb5",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "displayNameEvent": "Connected changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "f69d54b4-8776-451e-b3bb-19293b1c5847",
+                            "name": "batteryLevel",
+                            "displayName": "Battery charge percent",
+                            "displayNameEvent": "Battery charge percent changed",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 0,
+                            "maxValue": 100,
+                            "defaultValue": 0,
+                            "cached": true
+                        },
+                        {
+                            "id": "37a7e7d8-15e8-49a3-ae8e-66d60f1bb0bd",
+                            "name": "minBatteryLevel",
+                            "displayName": "min. Battery level",
+                            "displayNameEvent": "min Battery level changed",
+                            "displayNameAction": "min Battery level set",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 5,
+                            "maxValue": 100,
+                            "defaultValue": 5,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "ca329350-a179-4cb6-b155-464dd64e1cd4",
+                            "name": "batteryCritical",
+                            "displayName": "Battery low charge",
+                            "displayNameEvent": "Battery low charge changed",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "bd99eeea-845b-4dee-8fb5-0493579f1cba",
+                            "name": "currentPower",
+                            "displayName": "Battery power input/output",
+                            "displayNameEvent": "Battery power input/output changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "ca3e32bc-d292-448c-88f6-ba99a9f5a9da",
+                            "name": "chargingState",
+                            "displayName": "Charging state",
+                            "displayNameEvent": "Charging state changed",
+                            "type": "QString",
+                            "possibleValues": ["idle", "charging", "discharging"],
+                            "defaultValue": "idle",
+                            "cached": false
+                        },
+                        {
+                            "id": "6e8974ce-a6e2-42c9-8dcc-8d753a4dcda6",
+                            "name": "batteryVoltage",
+                            "displayName": "Battery voltage",
+                            "displayNameEvent": "Battery voltage changed",
+                            "type": "double",
+                            "unit": "Volt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "2a148ecf-4e1b-48fa-823c-7f1a03c5a91b",
+                            "name": "batteryCurrent",
+                            "displayName": "Battery current",
+                            "displayNameEvent": "Battery current changed",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "183f2272-b0d0-4737-855e-98a71bb11ae3",
+                            "name": "temperature",
+                            "displayName": "Temperature",
+                            "displayNameEvent": "Temperature changed",
+                            "type": "double",
+                            "unit": "DegreeCelsius",
+                            "defaultValue": 0.0,
+                            "cached": false
+                        },
+                        {
+                            "id": "a0fbe039-4060-47ab-ab85-59eb6d177ae1",
+                            "name": "capacity",
+                            "displayName": "Battery capacity",
+                            "displayNameEvent": "Battery capacity changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00,
+                            "cached": false
+                        },
+                        {
+                            "id": "474521d3-f76d-47c6-b5f3-d0e6783b9272",
+                            "name": "nominalPowerBattery",
+                            "displayName": "Nominal Power for control",
+                            "displayNameEvent": "Nominal power changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 10000
+                        },
+                        {
+                            "id": "9653cc60-b10d-4221-97ab-e4722c0a9a16",
+                            "name": "enableForcePower",
+                            "displayName": "Battery manual mode",
+                            "displayNameEvent": "Battery manual mode",
+                            "displayNameAction": "Battery manual mode enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
+                        },
+                        {
+                            "id": "0a1ac539-1387-45fc-bc98-2906e9166be7",
+                            "name": "enableForcePowerState",
+                            "displayName": "Battery manual mode enabled",
+                            "displayNameEvent": "Battery manual mode state changed",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "7d58f5fe-ede7-4408-942a-55c0dc447ef3",
+                            "name": "forcePower",
+                            "displayName": "Battery force power (+:charge, -:discharge)",
+                            "displayNameEvent": "Battery force power changed",
+                            "displayNameAction": "Battery force power enabled",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "1125e0eb-c468-40aa-a152-e6a06101b08b",
+                            "name": "forcePowerTimeout",
+                            "displayName": "Battery force power timeout",
+                            "displayNameEvent": "Battery force power timeout changed",
+                            "displayNameAction": "Battery force power timeout enabled",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "defaultValue": 500,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "8a0f8851-fdca-4d3a-a767-71bf5ac91661",
+                            "name": "forcePowerTimeoutCountdown",
+                            "displayName": "Timeout countdown",
+                            "displayNameEvent": "timeout countdown changed",
+                            "type": "uint",
+                            "unit": "Seconds",
+                            "defaultValue": 500,
+                            "cached": true
+                        },
+                        {
+                            "id": "53bf48fc-b386-41e5-850c-6bf606f39ec0",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Battery max charging current",
+                            "displayNameEvent": "Battery max charging current changed",
+                            "displayNameAction": "Battery max charging current set",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "minValue": 0,
+                            "maxValue": 30,
+                            "defaultValue": 30.0,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
+                            "id": "96b20033-3a61-4332-8c2f-6910d0a75b86",
+                            "name": "enableMaxChargingCurrent",
+                            "displayName": "enable setting of battery max charging current",
+                            "displayNameEvent": "Battery enable max charging current changed",
+                            "displayNameAction": "Battery set max charging current enabled",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true
                         }
                     ],
                     "actionTypes": [ ]

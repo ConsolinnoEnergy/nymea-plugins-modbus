@@ -153,22 +153,22 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         return;
     }
 
-    if (thing->thingClassId() == solaxBatteryThingClassId) {
+    if (thing->thingClassId() == solaxUltraBatteryThingClassId) {
         qCDebug(dcSolaxOnly()) << "Setting up Battery 1 thing.";
         // Nothing to do here, we get all information from the inverter connection
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
             if (m_batterystates.value(parentThing).bmsCommStatus && m_batterystates.value(parentThing).modbusReachable) {
-                thing->setStateValue(solaxBatteryConnectedStateTypeId, true);
+                thing->setStateValue(solaxUltraBatteryConnectedStateTypeId, true);
             } else {
-                thing->setStateValue(solaxBatteryConnectedStateTypeId, false);
-                thing->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
+                thing->setStateValue(solaxUltraBatteryConnectedStateTypeId, false);
+                thing->setStateValue(solaxUltraBatteryCurrentPowerStateTypeId, 0);
             }
 
             // Set capacity from parent parameter.
             if (parentThing->thingClassId() == solaxX3UltraThingClassId) {
-                thing->setStateValue(solaxBatteryCapacityStateTypeId, parentThing->paramValue(solaxX3UltraThingBatteryCapacityParamTypeId).toUInt());
+                thing->setStateValue(solaxUltraBatteryCapacityStateTypeId, parentThing->paramValue(solaxX3UltraThingBatteryCapacityParamTypeId).toUInt());
             }
 
             BatteryStates batteryStates{};
@@ -177,21 +177,21 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         return;
     }
 
-    if (thing->thingClassId() == solaxBattery2ThingClassId) {
+    if (thing->thingClassId() == solaxUltraBattery2ThingClassId) {
         qCDebug(dcSolaxOnly()) << "Setting up Battery 2 thing.";
         // Nothing to to here, we get all information from the inverter connection
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
             if (m_batterystates.value(parentThing).bmsCommStatus && m_batterystates.value(parentThing).modbusReachable) {
-                thing->setStateValue(solaxBattery2ConnectedStateTypeId, true);
+                thing->setStateValue(solaxUltraBattery2ConnectedStateTypeId, true);
             } else {
-                thing->setStateValue(solaxBattery2ConnectedStateTypeId, false);
-                thing->setStateValue(solaxBattery2CurrentPowerStateTypeId, 0);
+                thing->setStateValue(solaxUltraBattery2ConnectedStateTypeId, false);
+                thing->setStateValue(solaxUltraBattery2CurrentPowerStateTypeId, 0);
             }
 
             if (parentThing->thingClassId() == solaxX3UltraThingClassId) {
-                thing->setStateValue(solaxBattery2CapacityStateTypeId, parentThing->paramValue(solaxX3UltraThingBattery2CapacityParamTypeId).toUInt());
+                thing->setStateValue(solaxUltraBattery2CapacityStateTypeId, parentThing->paramValue(solaxX3UltraThingBattery2CapacityParamTypeId).toUInt());
             }
 
             BatteryStates batteryStates{};
@@ -254,14 +254,14 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
                     meterThings.first()->setStateValue(solaxMeterCurrentPowerStateTypeId, 0);
                 }
 
-                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+                Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
                 if (!batteryThings.isEmpty()) {
-                    batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, 0);
+                    batteryThings.first()->setStateValue(solaxUltraBatteryCurrentPowerStateTypeId, 0);
                 }
 
-                Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+                Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
                 if (!batteryThings2.isEmpty()) {
-                    batteryThings2.first()->setStateValue(solaxBattery2CurrentPowerStateTypeId, 0);
+                    batteryThings2.first()->setStateValue(solaxUltraBattery2CurrentPowerStateTypeId, 0);
                 }
             }
         });
@@ -284,22 +284,22 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             // Set connected state for battery
             m_batterystates.find(thing)->modbusReachable = success;
             qCDebug(dcSolaxOnly()) << "Setting connected state for battery 1.";
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 if (success && m_batterystates.value(thing).bmsCommStatus) {
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, true);
+                    batteryThings.first()->setStateValue(solaxUltraBatteryConnectedStateTypeId, true);
                 } else {
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
+                    batteryThings.first()->setStateValue(solaxUltraBatteryConnectedStateTypeId, false);
                 }
             }
 
-            Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
             qCDebug(dcSolaxOnly()) << "Setting connected state for battery 2.";
             if (!batteryThings2.isEmpty()) {
                 if (success && m_batterystates.value(thing).bmsCommStatus) {
-                    batteryThings2.first()->setStateValue(solaxBattery2ConnectedStateTypeId, true);
+                    batteryThings2.first()->setStateValue(solaxUltraBattery2ConnectedStateTypeId, true);
                 } else {
-                    batteryThings2.first()->setStateValue(solaxBattery2ConnectedStateTypeId, false);
+                    batteryThings2.first()->setStateValue(solaxUltraBattery2ConnectedStateTypeId, false);
                 }
             }
 
@@ -322,14 +322,14 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         //    
         //     double batteryPower = 0;
         //     double batteryPower2 = 0;
-        //     Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+        //     Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
         //     if (!batteryThings.isEmpty()) {
-        //         batteryPower = batteryThings.first()->stateValue(solaxBatteryCurrentPowerStateTypeId).toDouble();
+        //         batteryPower = batteryThings.first()->stateValue(solaxUltraBatteryCurrentPowerStateTypeId).toDouble();
         //     }
 
-        //     Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+        //     Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
         //     if (!batteryThings.isEmpty()) {
-        //         batteryPower2 = batteryThings.first()->stateValue(solaxBattery2CurrentPowerStateTypeId).toDouble();
+        //         batteryPower2 = batteryThings.first()->stateValue(solaxUltraBattery2CurrentPowerStateTypeId).toDouble();
         //     }
         //    
         //     if (batteryPower < 0)
@@ -588,64 +588,64 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             qCDebug(dcSolaxOnly()) << "Battery connect state (bmsConnectState) changed" << bmsConnect;
             bool bmsCommStatusBool = (bmsConnect != 0);
             m_batterystates.find(thing)->bmsCommStatus = bmsCommStatusBool;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 if (bmsCommStatusBool && m_batterystates.value(thing).modbusReachable) {
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, true);
+                    batteryThings.first()->setStateValue(solaxUltraBatteryConnectedStateTypeId, true);
                 } else {
-                    batteryThings.first()->setStateValue(solaxBatteryConnectedStateTypeId, false);
+                    batteryThings.first()->setStateValue(solaxUltraBatteryConnectedStateTypeId, false);
                 }
             } else if (bmsCommStatusBool){
                 // Battery detected. No battery exists yet. Create it.
                 qCDebug(dcSolaxOnly()) << "Set up Solax battery for" << thing;
-                ThingDescriptor descriptor(solaxBatteryThingClassId, "Solax battery", QString(), thing->id());
+                ThingDescriptor descriptor(solaxUltraBatteryThingClassId, "Solax battery", QString(), thing->id());
                 emit autoThingsAppeared(ThingDescriptors() << descriptor);
             }
 
-            Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
             if (!batteryThings2.isEmpty()) {
                 if (bmsCommStatusBool && m_batterystates.value(thing).modbusReachable) {
-                    batteryThings2.first()->setStateValue(solaxBattery2ConnectedStateTypeId, true);
+                    batteryThings2.first()->setStateValue(solaxUltraBattery2ConnectedStateTypeId, true);
                 } else {
-                    batteryThings2.first()->setStateValue(solaxBattery2ConnectedStateTypeId, false);
+                    batteryThings2.first()->setStateValue(solaxUltraBattery2ConnectedStateTypeId, false);
                 }
             } else if (connection->temperatureBat2() != 0) {
                 // Temperature of Bat 2 is unlikely 0 if it is connected
                 qCDebug(dcSolaxOnly()) << "Set up Solax battery 2 for" << thing;
-                ThingDescriptor descriptor(solaxBattery2ThingClassId, "Solax battery 2", QString(), thing->id());
+                ThingDescriptor descriptor(solaxUltraBattery2ThingClassId, "Solax battery 2", QString(), thing->id());
                 emit autoThingsAppeared(ThingDescriptors() << descriptor);
             }
         });
 
         connect(connection, &SolaxModbusTcpConnection::batPowerCharge1Changed, thing, [this, thing](qint16 powerBat1){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolaxOnly()) << "Battery power (batpowerCharge1) changed" << powerBat1 << "W";
 
                 // ToDo: Check if sign for charge / dischage is correct.
-                batteryThings.first()->setStateValue(solaxBatteryCurrentPowerStateTypeId, double(powerBat1));
+                batteryThings.first()->setStateValue(solaxUltraBatteryCurrentPowerStateTypeId, double(powerBat1));
                 if (powerBat1 < 0) {
-                    batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "discharging");
+                    batteryThings.first()->setStateValue(solaxUltraBatteryChargingStateStateTypeId, "discharging");
                 } else if (powerBat1 > 0) {
-                    batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "charging");
+                    batteryThings.first()->setStateValue(solaxUltraBatteryChargingStateStateTypeId, "charging");
                 } else {
-                    batteryThings.first()->setStateValue(solaxBatteryChargingStateStateTypeId, "idle");
+                    batteryThings.first()->setStateValue(solaxUltraBatteryChargingStateStateTypeId, "idle");
                 }
             }
         });
 
         // connect(connection, &SolaxModbusTcpConnection::batteryCapacityChanged, thing, [this, thing](quint16 socBat1){
-        //     Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+        //     Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
         //     if (!batteryThings.isEmpty()) {
         //         qCDebug(dcSolaxOnly()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
-        //         batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
-        //         batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
+        //         batteryThings.first()->setStateValue(solaxUltraBatteryBatteryLevelStateTypeId, socBat1);
+        //         batteryThings.first()->setStateValue(solaxUltraBatteryBatteryCriticalStateTypeId, socBat1 < 10);
         //     }
         // });
 
         connect(connection, &SolaxModbusTcpConnection::bmsWarningLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
             qCDebug(dcSolaxOnly()) << "Battery warning bits LSB recieved" << batteryWarningBitsLsb;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
             if (!batteryThings.isEmpty())
             {
                 Thing* batteryThing = batteryThings.first();
@@ -656,7 +656,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::bmsWarningMsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
             qCDebug(dcSolaxOnly()) << "Battery warning bits MSB recieved" << batteryWarningBitsMsb;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
             if (!batteryThings.isEmpty())
             {
                 Thing* batteryThing = batteryThings.first();
@@ -666,82 +666,82 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
         });
 
         connect(connection, &SolaxModbusTcpConnection::batVoltageCharge1Changed, thing, [this, thing](double batVoltageCharge1){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolaxOnly()) << "Battery voltage changed" << batVoltageCharge1 << "V";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryVoltageStateTypeId, batVoltageCharge1);
+                batteryThings.first()->setStateValue(solaxUltraBatteryBatteryVoltageStateTypeId, batVoltageCharge1);
             }
         });
 
         connect(connection, &SolaxModbusTcpConnection::batCurrentCharge1Changed, thing, [this, thing](double batCurrentCharge1){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolaxOnly()) << "Battery current changed" << batCurrentCharge1 << "A";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryCurrentStateTypeId, batCurrentCharge1);
+                batteryThings.first()->setStateValue(solaxUltraBatteryBatteryCurrentStateTypeId, batCurrentCharge1);
             }
         });
 
         connect(connection, &SolaxModbusTcpConnection::temperatureBatChanged, thing, [this, thing](quint16 temperatureBat){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolaxOnly()) << "Battery temperature changed" << temperatureBat << "°C";
-                batteryThings.first()->setStateValue(solaxBatteryTemperatureStateTypeId, temperatureBat);
+                batteryThings.first()->setStateValue(solaxUltraBatteryTemperatureStateTypeId, temperatureBat);
             }
         });
 
         connect(connection, &SolaxModbusTcpConnection::batVoltageCharge2Changed, thing, [this, thing](double batVoltCharge2) {
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolaxOnly()) << "Batter 2 voltage changed" << batVoltCharge2 << "W";
-                batteryThings.first()->setStateValue(solaxBattery2BatteryVoltageStateTypeId, batVoltCharge2);
+                batteryThings.first()->setStateValue(solaxUltraBattery2BatteryVoltageStateTypeId, batVoltCharge2);
             }
         });
 
         connect(connection, &SolaxModbusTcpConnection::batCurrentCharge2Changed, thing, [this, thing](double batCurrentCharge2){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolaxOnly()) << "Battery 2 current changed" << batCurrentCharge2 << "A";
-                batteryThings.first()->setStateValue(solaxBattery2BatteryCurrentStateTypeId, batCurrentCharge2);
+                batteryThings.first()->setStateValue(solaxUltraBattery2BatteryCurrentStateTypeId, batCurrentCharge2);
             }
         });
 
         connect(connection, &SolaxModbusTcpConnection::temperatureBat2Changed, thing, [this, thing](qint16 bat2Temperature) {
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolaxOnly()) << "Batter 2 temperature changed" << bat2Temperature << "°C";
-                batteryThings.first()->setStateValue(solaxBattery2TemperatureStateTypeId, bat2Temperature);
+                batteryThings.first()->setStateValue(solaxUltraBattery2TemperatureStateTypeId, bat2Temperature);
             }
         });
 
         connect(connection, &SolaxModbusTcpConnection::batPowerCharge2Changed, thing, [this, thing](qint16 powerBat2){
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
             if (!batteryThings.isEmpty()) {
                 qCDebug(dcSolaxOnly()) << "Battery power (batpowerCharge2) changed" << powerBat2 << "W";
 
                 // ToDo: Check if sign for charge / dischage is correct.
-                batteryThings.first()->setStateValue(solaxBattery2CurrentPowerStateTypeId, double(powerBat2));
+                batteryThings.first()->setStateValue(solaxUltraBattery2CurrentPowerStateTypeId, double(powerBat2));
                 if (powerBat2 < 0) {
-                    batteryThings.first()->setStateValue(solaxBattery2ChargingStateStateTypeId, "discharging");
+                    batteryThings.first()->setStateValue(solaxUltraBattery2ChargingStateStateTypeId, "discharging");
                 } else if (powerBat2 > 0) {
-                    batteryThings.first()->setStateValue(solaxBattery2ChargingStateStateTypeId, "charging");
+                    batteryThings.first()->setStateValue(solaxUltraBattery2ChargingStateStateTypeId, "charging");
                 } else {
-                    batteryThings.first()->setStateValue(solaxBattery2ChargingStateStateTypeId, "idle");
+                    batteryThings.first()->setStateValue(solaxUltraBattery2ChargingStateStateTypeId, "idle");
                 }
             }
         });
 
         // connect(connection, &SolaxModbusTcpConnection::batteryCapacity2Changed, thing, [this, thing](quint16 socBat2){
-        //     Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+        //     Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
         //     if (!batteryThings.isEmpty()) {
         //         qCDebug(dcSolaxOnly()) << "Battery 2 state of charge (batteryCapacity) changed" << socBat2 << "%";
-        //         batteryThings.first()->setStateValue(solaxBattery2BatteryLevelStateTypeId, socBat2);
-        //         batteryThings.first()->setStateValue(solaxBattery2BatteryCriticalStateTypeId, socBat2 < 10);
+        //         batteryThings.first()->setStateValue(solaxUltraBattery2BatteryLevelStateTypeId, socBat2);
+        //         batteryThings.first()->setStateValue(solaxUltraBattery2BatteryCriticalStateTypeId, socBat2 < 10);
         //     }
         // });
 
         connect(connection, &SolaxModbusTcpConnection::bms2FaultLsbChanged, thing, [this, thing](quint16 batteryWarningBitsLsb){
             qCDebug(dcSolaxOnly()) << "Battery 2 warning bits LSB recieved" << batteryWarningBitsLsb;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
             if (!batteryThings.isEmpty())
             {
                 Thing* batteryThing = batteryThings.first();
@@ -752,7 +752,7 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
 
         connect(connection, &SolaxModbusTcpConnection::bms2FaulMLsbChanged, thing, [this, thing](quint16 batteryWarningBitsMsb){
             qCDebug(dcSolaxOnly()) << "Battery 2 warning bits MSB recieved" << batteryWarningBitsMsb;
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
             if (!batteryThings.isEmpty())
             {
                 Thing* batteryThing = batteryThings.first();
@@ -769,21 +769,21 @@ void IntegrationPluginSolax::setupTcpConnection(ThingSetupInfo *info)
             thing->setStateValue(solaxX3UltraCurrentPowerStateTypeId, -(powerDc1+powerDc2+powerDc3));
 
             // Set battery 1 state of charge
-            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBatteryThingClassId);
+            Things batteryThings = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBatteryThingClassId);
             if (!batteryThings.isEmpty()) {
                 quint16 socBat1 = connection->batteryCapacity();
                 qCDebug(dcSolaxOnly()) << "Battery state of charge (batteryCapacity) changed" << socBat1 << "%";
-                batteryThings.first()->setStateValue(solaxBatteryBatteryLevelStateTypeId, socBat1);
-                batteryThings.first()->setStateValue(solaxBatteryBatteryCriticalStateTypeId, socBat1 < 10);
+                batteryThings.first()->setStateValue(solaxUltraBatteryBatteryLevelStateTypeId, socBat1);
+                batteryThings.first()->setStateValue(solaxUltraBatteryBatteryCriticalStateTypeId, socBat1 < 10);
             }
 
             // Set battery 2 state of charge
-            Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxBattery2ThingClassId);
+            Things batteryThings2 = myThings().filterByParentId(thing->id()).filterByThingClassId(solaxUltraBattery2ThingClassId);
             if (!batteryThings2.isEmpty()) {
                 quint16 socBat2 = connection->batteryCapacity2();
                 qCDebug(dcSolaxOnly()) << "Battery 2 state of charge (batteryCapacity) changed" << socBat2 << "%";
-                batteryThings2.first()->setStateValue(solaxBattery2BatteryLevelStateTypeId, socBat2);
-                batteryThings2.first()->setStateValue(solaxBattery2BatteryCriticalStateTypeId, socBat2 < 10);
+                batteryThings2.first()->setStateValue(solaxUltraBattery2BatteryLevelStateTypeId, socBat2);
+                batteryThings2.first()->setStateValue(solaxUltraBattery2BatteryCriticalStateTypeId, socBat2 < 10);
             }
         });
 
