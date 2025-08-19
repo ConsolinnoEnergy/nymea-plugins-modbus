@@ -277,7 +277,7 @@
                     "actionTypes": [ ]
                 },
                 {
-                    "name": "solaxX3InverterTCP",
+                    "name": "solaxIESInverterTCP",
                     "displayName": "Solax X3 IES",
                     "id": "b1cb3137-b293-4df2-ae4f-b662c6835653",
                     "createMethods": ["discovery"],

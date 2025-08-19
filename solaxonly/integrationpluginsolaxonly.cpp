@@ -1145,3 +1145,31 @@ void IntegrationPluginSolax::setBmsWarningMessage(Thing *thing)
     thing->setStateValue("warningMessage", warningMessage);
     qCDebug(dcSolaxOnly()) << "Setting BMS Warning Message successfull";
 }
+void IntegrationPluginSolax::writeErrorLog()
+{
+    qCWarning(dcSolaxOnly()) << "WriteErrorLog called";
+    // Write to file /data/solax-counter.txt
+    QFile errorCounterFile("/data/solax-counter.txt");
+
+    int init = 0;
+    int cont = 0;
+    errorCounterFile.open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Text);
+    while (!errorCounterFile.atEnd()) {
+        QByteArray line = errorCounterFile.readLine();
+        if (line.startsWith("Init")) {
+            QList<QByteArray> list = line.split(' ');
+            init = list[1].toInt();
+        } else {
+            QList<QByteArray> list = line.split(' ');
+            cont = list[1].toInt();
+        }
+    }
+
+    if (m_energyCheck == 500) {
+        init += 1;
+    } else {
+        cont += 1;
+    }
+    errorCounterFile.write("Init: " + QByteArray::number(init) + QByteArray("\nCont: ") + QByteArray::number(cont));
+    errorCounterFile.close();
+}
