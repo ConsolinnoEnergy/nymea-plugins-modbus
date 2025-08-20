@@ -279,13 +279,13 @@
                 {
                     "name": "solaxIESInverterTCP",
                     "displayName": "Solax X3 IES",
-                    "id": "b1cb3137-b293-4df2-ae4f-b662c6835653",
+                    "id": "def832c8-be20-4aec-88b3-d12e5935def7",
                     "createMethods": ["discovery"],
                     "interfaces": ["solarinverter", "connectable"],
                     "providedInterfaces": ["solarinverter", "energymeter", "controllablebattery"],
                     "paramTypes": [
                         {
-                            "id": "f2089b5c-407b-47d1-a250-cd201292c769",
+                            "id": "a65cc408-0c1b-4a27-bfd0-c4be9f9b44c1",
                             "name": "ipAddress",
                             "displayName": "IP address",
                             "type": "QString",
@@ -294,7 +294,7 @@
                             "readOnly": true
                         },
                         {
-                            "id": "83ffc100-a926-4590-87d4-4e69f3aa7948",
+                            "id": "65213ca2-20a9-473a-a5bc-177a2d7957eb",
                             "name": "macAddress",
                             "displayName": "MAC address",
                             "type": "QString",
@@ -302,7 +302,7 @@
                             "readOnly": true
                         },
                         {
-                            "id": "dbac37a7-f311-4083-b56f-fd0490f1afcc",
+                            "id": "b12d1331-433f-4acd-b7d5-9f8342bc41f7",
                             "name": "port",
                             "displayName": "Port",
                             "type": "int",
@@ -310,7 +310,7 @@
                             "readOnly": true
                         },
                         {
-                            "id": "6ee3b4a1-b41e-4594-9002-eef12f8c2a08",
+                            "id": "d2e3e6c5-60d5-49a1-945d-c4c67e3e35f7",
                             "name": "modbusId",
                             "displayName": "Modbus ID",
                             "type": "uint",
@@ -318,7 +318,7 @@
                             "readOnly": true
                         },
                         {
-                            "id": "c2986cf6-65e0-4a80-9f6e-9cdd1fb839f1",
+                            "id": "9598c000-d861-4c3d-aa29-29a586bf1bcf",
                             "name": "batteryCapacity",
                             "displayName": "Battery capacity (if present) [kWh]",
                             "type": "uint",
@@ -327,7 +327,7 @@
                     ],
                     "stateTypes": [
                         {
-                            "id": "badb5699-4022-4cbe-b856-7623b088def4",
+                            "id": "ca0350a7-1c3f-4e90-a464-9efcabbdc007",
                             "name": "connected",
                             "displayName": "Connected",
                             "displayNameEvent": "Connected changed",
@@ -336,7 +336,7 @@
                             "cached": false
                         },
                         {
-                            "id": "33aaf5de-8307-455f-930e-3cdd5a8387f2",
+                            "id": "0637f7bc-960c-4a4c-aa35-ebd8c92ea5a7",
                             "name": "currentPower",
                             "displayName": "Active power",
                             "displayNameEvent": "Active power changed",
@@ -346,7 +346,7 @@
                             "cached": false
                         },
                         {
-                            "id": "ae43476d-763b-4d75-a8eb-fddb46cd1e14",
+                            "id": "50a3d788-b30b-4e41-8ca5-3c00e0e2b71a",
                             "name": "inverterVoltage",
                             "displayName": "Inverter voltage",
                             "displayNameEvent": "Inverter voltage changed",
@@ -356,7 +356,7 @@
                             "cached": false
                         },
                         {
-                            "id": "6c0486b0-45ac-4623-86cb-b556a5a3f263",
+                            "id": "ad309e68-b3d8-463c-8f32-340d943e2742",
                             "name": "inverterCurrent",
                             "displayName": "Inverter current",
                             "displayNameEvent": "Inverter current changed",
@@ -366,7 +366,7 @@
                             "cached": false
                         },
                         {
-                            "id": "448bc272-6ad5-4c53-8646-b52b004c2fe6",
+                            "id": "9664ac1a-fc0c-4d85-b3bd-323bdcdf1f4a",
                             "name": "energyProducedToday",
                             "displayName": "Energy produced today",
                             "displayNameEvent": "Energy produced today changed",
@@ -376,7 +376,7 @@
                             "cached": true
                         },
                         {
-                            "id": "077dfd18-4785-4069-8af5-f94a00389ede",
+                            "id": "20342cea-eaa9-4ca7-8989-8827125d939f",
                             "name": "totalEnergyProduced",
                             "displayName": "Total energy produced",
                             "displayNameEvent": "Total energy produced changed",
@@ -386,7 +386,7 @@
                             "cached": true
                         },
                         {
-                            "id": "0084168f-3ea3-4d79-b275-447d145587aa",
+                            "id": "3296edd9-6496-4bbc-a064-be4266e04785",
                             "name": "inverterStatus",
                             "displayName": "Inverter status",
                             "displayNameEvent": "Inverter status changed",
@@ -395,7 +395,7 @@
                             "cached": false
                         },
                         {
-                            "id": "e2c14c76-7d93-4dee-bb4e-5b6f18b20633",
+                            "id": "150df591-97fa-4d2d-a7c6-e2209b56fbdc",
                             "name": "nominalPower",
                             "displayName": "Rated power",
                             "displayNameEvent": "Rated power changed",
@@ -405,7 +405,7 @@
                             "cached": false
                         },
                         {
-                            "id": "749d3c0d-2102-4f74-852c-2ae2cb7e8f32",
+                            "id": "cdf382a7-284c-4eb3-82cf-73523cd3943b",
                             "name": "firmwareVersion",
                             "displayName": "Firmware version",
                             "displayNameEvent": "Firmware version changed",
@@ -414,7 +414,7 @@
                             "cached": false
                         },
                         {
-                            "id": "21d03306-a98e-4973-835c-2d41d3c64573",
+                            "id": "65c844ec-3822-48ef-b059-15eb5fe4e102",
                             "name": "pv1Power",
                             "displayName": "PV1 power",
                             "displayNameEvent": "PV1 power changed",
@@ -424,7 +424,7 @@
                             "cached": false
                         },
                         {
-                            "id": "fa3f1289-5900-4311-9d3a-5cf3249f9145",
+                            "id": "25329bf6-8bdf-46b5-accd-52f2187cda74",
                             "name": "pv1Voltage",
                             "displayName": "PV1 voltage",
                             "displayNameEvent": "PV1 voltage changed",
@@ -434,7 +434,7 @@
                             "cached": false
                         },
                         {
-                            "id": "ff1827dc-88db-4765-8a80-9b1d8a192281",
+                            "id": "4172eaaf-9433-4af4-90ed-0ac5a21c5872",
                             "name": "pv1Current",
                             "displayName": "PV1 current",
                             "displayNameEvent": "PV1 current changed",
@@ -444,7 +444,7 @@
                             "cached": false
                         },
                         {
-                            "id": "53432bf2-900e-485b-9d72-04a9d2d2c8fd",
+                            "id": "35a3312b-6bd0-4814-8dd6-dfe4ca865179",
                             "name": "pv2Power",
                             "displayName": "PV2 power",
                             "displayNameEvent": "PV2 power changed",
@@ -454,7 +454,7 @@
                             "cached": false
                         },
                         {
-                            "id": "1b857285-b735-43ac-aec5-041f78d58fff",
+                            "id": "fa74af49-3277-4d60-a030-1702e1ddf704",
                             "name": "pv2Voltage",
                             "displayName": "PV2 voltage",
                             "displayNameEvent": "PV2 voltage changed",
@@ -464,7 +464,7 @@
                             "cached": false
                         },
                         {
-                            "id": "6e62add8-72de-401b-840b-0e52365ddb1c",
+                            "id": "2d5737a1-ef4f-4321-bb10-318e2edaec59",
                             "name": "pv2Current",
                             "displayName": "PV2 current",
                             "displayNameEvent": "PV2 current changed",
@@ -474,7 +474,7 @@
                             "cached": false
                         },
                         {
-                            "id": "ca61046c-abf2-423d-8a48-5864d3940d57",
+                            "id": "a91cc91e-e3cf-443e-aca2-84062c0368a4",
                             "name": "temperature",
                             "displayName": "Temperature",
                             "displayNameEvent": "Temperature changed",
@@ -484,7 +484,7 @@
                             "cached": false
                         },
                         {
-                            "id": "ff0f093a-5be6-4086-8c82-9b12ec902213",
+                            "id": "aa79bd85-ecda-4dfe-b54b-29d0bfbdb35b",
                             "name": "exportLimit",
                             "displayName": "Export power limit",
                             "displayNameEvent": "Export power limit changed",
@@ -496,12 +496,12 @@
                     ],
                     "actionTypes": [ 
                         {
-                            "id": "4142896c-da53-4ba8-b0de-14f0dd24ae5c",
+                            "id": "30bfa357-8afa-49b6-b9d5-db8a9b3b62aa",
                             "name": "setExportLimit",
                             "displayName": "Set Grid export limit",
                             "paramTypes": [
                                 {
-                                    "id": "bb8548d9-d318-49f8-92a1-2c947faf8836",
+                                    "id": "e1464bdc-872a-4ef2-a0d7-2d10981f3c75",
                                     "name": "exportLimit",
                                     "displayName": "Grid Export Limit (percent of inverter nominal power)",
                                     "type": "int",
