@@ -240,6 +240,10 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
     if (thing->thingClassId() == solaxMeterThingClassId) {
         qCDebug(dcSolaxOnly()) << "Setting up Meter thing.";
         // Nothing to do here, we get all information from the inverter connection
+
+        if (m_meterstates.contains(thing))
+            m_meterstates.remove(thing);
+
         info->finish(Thing::ThingErrorNoError);
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
@@ -249,6 +253,9 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
                 thing->setStateValue(solaxMeterConnectedStateTypeId, parentThing->stateValue(solaxIESInverterTCPConnectedStateTypeId).toBool());
             }
         }
+
+        MeterStates meterStates{};
+        m_meterstates.insert(thing, meterStates);
         return;
     }
 
@@ -262,7 +269,7 @@ void IntegrationPluginSolax::setupThing(ThingSetupInfo *info)
         Thing *parentThing = myThings().findById(thing->parentId());
         if (parentThing) {
             if (parentThing->thingClassId() == solaxIESInverterTCPThingClassId) {
-                thing->setStateValue(solaxMeterConnectedStateTypeId, parentThing->stateValue(solaxIESInverterTCPConnectedStateTypeId).toBool());
+                thing->setStateValue(solaxMeterSecondaryConnectedStateTypeId, parentThing->stateValue(solaxIESInverterTCPConnectedStateTypeId).toBool());
             }
         }
 
