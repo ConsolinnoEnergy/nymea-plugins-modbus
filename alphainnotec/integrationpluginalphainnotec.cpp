@@ -936,6 +936,42 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                     return;
                 });
             }
+        } else if (info->action().actionTypeId() == aitSmartHomeActivateLpcActionTypeId) {
+            qCDebug(dcAlphaInnotec()) << "executeAction() - LPC has been activated";
+            bool lpcActive = info->action().paramValue(aitSmartHomeActivateLpcActionActivateLpcParamTypeId).toBool();
+
+            QModbusReply *lpcModeReply = connection->setLpcMode(lpcActive ? 2 : 0);
+            if (!lpcModeReply) {
+                qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode to 2/0 failed because the reply could not be created.";
+                info->finish(Thing::ThingErrorHardwareFailure);
+            }
+            
+            connect(lpcModeReply, &QModbusReply::finished, lpcModeReply, &QModbusReply::deleteLater);
+            connect(lpcModeReply, &QModbusReply::finished, info, [info, lpcModeReply, connection]{
+                if (lpcModeReply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcAlphaInnotec()) << "Set lpc mode finished with error" << lpcModeReply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                    return;
+                }
+            
+                qCDebug(dcAlphaInnotec()) << "Execute action setLpcMode finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                info->finish(Thing::ThingErrorNoError);
+            });
+            
+            connect(lpcModeReply, &QModbusReply::errorOccurred, this, [info, lpcModeReply] (QModbusDevice::Error error){
+                qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action setLpcMode" << error << lpcModeReply->errorString();
+                info->finish(Thing::ThingErrorHardwareFailure);
+                return;
+            });
+
+        } else if (info->action().actionTypeId() == aitSmartHomeControllableLocalSystemActionTypeId) {
+            qCDebug(dcAlphaInnotec()) << "executeAction() - Nothing to be done in this action";
+            info->finish(Thing::ThingErrorNoError);
+            return;
+        } else {
+            qCWarning(dcAlphaInnotec()) << "executeAction() - Unhandled action" << info->action().actionTypeId().toString();
+            info->finish(Thing::ThingErrorActionTypeNotFound);
+            return;
         }
     }
 }
