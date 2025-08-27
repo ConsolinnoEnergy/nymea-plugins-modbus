@@ -630,33 +630,6 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             return;
         }
 
-  /*      if (info->action().actionTypeId() == alphaConnectOutdoorTemperatureActionTypeId) {
-            double outdoorTemperature = info->action().paramValue(alphaConnectOutdoorTemperatureActionOutdoorTemperatureParamTypeId).toDouble();
-            qCDebug(dcAlphaInnotec()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
-            QModbusReply *reply = connection->setOutdoorTemperature(outdoorTemperature);
-            if (!reply) {
-                qCWarning(dcAlphaInnotec()) << "Execute action failed because the reply could not be created.";
-                info->finish(Thing::ThingErrorHardwareFailure);
-                return;
-            }
-
-            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, info, [info, reply, outdoorTemperature]{
-                if (reply->error() != QModbusDevice::NoError) {
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                    qCWarning(dcAlphaInnotec()) << "Set outdoor temperature finished with error" << reply->errorString();
-                    return;
-                }
-
-                qCDebug(dcAlphaInnotec()) << "Execute action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
-                info->thing()->setStateValue(alphaConnectOutdoorTemperatureStateTypeId, outdoorTemperature);
-                info->finish(Thing::ThingErrorNoError);
-            });
-
-            connect(reply, &QModbusReply::errorOccurred, this, [reply] (QModbusDevice::Error error){
-                qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << reply->errorString();
-            });
-        } else */
         if (info->action().actionTypeId() == alphaConnectHotWaterSetpointTemperatureActionTypeId) {
             double temperature = info->action().paramValue(alphaConnectHotWaterSetpointTemperatureActionHotWaterSetpointTemperatureParamTypeId).toDouble();
             qCDebug(dcAlphaInnotec()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
