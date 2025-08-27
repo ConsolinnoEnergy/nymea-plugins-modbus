@@ -967,7 +967,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
 
             double powerLimit = info->action().paramValue(aitSmartHomePowerLimitConsumerActionPowerLimitConsumerParamTypeId).toDouble();
 
-            QModbusReply *pcLimitReply = connection->setPcLimit(powerToSet);
+            QModbusReply *pcLimitReply = connection->setPcLimit(powerLimit);
             if (!pcLimitReply) {
                 qCWarning(dcAlphaInnotec()) << "Execute action setPcLimit failed because the reply could not be created.";
                 info->finish(Thing::ThingErrorHardwareFailure);
