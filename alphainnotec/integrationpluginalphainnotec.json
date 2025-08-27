@@ -340,6 +340,7 @@
                     "interfaces": [
                         "pvsurplusheatpump",
                         "smartmeterconsumer",
+                        "limitableconsumer",
                         "connectable"
                     ],
                     "paramTypes": [
@@ -541,6 +542,42 @@
                             "type": "double",
                             "writable": true,
                             "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "8627d220-92a0-45d6-9853-14a431d0e167",
+                            "name": "activateLpc",
+                            "displayName": "Activate Limit of power consumption",
+                            "displayNameEvent": "LPC activation changed",
+                            "displayNameAction": "Set LPC activation",
+                            "type": "bool",
+                            "writable": true,
+                            "defaultValue": false,
+                            "cached": true,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "c1291270-c388-4fae-9ec6-5723d02be60d",
+                            "name": "powerLimitConsumer",
+                            "displayName": "Power Limit",
+                            "displayNameEvent": "Power limit changed",
+                            "displayNameAction": "Change power limit",
+                            "writable": true,
+                            "type": "double",
+                            "unit": "Watt",
+                            "minValue": 0,
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
+                            "id": "f8a28984-a40c-41af-a3d1-2f0dd94359f2",
+                            "name": "controllableLocalSystem",
+                            "displayName": "controllable local systems (CLS)",
+                            "displayNameAction": "Set controllable local systems (CLS)",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": true,
+                            "writable": true,
                             "suggestLogging": true
                         },
                         {
