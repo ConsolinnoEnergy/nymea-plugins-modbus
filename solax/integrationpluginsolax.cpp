@@ -2016,26 +2016,42 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             return;
         }
 
-        if (action.actionTypeId() == solaxX3InverterTCPSetExportLimitActionTypeId) {
-            quint16 powerLimit = action.paramValue(solaxX3InverterTCPSetExportLimitActionExportLimitParamTypeId).toUInt();
-            double ratedPower = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
-            qCWarning(dcSolax()) << "Rated power is" << ratedPower;
-            qCWarning(dcSolax()) << "Trying to set active power limit to" << powerLimit;
-            quint16 target = powerLimit * (ratedPower/100); 
-            QModbusReply *reply = connection->setWriteExportLimit(target);
+        auto limitToSet = QVariant{};
+        if (action.actionTypeId() == solaxX3InverterTCPEnableExportLimitActionTypeId) {
+            const auto enableExportLimit =
+                    action.paramValue(solaxX3InverterTCPEnableExportLimitActionEnableExportLimitParamTypeId).toBool();
+            thing->setStateValue(solaxX3InverterTCPEnableExportLimitStateTypeId, enableExportLimit);
+            const auto exportLimit = thing->stateValue(solaxX3InverterTCPExportLimitStateTypeId).toDouble();
+            const auto ratedPower = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
+            limitToSet = static_cast<float>(enableExportLimit ? exportLimit * ratedPower / 100 : 100);
+        } else if (action.actionTypeId() == solaxX3InverterTCPExportLimitActionTypeId) {
+            const auto exportLimit =
+                    action.paramValue(solaxX3InverterTCPExportLimitActionExportLimitParamTypeId).toDouble();
+            thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, exportLimit);
+            const auto exportLimitEnabled = thing->stateValue(solaxX3InverterTCPEnableExportLimitStateTypeId).toBool();
+            if (exportLimitEnabled) {
+                const auto ratedPower = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
+                limitToSet = static_cast<float>(exportLimit * ratedPower / 100);
+            }
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+            info->finish(Thing::ThingErrorActionTypeNotFound);
+            return;
+        }
+
+        if (limitToSet.isValid()) {
+            const auto limit = limitToSet.toFloat();
+            const auto reply = connection->setWriteExportLimit(limit);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, info, [info, thing, reply, powerLimit, target](){
+            connect(reply, &QModbusReply::finished, info, [info, reply, limit](){
                 if (reply->error() != QModbusDevice::NoError) {
                     qCWarning(dcSolax()) << "Error setting active power limit" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 } else {
-                    qCWarning(dcSolax()) << "Active power limit set to" << target;
-                    //thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, target);
+                    qCInfo(dcSolax()) << "Active power limit set to" << limit;
                     info->finish(Thing::ThingErrorNoError);
                 }
             });
-        } else {
-            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
     } else if (thing->thingClassId() == solaxX3InverterRTUThingClassId){
         SolaxModbusRtuConnection *connection = m_rtuConnections.value(thing);
@@ -2051,26 +2067,42 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             return;
         }
 
-        if (action.actionTypeId() == solaxX3InverterRTUSetExportLimitActionTypeId) {
-            quint16 powerLimit = action.paramValue(solaxX3InverterRTUSetExportLimitActionExportLimitParamTypeId).toUInt();
-            double ratedPower = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
-            qCWarning(dcSolax()) << "Rated power is" << ratedPower;
-            qCWarning(dcSolax()) << "Trying to set active power limit to" << powerLimit;
-            quint16 target = powerLimit * (ratedPower/100); 
-            ModbusRtuReply *reply = connection->setWriteExportLimit(target);
+        auto limitToSet = QVariant{};
+        if (action.actionTypeId() == solaxX3InverterRTUEnableExportLimitActionTypeId) {
+            const auto enableExportLimit =
+                    action.paramValue(solaxX3InverterRTUEnableExportLimitActionEnableExportLimitParamTypeId).toBool();
+            thing->setStateValue(solaxX3InverterRTUEnableExportLimitStateTypeId, enableExportLimit);
+            const auto exportLimit = thing->stateValue(solaxX3InverterRTUExportLimitStateTypeId).toDouble();
+            const auto ratedPower = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
+            limitToSet = static_cast<float>(enableExportLimit ? exportLimit * ratedPower / 100 : 100);
+        } else if (action.actionTypeId() == solaxX3InverterRTUExportLimitActionTypeId) {
+            const auto exportLimit =
+                    action.paramValue(solaxX3InverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
+            thing->setStateValue(solaxX3InverterRTUExportLimitStateTypeId, exportLimit);
+            const auto exportLimitEnabled = thing->stateValue(solaxX3InverterRTUEnableExportLimitStateTypeId).toBool();
+            if (exportLimitEnabled) {
+                const auto ratedPower = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
+                limitToSet = static_cast<float>(exportLimit * ratedPower / 100);
+            }
+        } else {
+            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
+            info->finish(Thing::ThingErrorActionTypeNotFound);
+            return;
+        }
+
+        if (limitToSet.isValid()) {
+            const auto limit = limitToSet.toFloat();
+            const auto reply = connection->setWriteExportLimit(limit);
             connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
-            connect(reply, &ModbusRtuReply::finished, info, [info, thing, reply, powerLimit, target](){
+            connect(reply, &ModbusRtuReply::finished, info, [info, reply, limit](){
                 if (reply->error() != ModbusRtuReply::NoError) {
                     qCWarning(dcSolax()) << "Error setting active power limit" << reply->error() << reply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                 } else {
-                    qCWarning(dcSolax()) << "Active power limit set to" << target;
-                    //thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, target);
+                    qCInfo(dcSolax()) << "Active power limit set to" << limit;
                     info->finish(Thing::ThingErrorNoError);
                 }
             });
-        } else {
-            Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
         }
     } else if (thing->thingClassId() == solaxBatteryThingClassId) {
         Thing *inverterThing = myThings().findById(thing->parentId());
