@@ -2041,7 +2041,6 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
 
         if (limitToSet.isValid()) {
             const auto limit = limitToSet.toFloat();
-            qCInfo(dcSolax()) << "\tSetting power limit:" << limit;
             const auto reply = connection->setWriteExportLimit(limit);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, info, [info, reply, limit](){
@@ -2094,7 +2093,6 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
 
         if (limitToSet.isValid()) {
             const auto limit = limitToSet.toFloat();
-            qCInfo(dcSolax()) << "\tSetting power limit:" << limit;
             const auto reply = connection->setWriteExportLimit(limit);
             connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
             connect(reply, &ModbusRtuReply::finished, info, [info, reply, limit](){
