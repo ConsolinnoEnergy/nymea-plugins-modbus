@@ -151,14 +151,14 @@ quint16 SolaxModbusTcpConnection::meter2CommunicationState() const
     return m_meter2CommunicationState;
 }
 
-float SolaxModbusTcpConnection::readExportLimit() const
+quint16 SolaxModbusTcpConnection::readExportLimit() const
 {
     return m_readExportLimit;
 }
 
-QModbusReply *SolaxModbusTcpConnection::setWriteExportLimit(float writeExportLimit)
+QModbusReply *SolaxModbusTcpConnection::setWriteExportLimit(quint16 writeExportLimit)
 {
-    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(static_cast<quint16>(writeExportLimit  * 1.0 / pow(10, 1)));
+    QVector<quint16> values = ModbusDataUtils::convertFromUInt16(writeExportLimit);
     qCDebug(dcSolaxModbusTcpConnection()) << "--> Write \"Write grid export limit (0x42)\" register:" << 66 << "size:" << 1 << values;
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, 66, values.count());
     request.setValues(values);
@@ -2665,7 +2665,7 @@ void SolaxModbusTcpConnection::processMeter2CommunicationStateRegisterValues(con
 
 void SolaxModbusTcpConnection::processReadExportLimitRegisterValues(const QVector<quint16> values)
 {
-    float receivedReadExportLimit = ModbusDataUtils::convertToUInt16(values) * 1.0 * pow(10, 1);
+    quint16 receivedReadExportLimit = ModbusDataUtils::convertToUInt16(values);
     emit readExportLimitReadFinished(receivedReadExportLimit);
 
     if (m_readExportLimit != receivedReadExportLimit) {

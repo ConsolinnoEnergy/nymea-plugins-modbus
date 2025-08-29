@@ -2023,15 +2023,14 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             thing->setStateValue(solaxX3InverterTCPEnableExportLimitStateTypeId, enableExportLimit);
             const auto exportLimit = thing->stateValue(solaxX3InverterTCPExportLimitStateTypeId).toDouble();
             const auto ratedPower = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
-            limitToSet = static_cast<float>(enableExportLimit ? exportLimit * ratedPower / 100 : 100);
+            limitToSet = static_cast<quint16>(enableExportLimit ? exportLimit : ratedPower);
         } else if (action.actionTypeId() == solaxX3InverterTCPExportLimitActionTypeId) {
             const auto exportLimit =
                     action.paramValue(solaxX3InverterTCPExportLimitActionExportLimitParamTypeId).toDouble();
             thing->setStateValue(solaxX3InverterTCPExportLimitStateTypeId, exportLimit);
             const auto exportLimitEnabled = thing->stateValue(solaxX3InverterTCPEnableExportLimitStateTypeId).toBool();
             if (exportLimitEnabled) {
-                const auto ratedPower = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
-                limitToSet = static_cast<float>(exportLimit * ratedPower / 100);
+                limitToSet = static_cast<quint16>(exportLimit);
             }
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
@@ -2040,7 +2039,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
         }
 
         if (limitToSet.isValid()) {
-            const auto limit = limitToSet.toFloat();
+            const auto limit = static_cast<quint16>(limitToSet.toUInt());
             const auto reply = connection->setWriteExportLimit(limit);
             connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
             connect(reply, &QModbusReply::finished, info, [info, reply, limit](){
@@ -2074,15 +2073,14 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             thing->setStateValue(solaxX3InverterRTUEnableExportLimitStateTypeId, enableExportLimit);
             const auto exportLimit = thing->stateValue(solaxX3InverterRTUExportLimitStateTypeId).toDouble();
             const auto ratedPower = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
-            limitToSet = static_cast<float>(enableExportLimit ? exportLimit * ratedPower / 100 : 100);
+            limitToSet = static_cast<quint16>(enableExportLimit ? exportLimit : ratedPower);
         } else if (action.actionTypeId() == solaxX3InverterRTUExportLimitActionTypeId) {
             const auto exportLimit =
                     action.paramValue(solaxX3InverterRTUExportLimitActionExportLimitParamTypeId).toDouble();
             thing->setStateValue(solaxX3InverterRTUExportLimitStateTypeId, exportLimit);
             const auto exportLimitEnabled = thing->stateValue(solaxX3InverterRTUEnableExportLimitStateTypeId).toBool();
             if (exportLimitEnabled) {
-                const auto ratedPower = thing->stateValue(solaxX3InverterRTUNominalPowerStateTypeId).toDouble();
-                limitToSet = static_cast<float>(exportLimit * ratedPower / 100);
+                limitToSet = static_cast<quint16>(exportLimit);
             }
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
@@ -2091,7 +2089,7 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
         }
 
         if (limitToSet.isValid()) {
-            const auto limit = limitToSet.toFloat();
+            const auto limit = static_cast<quint16>(limitToSet.toUInt());
             const auto reply = connection->setWriteExportLimit(limit);
             connect(reply, &ModbusRtuReply::finished, reply, &ModbusRtuReply::deleteLater);
             connect(reply, &ModbusRtuReply::finished, info, [info, reply, limit](){

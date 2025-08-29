@@ -160,10 +160,10 @@ public:
     quint16 meter2CommunicationState() const;
 
     /* Read grid export limit (0xB6) [W] - Address: 182, Size: 1 */
-    float readExportLimit() const;
+    quint16 readExportLimit() const;
 
     /* Write grid export limit (0x42) [W] - Address: 66, Size: 1 */
-    QModbusReply *setWriteExportLimit(float writeExportLimit);
+    QModbusReply *setWriteExportLimit(quint16 writeExportLimit);
 
     /* Firmware version (0x7D) - Address: 125, Size: 1 */
     quint16 firmwareVersion() const;
@@ -608,8 +608,8 @@ signals:
     void meter1CommunicationStateReadFinished(quint16 meter1CommunicationState);
     void meter2CommunicationStateChanged(quint16 meter2CommunicationState);
     void meter2CommunicationStateReadFinished(quint16 meter2CommunicationState);
-    void readExportLimitChanged(float readExportLimit);
-    void readExportLimitReadFinished(float readExportLimit);
+    void readExportLimitChanged(quint16 readExportLimit);
+    void readExportLimitReadFinished(quint16 readExportLimit);
     void firmwareVersionChanged(quint16 firmwareVersion);
     void firmwareVersionReadFinished(quint16 firmwareVersion);
     void inverterTypeChanged(quint16 inverterType);
@@ -717,8 +717,8 @@ protected:
     quint32 m_inverterFaultBits = 0;
     quint16 m_meter1CommunicationState = 0;
     quint16 m_meter2CommunicationState = 0;
-    float m_readExportLimit = 0;
-    float m_writeExportLimit = 0;
+    quint16 m_readExportLimit = 0;
+    quint16 m_writeExportLimit = 0;
     quint16 m_firmwareVersion = 0;
     quint16 m_inverterType = 0;
     quint32 m_modeType = 0;
