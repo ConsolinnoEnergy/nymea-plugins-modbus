@@ -547,7 +547,7 @@
                         {
                             "id": "8627d220-92a0-45d6-9853-14a431d0e167",
                             "name": "activateLpc",
-                            "displayName": "Activate Limit of power consumption",
+                            "displayName": "Activate LPC",
                             "displayNameEvent": "LPC activation changed",
                             "displayNameAction": "Set LPC activation",
                             "type": "bool",
@@ -559,7 +559,7 @@
                         {
                             "id": "c1291270-c388-4fae-9ec6-5723d02be60d",
                             "name": "powerLimitConsumer",
-                            "displayName": "Power Limit",
+                            "displayName": "LPC power limit",
                             "displayNameEvent": "Power limit changed",
                             "displayNameAction": "Change power limit",
                             "writable": true,
@@ -572,7 +572,7 @@
                         {
                             "id": "f8a28984-a40c-41af-a3d1-2f0dd94359f2",
                             "name": "controllableLocalSystem",
-                            "displayName": "controllable local systems (CLS)",
+                            "displayName": "Set CLS",
                             "displayNameAction": "Set controllable local systems (CLS)",
                             "type": "bool",
                             "defaultValue": false,
