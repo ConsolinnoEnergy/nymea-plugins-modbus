@@ -726,7 +726,7 @@
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "Write grid export limit (0x42)",
-            "unit": "W",
+            "unit": "%",
             "defaultValue": "0",
             "access": "RW"
         },
