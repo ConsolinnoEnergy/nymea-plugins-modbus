@@ -715,6 +715,7 @@
             "readSchedule": "update",
             "description": "Read grid export limit (0xB6)",
             "unit": "W",
+            "staticScaleFactor": 1,
             "defaultValue": "0",
             "access": "RO"
         },
@@ -726,8 +727,9 @@
             "registerType": "holdingRegister",
             "readSchedule": "update",
             "description": "Write grid export limit (0x42)",
-            "unit": "%",
+            "unit": "W",
             "defaultValue": "0",
+            "staticScaleFactor": 1,
             "access": "RW"
         },
         {
