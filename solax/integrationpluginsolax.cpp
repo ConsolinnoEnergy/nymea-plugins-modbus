@@ -2024,6 +2024,11 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             const auto exportLimit = thing->stateValue(solaxX3InverterTCPExportLimitStateTypeId).toDouble();
             const auto ratedPower = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
             limitToSet = static_cast<quint16>(enableExportLimit ? exportLimit / ratedPower * 100 : 100);
+            qCDebug(dcSolax()) << "Enable export limit?"  << enableExportLimit;
+            qCDebug(dcSolax()) << "\tExport limit:" << exportLimit;
+            qCDebug(dcSolax()) << "\tRated power:" << ratedPower;
+            qCDebug(dcSolax()) << "\tLimit to set:" << limitToSet.toUInt();
+
         } else if (action.actionTypeId() == solaxX3InverterTCPExportLimitActionTypeId) {
             const auto exportLimit =
                     action.paramValue(solaxX3InverterTCPExportLimitActionExportLimitParamTypeId).toDouble();
@@ -2032,6 +2037,10 @@ void IntegrationPluginSolax::executeAction(ThingActionInfo *info)
             if (exportLimitEnabled) {
                 const auto ratedPower = thing->stateValue(solaxX3InverterTCPNominalPowerStateTypeId).toDouble();
                 limitToSet = static_cast<quint16>(exportLimit / ratedPower * 100);
+                qCDebug(dcSolax()) << "Enable export limit?"  << exportLimitEnabled;
+                qCDebug(dcSolax()) << "\tExport limit:" << exportLimit;
+                qCDebug(dcSolax()) << "\tRated power:" << ratedPower;
+                qCDebug(dcSolax()) << "\tLimit to set:" << limitToSet.toUInt();
             }
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(actionType.name()).toUtf8());
