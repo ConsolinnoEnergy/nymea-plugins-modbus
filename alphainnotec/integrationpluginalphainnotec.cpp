@@ -820,6 +820,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             qCDebug(dcAlphaInnotec()) << "executeAction() - LPC has been activated";
 
             bool lpcActive = info->action().paramValue(aitSmartHomeActivateLpcActionActivateLpcParamTypeId).toBool();
+            info->thing()->setStateValue(aitSmartHomeActivateLpcStateTypeId, lpcActive);
             if (lpcActive) {
                 m_currentControlMode = HARDLIMIT;
                 writeOperatingMode(info, connection, Mode::HARDLIMIT);
@@ -840,7 +841,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             }
 
             connect(pcLimitReply, &QModbusReply::finished, pcLimitReply, &QModbusReply::deleteLater);
-            connect(pcLimitReply, &QModbusReply::finished, info, [info, pcLimitReply, connection]{
+            connect(pcLimitReply, &QModbusReply::finished, info, [info, pcLimitReply, connection, powerLimit]{
                 if (pcLimitReply->error() != QModbusDevice::NoError) {
                     qCWarning(dcAlphaInnotec()) << "Set pc limit finished with error" << pcLimitReply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
@@ -849,6 +850,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
 
                 qCDebug(dcAlphaInnotec()) << "Execute setPcLimit action setPcLimit finished successfully"
                                           << info->action().actionTypeId().toString() << info->action().params();
+                info->thing()->setStateValue(aitSmartHomePowerLimitConsumerStateTypeId, powerLimit);
                 info->finish(Thing::ThingErrorNoError);
             });
 
@@ -860,6 +862,8 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             return;
         } else if (info->action().actionTypeId() == aitSmartHomeControllableLocalSystemActionTypeId) {
             qCDebug(dcAlphaInnotec()) << "executeAction() - Nothing to be done in this action";
+            bool state = info->action().paramValue(aitSmartHomeControllableLocalSystemActionControllableLocalSystemParamTypeId).toBool();
+            info->thing()->setStateValue(aitSmartHomeControllableLocalSystemStateTypeId, state);
             info->finish(Thing::ThingErrorNoError);
             return;
         } else {
@@ -1006,6 +1010,8 @@ void IntegrationPluginAlphaInnotec::writeOperatingMode(ThingActionInfo *info, ai
 
     if (settingModeInProgress)
         loop.exec();
+
+    return;
 }
 
 void IntegrationPluginAlphaInnotec::updateFirmwareVersion(Thing *thing, quint16 version, QString place)
