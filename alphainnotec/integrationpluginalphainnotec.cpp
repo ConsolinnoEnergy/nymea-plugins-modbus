@@ -771,6 +771,8 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             }
 
             bool settingModeInProgress = false;
+            // TODO: put the folowing code into an extra function
+            // so it can be called when LPC has been activated
             QEventLoop loop;
             if (modeChanged || m_resetMode) {
                 // Set LPC mode
@@ -939,7 +941,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             qCDebug(dcAlphaInnotec()) << "executeAction() - LPC has been activated";
             bool lpcActive = info->action().paramValue(aitSmartHomeActivateLpcActionActivateLpcParamTypeId).toBool();
 
-            QModbusReply *lpcModeReply = connection->setLpcMode(lpcActive ? 2 : 0);
+            QModbusReply *lpcModeReply = connection->setLpcMode(lpcActive ? Mode::HARDLIMIT : Mode::SOFTLIMIT);
             if (!lpcModeReply) {
                 qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode to 2/0 failed because the reply could not be created.";
                 info->finish(Thing::ThingErrorHardwareFailure);

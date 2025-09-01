@@ -69,6 +69,7 @@ private:
     enum Mode {
         NOLIMIT = 0,
         SOFTLIMIT = 1,
+        HARDLIMIT = 2,
         UNDEFINED = 3
     };
 
