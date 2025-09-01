@@ -732,6 +732,12 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
 
         if (info->action().actionTypeId() == aitSmartHomeActualPvSurplusActionTypeId) {
             qCDebug(dcAlphaInnotec()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
+
+            if (m_currentControlMode == Mode::HARDLIMIT) {
+                qCDebug(dcAlphaInnotec()) << "Received PV Surplus, but LPC is active";
+                info->finish(Thing::ThingErrorNoError);
+                return;
+            }
             double surplusPvPower = info->action().paramValue(aitSmartHomeActualPvSurplusActionActualPvSurplusParamTypeId).toDouble();
             double oldSurplusPvPower = info->thing()->stateValue(aitSmartHomeActualPvSurplusStateTypeId).toDouble();
             double currentPower = info->thing()->stateValue(aitSmartHomeCurrentPowerStateTypeId).toDouble();
@@ -770,136 +776,9 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                 modeChanged = true;
             }
 
-            bool settingModeInProgress = false;
-            // TODO: put the folowing code into an extra function
-            // so it can be called when LPC has been activated
-            QEventLoop loop;
             if (modeChanged || m_resetMode) {
-                // Set LPC mode
-                settingModeInProgress = true;
-                QModbusReply *lpcModeReply = connection->setLpcMode(modeToSet);
-                if (!lpcModeReply) {
-                    qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode failed because the reply could not be created.";
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                    return;
-                }
-
-                connect(lpcModeReply, &QModbusReply::finished, lpcModeReply, &QModbusReply::deleteLater);
-                connect(lpcModeReply, &QModbusReply::finished, info, [this, info, lpcModeReply, connection, modeToSet, &settingModeInProgress, &loop] {
-                    if (lpcModeReply->error() != QModbusDevice::NoError) {
-                        qCWarning(dcAlphaInnotec()) << "Set pc limit finished with error" << lpcModeReply->errorString();
-                        info->finish(Thing::ThingErrorHardwareFailure);
-                        return;
-                    }
-
-                    qCDebug(dcAlphaInnotec()) << "Execute setLpcMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
-                    // Set Hot Water Mode
-                    QModbusReply *hotWaterModeReply = connection->setHotWaterMode((modeToSet == SOFTLIMIT) ? 2 : 0);
-                    if (!hotWaterModeReply) {
-                        qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode failed because the reply could not be created.";
-                        info->finish(Thing::ThingErrorHardwareFailure);
-                        return;
-                    }
-
-                    connect(hotWaterModeReply, &QModbusReply::finished, hotWaterModeReply, &QModbusReply::deleteLater);
-                    connect(hotWaterModeReply, &QModbusReply::finished, info, [this, info, hotWaterModeReply, connection, modeToSet, &settingModeInProgress, &loop] {
-                        if (hotWaterModeReply->error() != QModbusDevice::NoError) {
-                            qCWarning(dcAlphaInnotec()) << "Set pc limit finished with error" << hotWaterModeReply->errorString();
-                            info->finish(Thing::ThingErrorHardwareFailure);
-                            return;
-                        }
-
-                        qCDebug(dcAlphaInnotec()) << "Execute setHotWaterMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
-                        // Set Heating Mode
-                        QModbusReply *heatingModeReply = connection->setHeatingMode((modeToSet == SOFTLIMIT) ? 2 : 0);
-                        if (!heatingModeReply) {
-                            qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode failed because the reply could not be created.";
-                            info->finish(Thing::ThingErrorHardwareFailure);
-                            return;
-                        }
-
-                        connect(heatingModeReply, &QModbusReply::finished, heatingModeReply, &QModbusReply::deleteLater);
-                        connect(heatingModeReply, &QModbusReply::finished, info, [this, info, heatingModeReply, connection, modeToSet, &settingModeInProgress, &loop] {
-                            if (heatingModeReply->error() != QModbusDevice::NoError) {
-                                qCWarning(dcAlphaInnotec()) << "Set pc limit finished with error" << heatingModeReply->errorString();
-                                info->finish(Thing::ThingErrorHardwareFailure);
-                                return;
-                            }
-
-                            qCDebug(dcAlphaInnotec()) << "Execute setHeatingMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
-                            double coolingAndPool = info->thing()->paramValue(aitSmartHomeThingCoolingAndPoolParamTypeId).toBool();
-                            if (coolingAndPool) {
-                                QModbusReply *blockCoolingReply = connection->setBlockCooling((modeToSet == SOFTLIMIT) ? 0 : 1);
-                                if (!blockCoolingReply) {
-                                    qCWarning(dcAlphaInnotec()) << "Execute action setBlockCooling failed because the reply could not be created";
-                                    info->finish(Thing::ThingErrorHardwareFailure);
-                                }
-                                connect(blockCoolingReply, &QModbusReply::finished, blockCoolingReply, &QModbusReply::deleteLater);
-                                connect(blockCoolingReply, &QModbusReply::finished, info, [this, info, blockCoolingReply, connection, modeToSet, &settingModeInProgress, &loop] {
-                                    if (blockCoolingReply->error() != QModbusDevice::NoError) {
-                                        qCWarning(dcAlphaInnotec()) << "Set block cooling finished with error" << blockCoolingReply->errorString();
-                                        info->finish(Thing::ThingErrorHardwareFailure);
-                                        return;
-                                    }
-
-                                    qCDebug(dcAlphaInnotec()) << "Execute setBlockCooling action finshed successfully" << info->action().actionTypeId().toString() << info->action().params();
-                                    QModbusReply *blockPoolReply = connection->setBlockPool((modeToSet == SOFTLIMIT) ? 0 : 1);
-                                    if (!blockPoolReply) {
-                                        qCWarning(dcAlphaInnotec()) << "Execute action setBlockPool failed because the reply could not be created";
-                                        info->finish(Thing::ThingErrorHardwareFailure);
-                                    }
-                                    connect(blockPoolReply, &QModbusReply::finished, blockPoolReply, &QModbusReply::deleteLater);
-                                    connect(blockPoolReply, &QModbusReply::finished, info, [this, info, blockPoolReply, connection, modeToSet, &settingModeInProgress, &loop] {
-                                        if (blockPoolReply->error() != QModbusDevice::NoError) {
-                                            qCWarning(dcAlphaInnotec()) << "Set block pool finished with error" << blockPoolReply->errorString();
-                                            info->finish(Thing::ThingErrorHardwareFailure);
-                                            return;
-                                        }
-
-                                        qCDebug(dcAlphaInnotec()) << "Execute setBlockPooling action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
-                                        m_currentControlMode = modeToSet;
-                                        m_resetMode = false;
-                                        settingModeInProgress = false;
-                                        loop.quit();
-                                    });
-
-                                    connect(blockPoolReply, &QModbusReply::errorOccurred, info, [info, blockPoolReply] (QModbusDevice::Error error){
-                                        qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << blockPoolReply->errorString();
-                                        info->finish(Thing::ThingErrorHardwareFailure);
-                                        return;
-                                    });
-                                });
-
-                                connect(blockCoolingReply, &QModbusReply::errorOccurred, info, [info, blockCoolingReply] (QModbusDevice::Error error){
-                                    qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << blockCoolingReply->errorString();
-                                    info->finish(Thing::ThingErrorHardwareFailure);
-                                    return;
-                                });
-                            }
-                        });
-
-                        connect(heatingModeReply, &QModbusReply::errorOccurred, info, [info, heatingModeReply] (QModbusDevice::Error error){
-                            qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << heatingModeReply->errorString();
-                            info->finish(Thing::ThingErrorHardwareFailure);
-                            return;
-                        });
-                    });
-
-                    connect(hotWaterModeReply, &QModbusReply::errorOccurred, info, [info, hotWaterModeReply] (QModbusDevice::Error error){
-                        qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << hotWaterModeReply->errorString();
-                        info->finish(Thing::ThingErrorHardwareFailure);
-                        return;
-                    });
-                });
-
-                connect(lpcModeReply, &QModbusReply::errorOccurred, info, [lpcModeReply] (QModbusDevice::Error error){
-                    qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << lpcModeReply->errorString();
-                    return;
-                });
+                writeOperatingMode(info, connection, modeToSet);
             }
-
-            if (settingModeInProgress)
-                loop.exec();
 
             if (((surplusPvPower > 0 || m_turnOffHysteresis) &&
                   surplusPvPower != oldSurplusPvPower) &&
@@ -939,31 +818,16 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             }
         } else if (info->action().actionTypeId() == aitSmartHomeActivateLpcActionTypeId) {
             qCDebug(dcAlphaInnotec()) << "executeAction() - LPC has been activated";
-            bool lpcActive = info->action().paramValue(aitSmartHomeActivateLpcActionActivateLpcParamTypeId).toBool();
 
-            QModbusReply *lpcModeReply = connection->setLpcMode(lpcActive ? Mode::HARDLIMIT : Mode::SOFTLIMIT);
-            if (!lpcModeReply) {
-                qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode to 2/0 failed because the reply could not be created.";
-                info->finish(Thing::ThingErrorHardwareFailure);
+            bool lpcActive = info->action().paramValue(aitSmartHomeActivateLpcActionActivateLpcParamTypeId).toBool();
+            if (lpcActive) {
+                m_currentControlMode = HARDLIMIT;
+                writeOperatingMode(info, connection, Mode::HARDLIMIT);
+            } else {
+                m_currentControlMode = NOLIMIT;
+                writeOperatingMode(info, connection, Mode::NOLIMIT);
             }
 
-            connect(lpcModeReply, &QModbusReply::finished, lpcModeReply, &QModbusReply::deleteLater);
-            connect(lpcModeReply, &QModbusReply::finished, info, [info, lpcModeReply, connection]{
-                if (lpcModeReply->error() != QModbusDevice::NoError) {
-                    qCWarning(dcAlphaInnotec()) << "Set lpc mode finished with error" << lpcModeReply->errorString();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                    return;
-                }
-
-                qCDebug(dcAlphaInnotec()) << "Execute action setLpcMode finished successfully" << info->action().actionTypeId().toString() << info->action().params();
-                info->finish(Thing::ThingErrorNoError);
-            });
-
-            connect(lpcModeReply, &QModbusReply::errorOccurred, this, [info, lpcModeReply] (QModbusDevice::Error error){
-                qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action setLpcMode" << error << lpcModeReply->errorString();
-                info->finish(Thing::ThingErrorHardwareFailure);
-                return;
-            });
         } else if (info->action().actionTypeId() == aitSmartHomePowerLimitConsumerActionTypeId) {
             qCDebug(dcAlphaInnotec()) << "executeAction() - Setting PC Limit for LPC";
 
@@ -1004,6 +868,144 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             return;
         }
     }
+}
+
+void IntegrationPluginAlphaInnotec::writeOperatingMode(ThingActionInfo *info, aitShiModbusTcpConnection *connection, Mode modeToSet)
+{
+    /* This function is called when the operating mode changes to either
+     * NOLIMIT, SOFTLIMIT, HARDLIMIT
+     * If NOLIMIT is set, the heatpump operates on its own
+     * If SOFTLIMIT is set, the heatpump should follow PV-Surplus and start heating
+     * If HARDLIMIT is set, the power consumption should be limited, but the HEMS
+     *                      does not tell the WP to start heating
+     */
+    qCDebug(dcAlphaInnotec()) << "Writing operating mode to heatpump.";
+    QEventLoop loop;
+    bool settingModeInProgress = true;
+
+    // Set LPC mode
+    QModbusReply *lpcModeReply = connection->setLpcMode(modeToSet);
+    if (!lpcModeReply) {
+        qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode failed because the reply could not be created.";
+        info->finish(Thing::ThingErrorHardwareFailure);
+        return;
+    }
+
+    connect(lpcModeReply, &QModbusReply::finished, lpcModeReply, &QModbusReply::deleteLater);
+    connect(lpcModeReply, &QModbusReply::finished, info, [this, info, lpcModeReply, connection, modeToSet, &settingModeInProgress, &loop] {
+        if (lpcModeReply->error() != QModbusDevice::NoError) {
+            qCWarning(dcAlphaInnotec()) << "Set pc limit finished with error" << lpcModeReply->errorString();
+            info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+
+        qCDebug(dcAlphaInnotec()) << "Execute setLpcMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+        // Set Hot Water Mode
+        QModbusReply *hotWaterModeReply = connection->setHotWaterMode((modeToSet == SOFTLIMIT) ? 2 : 0);
+        if (!hotWaterModeReply) {
+            qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode failed because the reply could not be created.";
+            info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        }
+
+        connect(hotWaterModeReply, &QModbusReply::finished, hotWaterModeReply, &QModbusReply::deleteLater);
+        connect(hotWaterModeReply, &QModbusReply::finished, info, [this, info, hotWaterModeReply, connection, modeToSet, &settingModeInProgress, &loop] {
+            if (hotWaterModeReply->error() != QModbusDevice::NoError) {
+                qCWarning(dcAlphaInnotec()) << "Set pc limit finished with error" << hotWaterModeReply->errorString();
+                info->finish(Thing::ThingErrorHardwareFailure);
+                return;
+            }
+
+            qCDebug(dcAlphaInnotec()) << "Execute setHotWaterMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+            // Set Heating Mode
+            QModbusReply *heatingModeReply = connection->setHeatingMode((modeToSet == SOFTLIMIT) ? 2 : 0);
+            if (!heatingModeReply) {
+                qCWarning(dcAlphaInnotec()) << "Execute action setLpcMode failed because the reply could not be created.";
+                info->finish(Thing::ThingErrorHardwareFailure);
+                return;
+            }
+
+            connect(heatingModeReply, &QModbusReply::finished, heatingModeReply, &QModbusReply::deleteLater);
+            connect(heatingModeReply, &QModbusReply::finished, info, [this, info, heatingModeReply, connection, modeToSet, &settingModeInProgress, &loop] {
+                if (heatingModeReply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcAlphaInnotec()) << "Set pc limit finished with error" << heatingModeReply->errorString();
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                    return;
+                }
+
+                qCDebug(dcAlphaInnotec()) << "Execute setHeatingMode action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                double coolingAndPool = info->thing()->paramValue(aitSmartHomeThingCoolingAndPoolParamTypeId).toBool();
+                if (coolingAndPool) {
+                    QModbusReply *blockCoolingReply = connection->setBlockCooling((modeToSet == SOFTLIMIT) ? 0 : 1);
+                    if (!blockCoolingReply) {
+                        qCWarning(dcAlphaInnotec()) << "Execute action setBlockCooling failed because the reply could not be created";
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                    }
+                    connect(blockCoolingReply, &QModbusReply::finished, blockCoolingReply, &QModbusReply::deleteLater);
+                    connect(blockCoolingReply, &QModbusReply::finished, info, [this, info, blockCoolingReply, connection, modeToSet, &settingModeInProgress, &loop] {
+                        if (blockCoolingReply->error() != QModbusDevice::NoError) {
+                            qCWarning(dcAlphaInnotec()) << "Set block cooling finished with error" << blockCoolingReply->errorString();
+                            info->finish(Thing::ThingErrorHardwareFailure);
+                            return;
+                        }
+
+                        qCDebug(dcAlphaInnotec()) << "Execute setBlockCooling action finshed successfully" << info->action().actionTypeId().toString() << info->action().params();
+                        QModbusReply *blockPoolReply = connection->setBlockPool((modeToSet == SOFTLIMIT) ? 0 : 1);
+                        if (!blockPoolReply) {
+                            qCWarning(dcAlphaInnotec()) << "Execute action setBlockPool failed because the reply could not be created";
+                            info->finish(Thing::ThingErrorHardwareFailure);
+                        }
+                        connect(blockPoolReply, &QModbusReply::finished, blockPoolReply, &QModbusReply::deleteLater);
+                        connect(blockPoolReply, &QModbusReply::finished, info, [this, info, blockPoolReply, connection, modeToSet, &settingModeInProgress, &loop] {
+                            if (blockPoolReply->error() != QModbusDevice::NoError) {
+                                qCWarning(dcAlphaInnotec()) << "Set block pool finished with error" << blockPoolReply->errorString();
+                                info->finish(Thing::ThingErrorHardwareFailure);
+                                return;
+                            }
+
+                            qCDebug(dcAlphaInnotec()) << "Execute setBlockPooling action finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                            m_currentControlMode = modeToSet;
+                            m_resetMode = false;
+                            settingModeInProgress = false;
+                            loop.quit();
+                        });
+
+                        connect(blockPoolReply, &QModbusReply::errorOccurred, info, [info, blockPoolReply] (QModbusDevice::Error error){
+                            qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << blockPoolReply->errorString();
+                            info->finish(Thing::ThingErrorHardwareFailure);
+                            return;
+                        });
+                    });
+
+                    connect(blockCoolingReply, &QModbusReply::errorOccurred, info, [info, blockCoolingReply] (QModbusDevice::Error error){
+                        qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << blockCoolingReply->errorString();
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                        return;
+                    });
+                }
+            });
+
+            connect(heatingModeReply, &QModbusReply::errorOccurred, info, [info, heatingModeReply] (QModbusDevice::Error error){
+                qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << heatingModeReply->errorString();
+                info->finish(Thing::ThingErrorHardwareFailure);
+                return;
+            });
+        });
+
+        connect(hotWaterModeReply, &QModbusReply::errorOccurred, info, [info, hotWaterModeReply] (QModbusDevice::Error error){
+            qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << hotWaterModeReply->errorString();
+            info->finish(Thing::ThingErrorHardwareFailure);
+            return;
+        });
+    });
+
+    connect(lpcModeReply, &QModbusReply::errorOccurred, info, [lpcModeReply] (QModbusDevice::Error error){
+        qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action" << error << lpcModeReply->errorString();
+        return;
+    });
+
+    if (settingModeInProgress)
+        loop.exec();
 }
 
 void IntegrationPluginAlphaInnotec::updateFirmwareVersion(Thing *thing, quint16 version, QString place)
