@@ -817,19 +817,20 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                 });
             }
         } else if (info->action().actionTypeId() == aitSmartHomeActivateLpcActionTypeId) {
-            qCDebug(dcAlphaInnotec()) << "executeAction() - LPC has been activated";
+            /* This function sets the operating mode of the heatpump to HARDLIMIT if LPC is active
+             * NOLIMIT otherwise
+             */
+            qCDebug(dcAlphaInnotec()) << "executeAction() - LPC has been toggled";
 
             bool lpcActive = info->action().paramValue(aitSmartHomeActivateLpcActionActivateLpcParamTypeId).toBool();
             info->thing()->setStateValue(aitSmartHomeActivateLpcStateTypeId, lpcActive);
-            if (lpcActive) {
-                m_currentControlMode = HARDLIMIT;
-                writeOperatingMode(info, connection, Mode::HARDLIMIT);
-            } else {
-                m_currentControlMode = NOLIMIT;
-                writeOperatingMode(info, connection, Mode::NOLIMIT);
-            }
+            qCDebug(dcAlphaInnotec()) << "Setting activateLPC to" << lpcActive;
 
+            m_currentControlMode = lpcActive ? Mode::HARDLIMIT : Mode::NOLIMIT;
+            writeOperatingMode(info, connection, m_currentControlMode);
+            return;
         } else if (info->action().actionTypeId() == aitSmartHomePowerLimitConsumerActionTypeId) {
+            // This function sets the powerLimit of the heatpump incase LPC is active
             qCDebug(dcAlphaInnotec()) << "executeAction() - Setting PC Limit for LPC";
 
             double powerLimit = info->action().paramValue(aitSmartHomePowerLimitConsumerActionPowerLimitConsumerParamTypeId).toDouble();
@@ -861,6 +862,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             });
             return;
         } else if (info->action().actionTypeId() == aitSmartHomeControllableLocalSystemActionTypeId) {
+            // This is not needed for the AIT heatpump
             qCDebug(dcAlphaInnotec()) << "executeAction() - Nothing to be done in this action";
             bool state = info->action().paramValue(aitSmartHomeControllableLocalSystemActionControllableLocalSystemParamTypeId).toBool();
             info->thing()->setStateValue(aitSmartHomeControllableLocalSystemStateTypeId, state);
