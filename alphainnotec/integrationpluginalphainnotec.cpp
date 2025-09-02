@@ -837,7 +837,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
 
                 float powerToSet = 0;
                 if (!m_hysteresisMinPower) {
-                    powerToSet = surplusPvPower/1000 + currentPower/1000;
+                    powerToSet = surplusPvPower/1000.0f + currentPower/1000.0f;
                 }
                 QModbusReply *pcLimitReply = connection->setPcLimit(powerToSet);
                 if (!pcLimitReply) {
@@ -889,7 +889,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
 
             double powerLimit = info->action().paramValue(aitSmartHomePowerLimitConsumerActionPowerLimitConsumerParamTypeId).toDouble();
 
-            QModbusReply *pcLimitReply = connection->setPcLimit(powerLimit);
+            QModbusReply *pcLimitReply = connection->setPcLimit(powerLimit/1000.0f); // Set as kW
             if (!pcLimitReply) {
                 qCWarning(dcAlphaInnotec()) << "Execute action setPcLimit failed because the reply could not be created.";
                 info->finish(Thing::ThingErrorHardwareFailure);
