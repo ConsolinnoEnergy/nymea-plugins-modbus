@@ -747,6 +747,27 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
         }
 
         if (info->action().actionTypeId() == aitSmartHomeActualPvSurplusActionTypeId) {
+            /* This action handles the control via PV surplus power.
+             * For the HP to follow PV surplus, the HP first needs to be told to start up.
+             * This is done by setting different modes:
+             * Warmwater, Heating, Pool, Cooling and LPC (handled in writeOperatingMode)
+             * To make sure the HP is operating correctly and to prevent unnecessary switch cycles,
+             * the following logic is applied:
+             * The HP is off or not controlled by the HEMS:
+             * If pv surplus is received for the first time, a hysteresis timer of 5min is started.
+             * Only if the PV surplus is positiv for these 5 minutes will the HP be told to start up, otherwise the timer is resetted
+             * This makes sure the HP is only starting if there has been 5 minutes of uninterrupted PV surplus
+             * m_currentControlMode will be SOFTLIMIT.
+             *
+             * The HP is running and pv surplus is provided by the HEMS:
+             * If pv surplus is negativ, a hysteresis timer of 20min is started.
+             * This timer will be resetted is pv suprlus is positiv again.
+             * As long as this hysteresis is active, the HP is still set to overdrive (the operating modes are not turned off)
+             * but the powerlimit is set to 0. The HP will run with minimum power. This is the case if m_hysteresisMinPower is true.
+             * After 20min of negative PV surplus, the HP will be told to turn off and the HEMS will give up control.
+             * If positive PV surplus, this process will reset.
+             * m_currentControlMode will be NOLIMIT.
+             */
             qCDebug(dcAlphaInnotec()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
 
             if (m_currentControlMode == Mode::HARDLIMIT) {
@@ -838,6 +859,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
         } else if (info->action().actionTypeId() == aitSmartHomeActivateLpcActionTypeId) {
             /* This function sets the operating mode of the heatpump to HARDLIMIT if LPC is active
              * NOLIMIT otherwise
+             * writeOperatingMode() is called
              */
             qCDebug(dcAlphaInnotec()) << "executeAction() - LPC has been toggled";
 
@@ -849,7 +871,11 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             writeOperatingMode(info, connection, m_currentControlMode);
             return;
         } else if (info->action().actionTypeId() == aitSmartHomePowerLimitConsumerActionTypeId) {
-            // This function sets the powerLimit of the heatpump incase LPC is active
+            /*
+             * Set the powerlimit incase LPC is active
+             * No need for checks, as this action is only executed when LPC is active
+             * and will not interfere with PV surplus
+             */
             qCDebug(dcAlphaInnotec()) << "executeAction() - Setting PC Limit for LPC";
 
             double powerLimit = info->action().paramValue(aitSmartHomePowerLimitConsumerActionPowerLimitConsumerParamTypeId).toDouble();
@@ -903,6 +929,7 @@ void IntegrationPluginAlphaInnotec::writeOperatingMode(ThingActionInfo *info, ai
      * If SOFTLIMIT is set, the heatpump should follow PV-Surplus and start heating
      * If HARDLIMIT is set, the power consumption should be limited, but the HEMS
      *                      does not tell the WP to start heating
+     *                      -> LPC Mode is HARDLIMIT, rest: no influence from HEMS side
      */
     qCDebug(dcAlphaInnotec()) << "Writing operating mode to heatpump.";
     QEventLoop loop;
