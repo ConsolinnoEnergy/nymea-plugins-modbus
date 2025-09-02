@@ -47,7 +47,8 @@ void IntegrationPluginAlphaInnotec::discoverThings(ThingDiscoveryInfo *info)
 {
     if (!hardwareManager()->networkDeviceDiscovery()->available()) {
         qCWarning(dcAlphaInnotec()) << "The network discovery is not available on this platform.";
-        info->finish(Thing::ThingErrorUnsupportedFeature, QT_TR_NOOP("The network device discovery is not available."));
+        info->finish(Thing::ThingErrorUnsupportedFeature,
+                QT_TR_NOOP("The network device discovery is not available."));
         return;
     }
 
@@ -755,7 +756,8 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
              * the following logic is applied:
              * The HP is off or not controlled by the HEMS:
              * If pv surplus is received for the first time, a hysteresis timer of 5min is started.
-             * Only if the PV surplus is positiv for these 5 minutes will the HP be told to start up, otherwise the timer is resetted
+             * Only if the PV surplus is positiv for these 5 minutes will the HP be told to start up,
+             * otherwise the timer is resetted
              * This makes sure the HP is only starting if there has been 5 minutes of uninterrupted PV surplus
              * m_currentControlMode will be SOFTLIMIT.
              *
@@ -763,7 +765,8 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
              * If pv surplus is negativ, a hysteresis timer of 20min is started.
              * This timer will be resetted is pv suprlus is positiv again.
              * As long as this hysteresis is active, the HP is still set to overdrive (the operating modes are not turned off)
-             * but the powerlimit is set to 0. The HP will run with minimum power. This is the case if m_hysteresisMinPower is true.
+             * but the powerlimit is set to 0. The HP will run with minimum power.
+             * This is the case if m_hysteresisMinPower is true.
              * After 20min of negative PV surplus, the HP will be told to turn off and the HEMS will give up control.
              * If positive PV surplus, this process will reset.
              * m_currentControlMode will be NOLIMIT.
@@ -799,17 +802,21 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
 
             if ((surplusPvPower < 0) && (oldSurplusPvPower < 0) &&
                 (QDateTime::currentSecsSinceEpoch() - m_hysteresisTimer) > 20*60) {
-                modeToSet = NOLIMIT;
+                qCDebug(dcAlphaInnotec()) << "Turn off hysteresis ran out. Setting mode to NOLIMIT";
+                modeToSet = Mode::NOLIMIT;
             } else if ((surplusPvPower > 0) && (oldSurplusPvPower >= 0) &&
                        (QDateTime::currentSecsSinceEpoch() - m_hysteresisTimer) > 5*60) {
-                modeToSet = SOFTLIMIT;
+                qCDebug(dcAlphaInnotec()) << "Turn on hysteresis ran out. Setting mode to SOFTLIMIT";
+                modeToSet = Mode::SOFTLIMIT;
             }
 
             if (modeToSet == NOLIMIT && m_currentControlMode == SOFTLIMIT) {
                 // Set modes to NOLIMIT (internal control)
+                qCDebug(dcAlphaInnotec()) << "Mode changed to NOLIMIT.";
                 modeChanged = true;
             } else if (modeToSet == SOFTLIMIT && m_currentControlMode == NOLIMIT) {
                 // Set modes to SOFTLIMIT (PvSurplus)
+                qCDebug(dcAlphaInnotec()) << "Mode changed to SOFTLIMIT.";
                 modeChanged = true;
             }
 
@@ -846,12 +853,14 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                         return;
                     }
 
-                    qCDebug(dcAlphaInnotec()) << "Execute setPcLimit action setPcLimit finished successfully" << info->action().actionTypeId().toString() << info->action().params();
+                    qCDebug(dcAlphaInnotec()) << "Execute setPcLimit action setPcLimit finished successfully"
+                                              << info->action().actionTypeId().toString() << info->action().params();
                     info->finish(Thing::ThingErrorNoError);
                 });
 
                 connect(pcLimitReply, &QModbusReply::errorOccurred, this, [info, pcLimitReply] (QModbusDevice::Error error){
-                    qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action setPcLimit" << error << pcLimitReply->errorString();
+                    qCWarning(dcAlphaInnotec()) << "Modbus reply error occurred while execute action setPcLimit"
+                                                << error << pcLimitReply->errorString();
                     info->finish(Thing::ThingErrorHardwareFailure);
                     return;
                 });
