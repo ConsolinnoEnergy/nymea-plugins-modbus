@@ -537,6 +537,8 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
                 writeHeatingOffsetTemp(thing);
         });
 
+        // Incase either of the following modes was reset while the HP is in LPC mode SOFTLIMIT
+        // Set all modes again, so the HP accepts pv surplus
         connect(aitShiConnection, &aitShiModbusTcpConnection::heatingModeChanged, thing, [this, thing](quint16 mode) {
             qCDebug(dcAlphaInnotec()) << "Heating mode changed to" << mode;
 
@@ -555,6 +557,20 @@ void IntegrationPluginAlphaInnotec::setupThing(ThingSetupInfo *info)
             qCDebug(dcAlphaInnotec()) << "LPC mode changed to" << mode;
 
             if (m_currentControlMode == SOFTLIMIT && mode == 0)
+                m_resetMode = true;
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::blockCoolingChanged, thing, [this, thing](quint16 mode) {
+            qCDebug(dcAlphaInnotec()) << "Block Cooling mode changed to" << mode;
+
+            if (m_currentControlMode == Mode::SOFTLIMIT && mode == 1)
+                m_resetMode = true;
+        });
+
+        connect(aitShiConnection, &aitShiModbusTcpConnection::blockPoolChanged, thing, [this, thing](quint16 mode) {
+            qCDebug(dcAlphaInnotec()) << "Block pool mode changed to" << mode;
+
+            if (m_currentControlMode == Mode::SOFTLIMIT && mode == 1)
                 m_resetMode = true;
         });
 
@@ -777,6 +793,9 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
             }
 
             if (modeChanged || m_resetMode) {
+                if (m_resetMode)
+                    modeToSet = Mode::SOFTLIMIT;
+
                 writeOperatingMode(info, connection, modeToSet);
             }
 
@@ -785,8 +804,8 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                   m_currentControlMode == SOFTLIMIT) {
                 // Set PC Limit
                 info->thing()->setStateValue(aitSmartHomeActualPvSurplusStateTypeId, surplusPvPower);
-                qCDebug(dcAlphaInnotec()) << "Surplus power" << surplusPvPower / 1000;
-                qCDebug(dcAlphaInnotec()) << "Power used by HP" << currentPower / 1000;
+                qCDebug(dcAlphaInnotec()) << "Surplus power" << surplusPvPower / 1000; // -> kW
+                qCDebug(dcAlphaInnotec()) << "Power used by HP" << currentPower / 1000; // -> kW
 
                 float powerToSet = 0;
                 if (!m_turnOffHysteresis) {
