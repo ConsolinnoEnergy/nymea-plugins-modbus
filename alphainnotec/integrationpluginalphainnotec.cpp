@@ -767,13 +767,13 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                 // Reset turn on hysteresis
                 qCDebug(dcAlphaInnotec()) << "Start turn off hysteresis.";
                 m_hysteresisTimer = QDateTime::currentSecsSinceEpoch();
-                m_turnOffHysteresis = true;
+                m_hysteresisMinPower = true;
             } else if ((surplusPvPower > 0) && (oldSurplusPvPower <= 0)) {
                 // Start turn on hysteresis
                 // Reset turn off hysteresis
                 qCDebug(dcAlphaInnotec()) << "Start turn on hysteresis.";
                 m_hysteresisTimer = QDateTime::currentSecsSinceEpoch();
-                m_turnOffHysteresis = false;
+                m_hysteresisMinPower = false;
             }
 
             if ((surplusPvPower < 0) && (oldSurplusPvPower < 0) &&
@@ -799,7 +799,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                 writeOperatingMode(info, connection, modeToSet);
             }
 
-            if (((surplusPvPower > 0 || m_turnOffHysteresis) &&
+            if (((surplusPvPower > 0 || m_hysteresisMinPower) &&
                   surplusPvPower != oldSurplusPvPower) &&
                   m_currentControlMode == SOFTLIMIT) {
                 // Set PC Limit
@@ -808,7 +808,7 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                 qCDebug(dcAlphaInnotec()) << "Power used by HP" << currentPower / 1000; // -> kW
 
                 float powerToSet = 0;
-                if (!m_turnOffHysteresis) {
+                if (!m_hysteresisMinPower) {
                     powerToSet = surplusPvPower/1000 + currentPower/1000;
                 }
                 QModbusReply *pcLimitReply = connection->setPcLimit(powerToSet);

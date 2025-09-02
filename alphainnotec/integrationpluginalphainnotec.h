@@ -83,7 +83,7 @@ private:
     void writeOperatingMode(ThingActionInfo *info, aitShiModbusTcpConnection *connection, Mode modeToSet);
 
     qint64 m_hysteresisTimer = 0;
-    bool m_turnOffHysteresis = false;
+    bool m_hysteresisMinPower = false;
 };
 
 #endif // INTEGRATIONPLUGINALPHAINNOTEC_H
