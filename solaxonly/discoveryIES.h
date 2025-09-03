@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,48 +28,50 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINMYPV_H
-#define INTEGRATIONPLUGINMYPV_H
+#ifndef DISCOVERYIES_H
+#define DISCOVERYIES_H
 
-#include <integrations/integrationplugin.h>
-#include <plugintimer.h>
-#include <network/networkdevicemonitor.h>
+#include <QObject>
+#include <QTimer>
 
-#include "mypvmodbustcpconnection.h"
+#include <network/networkdevicediscovery.h>
 
-class NetworkDeviceMonitor;
+#include "solaxiesmodbustcpconnection.h"
 
-class IntegrationPluginMyPv: public IntegrationPlugin
+class DiscoveryIes : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginmypv.json")
-    Q_INTERFACES(IntegrationPlugin)
-
-
 public:
-    explicit IntegrationPluginMyPv();
+    explicit DiscoveryIes(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    struct Result {
+        quint16 port;
+        quint16 modbusId;
+        QString productName;
+        QString manufacturerName;
+        quint16 powerRating;
+        NetworkDeviceInfo networkDeviceInfo;
+    };
 
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
+    void startDiscovery();
+
+    QList<Result> discoveryResults() const;
+
+signals:
+    void discoveryFinished();
 
 private:
-    PluginTimer *m_refreshTimer = nullptr;
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
 
-    QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
-    QHash<Thing *, MyPvModbusTcpConnection *> m_tcpConnections;
-    QHash<Thing *, QDateTime> m_lastUpdateTimestamp;
-    QHash<Thing *, QTimer *> m_controlTimer;
+    QDateTime m_startDateTime;
 
-    void cleanUpThing(Thing *thing);
-    void setupTcpConnection(ThingSetupInfo *info);
-    void configureConnection(MyPvModbusTcpConnection *connection);
-    void writeHeatingPower(Thing *thing);
-    void updatePowerConsumption(Thing *thing, double power);
+    QList<SolaxIesModbusTcpConnection *> m_connections;
+
+    QList<Result> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SolaxIesModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // INTEGRATIONPLUGINMYPV_H
-
+#endif // DISCOVERYIES_H

@@ -1,6 +1,16 @@
-nymea-plugins-modbus (1.7.017) jammy; urgency=medium
+nymea-plugins-modbus (1.7.018) jammy; urgency=medium
+
+  * Limit power production of Kaco Nx3
+  * Fix control of newer FoxESS WB v3 versions
+  * Support for Solax X3 IES (Copy of Solax X3 G4)
+  * Solax X3: support for LPP
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 07 Aug 11:34:00 +0200
+
+nymea-plugins-modbus (1.7.017-1) jammy; urgency=medium
 
   * Added Zhejiang Chint DTSU666 smart meter
+    - Added outlier detection
   * Added Support for AlphaInnotec Smart Home Interface
   * Fix for Chint DTSU66 with CT clamps
   * Growatt: support for LPP changed: limit power input (W) instead of rate (%)
@@ -8,17 +18,20 @@ nymea-plugins-modbus (1.7.017) jammy; urgency=medium
   * Fix Alfen wrong energy value ESEMS-1800
   * Add support for FoxESS R-Series
     - Combine Wallbox and Inverter into one plugin
-  * Update libnymea-modbus
-  * sungrowsh: Use queued requests
   * Lambda: 
     - accuracy improvements and warning suppression
     - added LPC GPIO interface
+  * Update libnymea-modbus
+  * sungrowsh: Use queued requests
   * SMA: 
     - Reduce warnings, add fixes from nymea team
     - speedwireInverter: hybrid inverter support, add battery capacity
   * Siemens PAC2200: Initial Support
+  * Add a standalone Solax X3 EVC integration
   * Kostal: fixed Meter totalEnergyProduced
+  * Add Support for Solax X1/X3-HAC
   * Sungrow SH: Fix battery power
+  * Add support for my-PV heating rods (AC ELWA 2, AC-THOR, AC-THOR 9s)
   * Victron: fix total PV power
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 28 May 2025 08:49:00 +0200

@@ -570,7 +570,7 @@
                         },
                         {
                             "id": "cee50a87-cdab-4b6a-b5c5-2ef787a6f5c8",
-                            "name": "gpio1State",
+                            "name": "relais1State",
                             "displayName": "Relay 1 enabled",
                             "displayNameEvent": "Relay 1 enabled changed",
                             "type": "bool",

@@ -48,6 +48,7 @@ public:
     void setupThing(ThingSetupInfo *info) override;
     void postSetupThing(Thing *thing) override;
     void thingRemoved(Thing *thing) override;
+    void executeAction(ThingActionInfo *info) override;
 
 private:
     PluginTimer *m_pluginTimer = nullptr;
@@ -56,12 +57,18 @@ private:
         qint16 powerSf {1};
         qint16 energySf {1};
     };
+    struct ExportLimitValues {
+        qint16 maxPowerProductionWats {10000}; // WMax
+        qint16 maxPowerProductionSf {1}; // WMax_SF
+        qint16 limitPercentSf {1}; // WMaxLimPct_SF
+    };
 
     QHash<Thing *, NetworkDeviceMonitor *> m_monitors;
     QHash<Thing *, KacoSunSpecModbusTcpConnection *> m_tcpConnections;
     QHash<Thing *, KacoNH3ModbusTcpConnection *> m_nh3Connections;
     QHash<Thing *, KacoSunSpecModbusRtuConnection *> m_rtuConnections;
     QHash<Thing *, ScaleFactors> m_scalefactors;
+    QHash<Thing *, ExportLimitValues> m_exporLimitValues;
 
     Thing *getMeterThing(Thing *parentThing);
     Thing *getBatteryThing(Thing *parentThing);
@@ -71,6 +78,11 @@ private:
     void setOperatingState(Thing *thing, KacoNH3ModbusTcpConnection::OperatingState state);
     void setChargingState(Thing *thing, KacoNH3ModbusTcpConnection::ChargeStatus state);
     void setBatteryState(Thing *thing, KacoNH3ModbusTcpConnection::BatteryStatus state);
+    
+    double absolutePower2PowerRate(double nominalPower, double absoluteValue);
+    double calcScalledLimitPercent(Thing *thing, double limitWats);
+    bool handleReply(ModbusRtuReply *reply);
+    bool handleReply(QModbusReply *reply);
 };
 
 #endif // INTEGRATIONPLUGINKACOSUNSPEC_H

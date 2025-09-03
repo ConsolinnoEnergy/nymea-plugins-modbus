@@ -43,7 +43,7 @@ PLUGIN_DIRS = \
     sofarsolar              \
     solaxevc                \
     solax                   \
-    solaxultra              \
+    solaxonly               \
     stiebeleltron           \
     sungrowsg               \
     sungrowsh               \
