@@ -69,6 +69,7 @@ private:
     enum Mode {
         NOLIMIT = 0,
         SOFTLIMIT = 1,
+        HARDLIMIT = 2,
         UNDEFINED = 3
     };
 
@@ -79,9 +80,10 @@ private:
 
     void writeHotWaterOffsetTemp(Thing *thing);
     void writeHeatingOffsetTemp(Thing *thing);
+    void writeOperatingMode(ThingActionInfo *info, aitShiModbusTcpConnection *connection, Mode modeToSet);
 
     qint64 m_hysteresisTimer = 0;
-    bool m_turnOffHysteresis = false;
+    bool m_hysteresisMinPower = false;
 };
 
 #endif // INTEGRATIONPLUGINALPHAINNOTEC_H

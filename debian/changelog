@@ -3,6 +3,8 @@ nymea-plugins-modbus (1.7.018) jammy; urgency=medium
   * Limit power production of Kaco Nx3
   * Fix control of newer FoxESS WB v3 versions
   * Support for Solax X3 IES (Copy of Solax X3 G4)
+  * Added LPC support to AlphaInnotec SHI
+  * Fix for Alfen WB status
   * Solax X3: support for LPP
   * Lambda: Use queued requests
 

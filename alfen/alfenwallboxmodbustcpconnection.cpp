@@ -2279,7 +2279,7 @@ void AlfenWallboxModbusTcpConnection::processAvailabilityRegisterValues(const QV
 
 void AlfenWallboxModbusTcpConnection::processMode3StateRegisterValues(const QVector<quint16> values)
 {
-    QString receivedMode3State = ModbusDataUtils::convertToString(values);
+    QString receivedMode3State = ModbusDataUtils::convertToString(values, ModbusDataUtils::ByteOrderBigEndian);
     emit mode3StateReadFinished(receivedMode3State);
 
     if (m_mode3State != receivedMode3State) {
