@@ -560,11 +560,6 @@ Thing *IntegrationPluginSunSpec::getThingForSunSpecModel(uint modelId, uint modb
     return nullptr;
 }
 
-bool IntegrationPluginSunSpec::sunspecThingAlreadyAdded(uint modelId, uint modbusAddress, const ThingId &parentId)
-{
-    return getThingForSunSpecModel(modelId, modbusAddress, parentId)!= nullptr;
-}
-
 void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConnection *connection)
 {
     qCInfo(dcSunSpec()) << "Processing discovery result from" << thing->name() << connection;

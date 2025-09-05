@@ -87,7 +87,6 @@ private:
 
 
     Thing *getThingForSunSpecModel(uint modelId, uint modbusAddress, const ThingId &parentId);
-    bool sunspecThingAlreadyAdded(uint modelId, uint modbusAddress, const ThingId &parentId);
     void processDiscoveryResult(Thing *thing, SunSpecConnection *connection);
 
     // SunSpec things
