@@ -56,15 +56,34 @@
 #include <models/sunspecdeltaconnectthreephaseabcmetermodel.h>
 
 #include <models/sunspecstoragemodel.h>
+#include <models/sunspecsettingsmodel.h>
+#include <models/sunspeccontrolsmodel.h>
 
 #include "sunspecdiscovery.h"
 #include "solaredgebattery.h"
 
 #include <QHostAddress>
 
+QHash<ThingClassId, ParamTypeId> IntegrationPluginSunSpec::enableExportLimitParamTypeId =
+        QHash<ThingClassId, ParamTypeId>{};
+QHash<ThingClassId, ParamTypeId> IntegrationPluginSunSpec::exportLimitParamTypeId =
+        QHash<ThingClassId, ParamTypeId>{};
+
 IntegrationPluginSunSpec::IntegrationPluginSunSpec()
 {
+    enableExportLimitParamTypeId[sunspecLimitableSinglePhaseInverterThingClassId] =
+            sunspecLimitableSinglePhaseInverterEnableExportLimitActionEnableExportLimitParamTypeId;
+    enableExportLimitParamTypeId[sunspecLimitableSplitPhaseInverterThingClassId] =
+            sunspecLimitableSplitPhaseInverterEnableExportLimitActionEnableExportLimitParamTypeId;
+    enableExportLimitParamTypeId[sunspecLimitableThreePhaseInverterThingClassId] =
+            sunspecLimitableThreePhaseInverterEnableExportLimitActionEnableExportLimitParamTypeId;
 
+    exportLimitParamTypeId[sunspecLimitableSinglePhaseInverterThingClassId] =
+            sunspecLimitableSinglePhaseInverterExportLimitActionExportLimitParamTypeId;
+    exportLimitParamTypeId[sunspecLimitableSplitPhaseInverterThingClassId] =
+            sunspecLimitableSplitPhaseInverterExportLimitActionExportLimitParamTypeId;
+    exportLimitParamTypeId[sunspecLimitableThreePhaseInverterThingClassId] =
+            sunspecLimitableThreePhaseInverterExportLimitActionExportLimitParamTypeId;
 }
 
 void IntegrationPluginSunSpec::init()
@@ -324,6 +343,17 @@ void IntegrationPluginSunSpec::setupThing(ThingSetupInfo *info)
             }
         }
         info->finish(Thing::ThingErrorNoError);
+    } else if (thing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId
+               || thing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId
+               || thing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId) {
+        Thing *thing = info->thing();
+        SunSpecConnection *connection = m_sunSpecConnections.value(thing->parentId());
+        if (connection) {
+            initializeLimitableInverterModels(thing, connection);
+        } else {
+            qCWarning(dcSunSpec()) << "SunSpec connection not available for thing:" << thing;
+        }
+        info->finish(Thing::ThingErrorNoError);
     } else if (thing->thingClassId() == sunspecThreePhaseMeterThingClassId
                || thing->thingClassId() == sunspecSplitPhaseMeterThingClassId
                || thing->thingClassId() == sunspecSinglePhaseMeterThingClassId ) {
@@ -416,6 +446,10 @@ void IntegrationPluginSunSpec::thingRemoved(Thing *thing)
         m_sunSpecMeters.remove(thing);
     } else if (m_sunSpecStorages.contains(thing)) {
         m_sunSpecStorages.remove(thing);
+    } else if (m_sunSpecSettings.contains(thing)) {
+        m_sunSpecSettings.remove(thing);
+    } else if (m_sunSpecControls.contains(thing)) {
+        m_sunSpecControls.remove(thing);
     } else {
         Q_ASSERT_X(false, "thingRemoved", QString("Unhandled thingClassId: %1").arg(thing->thingClassId().toString()).toUtf8());
     }
@@ -539,7 +573,50 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
         } else {
             Q_ASSERT_X(false, "executeAction", QString("Unhandled action: %1").arg(action.actionTypeId().toString()).toUtf8());
         }
-    } else{
+    } else if (thing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId ||
+               thing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId ||
+               thing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId) {
+        if (action.actionTypeId() == sunspecLimitableSinglePhaseInverterEnableExportLimitActionTypeId ||
+                action.actionTypeId() == sunspecLimitableSplitPhaseInverterEnableExportLimitActionTypeId ||
+                action.actionTypeId() == sunspecLimitableThreePhaseInverterEnableExportLimitActionTypeId) {
+            qCDebug(dcSunSpec()) << "EnableExportLimit action triggered";
+            const auto enableLimit =
+                    action.paramValue(enableExportLimitParamTypeId.value(thing->thingClassId())).toBool();
+            setEnableExportLimit(thing, enableLimit, info);
+        } else if (action.actionTypeId() == sunspecLimitableSinglePhaseInverterExportLimitActionTypeId ||
+                   action.actionTypeId() == sunspecLimitableSplitPhaseInverterExportLimitActionTypeId ||
+                   action.actionTypeId() == sunspecLimitableThreePhaseInverterExportLimitActionTypeId) {
+            qCDebug(dcSunSpec()) << "SetExportLimit action triggered";
+            const auto maxPowerOutput = thing->stateValue("maxPowerOutput").toFloat();
+            if (qFuzzyIsNull(maxPowerOutput)) {
+                qCWarning(dcSunSpec()) << "WMax value not available for thing" << thing->name();
+                info->finish(Thing::ThingErrorInvalidParameter);
+                return;
+            }
+            const auto limitToSet =
+                    action.paramValue(exportLimitParamTypeId.value(thing->thingClassId())).toDouble() / maxPowerOutput;
+            const auto limitEnabled =
+                    thing->stateValue("enableExportLimit").toBool();
+            if (limitEnabled) {
+                const auto reply = setExportLimit(thing, limitToSet, nullptr); // Use nullptr for info to not yet finish action.
+                connect(reply, &QModbusReply::finished, reply, [this, thing, info, reply]() {
+                    if (reply->error() != QModbusDevice::NoError) {
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                        return;
+                    }
+                    // Need to set WMaxLimPct_Ena again to enable new export limit.
+                    setEnableExportLimit(thing, true, info);
+                });
+            } else {
+                setExportLimit(thing, limitToSet, info);
+            }
+        } else {
+            qCWarning(dcSunSpec()) << "Unknown action type:" << action.actionTypeId();
+            info->finish(Thing::ThingErrorActionTypeNotFound,
+                         QT_TR_NOOP("Unknown action type"));
+        }
+        // #TODO add limitgridexport interface in plugin json again
+    } else {
         Q_ASSERT_X(false, "executeAction", QString("Unhandled thingClassId: %1").arg(info->thing()->thingClassId().toString()).toUtf8());
     }
 }
@@ -564,6 +641,85 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
 {
     qCInfo(dcSunSpec()) << "Processing discovery result from" << thing->name() << connection;
 
+    auto modelsById = QMap<quint16, SunSpecModel *>{};
+    foreach (SunSpecModel *model, connection->models()) {
+        modelsById.insert(model->modelId(), model);
+    }
+    const auto isInverter =
+            modelsById.contains(SunSpecModelFactory::ModelIdInverterSinglePhase) ||
+            modelsById.contains(SunSpecModelFactory::ModelIdInverterSinglePhaseFloat) ||
+            modelsById.contains(SunSpecModelFactory::ModelIdInverterSplitPhase) ||
+            modelsById.contains(SunSpecModelFactory::ModelIdInverterSplitPhaseFloat) ||
+            modelsById.contains(SunSpecModelFactory::ModelIdInverterThreePhase) ||
+            modelsById.contains(SunSpecModelFactory::ModelIdInverterThreePhaseFloat);
+    const auto isLimitableInverter = isInverter &&
+            modelsById.contains(SunSpecModelFactory::ModelIdSettings) &&
+            modelsById.contains(SunSpecModelFactory::ModelIdControls);
+    if (isLimitableInverter) {
+        foreach(Thing *childThing, myThings().filterByParentId(thing->id())) {
+            if (childThing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId ||
+                    childThing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId ||
+                    childThing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId)
+                qCDebug(dcSunSpec()) << "Limitable inverter already exists for this thing";
+                initializeLimitableInverterModels(childThing, connection);
+                return;
+        }
+        if (modelsById.contains(SunSpecModelFactory::ModelIdInverterSinglePhase) ||
+                modelsById.contains(SunSpecModelFactory::ModelIdInverterSinglePhaseFloat)) {
+            const auto model =
+                    modelsById.contains(SunSpecModelFactory::ModelIdInverterSinglePhase) ?
+                        modelsById.value(SunSpecModelFactory::ModelIdInverterSinglePhase) :
+                        modelsById.value(SunSpecModelFactory::ModelIdInverterSinglePhaseFloat);
+            ThingDescriptor descriptor(sunspecLimitableSinglePhaseInverterThingClassId);
+            descriptor.setParentId(thing->id());
+            const auto thingName = QT_TR_NOOP("Limitable Single Phase Inverter");
+            QString finalThingName;
+            if (model->commonModelInfo().manufacturerName.isEmpty()) {
+                finalThingName = thingName;
+            } else {
+                finalThingName = model->commonModelInfo().manufacturerName + " " + thingName;
+            }
+            descriptor.setTitle(finalThingName);
+            descriptor.setParams(ParamList{});
+            emit autoThingsAppeared({descriptor});
+        } else if (modelsById.contains(SunSpecModelFactory::ModelIdInverterSplitPhase) ||
+                   modelsById.contains(SunSpecModelFactory::ModelIdInverterSplitPhaseFloat)) {
+            const auto model =
+                    modelsById.contains(SunSpecModelFactory::ModelIdInverterSplitPhase) ?
+                        modelsById.value(SunSpecModelFactory::ModelIdInverterSplitPhase) :
+                        modelsById.value(SunSpecModelFactory::ModelIdInverterSplitPhaseFloat);
+            ThingDescriptor descriptor(sunspecLimitableSplitPhaseInverterThingClassId);
+            descriptor.setParentId(thing->id());
+            const auto thingName = QT_TR_NOOP("Limitable Split Phase Inverter");
+            QString finalThingName;
+            if (model->commonModelInfo().manufacturerName.isEmpty()) {
+                finalThingName = thingName;
+            } else {
+                finalThingName = model->commonModelInfo().manufacturerName + " " + thingName;
+            }
+            descriptor.setTitle(finalThingName);
+            descriptor.setParams(ParamList{});
+            emit autoThingsAppeared({descriptor});
+        } else {
+            const auto model =
+                    modelsById.contains(SunSpecModelFactory::ModelIdInverterThreePhase) ?
+                        modelsById.value(SunSpecModelFactory::ModelIdInverterThreePhase) :
+                        modelsById.value(SunSpecModelFactory::ModelIdInverterThreePhaseFloat);
+            ThingDescriptor descriptor(sunspecLimitableThreePhaseInverterThingClassId);
+            descriptor.setParentId(thing->id());
+            const auto thingName = QT_TR_NOOP("Limitable Three Phase Inverter");
+            QString finalThingName;
+            if (model->commonModelInfo().manufacturerName.isEmpty()) {
+                finalThingName = thingName;
+            } else {
+                finalThingName = model->commonModelInfo().manufacturerName + " " + thingName;
+            }
+            descriptor.setTitle(finalThingName);
+            descriptor.setParams(ParamList{});
+            emit autoThingsAppeared({descriptor});
+        }
+    }
+
     foreach (SunSpecModel *model, connection->models()) {
         Thing *modelThing = getThingForSunSpecModel(model->modelId(), model->modbusStartRegister(), thing->id());
         if (modelThing) {
@@ -572,10 +728,10 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
 
             qCDebug(dcSunSpec()) << "Found" << modelThing << "for" << model;
 
-            if (modelThing->thingClassId() == sunspecSinglePhaseInverterThingClassId
-                || modelThing->thingClassId() == sunspecSplitPhaseInverterThingClassId
-                || modelThing->thingClassId() == sunspecThreePhaseInverterThingClassId) {
-
+            if (!isLimitableInverter &&
+                    (modelThing->thingClassId() == sunspecSinglePhaseInverterThingClassId
+                     || modelThing->thingClassId() == sunspecSplitPhaseInverterThingClassId
+                     || modelThing->thingClassId() == sunspecThreePhaseInverterThingClassId)) {
                 if (!m_sunSpecInverters.contains(modelThing)) {
                     m_sunSpecInverters.insert(modelThing, model);
                     connect(model, &SunSpecModel::blockUpdated, this, &IntegrationPluginSunSpec::onInverterBlockUpdated);
@@ -584,14 +740,12 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
             } else if (modelThing->thingClassId() == sunspecSinglePhaseMeterThingClassId
                        || modelThing->thingClassId() == sunspecSplitPhaseMeterThingClassId
                        || modelThing->thingClassId() == sunspecThreePhaseMeterThingClassId) {
-
                 if (!m_sunSpecMeters.contains(modelThing)) {
                     m_sunSpecMeters.insert(modelThing, model);
                     connect(model, &SunSpecModel::blockUpdated, this, &IntegrationPluginSunSpec::onMeterBlockUpdated);
                     qCDebug(dcSunSpec()) << "Model initialized successfully for" << modelThing;
                 }
             } else if (modelThing->thingClassId() == sunspecStorageThingClassId) {
-
                 if (!m_sunSpecStorages.contains(modelThing)) {
                     m_sunSpecStorages.insert(modelThing, model);
                     connect(model, &SunSpecModel::blockUpdated, this, &IntegrationPluginSunSpec::onStorageBlockUpdated);
@@ -603,41 +757,53 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
             // No thing for this model, let's see if we can create one
 
             switch (model->modelId()) {
-            case SunSpecModelFactory::ModelIdCommon:
-                // Skip the common model, we already handled this one for each thing model
-                break;
-            case SunSpecModelFactory::ModelIdInverterSinglePhase:
-            case SunSpecModelFactory::ModelIdInverterSinglePhaseFloat:
-                autocreateSunSpecModelThing(sunspecSinglePhaseInverterThingClassId, QT_TR_NOOP("Single Phase Inverter"), thing->id(), model);
-                break;
-            case SunSpecModelFactory::ModelIdInverterSplitPhase:
-            case SunSpecModelFactory::ModelIdInverterSplitPhaseFloat:
-                autocreateSunSpecModelThing(sunspecSplitPhaseInverterThingClassId, QT_TR_NOOP("Split Phase Inverter"), thing->id(), model);
-                break;
-            case SunSpecModelFactory::ModelIdInverterThreePhase:
-            case SunSpecModelFactory::ModelIdInverterThreePhaseFloat:
-                autocreateSunSpecModelThing(sunspecThreePhaseInverterThingClassId, QT_TR_NOOP("Three Phase Inverter"), thing->id(), model);
-                break;
-            case SunSpecModelFactory::ModelIdMeterSinglePhase:
-            case SunSpecModelFactory::ModelIdMeterSinglePhaseFloat:
-                autocreateSunSpecModelThing(sunspecSinglePhaseMeterThingClassId, QT_TR_NOOP("Single Phase Meter"), thing->id(), model);
-                break;
-            case SunSpecModelFactory::ModelIdMeterSplitSinglePhaseAbn:
-            case SunSpecModelFactory::ModelIdMeterSplitSinglePhaseFloat:
-                autocreateSunSpecModelThing(sunspecSplitPhaseMeterThingClassId, QT_TR_NOOP("Split Phase Meter"), thing->id(), model);
-                break;
-            case SunSpecModelFactory::ModelIdMeterThreePhase:
-            case SunSpecModelFactory::ModelIdDeltaConnectThreePhaseAbcMeter:
-            case SunSpecModelFactory::ModelIdMeterThreePhaseWyeConnect:
-            case SunSpecModelFactory::ModelIdMeterThreePhaseDeltaConnect:
-                autocreateSunSpecModelThing(sunspecThreePhaseMeterThingClassId, QT_TR_NOOP("Three Phase Meter"), thing->id(), model);
-                break;
-            case SunSpecModelFactory::ModelIdStorage:
-                autocreateSunSpecModelThing(sunspecStorageThingClassId, QT_TR_NOOP("Storage"), thing->id(), model);
-                break;
-            default:
-                qCWarning(dcSunSpec()) << "Plugin has no implementation for detected" << model;
-                break;
+                case SunSpecModelFactory::ModelIdCommon:
+                    // Skip the common model, we already handled this one for each thing model
+                    break;
+                case SunSpecModelFactory::ModelIdInverterSinglePhase:
+                case SunSpecModelFactory::ModelIdInverterSinglePhaseFloat:
+                {
+                    if (!isLimitableInverter) {
+                        autocreateSunSpecModelThing(sunspecSinglePhaseInverterThingClassId, QT_TR_NOOP("Single Phase Inverter"), thing->id(), model);
+                    }
+                    break;
+                }
+                case SunSpecModelFactory::ModelIdInverterSplitPhase:
+                case SunSpecModelFactory::ModelIdInverterSplitPhaseFloat:
+                {
+                    if (!isLimitableInverter) {
+                        autocreateSunSpecModelThing(sunspecSplitPhaseInverterThingClassId, QT_TR_NOOP("Split Phase Inverter"), thing->id(), model);
+                    }
+                    break;
+                }
+                case SunSpecModelFactory::ModelIdInverterThreePhase:
+                case SunSpecModelFactory::ModelIdInverterThreePhaseFloat:
+                {
+                    if (!isLimitableInverter) {
+                        autocreateSunSpecModelThing(sunspecThreePhaseInverterThingClassId, QT_TR_NOOP("Three Phase Inverter"), thing->id(), model);
+                    }
+                    break;
+                }
+                case SunSpecModelFactory::ModelIdMeterSinglePhase:
+                case SunSpecModelFactory::ModelIdMeterSinglePhaseFloat:
+                    autocreateSunSpecModelThing(sunspecSinglePhaseMeterThingClassId, QT_TR_NOOP("Single Phase Meter"), thing->id(), model);
+                    break;
+                case SunSpecModelFactory::ModelIdMeterSplitSinglePhaseAbn:
+                case SunSpecModelFactory::ModelIdMeterSplitSinglePhaseFloat:
+                    autocreateSunSpecModelThing(sunspecSplitPhaseMeterThingClassId, QT_TR_NOOP("Split Phase Meter"), thing->id(), model);
+                    break;
+                case SunSpecModelFactory::ModelIdMeterThreePhase:
+                case SunSpecModelFactory::ModelIdDeltaConnectThreePhaseAbcMeter:
+                case SunSpecModelFactory::ModelIdMeterThreePhaseWyeConnect:
+                case SunSpecModelFactory::ModelIdMeterThreePhaseDeltaConnect:
+                    autocreateSunSpecModelThing(sunspecThreePhaseMeterThingClassId, QT_TR_NOOP("Three Phase Meter"), thing->id(), model);
+                    break;
+                case SunSpecModelFactory::ModelIdStorage:
+                    autocreateSunSpecModelThing(sunspecStorageThingClassId, QT_TR_NOOP("Storage"), thing->id(), model);
+                    break;
+                default:
+                    qCWarning(dcSunSpec()) << "Plugin has no implementation for detected" << model;
+                    break;
             }
         }
     }
@@ -1111,7 +1277,6 @@ void IntegrationPluginSunSpec::markThingStatesDisconnected(Thing *thing)
         thing->setStateValue(sunspecSplitPhaseInverterCurrentDcStateTypeId, 0);
         thing->setStateValue(sunspecSplitPhaseInverterCurrentPowerDcStateTypeId, 0);
     } else if (thing->thingClassId() == sunspecThreePhaseInverterThingClassId) {
-        qCDebug(dcSunSpec()) << thing->name() << "block data updated";// << inverter;
         thing->setStateValue(sunspecThreePhaseInverterConnectedStateTypeId, false);
         thing->setStateValue(sunspecThreePhaseInverterCurrentPowerStateTypeId, 0);
         thing->setStateValue(sunspecThreePhaseInverterTotalCurrentStateTypeId, 0);
@@ -1125,6 +1290,41 @@ void IntegrationPluginSunSpec::markThingStatesDisconnected(Thing *thing)
         thing->setStateValue(sunspecThreePhaseInverterVoltageDcStateTypeId, 0);
         thing->setStateValue(sunspecThreePhaseInverterCurrentDcStateTypeId, 0);
         thing->setStateValue(sunspecThreePhaseInverterCurrentPowerDcStateTypeId, 0);
+    } else if (thing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId) {
+        thing->setStateValue(sunspecLimitableSinglePhaseInverterConnectedStateTypeId, false);
+        thing->setStateValue(sunspecLimitableSinglePhaseInverterCurrentPowerStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSinglePhaseInverterTotalCurrentStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSinglePhaseInverterFrequencyStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSinglePhaseInverterPhaseVoltageStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSinglePhaseInverterVoltageDcStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSinglePhaseInverterCurrentDcStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSinglePhaseInverterCurrentPowerDcStateTypeId, 0);
+    } else if (thing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId) {
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterConnectedStateTypeId, false);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterCurrentPowerStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterTotalCurrentStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterFrequencyStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseANVoltageStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseBNVoltageStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseACurrentStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseBCurrentStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterVoltageDcStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterCurrentDcStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableSplitPhaseInverterCurrentPowerDcStateTypeId, 0);
+    } else if (thing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId) {
+        thing->setStateValue(sunspecLimitableThreePhaseInverterConnectedStateTypeId, false);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterCurrentPowerStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterTotalCurrentStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterFrequencyStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseANVoltageStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseBNVoltageStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseCNVoltageStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseACurrentStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseBCurrentStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseCCurrentStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterVoltageDcStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterCurrentDcStateTypeId, 0);
+        thing->setStateValue(sunspecLimitableThreePhaseInverterCurrentPowerDcStateTypeId, 0);
     } else if (thing->thingClassId() == sunspecSinglePhaseMeterThingClassId) {
         thing->setStateValue(sunspecSinglePhaseMeterConnectedStateTypeId, false);
         thing->setStateValue(sunspecSinglePhaseMeterCurrentPowerStateTypeId, 0);
@@ -1174,6 +1374,163 @@ void IntegrationPluginSunSpec::markThingStatesDisconnected(Thing *thing)
 
 }
 
+void IntegrationPluginSunSpec::initializeLimitableInverterModels(Thing *thing,
+                                                                 SunSpecConnection *connection)
+{
+    foreach (SunSpecModel *model, connection->models()) {
+        if (model->modelId() == SunSpecModelFactory::ModelIdInverterSinglePhase ||
+                model->modelId() == SunSpecModelFactory::ModelIdInverterSinglePhaseFloat ||
+                model->modelId() == SunSpecModelFactory::ModelIdInverterSplitPhase ||
+                model->modelId() == SunSpecModelFactory::ModelIdInverterSplitPhaseFloat ||
+                model->modelId() == SunSpecModelFactory::ModelIdInverterThreePhase ||
+                model->modelId() == SunSpecModelFactory::ModelIdInverterThreePhaseFloat) {
+            if (!m_sunSpecInverters.contains(thing)) {
+                connect(model, &SunSpecModel::blockUpdated,
+                        this, &IntegrationPluginSunSpec::onInverterBlockUpdated);
+                m_sunSpecInverters.insert(thing, model);
+                qCDebug(dcSunSpec()) << "Inverter model successfully initialized for" << thing->name();
+            }
+        } else if (model->modelId() == SunSpecModelFactory::ModelIdSettings) {
+            if (!m_sunSpecSettings.contains(thing)) {
+                connect(model, &SunSpecModel::blockUpdated,
+                        this, &IntegrationPluginSunSpec::onSettingsBlockUpdated);
+                m_sunSpecSettings.insert(thing, model);
+                qCDebug(dcSunSpec()) << "Settings model successfully initialized for" << thing->name();
+            }
+        } else if (model->modelId() == SunSpecModelFactory::ModelIdControls) {
+            if (!m_sunSpecControls.contains(thing)) {
+                connect(model, &SunSpecModel::blockUpdated,
+                        this, &IntegrationPluginSunSpec::onControlsBlockUpdated);
+                m_sunSpecControls.insert(thing, model);
+                const auto controlsModel = qobject_cast<SunSpecControlsModel *>(model);
+                setupControlsModel(controlsModel);
+                qCDebug(dcSunSpec()) << "Controls model successfully initialized for" << thing->name();
+            }
+        }
+    }
+}
+
+void IntegrationPluginSunSpec::setEnableExportLimit(Thing *thing,
+                                                    bool enableLimit,
+                                                    ThingActionInfo *info)
+{
+    const auto valueToSet = enableLimit ?
+                SunSpecControlsModel::Wmaxlim_enaEnabled :
+                SunSpecControlsModel::Wmaxlim_enaDisabled;
+    qCDebug(dcSunSpec()) << "Setting WMaxLim_Ena to" << valueToSet << "for thing" << thing->name();
+    SunSpecControlsModel *controls = qobject_cast<SunSpecControlsModel *>(m_sunSpecControls.value(thing));
+    if (!controls) {
+        qWarning(dcSunSpec()) << "Could not find sunspec controls model for thing" << thing->name();
+        if (info) {
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+        }
+        return;
+    }
+    const auto reply = controls->setWMaxLimEna(valueToSet);
+    if (!reply) {
+        if (info) {
+            info->finish(Thing::ThingErrorHardwareFailure);
+        }
+        qWarning(dcSunSpec()) << "Unable to set WMaxLim_Ena for thing" << thing->name();
+        return;
+    }
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, reply, [info, reply, thing]{
+        if (reply->error() != QModbusDevice::NoError) {
+            qWarning(dcSunSpec()) << "Unable to set WMaxLim_Ena for thing" << thing->name();
+            if (info) {
+                info->finish(Thing::ThingErrorHardwareFailure);
+            }
+            return;
+        }
+        if (info) {
+            info->finish(Thing::ThingErrorNoError);
+        }
+    });
+}
+
+QModbusReply *IntegrationPluginSunSpec::setExportLimit(Thing *thing,
+                                                       float exportLimit,
+                                                       ThingActionInfo *info)
+{
+    qCDebug(dcSunSpec()) << "Setting WMaxLimPct to" << exportLimit << "for thing" << thing->name();
+    SunSpecControlsModel *controls = qobject_cast<SunSpecControlsModel *>(m_sunSpecControls.value(thing));
+    if (!controls) {
+        qWarning(dcSunSpec()) << "Could not find sunspec controls model for thing" << thing->name();
+        if (info) {
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+        }
+        return nullptr;
+    }
+    const auto reply = controls->setWMaxLimPct(exportLimit);
+    if (!reply) {
+        if (info) {
+            info->finish(Thing::ThingErrorHardwareFailure);
+        }
+        qWarning(dcSunSpec()) << "Unable to set WMaxLimPct for thing" << thing->name();
+        return nullptr;
+    }
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, reply, [info, reply, thing, exportLimit]{
+        if (reply->error() != QModbusDevice::NoError) {
+            qWarning(dcSunSpec()) << "Unable to set WMaxLimPct for thing" << thing->name();
+            if (info) {
+                info->finish(Thing::ThingErrorHardwareFailure);
+            }
+            return;
+        }
+        const auto exportLimitWatt = exportLimit * thing->stateValue("maxPowerOutput").toFloat();
+        thing->setStateValue("exportLimit", exportLimitWatt);
+        if (info) {
+            info->finish(Thing::ThingErrorNoError);
+        }
+    });
+    return reply;
+}
+
+void IntegrationPluginSunSpec::setupControlsModel(SunSpecControlsModel *model)
+{
+    if (!model) {
+        qCWarning(dcSunSpec()) << "Can not set up invalid model";
+        return;
+    }
+
+    // Set WMaxLimPct_WinTms, WMaxLimPct_RvrtTms und WMaxLimPct_RmpTms to 0 to
+    // apply changes to the WMaxLimPct settings immediately and without timeout.
+    const auto wMaxLimPct_WinTmsReply = model->setWMaxLimPctWinTms(0);
+    connect(wMaxLimPct_WinTmsReply, &QModbusReply::finished,
+            wMaxLimPct_WinTmsReply, &QModbusReply::deleteLater);
+    connect(wMaxLimPct_WinTmsReply, &QModbusReply::finished,
+            wMaxLimPct_WinTmsReply, [wMaxLimPct_WinTmsReply, model] () {
+        if (wMaxLimPct_WinTmsReply->error() != QModbusDevice::NoError) {
+            qCWarning(dcSunSpec()) << "Unable to set WMaxLimPct_WinTms";
+            return;
+        }
+
+        const auto wMaxLimPct_RvrtTmsReply = model->setWMaxLimPctRvrtTms(0);
+        connect(wMaxLimPct_RvrtTmsReply, &QModbusReply::finished,
+                wMaxLimPct_RvrtTmsReply, &QModbusReply::deleteLater);
+        connect(wMaxLimPct_RvrtTmsReply, &QModbusReply::finished,
+                wMaxLimPct_RvrtTmsReply, [wMaxLimPct_RvrtTmsReply, model] () {
+            if (wMaxLimPct_RvrtTmsReply->error() != QModbusDevice::NoError) {
+                qCWarning(dcSunSpec()) << "Unable to set WMaxLimPct_RvrtTms";
+                return;
+            }
+
+            const auto wMaxLimPct_RmpTmsReply = model->setWMaxLimPctRmpTms(0);
+            connect(wMaxLimPct_RmpTmsReply, &QModbusReply::finished,
+                    wMaxLimPct_RmpTmsReply, &QModbusReply::deleteLater);
+            connect(wMaxLimPct_RmpTmsReply, &QModbusReply::finished,
+                    wMaxLimPct_RmpTmsReply, [wMaxLimPct_RmpTmsReply] () {
+                if (wMaxLimPct_RmpTmsReply->error() != QModbusDevice::NoError) {
+                    qCWarning(dcSunSpec()) << "Unable to set WMaxLimPct_RmpTms";
+                    return;
+                }
+            });
+        });
+    });
+}
+
 void IntegrationPluginSunSpec::onRefreshTimer()
 {
     // Update meters
@@ -1199,6 +1556,20 @@ void IntegrationPluginSunSpec::onRefreshTimer()
 
     // Update inverters
     foreach (SunSpecModel *model, m_sunSpecInverters.values()) {
+        if (model->connection()->connected()) {
+            model->readBlockData();
+        }
+    }
+
+    // Update settings models
+    foreach (SunSpecModel *model, m_sunSpecSettings.values()) {
+        if (model->connection()->connected()) {
+            model->readBlockData();
+        }
+    }
+
+    // Update controls models
+    foreach (SunSpecModel *model, m_sunSpecControls.values()) {
         if (model->connection()->connected()) {
             model->readBlockData();
         }
@@ -1248,139 +1619,253 @@ void IntegrationPluginSunSpec::onInverterBlockUpdated()
     case SunSpecModelFactory::ModelIdInverterSinglePhase: {
         SunSpecInverterSinglePhaseModel *inverter = qobject_cast<SunSpecInverterSinglePhaseModel *>(model);
         qCDebug(dcSunSpec()) << thing->name() << "block data updated";// << inverter;
-        thing->setStateValue(sunspecSinglePhaseInverterConnectedStateTypeId, true);
-        thing->setStateValue(sunspecSinglePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
-
-        // Note: solar edge needs some calculations for the current pv power
-        double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
-        thing->setStateValue(sunspecSinglePhaseInverterCurrentPowerStateTypeId, currentPower);
-        evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
-        thing->setStateValue(sunspecSinglePhaseInverterTotalCurrentStateTypeId, inverter->amps());
-        thing->setStateValue(sunspecSinglePhaseInverterFrequencyStateTypeId, inverter->hz());
-        thing->setStateValue(sunspecSinglePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
-        thing->setStateValue(sunspecSinglePhaseInverterPhaseVoltageStateTypeId, inverter->phaseVoltageAn());
-        thing->setStateValue(sunspecSinglePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
-        thing->setStateValue(sunspecSinglePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
-        thing->setStateValue(sunspecSinglePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
-        thing->setStateValue(sunspecSinglePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
-        thing->setStateValue(sunspecSinglePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        if (thing->thingClassId() == sunspecSinglePhaseInverterThingClassId) {
+            thing->setStateValue(sunspecSinglePhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecSinglePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            // Note: solar edge needs some calculations for the current pv power
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecSinglePhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecSinglePhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecSinglePhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecSinglePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecSinglePhaseInverterPhaseVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecSinglePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecSinglePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecSinglePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecSinglePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecSinglePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        } else if (thing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId) {
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            // Note: solar edge needs some calculations for the current pv power
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterPhaseVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        }
         break;
     }
     case SunSpecModelFactory::ModelIdInverterSinglePhaseFloat: {
         SunSpecInverterSinglePhaseFloatModel *inverter = qobject_cast<SunSpecInverterSinglePhaseFloatModel *>(model);
         qCDebug(dcSunSpec()) << thing->name() << "block data updated";// << inverter;
-        thing->setStateValue(sunspecSinglePhaseInverterConnectedStateTypeId, true);
-        thing->setStateValue(sunspecSinglePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
-
-        // Note: solar edge needs some calculations for the current pv power
-        double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
-        thing->setStateValue(sunspecSinglePhaseInverterCurrentPowerStateTypeId, currentPower);
-        evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
-        thing->setStateValue(sunspecSinglePhaseInverterTotalCurrentStateTypeId, inverter->amps());
-        thing->setStateValue(sunspecSinglePhaseInverterFrequencyStateTypeId, inverter->hz());
-        thing->setStateValue(sunspecSinglePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
-        thing->setStateValue(sunspecSinglePhaseInverterPhaseVoltageStateTypeId, inverter->phaseVoltageAn());
-        thing->setStateValue(sunspecSinglePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
-        thing->setStateValue(sunspecSinglePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
-        thing->setStateValue(sunspecSinglePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
-        thing->setStateValue(sunspecSinglePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
-        thing->setStateValue(sunspecSinglePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        if (thing->thingClassId() == sunspecSinglePhaseInverterThingClassId) {
+            thing->setStateValue(sunspecSinglePhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecSinglePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            // Note: solar edge needs some calculations for the current pv power
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecSinglePhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecSinglePhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecSinglePhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecSinglePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecSinglePhaseInverterPhaseVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecSinglePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecSinglePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecSinglePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecSinglePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecSinglePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        } else if (thing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId) {
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            // Note: solar edge needs some calculations for the current pv power
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterPhaseVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecLimitableSinglePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        }
         break;
     }
     case SunSpecModelFactory::ModelIdInverterSplitPhase: {
         SunSpecInverterSplitPhaseModel *inverter = qobject_cast<SunSpecInverterSplitPhaseModel *>(model);
         qCDebug(dcSunSpec()) << thing->name() << "block data updated";// << inverter;
-        thing->setStateValue(sunspecSplitPhaseInverterConnectedStateTypeId, true);
-        thing->setStateValue(sunspecSplitPhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
-
-        double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
-        thing->setStateValue(sunspecSplitPhaseInverterCurrentPowerStateTypeId, currentPower);
-        evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
-        thing->setStateValue(sunspecSplitPhaseInverterTotalCurrentStateTypeId, inverter->amps());
-        thing->setStateValue(sunspecSplitPhaseInverterFrequencyStateTypeId, inverter->hz());
-        thing->setStateValue(sunspecSplitPhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
-        thing->setStateValue(sunspecSplitPhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
-        thing->setStateValue(sunspecSplitPhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
-        thing->setStateValue(sunspecSplitPhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
-        thing->setStateValue(sunspecSplitPhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
-        thing->setStateValue(sunspecSplitPhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
-        thing->setStateValue(sunspecSplitPhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
-        thing->setStateValue(sunspecSplitPhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
-        thing->setStateValue(sunspecSplitPhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
-        thing->setStateValue(sunspecSplitPhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        if (thing->thingClassId() == sunspecSplitPhaseInverterThingClassId) {
+            thing->setStateValue(sunspecSplitPhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecSplitPhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecSplitPhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecSplitPhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecSplitPhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecSplitPhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecSplitPhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecSplitPhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
+            thing->setStateValue(sunspecSplitPhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
+            thing->setStateValue(sunspecSplitPhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
+            thing->setStateValue(sunspecSplitPhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecSplitPhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecSplitPhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecSplitPhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecSplitPhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        } else if (thing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId) {
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        }
         break;
     }
     case SunSpecModelFactory::ModelIdInverterSplitPhaseFloat: {
         SunSpecInverterSplitPhaseFloatModel *inverter = qobject_cast<SunSpecInverterSplitPhaseFloatModel *>(model);
         qCDebug(dcSunSpec()) << thing->name() << "block data updated";// << inverter;
-        thing->setStateValue(sunspecSplitPhaseInverterConnectedStateTypeId, true);
-        thing->setStateValue(sunspecSplitPhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
-
-        double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
-        thing->setStateValue(sunspecSplitPhaseInverterCurrentPowerStateTypeId, currentPower);
-        evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
-        thing->setStateValue(sunspecSplitPhaseInverterTotalCurrentStateTypeId, inverter->amps());
-        thing->setStateValue(sunspecSplitPhaseInverterFrequencyStateTypeId, inverter->hz());
-        thing->setStateValue(sunspecSplitPhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
-        thing->setStateValue(sunspecSplitPhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
-        thing->setStateValue(sunspecSplitPhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
-        thing->setStateValue(sunspecSplitPhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
-        thing->setStateValue(sunspecSplitPhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
-        thing->setStateValue(sunspecSplitPhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
-        thing->setStateValue(sunspecSplitPhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
-        thing->setStateValue(sunspecSplitPhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
-        thing->setStateValue(sunspecSplitPhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
-        thing->setStateValue(sunspecSplitPhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        if (thing->thingClassId() == sunspecSplitPhaseInverterThingClassId) {
+            thing->setStateValue(sunspecSplitPhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecSplitPhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecSplitPhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecSplitPhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecSplitPhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecSplitPhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecSplitPhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecSplitPhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
+            thing->setStateValue(sunspecSplitPhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
+            thing->setStateValue(sunspecSplitPhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
+            thing->setStateValue(sunspecSplitPhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecSplitPhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecSplitPhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecSplitPhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecSplitPhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        } else if (thing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId) {
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecLimitableSplitPhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        }
         break;
     }
     case SunSpecModelFactory::ModelIdInverterThreePhase: {
         SunSpecInverterThreePhaseModel *inverter = qobject_cast<SunSpecInverterThreePhaseModel *>(model);
         qCDebug(dcSunSpec()) << thing->name() << "block data updated";// << inverter;
-        thing->setStateValue(sunspecThreePhaseInverterConnectedStateTypeId, true);
-        thing->setStateValue(sunspecThreePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
-
-        double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
-        thing->setStateValue(sunspecThreePhaseInverterCurrentPowerStateTypeId, currentPower);
-        evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
-        thing->setStateValue(sunspecThreePhaseInverterTotalCurrentStateTypeId, inverter->amps());
-        thing->setStateValue(sunspecThreePhaseInverterFrequencyStateTypeId, inverter->hz());
-        thing->setStateValue(sunspecThreePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseCNVoltageStateTypeId, inverter->phaseVoltageCn());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseCCurrentStateTypeId, inverter->ampsPhaseC());
-        thing->setStateValue(sunspecThreePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
-        thing->setStateValue(sunspecThreePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
-        thing->setStateValue(sunspecThreePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
-        thing->setStateValue(sunspecThreePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
-        thing->setStateValue(sunspecThreePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        if (thing->thingClassId() == sunspecThreePhaseInverterThingClassId) {
+            thing->setStateValue(sunspecThreePhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecThreePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecThreePhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecThreePhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecThreePhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecThreePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseCNVoltageStateTypeId, inverter->phaseVoltageCn());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseCCurrentStateTypeId, inverter->ampsPhaseC());
+            thing->setStateValue(sunspecThreePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecThreePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecThreePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecThreePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecThreePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        } else if (thing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId) {
+            thing->setStateValue(sunspecLimitableThreePhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecLimitableThreePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecLimitableThreePhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseCNVoltageStateTypeId, inverter->phaseVoltageCn());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseCCurrentStateTypeId, inverter->ampsPhaseC());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecLimitableThreePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecLimitableThreePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        }
         break;
     }
     case SunSpecModelFactory::ModelIdInverterThreePhaseFloat: {
         SunSpecInverterThreePhaseFloatModel *inverter = qobject_cast<SunSpecInverterThreePhaseFloatModel *>(model);
         qCDebug(dcSunSpec()) << thing->name() << "block data updated";// << inverter;
-        thing->setStateValue(sunspecThreePhaseInverterConnectedStateTypeId, true);
-        thing->setStateValue(sunspecThreePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
-
-        double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
-        thing->setStateValue(sunspecThreePhaseInverterCurrentPowerStateTypeId, currentPower);
-        evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
-        thing->setStateValue(sunspecThreePhaseInverterTotalCurrentStateTypeId, inverter->amps());
-        thing->setStateValue(sunspecThreePhaseInverterFrequencyStateTypeId, inverter->hz());
-        thing->setStateValue(sunspecThreePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseCNVoltageStateTypeId, inverter->phaseVoltageCn());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
-        thing->setStateValue(sunspecThreePhaseInverterPhaseCCurrentStateTypeId, inverter->ampsPhaseC());
-        thing->setStateValue(sunspecThreePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
-        thing->setStateValue(sunspecThreePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
-        thing->setStateValue(sunspecThreePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
-        thing->setStateValue(sunspecThreePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
-        thing->setStateValue(sunspecThreePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        if (thing->thingClassId() == sunspecThreePhaseInverterThingClassId) {
+            thing->setStateValue(sunspecThreePhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecThreePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecThreePhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecThreePhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecThreePhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecThreePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseCNVoltageStateTypeId, inverter->phaseVoltageCn());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
+            thing->setStateValue(sunspecThreePhaseInverterPhaseCCurrentStateTypeId, inverter->ampsPhaseC());
+            thing->setStateValue(sunspecThreePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecThreePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecThreePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecThreePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecThreePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        } else if (thing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId) {
+            thing->setStateValue(sunspecLimitableThreePhaseInverterConnectedStateTypeId, true);
+            thing->setStateValue(sunspecLimitableThreePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
+            double currentPower = calculateSolarEdgePvProduction(thing, -inverter->watts(), -inverter->dcWatts());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterCurrentPowerStateTypeId, currentPower);
+            evaluateEnergyProducedValue(thing, inverter->wattHours() / 1000.0);
+            thing->setStateValue(sunspecLimitableThreePhaseInverterTotalCurrentStateTypeId, inverter->amps());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterFrequencyStateTypeId, inverter->hz());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterCabinetTemperatureStateTypeId, inverter->cabinetTemperature());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseANVoltageStateTypeId, inverter->phaseVoltageAn());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseBNVoltageStateTypeId, inverter->phaseVoltageBn());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseCNVoltageStateTypeId, inverter->phaseVoltageCn());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseACurrentStateTypeId, inverter->ampsPhaseA());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseBCurrentStateTypeId, inverter->ampsPhaseB());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterPhaseCCurrentStateTypeId, inverter->ampsPhaseC());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterOperatingStateStateTypeId, getInverterStateString(inverter->operatingState()));
+            thing->setStateValue(sunspecLimitableThreePhaseInverterErrorStateTypeId, getInverterErrorString(inverter->event1()));
+            thing->setStateValue(sunspecLimitableThreePhaseInverterVoltageDcStateTypeId, inverter->dcVoltage());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterCurrentDcStateTypeId, inverter->dcAmps());
+            thing->setStateValue(sunspecLimitableThreePhaseInverterCurrentPowerDcStateTypeId, -inverter->dcWatts());
+        }
         break;
     }
     default:
@@ -1695,6 +2180,39 @@ void IntegrationPluginSunSpec::onSolarEdgeBatteryBlockUpdated()
     thing->setStateValue(solarEdgeBatteryEnableForcePowerStateStateTypeId, battery->batteryData().storageControlMode == 4);
 }
 
+void IntegrationPluginSunSpec::onSettingsBlockUpdated()
+{
+    SunSpecModel *model = qobject_cast<SunSpecModel *>(sender());
+    Thing *thing = m_sunSpecSettings.key(model);
+    if (!thing) { return; }
+
+    Thing *parentThing = myThings().findById(thing->parentId());
+    if (!parentThing) { return; }
+
+    qCDebug(dcSunSpec()) << "Settings model updated for thing" << thing->name();
+    SunSpecSettingsModel *settingsModel = qobject_cast<SunSpecSettingsModel *>(model);
+    thing->setStateValue("maxPowerOutput", settingsModel->wMax());
+}
+
+void IntegrationPluginSunSpec::onControlsBlockUpdated()
+{
+    SunSpecModel *model = qobject_cast<SunSpecModel *>(sender());
+    Thing *thing = m_sunSpecControls.key(model);
+    if (!thing) { return; }
+
+    Thing *parentThing = myThings().findById(thing->parentId());
+    if (!parentThing) { return; }
+
+    qCDebug(dcSunSpec()) << "Controls model updated for thing" << thing->name();
+    SunSpecControlsModel *controlsModel = qobject_cast<SunSpecControlsModel *>(model);
+    qCDebug(dcSunSpec()) << "\tWMaxLimEna:" << controlsModel->wMaxLimEna();
+    qCDebug(dcSunSpec()) << "\tWMaxLimPct:" << controlsModel->wMaxLimPct() << "%";
+    thing->setStateValue("enableExportLimit",
+                         controlsModel->wMaxLimEna() == SunSpecControlsModel::Wmaxlim_enaEnabled);
+    const auto exportLimitWatt = controlsModel->wMaxLimPct() * thing->stateValue("maxPowerOutput").toFloat();
+    thing->setStateValue("exportLimitFeedback", exportLimitWatt);
+}
+
 void IntegrationPluginSunSpec::evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced)
 {
     /* Note: on some systems the inverter sends for a longer period an absurdly
@@ -1716,6 +2234,12 @@ void IntegrationPluginSunSpec::evaluateEnergyProducedValue(Thing *inverterThing,
         energyProducedStateTypeId = sunspecSplitPhaseInverterTotalEnergyProducedStateTypeId;
     } else if (inverterThing->thingClassId() == sunspecThreePhaseInverterThingClassId) {
         energyProducedStateTypeId = sunspecThreePhaseInverterTotalEnergyProducedStateTypeId;
+    } else if (inverterThing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId) {
+        energyProducedStateTypeId = sunspecLimitableSinglePhaseInverterTotalEnergyProducedStateTypeId;
+    } else if (inverterThing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId) {
+        energyProducedStateTypeId = sunspecLimitableSplitPhaseInverterTotalEnergyProducedStateTypeId;
+    } else if (inverterThing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId) {
+        energyProducedStateTypeId = sunspecLimitableThreePhaseInverterTotalEnergyProducedStateTypeId;
     } else {
         qCWarning(dcSunSpec()) << "Could not evaluate energy produced value for ThingClassId" << inverterThing->thingClassId() << "The value will not be updated.";
         return;

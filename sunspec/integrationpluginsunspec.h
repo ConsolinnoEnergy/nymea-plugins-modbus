@@ -61,6 +61,9 @@ public:
     void executeAction(ThingActionInfo *info) override;
 
 private:
+    static QHash<ThingClassId, ParamTypeId> enableExportLimitParamTypeId;
+    static QHash<ThingClassId, ParamTypeId> exportLimitParamTypeId;
+
     // SunSpec Connection params map
     QHash<ThingClassId, ParamTypeId> m_connectionIpParamTypeIds;
     QHash<ThingClassId, ParamTypeId> m_connectionPortParamTypeIds;
@@ -84,6 +87,8 @@ private:
     QHash<Thing *, SunSpecModel *> m_sunSpecInverters;
     QHash<Thing *, SunSpecModel *> m_sunSpecMeters;
     QHash<Thing *, SunSpecModel *> m_sunSpecStorages;
+    QHash<Thing *, SunSpecModel *> m_sunSpecSettings;
+    QHash<Thing *, SunSpecModel *> m_sunSpecControls;
 
 
     Thing *getThingForSunSpecModel(uint modelId, uint modbusAddress, const ThingId &parentId);
@@ -111,6 +116,15 @@ private:
     bool hasManufacturer(const QStringList &manufacturers, const QString &manufacturer);
     void markThingStatesDisconnected(Thing *thing);
 
+    void initializeLimitableInverterModels(Thing *thing, SunSpecConnection *connection);
+    void setEnableExportLimit(Thing *thing,
+                              bool enableLimit,
+                              ThingActionInfo *info = nullptr);
+    QModbusReply *setExportLimit(Thing *thing,
+                                 float exportLimit,
+                                 ThingActionInfo *info = nullptr);
+    void setupControlsModel(SunSpecControlsModel *model);
+
 private slots:
     void onRefreshTimer();
     void onPluginConfigurationChanged(const ParamTypeId &paramTypeId, const QVariant &value);
@@ -119,6 +133,8 @@ private slots:
     void onMeterBlockUpdated();
     void onStorageBlockUpdated();
     void onSolarEdgeBatteryBlockUpdated();
+    void onSettingsBlockUpdated();
+    void onControlsBlockUpdated();
 
     void evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced);
 
