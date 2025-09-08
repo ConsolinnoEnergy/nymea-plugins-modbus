@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.018) jammy; urgency=medium
+nymea-plugins-modbus (1.7.018-1) jammy; urgency=medium
 
   * Limit power production of Kaco Nx3
   * Fix control of newer FoxESS WB v3 versions
