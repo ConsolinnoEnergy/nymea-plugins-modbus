@@ -116,6 +116,36 @@
                             "cached": false
                         },
                         {
+                            "id": "8ac6ddea-1c5e-4deb-8734-f16f6d7cd232",
+                            "name": "powerPhaseA",
+                            "displayName": "Power phase A",
+                            "displayNameEvent": "Power phase A changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "b0791836-c7c2-45e3-b607-c02cd7fbbf9f",
+                            "name": "powerPhaseB",
+                            "displayName": "Power phase B",
+                            "displayNameEvent": "Power phase B changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
+                            "id": "9bb603a9-c0ab-4b2d-8bce-c06241ccbf27",
+                            "name": "powerPhaseC",
+                            "displayName": "Power phase C",
+                            "displayNameEvent": "Power phase C changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0,
+                            "cached": false
+                        },
+                        {
                             "id": "b0c47ada-1120-4dcf-a182-0b63bda2dcdb",
                             "name": "currentPower",
                             "displayName": "Current power",
