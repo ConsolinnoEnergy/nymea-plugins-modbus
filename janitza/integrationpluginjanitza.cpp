@@ -207,8 +207,8 @@ void IntegrationPluginJanitza::setupThing(ThingSetupInfo *info)
         float powerPhaseB = connection->powerPhaseB();
         float powerPhaseC = connection->powerPhaseC();
         thing->setStateValue(umg604PowerPhaseAStateTypeId, powerPhaseA);
-        thing->setStateValue(umg604PowerPhaseAStateTypeId, powerPhaseB);
-        thing->setStateValue(umg604PowerPhaseAStateTypeId, powerPhaseC);
+        thing->setStateValue(umg604PowerPhaseBStateTypeId, powerPhaseB);
+        thing->setStateValue(umg604PowerPhaseCStateTypeId, powerPhaseC);
 
         float currentPhaseA = connection->currentPhaseA();
         float currentPhaseB = connection->currentPhaseB();
