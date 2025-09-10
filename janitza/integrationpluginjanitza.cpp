@@ -172,36 +172,67 @@ void IntegrationPluginJanitza::setupThing(ThingSetupInfo *info)
         }
     });
 
-    connect(connection, &umg604ModbusTcpConnection::currentPhaseAChanged, this, [=](float currentPhaseA){
-        thing->setStateValue(umg604CurrentPhaseAStateTypeId, currentPhaseA);
-    });
-    connect(connection, &umg604ModbusTcpConnection::currentPhaseBChanged, this, [=](float currentPhaseB){
-        thing->setStateValue(umg604CurrentPhaseBStateTypeId, currentPhaseB);
-    });
-    connect(connection, &umg604ModbusTcpConnection::currentPhaseCChanged, this, [=](float currentPhaseC){
-        thing->setStateValue(umg604CurrentPhaseCStateTypeId, currentPhaseC);
-    });
     connect(connection, &umg604ModbusTcpConnection::voltagePhaseAChanged, this, [=](float voltagePhaseA){
         thing->setStateValue(umg604VoltagePhaseAStateTypeId, voltagePhaseA);
     });
+
     connect(connection, &umg604ModbusTcpConnection::voltagePhaseBChanged, this, [=](float voltagePhaseB){
         thing->setStateValue(umg604VoltagePhaseBStateTypeId, voltagePhaseB);
     });
+
     connect(connection, &umg604ModbusTcpConnection::voltagePhaseCChanged, this, [=](float voltagePhaseC){
         thing->setStateValue(umg604VoltagePhaseCStateTypeId, voltagePhaseC);
     });
+
     connect(connection, &umg604ModbusTcpConnection::totalCurrentPowerChanged, this, [=](float currentPower){
         thing->setStateValue(umg604CurrentPowerStateTypeId, currentPower);
     });
+
     connect(connection, &umg604ModbusTcpConnection::frequencyChanged, this, [=](float frequency){
         thing->setStateValue(umg604FrequencyStateTypeId, frequency);
     });
+
     connect(connection, &umg604ModbusTcpConnection::totalEnergyConsumedChanged, this, [=](float consumedEnergy){
         thing->setStateValue(umg604TotalEnergyConsumedStateTypeId, consumedEnergy);
     });
+
     connect(connection, &umg604ModbusTcpConnection::totalEnergyProducedChanged, this, [=](float producedEnergy){
         thing->setStateValue(umg604TotalEnergyProducedStateTypeId, producedEnergy);
     });
+
+    connect(connection, &umg604ModbusTcpConnection::updateFinished, this, [=](){
+        qCDebug(dcJanitza()) << "Janitza - Update finished";
+
+        float powerPhaseA = connection->powerPhaseA();
+        float powerPhaseB = connection->powerPhaseB();
+        float powerPhaseC = connection->powerPhaseC();
+        thing->setStateValue(umg604PowerPhaseAStateTypeId, powerPhaseA);
+        thing->setStateValue(umg604PowerPhaseAStateTypeId, powerPhaseB);
+        thing->setStateValue(umg604PowerPhaseAStateTypeId, powerPhaseC);
+
+        float currentPhaseA = connection->currentPhaseA();
+        float currentPhaseB = connection->currentPhaseB();
+        float currentPhaseC = connection->currentPhaseC();
+
+        if (powerPhaseA > 0) {
+            thing->setStateValue(umg604CurrentPhaseAStateTypeId, currentPhaseA);
+        } else {
+            thing->setStateValue(umg604CurrentPhaseAStateTypeId, -1 * currentPhaseA);
+        }
+
+        if (powerPhaseB > 0) {
+            thing->setStateValue(umg604CurrentPhaseBStateTypeId, currentPhaseB);
+        } else {
+            thing->setStateValue(umg604CurrentPhaseBStateTypeId, -1 * currentPhaseB);
+        }
+
+        if (powerPhaseC > 0) {
+            thing->setStateValue(umg604CurrentPhaseCStateTypeId, currentPhaseC);
+        } else {
+            thing->setStateValue(umg604CurrentPhaseCStateTypeId, -1 * currentPhaseC);
+        }
+    });
+
 
     m_umg604TcpConnections.insert(thing, connection);
 
