@@ -34,5 +34,18 @@
       "interfaces": "smartmeterconsumer connectable",
       "uuid_offset": 17
     }
+  },
+  "Chint": {
+    "uuid": "68044cad-4926-42d5-9ccb-09280a8e6d10",
+    "DTSU666 Inverter": {
+      "filename": "chintmeterinverter",
+      "interfaces": "solarinverter connectable",
+      "uuid_offset": 19
+    },
+    "DTSU666 Consumer": {
+      "filename": "chintmeterconsumer",
+      "interfaces": "smartmeterconsumer connectable",
+      "uuid_offset": 21
+    }
   }
 }

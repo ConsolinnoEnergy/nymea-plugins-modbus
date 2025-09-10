@@ -1,4 +1,4 @@
-nymea-plugins-modbus (1.7.018) jammy; urgency=medium
+nymea-plugins-modbus (1.7.018-1) jammy; urgency=medium
 
   * Limit power production of Kaco Nx3
   * Fix control of newer FoxESS WB v3 versions
@@ -7,6 +7,7 @@ nymea-plugins-modbus (1.7.018) jammy; urgency=medium
   * Fix for Alfen WB status
   * Solax X3: support for LPP
   * Lambda: Use queued requests
+  * Add normal chint meter as cosumer and inverter
 
  -- Luis Reber <l.reber@consolinno.de> Thu, 07 Aug 11:34:00 +0200
 
