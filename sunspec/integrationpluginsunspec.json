@@ -876,7 +876,7 @@
                 },
                 {
                     "name": "sunspecLimitableSplitPhaseInverter",
-                    "displayName": "SunSpec split phase inverter",
+                    "displayName": "SunSpec limitable split phase inverter",
                     "id": "dc2cf49e-7f78-444b-b218-dbd34ef6db7e",
                     "createMethods": [ "Auto" ],
                     "interfaces": [ "solarinverter", "connectable" ],
@@ -1085,7 +1085,7 @@
                 },
                 {
                     "name": "sunspecLimitableThreePhaseInverter",
-                    "displayName": "SunSpec three phase inverter",
+                    "displayName": "SunSpec limitable three phase inverter",
                     "id": "1ec75696-66e9-4f3d-a8a5-46b066ece7d3",
                     "createMethods": [ "Auto" ],
                     "interfaces": [ "solarinverter", "connectable" ],
@@ -2057,6 +2057,147 @@
                             "name": "version",
                             "displayName": "Version",
                             "displayNameEvent": "Version changed",
+                            "type": "QString",
+                            "defaultValue": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "froniusControllableStorage",
+                    "displayName": "Fronius Storage",
+                    "id": "6d73a443-56b4-4fa6-a9fa-47fdb166e631",
+                    "createMethods": [ "Auto" ],
+                    "interfaces": ["energystorage", "controllablebattery", "limitablebattery", "connectable"],
+                    "paramTypes": [],
+                    "stateTypes":[
+                        {
+                            "id": "b4c54c41-36e0-4110-9cd8-2ff3031b0897",
+                            "name": "connected",
+                            "displayName": "Connected",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "cached": false
+                        },
+                        {
+                            "id": "36bbf69f-31cc-4211-855f-03a4d3fc5cfc",
+                            "name": "batteryCritical",
+                            "displayName": "Battery critical",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "ebae807f-2edc-4573-9c00-cc98cf370dc1",
+                            "name": "batteryLevel",
+                            "displayName": "Battery level",
+                            "type": "int",
+                            "unit": "Percentage",
+                            "minValue": 0,
+                            "maxValue": 100,
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "13371360-d277-4282-a8bc-64e82eea791a",
+                            "name": "chargingState",
+                            "displayName": "Charging state",
+                            "type": "QString",
+                            "possibleValues": ["idle", "charging", "discharging"],
+                            "defaultValue": "idle"
+                        },
+                        {
+                            "id": "b103df31-a1ab-41e0-b305-272678e633f3",
+                            "name": "storageStatus",
+                            "displayName": "Status",
+                            "type": "QString",
+                            "possibleValues": [
+                                "Off",
+                                "Empty",
+                                "Discharging",
+                                "Charging",
+                                "Full",
+                                "Holding",
+                                "Testing"
+                            ],
+                            "defaultValue": "Off"
+                        },
+                        {
+                            "id": "29ef6e77-2543-4fa0-b954-a17dc1441acd",
+                            "name": "currentPower",
+                            "displayName": "Power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "1f61ea5d-2611-40cb-8198-0368021adb9a",
+                            "name": "capacity",
+                            "displayName": "Capacity",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "d00a0d34-6d65-4369-b043-bf6c9d840709",
+                            "name": "enableForcePower",
+                            "displayName": "Enable force power",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true,
+                            "displayNameAction": "Enable force power"
+                        },
+                        {
+                            "id": "83409090-4f17-4d00-aab3-59053c8b9d7d",
+                            "name": "enableForcePowerState",
+                            "displayName": "Force power state",
+                            "type": "bool",
+                            "defaultValue": false
+                        },
+                        {
+                            "id": "faaeab3b-d634-4882-9346-c351b2dee2ca",
+                            "name": "forcePower",
+                            "displayName": "Force power",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0.0,
+                            "writable": true,
+                            "cached": true,
+                            "displayNameAction": "Set force power"
+                        },
+                        {
+                            "id": "5b6dcaf4-63ca-4fcc-9f21-b4b01d00a115",
+                            "name": "maxChargingCurrent",
+                            "displayName": "Max. charging current (unused)",
+                            "type": "double",
+                            "unit": "Ampere",
+                            "defaultValue": 0,
+                            "writable": true,
+                            "minValue": 0,
+                            "maxValue": 0,
+                            "displayNameAction": "Set max. charging current"
+                        },
+                        {
+                            "id": "a2dd9a2b-a407-47d8-b76e-0ca6f951719b",
+                            "name": "enableMaxChargingCurrent",
+                            "displayName": "Enable max. charging current (unused)",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true,
+                            "displayNameAction": "Enable max. charging current"
+                        },
+                        {
+                            "id": "b65c5056-a91d-4f07-84c6-ce0c08e66c72",
+                            "name": "setMaxSoC",
+                            "displayName": "Set max. SoC",
+                            "type": "uint",
+                            "unit": "Percentage",
+                            "defaultValue": 100,
+                            "writable": true,
+                            "cached": true,
+                            "displayNameAction": "Set max. SoC"
+                        },
+                        {
+                            "id": "96121b08-1a57-4db0-a622-4b1cf43956b4",
+                            "name": "version",
+                            "displayName": "Version",
                             "type": "QString",
                             "defaultValue": ""
                         }

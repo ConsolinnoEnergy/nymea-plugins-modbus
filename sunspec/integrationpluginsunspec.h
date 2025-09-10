@@ -89,6 +89,8 @@ private:
     QHash<Thing *, SunSpecModel *> m_sunSpecStorages;
     QHash<Thing *, SunSpecModel *> m_sunSpecSettings;
     QHash<Thing *, SunSpecModel *> m_sunSpecControls;
+    QHash<Thing *, SunSpecModel *> m_sunSpecNameplates;
+    QHash<Thing *, SunSpecModel *> m_sunSpecMppts;
 
 
     Thing *getThingForSunSpecModel(uint modelId, uint modbusAddress, const ThingId &parentId);
@@ -119,11 +121,22 @@ private:
     void initializeLimitableInverterModels(Thing *thing, SunSpecConnection *connection);
     void setEnableExportLimit(Thing *thing,
                               bool enableLimit,
-                              ThingActionInfo *info = nullptr);
+                              ThingActionInfo *info);
     QModbusReply *setExportLimit(Thing *thing,
                                  float exportLimit,
-                                 ThingActionInfo *info = nullptr);
+                                 ThingActionInfo *info);
     void setupControlsModel(SunSpecControlsModel *model);
+
+    void initializeFroniusControllableStorageModels(Thing *thing, SunSpecConnection *connection);
+    void setEnableForcePower(Thing *thing,
+                             bool enableforcePower,
+                             ThingActionInfo *info);
+    void setForcePower(Thing *thing,
+                       double forcePower,
+                       ThingActionInfo *info);
+    void setChargingAllowed(Thing *thing,
+                            bool chargingAllowed,
+                            ThingActionInfo *info);
 
 private slots:
     void onRefreshTimer();
@@ -135,6 +148,8 @@ private slots:
     void onSolarEdgeBatteryBlockUpdated();
     void onSettingsBlockUpdated();
     void onControlsBlockUpdated();
+    void onNameplateBlockUpdated();
+    void onMpptBlockUpdated();
 
     void evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced);
 
