@@ -1676,7 +1676,12 @@ void IntegrationPluginSunSpec::initializeFroniusControllableStorageModels(Thing 
                 connect(model, &SunSpecModel::blockUpdated,
                         this, &IntegrationPluginSunSpec::onMpptBlockUpdated);
                 m_sunSpecMppts.insert(thing, model);
-                qCDebug(dcSunSpec()) << "MPPT model successfully initialized for" << thing->name();
+                const auto mpptModel = qobject_cast<SunSpecMpptModel *>(model);
+                if (mpptModel) {
+                    qCDebug(dcSunSpec()) << "MPPT model successfully initialized for" << thing->name();
+                } else {
+                    qCWarning(dcSunSpec()) << "Unable to set up MPPT model for thing" << thing->name();
+                }
             }
         }
     }
@@ -2647,47 +2652,31 @@ void IntegrationPluginSunSpec::onMpptBlockUpdated()
     }
 
     //qCDebug(dcSunSpec()) << "MPPT block data updated for" << thing->name();
-
-    /*
-    SunSpecMpptModel *mppt = qobject_cast<SunSpecMpptModel *>(model);
-    qCDebug(dcSunSpec()) << thing->name() << "MPPT block data updated";
-
-    if (thing->thingClassId() == froniusControllableStorageThingClassId) {
-        if (mppt->numberOfModules() < 4) {
-            qCWarning(dcSunSpec()) << "Expected at least 4 repeating blocks for MPPT model";
-            return;
-        }
-        const auto startRegister = mppt->modbusStartRegister();
-        const auto data = mppt->blockData();
-
-        // Module 3 is for battery charging.
-        const auto chargingBlockStartRegister = static_cast<quint16>(startRegister + 10 + 20 * 2);
-        auto chargingBlock = new SunSpecMpptModelRepeatingBlock{ 3, 20, chargingBlockStartRegister, mppt };
-        const auto chargingBlockData = data.mid(10 + 20 * 2, 20);
-        chargingBlock->processBlockData(chargingBlockData);
-        const auto chargePower = chargingBlock->dcPower();
-
-        // Module 4 is for battery discharging.
-        const auto dischargingBlockStartRegister = static_cast<quint16>(startRegister + 10 + 20 * 3);
-        auto dischargingBlock = new SunSpecMpptModelRepeatingBlock{ 4, 20, dischargingBlockStartRegister, mppt };
-        const auto dischargingBlockData = data.mid(10 + 20 * 3, 20);
-        dischargingBlock->processBlockData(dischargingBlockData);
-        const auto dischargePower = dischargingBlock->dcPower();
-
-        if (!qFuzzyIsNull(chargePower)) {
-            thing->setStateValue(froniusControllableStorageCurrentPowerStateTypeId, chargePower);
-        } else if (!qFuzzyIsNull(dischargePower)) {
-            thing->setStateValue(froniusControllableStorageCurrentPowerStateTypeId, -dischargePower);
-        } else {
-            thing->setStateValue(froniusControllableStorageCurrentPowerStateTypeId, 0);
-        }
-
-        delete chargingBlock;
-        chargingBlock = nullptr;
-        delete dischargingBlock;
-        dischargingBlock = nullptr;
+    const auto mppt = qobject_cast<SunSpecMpptModel *>(model);
+    if (!mppt) {
+        qCWarning(dcSunSpec()) << "Expected MPPT model but got other model";
+        return;
     }
-    */
+
+    const auto repeatingBlocks = mppt->repeatingBlocks();
+    auto currentPower = 0.f;
+    foreach (SunSpecModelRepeatingBlock *block, repeatingBlocks) {
+        const auto mpptBlock = qobject_cast<SunSpecMpptModelRepeatingBlock *>(block);
+        if (!mpptBlock) {
+            qCWarning(dcSunSpec()) << "Unable to get SunSpecMpptModelRepeatingBlock from models' repeating blocks";
+            continue;
+        }
+        if (mpptBlock->inputIdSting() == "StCha 3") {
+            if (!qFuzzyIsNull(mpptBlock->dcPower())) {
+                currentPower = mpptBlock->dcPower();
+            }
+        } else if (mpptBlock->inputIdSting() == "StDisCha 4") {
+            if (!qFuzzyIsNull(mpptBlock->dcPower())) {
+                currentPower = -mpptBlock->dcPower(); // Discharging is negative by convention
+            }
+        }
+    }
+    thing->setStateValue(froniusControllableStorageCurrentPowerStateTypeId, currentPower);
 }
 
 void IntegrationPluginSunSpec::evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced)
