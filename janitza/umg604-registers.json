@@ -146,10 +146,43 @@
                 {
                     "id": "dummy1",
                     "address": 19018,
-                    "size": 8,
+                    "size": 2,
                     "type": "raw",
                     "registerType": "inputRegister",
                     "description": "Dummy1",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPhaseA",
+                    "address": 19020,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Real power L1",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPhaseB",
+                    "address": 19022,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Real power L2",
+                    "unit": "W",
+                    "defaultValue": "0",
+                    "access": "RO"
+                },
+                {
+                    "id": "powerPhaseC",
+                    "address": 19024,
+                    "size": 2,
+                    "type": "float",
+                    "registerType": "inputRegister",
+                    "description": "Real power L3",
+                    "unit": "W",
+                    "defaultValue": "0",
                     "access": "RO"
                 },
                 {
