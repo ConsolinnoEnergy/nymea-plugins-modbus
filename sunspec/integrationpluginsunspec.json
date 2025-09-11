@@ -2190,6 +2190,8 @@
                             "type": "uint",
                             "unit": "Percentage",
                             "defaultValue": 100,
+                            "minValue": 0,
+                            "maxValue": 100,
                             "writable": true,
                             "cached": true,
                             "displayNameAction": "Set max. SoC"

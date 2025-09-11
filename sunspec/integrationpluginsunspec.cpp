@@ -2492,10 +2492,12 @@ void IntegrationPluginSunSpec::onStorageBlockUpdated()
                 storage->storCtlMod().testFlag(SunSpecStorageModel::Storctl_modDiScharge);
         thing->setStateValue(froniusControllableStorageEnableForcePowerStateStateTypeId, isForcePowerEnabled);
         thing->setStateValue(froniusControllableStorageVersionStateTypeId, model->commonModelInfo().versionString);
+        thing->setStateMinMaxValues(froniusControllableStorageForcePowerStateTypeId,
+                                    -storage->wChaMax(),
+                                    storage->wChaMax());
         qCDebug(dcSunSpec()) << "\tStorCtl_Mod:" << storage->storCtlMod();
         qCDebug(dcSunSpec()) << "\tOutWRte:" << storage->outWRte();
         qCDebug(dcSunSpec()) << "\tInWRte:" << storage->inWRte();
-        qCDebug(dcSunSpec()) << "\tChaGriSet:" << storage->chaGriSet();
     }
 }
 
