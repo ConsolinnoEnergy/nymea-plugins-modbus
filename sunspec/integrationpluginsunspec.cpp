@@ -1970,7 +1970,7 @@ void IntegrationPluginSunSpec::onInverterBlockUpdated()
     switch (model->modelId()) {
     case SunSpecModelFactory::ModelIdInverterSinglePhase: {
         SunSpecInverterSinglePhaseModel *inverter = qobject_cast<SunSpecInverterSinglePhaseModel *>(model);
-        qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
         if (thing->thingClassId() == sunspecSinglePhaseInverterThingClassId) {
             thing->setStateValue(sunspecSinglePhaseInverterConnectedStateTypeId, true);
             thing->setStateValue(sunspecSinglePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
@@ -2008,7 +2008,7 @@ void IntegrationPluginSunSpec::onInverterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdInverterSinglePhaseFloat: {
         SunSpecInverterSinglePhaseFloatModel *inverter = qobject_cast<SunSpecInverterSinglePhaseFloatModel *>(model);
-        qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
         if (thing->thingClassId() == sunspecSinglePhaseInverterThingClassId) {
             thing->setStateValue(sunspecSinglePhaseInverterConnectedStateTypeId, true);
             thing->setStateValue(sunspecSinglePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
@@ -2046,7 +2046,7 @@ void IntegrationPluginSunSpec::onInverterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdInverterSplitPhase: {
         SunSpecInverterSplitPhaseModel *inverter = qobject_cast<SunSpecInverterSplitPhaseModel *>(model);
-        qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
         if (thing->thingClassId() == sunspecSplitPhaseInverterThingClassId) {
             thing->setStateValue(sunspecSplitPhaseInverterConnectedStateTypeId, true);
             thing->setStateValue(sunspecSplitPhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
@@ -2088,7 +2088,7 @@ void IntegrationPluginSunSpec::onInverterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdInverterSplitPhaseFloat: {
         SunSpecInverterSplitPhaseFloatModel *inverter = qobject_cast<SunSpecInverterSplitPhaseFloatModel *>(model);
-        qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
         if (thing->thingClassId() == sunspecSplitPhaseInverterThingClassId) {
             thing->setStateValue(sunspecSplitPhaseInverterConnectedStateTypeId, true);
             thing->setStateValue(sunspecSplitPhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
@@ -2130,7 +2130,7 @@ void IntegrationPluginSunSpec::onInverterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdInverterThreePhase: {
         SunSpecInverterThreePhaseModel *inverter = qobject_cast<SunSpecInverterThreePhaseModel *>(model);
-        qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
         if (thing->thingClassId() == sunspecThreePhaseInverterThingClassId) {
             thing->setStateValue(sunspecThreePhaseInverterConnectedStateTypeId, true);
             thing->setStateValue(sunspecThreePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
@@ -2176,7 +2176,7 @@ void IntegrationPluginSunSpec::onInverterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdInverterThreePhaseFloat: {
         SunSpecInverterThreePhaseFloatModel *inverter = qobject_cast<SunSpecInverterThreePhaseFloatModel *>(model);
-        qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Inverter block updated for" << thing->name();
         if (thing->thingClassId() == sunspecThreePhaseInverterThingClassId) {
             thing->setStateValue(sunspecThreePhaseInverterConnectedStateTypeId, true);
             thing->setStateValue(sunspecThreePhaseInverterVersionStateTypeId, model->commonModelInfo().versionString);
@@ -2240,7 +2240,7 @@ void IntegrationPluginSunSpec::onMeterBlockUpdated()
     switch (model->modelId()) {
     case SunSpecModelFactory::ModelIdMeterSinglePhase: {
         SunSpecMeterSinglePhaseModel *meter = qobject_cast<SunSpecMeterSinglePhaseModel *>(model);
-        qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
         thing->setStateValue(sunspecSinglePhaseMeterConnectedStateTypeId, true);
         thing->setStateValue(sunspecSinglePhaseMeterCurrentPowerStateTypeId, -meter->watts());
         thing->setStateValue(sunspecSinglePhaseMeterTotalEnergyProducedStateTypeId, meter->totalWattHoursExported() / 1000.0);
@@ -2253,7 +2253,7 @@ void IntegrationPluginSunSpec::onMeterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdMeterSinglePhaseFloat: {
         SunSpecMeterSinglePhaseFloatModel *meter = qobject_cast<SunSpecMeterSinglePhaseFloatModel *>(model);
-        qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
         thing->setStateValue(sunspecSinglePhaseMeterConnectedStateTypeId, true);
         thing->setStateValue(sunspecSinglePhaseMeterCurrentPowerStateTypeId, -meter->watts());
         thing->setStateValue(sunspecSinglePhaseMeterTotalEnergyProducedStateTypeId, meter->totalWattHoursExported() / 1000.0);
@@ -2266,7 +2266,7 @@ void IntegrationPluginSunSpec::onMeterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdMeterSplitSinglePhaseAbn: {
         SunSpecMeterSplitSinglePhaseAbnModel *meter = qobject_cast<SunSpecMeterSplitSinglePhaseAbnModel *>(model);
-        qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
         thing->setStateValue(sunspecSplitPhaseMeterConnectedStateTypeId, true);
         thing->setStateValue(sunspecSplitPhaseMeterTotalEnergyProducedStateTypeId, meter->totalWattHoursExported() / 1000.0);
         thing->setStateValue(sunspecSplitPhaseMeterTotalEnergyConsumedStateTypeId, meter->totalWattHoursImported() / 1000.0);
@@ -2289,7 +2289,7 @@ void IntegrationPluginSunSpec::onMeterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdMeterSplitSinglePhaseFloat: {
         SunSpecMeterSplitSinglePhaseFloatModel *meter = qobject_cast<SunSpecMeterSplitSinglePhaseFloatModel *>(model);
-        qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
         thing->setStateValue(sunspecSplitPhaseMeterConnectedStateTypeId, true);
         thing->setStateValue(sunspecSplitPhaseMeterTotalEnergyProducedStateTypeId, meter->totalWattHoursExported() / 1000.0);
         thing->setStateValue(sunspecSplitPhaseMeterTotalEnergyConsumedStateTypeId, meter->totalWattHoursImported() / 1000.0);
@@ -2312,7 +2312,7 @@ void IntegrationPluginSunSpec::onMeterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdMeterThreePhase: {
         SunSpecMeterThreePhaseModel *meter = qobject_cast<SunSpecMeterThreePhaseModel *>(model);
-        qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
         thing->setStateValue(sunspecThreePhaseMeterConnectedStateTypeId, true);
         thing->setStateValue(sunspecThreePhaseMeterTotalEnergyProducedStateTypeId, meter->totalWattHoursExported() / 1000.0);
         thing->setStateValue(sunspecThreePhaseMeterTotalEnergyConsumedStateTypeId, meter->totalWattHoursImported() / 1000.0);
@@ -2338,7 +2338,7 @@ void IntegrationPluginSunSpec::onMeterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdDeltaConnectThreePhaseAbcMeter: {
         SunSpecDeltaConnectThreePhaseAbcMeterModel *meter = qobject_cast<SunSpecDeltaConnectThreePhaseAbcMeterModel *>(model);
-        qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
         thing->setStateValue(sunspecThreePhaseMeterConnectedStateTypeId, true);
         thing->setStateValue(sunspecThreePhaseMeterTotalEnergyProducedStateTypeId, meter->totalWattHoursExported() / 1000.0);
         thing->setStateValue(sunspecThreePhaseMeterTotalEnergyConsumedStateTypeId, meter->totalWattHoursImported() / 1000.0);
@@ -2364,7 +2364,7 @@ void IntegrationPluginSunSpec::onMeterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdMeterThreePhaseWyeConnect: {
         SunSpecMeterThreePhaseWyeConnectModel *meter = qobject_cast<SunSpecMeterThreePhaseWyeConnectModel *>(model);
-        qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
         thing->setStateValue(sunspecThreePhaseMeterConnectedStateTypeId, true);
         thing->setStateValue(sunspecThreePhaseMeterTotalEnergyProducedStateTypeId, meter->totalWattHoursExported() / 1000.0);
         thing->setStateValue(sunspecThreePhaseMeterTotalEnergyConsumedStateTypeId, meter->totalWattHoursImported() / 1000.0);
@@ -2390,7 +2390,7 @@ void IntegrationPluginSunSpec::onMeterBlockUpdated()
     }
     case SunSpecModelFactory::ModelIdMeterThreePhaseDeltaConnect: {
         SunSpecMeterThreePhaseDeltaConnectModel *meter = qobject_cast<SunSpecMeterThreePhaseDeltaConnectModel *>(model);
-        qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
+        //qCDebug(dcSunSpec()) << "Meter block updated for" << thing->name();
         thing->setStateValue(sunspecThreePhaseMeterConnectedStateTypeId, true);
         thing->setStateValue(sunspecThreePhaseMeterTotalEnergyProducedStateTypeId, meter->totalWattHoursExported() / 1000.0);
         thing->setStateValue(sunspecThreePhaseMeterTotalEnergyConsumedStateTypeId, meter->totalWattHoursImported() / 1000.0);
@@ -2435,7 +2435,7 @@ void IntegrationPluginSunSpec::onStorageBlockUpdated()
         return;
     }
 
-    qCDebug(dcSunSpec()) << "Storage block updated for thing" << thing->name();
+    //qCDebug(dcSunSpec()) << "Storage block updated for thing" << thing->name();
     SunSpecStorageModel *storage = qobject_cast<SunSpecStorageModel *>(model);
     auto storageStatus = QString{};
     auto chargingState = QString{};
@@ -2576,7 +2576,7 @@ void IntegrationPluginSunSpec::onSettingsBlockUpdated()
         return;
     }
 
-    qCDebug(dcSunSpec()) << "Settings block updated for thing" << thing->name();
+    //qCDebug(dcSunSpec()) << "Settings block updated for thing" << thing->name();
     if (thing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId ||
             thing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId ||
             thing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId) {
