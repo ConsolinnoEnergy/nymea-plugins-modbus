@@ -864,6 +864,9 @@ void IntegrationPluginAlphaInnotec::executeAction(ThingActionInfo *info)
                     info->finish(Thing::ThingErrorHardwareFailure);
                     return;
                 });
+            } else {
+                qCDebug(dcAlphaInnotec()) << "PV Surplus - Send action finish.";
+                info->finish(Thing::ThingErrorNoError);
             }
         } else if (info->action().actionTypeId() == aitSmartHomeActivateLpcActionTypeId) {
             /* This function sets the operating mode of the heatpump to HARDLIMIT if LPC is active
