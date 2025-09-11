@@ -731,7 +731,6 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
     if (isLimitableInverter) {
         auto limitableInverterAlreadyExists = false;
         foreach(Thing *childThing, myThings().filterByParentId(thing->id())) {
-            qCDebug(dcSunSpec()) << "Checking child thing" << childThing->name();
             if (childThing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId ||
                     childThing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId ||
                     childThing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId) {
@@ -809,7 +808,6 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
     if (isControllableFroniusStorage) {
         auto controllableFroniusStorageAlreadyExists = false;
         foreach(Thing *childThing, myThings().filterByParentId(thing->id())) {
-            qCDebug(dcSunSpec()) << "Checking child thing" << childThing->name();
             if (childThing->thingClassId() == froniusControllableStorageThingClassId) {
                 qCDebug(dcSunSpec()) << "Controllable storage already exists for this thing";
                 initializeFroniusControllableStorageModels(childThing, connection);
@@ -2495,9 +2493,9 @@ void IntegrationPluginSunSpec::onStorageBlockUpdated()
         thing->setStateMinMaxValues(froniusControllableStorageForcePowerStateTypeId,
                                     -storage->wChaMax(),
                                     storage->wChaMax());
-        qCDebug(dcSunSpec()) << "\tStorCtl_Mod:" << storage->storCtlMod();
-        qCDebug(dcSunSpec()) << "\tOutWRte:" << storage->outWRte();
-        qCDebug(dcSunSpec()) << "\tInWRte:" << storage->inWRte();
+        //qCDebug(dcSunSpec()) << "\tStorCtl_Mod:" << storage->storCtlMod();
+        //qCDebug(dcSunSpec()) << "\tOutWRte:" << storage->outWRte();
+        //qCDebug(dcSunSpec()) << "\tInWRte:" << storage->inWRte();
     }
 }
 
@@ -2599,13 +2597,13 @@ void IntegrationPluginSunSpec::onControlsBlockUpdated()
         return;
     }
 
-    qCDebug(dcSunSpec()) << "Controls block data updated for" << thing->name();
+    //qCDebug(dcSunSpec()) << "Controls block data updated for" << thing->name();
     if (thing->thingClassId() == sunspecLimitableSinglePhaseInverterThingClassId ||
             thing->thingClassId() == sunspecLimitableSplitPhaseInverterThingClassId ||
             thing->thingClassId() == sunspecLimitableThreePhaseInverterThingClassId) {
         SunSpecControlsModel *controlsModel = qobject_cast<SunSpecControlsModel *>(model);
-        qCDebug(dcSunSpec()) << "\tWMaxLimEna:" << controlsModel->wMaxLimEna();
-        qCDebug(dcSunSpec()) << "\tWMaxLimPct:" << controlsModel->wMaxLimPct() << "%";
+        //qCDebug(dcSunSpec()) << "\tWMaxLimEna:" << controlsModel->wMaxLimEna();
+        //qCDebug(dcSunSpec()) << "\tWMaxLimPct:" << controlsModel->wMaxLimPct() << "%";
         thing->setStateValue("enableExportLimit",
                              controlsModel->wMaxLimEna() == SunSpecControlsModel::Wmaxlim_enaEnabled);
         const auto exportLimitWatt = controlsModel->wMaxLimPct() * thing->stateValue("maxPowerOutput").toFloat();
@@ -2627,7 +2625,7 @@ void IntegrationPluginSunSpec::onNameplateBlockUpdated()
         return;
     }
 
-    qCDebug(dcSunSpec()) << "Nameplate block data updated for" << thing->name();
+    //qCDebug(dcSunSpec()) << "Nameplate block data updated for" << thing->name();
     if (thing->thingClassId() == froniusControllableStorageThingClassId) {
         SunSpecNameplateModel *nameplate = qobject_cast<SunSpecNameplateModel *>(model);
         thing->setStateValue(froniusControllableStorageCapacityStateTypeId, nameplate->whRtg() / 1000);
@@ -2648,7 +2646,7 @@ void IntegrationPluginSunSpec::onMpptBlockUpdated()
         return;
     }
 
-    qCDebug(dcSunSpec()) << "MPPT block data updated for" << thing->name();
+    //qCDebug(dcSunSpec()) << "MPPT block data updated for" << thing->name();
 
     /*
     SunSpecMpptModel *mppt = qobject_cast<SunSpecMpptModel *>(model);
