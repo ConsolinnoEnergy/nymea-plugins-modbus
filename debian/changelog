@@ -3,6 +3,7 @@ nymea-plugins-modbus (1.7.019) jammy; urgency=medium
   * Janitza: Add phase power and correct phase current
   * AIT: Send info-finish()
   * Modbus code generator: Fix writing string registers
+  * Fix conversion of strings to bytes for sending via Modbus
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 10 Sep 09:43:00 +0200
 
