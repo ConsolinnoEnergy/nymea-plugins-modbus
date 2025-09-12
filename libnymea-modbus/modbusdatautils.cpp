@@ -253,8 +253,9 @@ QVector<quint16> ModbusDataUtils::convertFromInt64(qint64 value, ByteOrder byteO
 
 QVector<quint16> ModbusDataUtils::convertFromString(const QString &value, quint16 stringLength, ByteOrder characterByteOrder)
 {
-    Q_ASSERT_X(value.length() <= stringLength, "ModbusDataUtils", "cannot convert a string which is bigger than the desired register vector.");
-    QByteArray data = value.toLatin1() + QByteArray('\0', stringLength - value.count());
+    // stringLength is assumed to be in number of registers (i.e. number of 16 bit values)
+    Q_ASSERT_X(value.toUtf8().size() <= stringLength * 2, "ModbusDataUtils", "cannot convert a string which is bigger than the desired register vector.");
+    QByteArray data = value.toUtf8() + QByteArray(2 * stringLength - value.toUtf8().size(), '\0');
     QDataStream stream(&data, QIODevice::ReadOnly);
     // Note: some devices use little endian within the register uint16 representation of the 2 characters.
     stream.setByteOrder(characterByteOrder == ByteOrderBigEndian ? QDataStream::BigEndian : QDataStream::LittleEndian);
