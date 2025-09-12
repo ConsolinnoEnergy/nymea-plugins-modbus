@@ -2498,9 +2498,9 @@ void IntegrationPluginSunSpec::onStorageBlockUpdated()
         thing->setStateMinMaxValues(froniusControllableStorageForcePowerStateTypeId,
                                     -storage->wChaMax(),
                                     storage->wChaMax());
-        //qCDebug(dcSunSpec()) << "\tStorCtl_Mod:" << storage->storCtlMod();
-        //qCDebug(dcSunSpec()) << "\tOutWRte:" << storage->outWRte();
-        //qCDebug(dcSunSpec()) << "\tInWRte:" << storage->inWRte();
+        qCDebug(dcSunSpec()) << "\tStorCtl_Mod:" << storage->storCtlMod();
+        qCDebug(dcSunSpec()) << "\tOutWRte:" << storage->outWRte();
+        qCDebug(dcSunSpec()) << "\tInWRte:" << storage->inWRte();
     }
 }
 
