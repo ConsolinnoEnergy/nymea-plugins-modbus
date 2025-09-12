@@ -9,7 +9,7 @@
             "displayName": "Update interval",
             "type": "int",
             "unit": "Seconds",
-            "defaultValue": 1
+            "defaultValue": 2
         },
         {
             "id": "1a8895a0-c746-48af-9307-3a4636f24cc2",

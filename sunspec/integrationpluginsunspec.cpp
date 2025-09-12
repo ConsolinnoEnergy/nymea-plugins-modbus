@@ -640,10 +640,20 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
             const auto enableForcePower =
                     action.paramValue(froniusControllableStorageEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
             setEnableForcePower(thing, enableForcePower, info);
+            connect(info, &ThingActionInfo::finished, info, [thing, info, enableForcePower]() {
+                if (info->status() == Thing::ThingErrorNoError) {
+                    thing->setStateValue(froniusControllableStorageEnableForcePowerStateStateTypeId, enableForcePower);
+                }
+            });
         } else if (action.actionTypeId() == froniusControllableStorageForcePowerActionTypeId) {
             const auto forcePower =
                     action.paramValue(froniusControllableStorageForcePowerActionForcePowerParamTypeId).toDouble();
             setForcePower(thing, forcePower, info);
+            connect(info, &ThingActionInfo::finished, info, [thing, info, forcePower]() {
+                if (info->status() == Thing::ThingErrorNoError) {
+                    thing->setStateValue(froniusControllableStorageForcePowerStateTypeId, forcePower);
+                }
+            });
 // #TODO needed to activate new force power setting?
 //            const auto forcePowerEnabled = thing->stateValue(froniusControllableStorageEnableForcePowerStateTypeId).toBool();
 //            if (forcePowerEnabled) {
@@ -688,7 +698,6 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
             info->finish(Thing::ThingErrorActionTypeNotFound,
                          QT_TR_NOOP("Unknown action type"));
         }
-        info->finish(Thing::ThingErrorNoError);
     } else {
         Q_ASSERT_X(false, "executeAction", QString("Unhandled thingClassId: %1").arg(info->thing()->thingClassId().toString()).toUtf8());
     }
@@ -1736,7 +1745,6 @@ void IntegrationPluginSunSpec::setForcePower(Thing *thing,
 {
     qCDebug(dcSunSpec()) << "Setting force power to" << forcePower << "for thing" << thing->name();
     SunSpecStorageModel *storage = qobject_cast<SunSpecStorageModel *>(m_sunSpecStorages.value(thing));
-
     if (!storage) {
         qWarning(dcSunSpec()) << "Could not find sunspec storage model for thing" << thing->name();
         if (info) {
@@ -1753,19 +1761,13 @@ void IntegrationPluginSunSpec::setForcePower(Thing *thing,
         }
         return;
     }
-    const auto forcePowerPercentage = forcePower / wChaMax;
+    const auto forcePowerPercentage = 100 * forcePower / wChaMax;
+    qCDebug(dcSunSpec()) << forcePower << "/" << wChaMax << "=" << forcePowerPercentage << "%";
 
-    auto inWRteToSet = 0.f;
-    auto outWRteToSet = 0.f;
-    if (forcePowerPercentage > 0) { // Charge
-        inWRteToSet = forcePowerPercentage;
-        outWRteToSet = -forcePowerPercentage;
-    } else { // Discharge
-        inWRteToSet = -forcePowerPercentage;
-        outWRteToSet = forcePowerPercentage;
-    }
+    auto inWRteToSet = forcePowerPercentage * 1.01f;
+    auto outWRteToSet = -forcePowerPercentage;
 
-    qCDebug(dcSunSpec()) << "Setting InWRte to" << inWRteToSet;
+    qCDebug(dcSunSpec()) << "Setting InWRte (charge limit) to" << inWRteToSet;
     const auto inWRteReply = storage->setInWRte(inWRteToSet);
     if (!inWRteReply) {
         qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
@@ -1775,36 +1777,38 @@ void IntegrationPluginSunSpec::setForcePower(Thing *thing,
         return;
     }
     connect(inWRteReply, &QModbusReply::finished, inWRteReply, &QModbusReply::deleteLater);
-    connect(inWRteReply, &QModbusReply::finished, inWRteReply, [info, inWRteReply, thing]{
+    connect(inWRteReply, &QModbusReply::finished, inWRteReply,
+            [info, inWRteReply, thing, outWRteToSet, storage]() {
         if (inWRteReply->error() != QModbusDevice::NoError) {
             qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
-            if (info && !info->isFinished()) {
-                info->finish(Thing::ThingErrorHardwareFailure);
-            }
-            return;
-        }
-    });
-    qCDebug(dcSunSpec()) << "Setting OutWRte to" << outWRteToSet;
-    const auto outWRteReply = storage->setOutWRte(outWRteToSet);
-    if (!outWRteReply) {
-        qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
-        if (info) {
-            info->finish(Thing::ThingErrorHardwareFailure);
-        }
-    }
-    connect(outWRteReply, &QModbusReply::finished, outWRteReply, &QModbusReply::deleteLater);
-    connect(outWRteReply, &QModbusReply::finished, outWRteReply, [info, outWRteReply, thing]{
-        if (outWRteReply->error() != QModbusDevice::NoError) {
-            qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
-            if (info && !info->isFinished()) {
+            if (info) {
                 info->finish(Thing::ThingErrorHardwareFailure);
             }
             return;
         }
 
-        if (info && !info->isFinished()) {
-            info->finish(Thing::ThingErrorNoError);
+        qCDebug(dcSunSpec()) << "Setting OutWRte (discharge limit) to" << outWRteToSet;
+        const auto outWRteReply = storage->setOutWRte(outWRteToSet);
+        if (!outWRteReply) {
+            qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
+            if (info) {
+                info->finish(Thing::ThingErrorHardwareFailure);
+            }
         }
+        connect(outWRteReply, &QModbusReply::finished, outWRteReply, &QModbusReply::deleteLater);
+        connect(outWRteReply, &QModbusReply::finished, outWRteReply, [info, outWRteReply, thing] {
+            if (outWRteReply->error() != QModbusDevice::NoError) {
+                qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
+                if (info) {
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+                return;
+            }
+
+            if (info) {
+                info->finish(Thing::ThingErrorNoError);
+            }
+        });
     });
 }
 
@@ -1836,7 +1840,8 @@ void IntegrationPluginSunSpec::setChargingAllowed(Thing *thing,
     }
 
     connect(storCtl_ModReply, &QModbusReply::finished, storCtl_ModReply, &QModbusReply::deleteLater);
-    connect(storCtl_ModReply, &QModbusReply::finished, storCtl_ModReply, [info, storCtl_ModReply, thing]{
+    connect(storCtl_ModReply, &QModbusReply::finished, storCtl_ModReply,
+            [info, storCtl_ModReply, thing, chargingAllowed, storage]() {
         if (storCtl_ModReply->error() != QModbusDevice::NoError) {
             qWarning(dcSunSpec()) << "Unable to set StorCtl_Mod for thing" << thing->name();
             if (info) {
@@ -1844,31 +1849,31 @@ void IntegrationPluginSunSpec::setChargingAllowed(Thing *thing,
             }
             return;
         }
-    });
 
-    const auto inWRteToSet = chargingAllowed ? 100.f : 0.f;
-    qCDebug(dcSunSpec()) << "Setting InWRte to" << inWRteToSet;
-    const auto inWRteReply = storage->setInWRte(inWRteToSet);
-    if (!inWRteReply) {
-        qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
-        if (info) {
-            info->finish(Thing::ThingErrorHardwareFailure);
-        }
-        return;
-    }
-    connect(inWRteReply, &QModbusReply::finished, inWRteReply, &QModbusReply::deleteLater);
-    connect(inWRteReply, &QModbusReply::finished, inWRteReply, [info, inWRteReply, thing]{
-        if (inWRteReply->error() != QModbusDevice::NoError) {
+        const auto inWRteToSet = chargingAllowed ? 100.f : 0.f;
+        qCDebug(dcSunSpec()) << "Setting InWRte to" << inWRteToSet;
+        const auto inWRteReply = storage->setInWRte(inWRteToSet);
+        if (!inWRteReply) {
             qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
-            if (info && !info->isFinished()) {
+            if (info) {
                 info->finish(Thing::ThingErrorHardwareFailure);
             }
             return;
         }
+        connect(inWRteReply, &QModbusReply::finished, inWRteReply, &QModbusReply::deleteLater);
+        connect(inWRteReply, &QModbusReply::finished, inWRteReply, [info, inWRteReply, thing]{
+            if (inWRteReply->error() != QModbusDevice::NoError) {
+                qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
+                if (info && !info->isFinished()) {
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+                return;
+            }
 
-        if (info && !info->isFinished()) {
-            info->finish(Thing::ThingErrorNoError);
-        }
+            if (info && !info->isFinished()) {
+                info->finish(Thing::ThingErrorNoError);
+            }
+        });
     });
 }
 
