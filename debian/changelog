@@ -1,8 +1,23 @@
-nymea-plugins-modbus (1.7.018) jammy; urgency=medium
+nymea-plugins-modbus (1.7.019) jammy; urgency=medium
 
+  * Janitza: Add phase power and correct phase current
+  * AIT: Send info-finish()
   * Modbus code generator: Fix writing string registers
 
- -- Oliver Wieland <o.wieland@consolinno.de>  Tue, 05 Aug 2025 08:43:18 +0200
+ -- Luis Reber <l.reber@consolinno.de> Wed, 10 Sep 09:43:00 +0200
+
+nymea-plugins-modbus (1.7.018-1) jammy; urgency=medium
+
+  * Limit power production of Kaco Nx3
+  * Fix control of newer FoxESS WB v3 versions
+  * Support for Solax X3 IES (Copy of Solax X3 G4)
+  * Added LPC support to AlphaInnotec SHI
+  * Fix for Alfen WB status
+  * Solax X3: support for LPP
+  * Lambda: Use queued requests
+  * Add normal chint meter as cosumer and inverter
+
+ -- Luis Reber <l.reber@consolinno.de> Thu, 07 Aug 11:34:00 +0200
 
 nymea-plugins-modbus (1.7.017-1) jammy; urgency=medium
 

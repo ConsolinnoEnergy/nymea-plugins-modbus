@@ -425,7 +425,7 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             qCDebug(dcLambda()) << thing << "Accumulated thermal energy output of compressor unit since last statistic reset" << compressorTotalHeatOutput << "Wh";
             thing->setStateValue(lambdaTCPCompressorTotalHeatOutputStateTypeId, compressorTotalHeatOutput);
         });
-        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::updateFinished, thing, [thing, lambdaTCPTcpConnection](){
+        connect(lambdaTCPTcpConnection, &LambdaModbusTcpConnection::updateFinished, thing, [this, thing, lambdaTCPTcpConnection](){
             qCDebug(dcLambda()) << "Lambda heat pump - Update finished.";
             float energyInput = lambdaTCPTcpConnection->totalEnergyConsumed();
             float energyOutput = lambdaTCPTcpConnection->compressorTotalHeatOutput();
@@ -434,6 +434,7 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
             if (energyInput > 0) {
                 thing->setStateValue(lambdaTCPAverageCoefficientOfPerformanceStateTypeId, averageCOP);
             }
+            writePowerDemand(thing);
         });        
         // 1-0-50 not connected
 
@@ -609,6 +610,7 @@ void IntegrationPluginLambda::setupThing(ThingSetupInfo *info)
         // 5-0-50 until 5-0-52 not connected        
 
         m_connections.insert(thing, lambdaTCPTcpConnection);
+        m_demandPowers.insert(thing, 0);
         lambdaTCPTcpConnection->connectDevice();
 
         // FIXME: make async and check if this is really an alpha connect
@@ -624,7 +626,7 @@ void IntegrationPluginLambda::postSetupThing(Thing *thing)
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach (LambdaModbusTcpConnection *connection, m_connections) {
-                    if (connection->connected()) {
+                    if (connection->modbusTcpMaster()->connected()) {
                         connection->update();
                     }
                 }
@@ -641,6 +643,9 @@ void IntegrationPluginLambda::thingRemoved(Thing *thing)
         if (m_connections.contains(thing)) {
             LambdaModbusTcpConnection *connection = m_connections.take(thing);
             delete connection;
+        }
+        if (m_demandPowers.contains(thing)) {
+            m_demandPowers.remove(thing);
         }
         if (m_lpcInterfaces.contains(thing)) {
             LpcInterface *lpcInterface = m_lpcInterfaces.take(thing);
@@ -659,7 +664,7 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
     Thing *thing = info->thing();
     LambdaModbusTcpConnection *connection = m_connections.value(thing);
 
-    if (!connection->connected()) {
+    if (!connection->modbusTcpMaster()->connected()) {
         qCWarning(dcLambda()) << "Could not execute action. The modbus connection is currently not available.";
         info->finish(Thing::ThingErrorHardwareNotAvailable);
         return;
@@ -670,7 +675,7 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
         qCDebug(dcLambda()) << "Execute action" << info->action().actionTypeId().toString() << info->action().params();
         
         // Set global variable m_demandPower in case ActualPvSurplus state changed
-        connection->setDemandPower(actualPvSurplus);
+        m_demandPowers[thing] = actualPvSurplus;
     }
 
     LpcInterface *lpcInterface = m_lpcInterfaces.value(thing);
@@ -703,6 +708,59 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
                 }
             }            
         }
+}
+
+void IntegrationPluginLambda::writePowerDemand(Thing *thing)
+{
+    if (!m_connections.contains(thing)) {
+        return;
+    }
+    const auto connection = m_connections[thing];
+    const auto demandPower = m_demandPowers[thing];
+    QModbusReply *reply = nullptr;
+    //quint16 pwrDmnd = 0;
+
+    // JoOb: Write powerDemand not working (FC6 not supported )
+    //reply = setPowerDemand(pwrDmnd);
+
+
+    // JoOb: sendRawRequest is working successfull
+    quint16 startAddress = 102, numberOfRegisters = 1; // hard coded register to be changed
+    quint8 payloadInBytes = 2;
+
+    quint8 outputHigh = (demandPower>>8) & 0xFF;
+    quint8 outputLow = demandPower & 0xFF;
+    qCDebug(dcLambda())
+            << "demand power value: "
+            << demandPower << "; highByte: "
+            << outputHigh
+            << "; lowByte: " << outputLow;
+
+    QModbusRequest request(QModbusRequest::WriteMultipleRegisters,
+                           startAddress,
+                           numberOfRegisters,
+                           payloadInBytes,
+                           outputHigh,
+                           outputLow);
+
+    //QModbusRequest request(QModbusRequest::WriteMultipleRegisters, QByteArray::fromHex("00660001020001")); // joOb
+    reply = connection->modbusTcpMaster()->sendRawRequest(request, connection->slaveId());
+
+    if (!reply) {
+        qCWarning(dcLambda())
+            << "Write powerDemand failed because the reply could not be created.";
+        return;
+    }
+
+    connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
+    connect(reply, &QModbusReply::finished, reply, [reply](){
+        if (reply->error() != QModbusDevice::NoError) {
+            qCWarning(dcLambda())
+                    << "Write powerDemand finished with error" << reply->errorString();
+            return;
+        }
+        qCDebug(dcLambda()) << "Write powerDemand finished successfully";
+    });
 }
 
 

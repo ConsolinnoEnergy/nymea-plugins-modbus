@@ -13,7 +13,7 @@
                     "displayName": "Solax X3 Hybrid Inverter (TCP)",
                     "id": "b1cb3137-b293-4df2-ae4f-b662c6835653",
                     "createMethods": ["discovery"],
-                    "interfaces": ["solarinverter", "connectable"],
+                    "interfaces": ["solarinverter", "connectable", "limitgridexport"],
                     "providedInterfaces": ["solarinverter", "energymeter", "controllablebattery"],
                     "paramTypes": [
                         {
@@ -216,33 +216,28 @@
                             "cached": false
                         },
                         {
+                            "id": "45573c07-26dd-49a4-b990-1d24467b861d",
+                            "name": "enableExportLimit",
+                            "displayName": "Enable Export Limit",
+                            "displayNameEvent": "Export limit enabled changed",
+                            "displayNameAction": "Enable Export Limit",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
                             "id": "ff0f093a-5be6-4086-8c82-9b12ec902213",
                             "name": "exportLimit",
-                            "displayName": "Export power limit",
+                            "displayName": "Export Limit",
                             "displayNameEvent": "Export power limit changed",
+                            "displayNameAction": "Set export limit",
                             "type": "double",
                             "unit": "Watt",
-                            "defaultValue": 0.0
-                        }
-
-                    ],
-                    "actionTypes": [ 
-                        {
-                            "id": "4142896c-da53-4ba8-b0de-14f0dd24ae5c",
-                            "name": "setExportLimit",
-                            "displayName": "Set Grid export limit",
-                            "paramTypes": [
-                                {
-                                    "id": "bb8548d9-d318-49f8-92a1-2c947faf8836",
-                                    "name": "exportLimit",
-                                    "displayName": "Grid Export Limit (percent of inverter nominal power)",
-                                    "type": "int",
-                                    "unit": "Percentage",
-                                    "defaultValue": 100,
-                                    "minValue": 0,
-                                    "maxValue": 100
-                                }
-                            ]
+                            "writable": true,
+                            "defaultValue": 0,
+                            "minValue": 0,
+                            "cached": true
                         }
                     ]
                 },
@@ -251,7 +246,7 @@
                     "displayName": "Solax X3 Hybrid Inverter (RTU)",
                     "id": "4190fc56-3804-43c4-bcd3-c5f86638513e",
                     "createMethods": ["discovery"],
-                    "interfaces": ["solarinverter", "connectable"],
+                    "interfaces": ["solarinverter", "connectable", "limitgridexport"],
                     "providedInterfaces": ["solarinverter", "energymeter", "controllablebattery"],
                     "paramTypes": [
                         {
@@ -447,33 +442,28 @@
                             "cached": false
                         },
                         {
+                            "id": "a1b89399-72c0-4794-a284-1878d88cb132",
+                            "name": "enableExportLimit",
+                            "displayName": "Enable Export Limit",
+                            "displayNameEvent": "Export limit enabled changed",
+                            "displayNameAction": "Enable Export Limit",
+                            "type": "bool",
+                            "defaultValue": false,
+                            "writable": true,
+                            "cached": true
+                        },
+                        {
                             "id": "69560779-c196-4a09-bda4-56ea66f33fb1",
                             "name": "exportLimit",
-                            "displayName": "Export power limit",
+                            "displayName": "Export Limit",
                             "displayNameEvent": "Export power limit changed",
+                            "displayNameAction": "Set export limit",
                             "type": "double",
                             "unit": "Watt",
-                            "defaultValue": 0.0
-                        }
-
-                    ],
-                    "actionTypes": [ 
-                        {
-                            "id": "c92ee09c-40ee-4eac-9ce4-7f2399ddb714",
-                            "name": "setExportLimit",
-                            "displayName": "Set Grid export limit",
-                            "paramTypes": [
-                                {
-                                    "id": "56517915-3bd5-47da-85c2-950dae05cdd7",
-                                    "name": "exportLimit",
-                                    "displayName": "Grid Export Limit (percent of inverter nominal power)",
-                                    "type": "int",
-                                    "unit": "Percentage",
-                                    "defaultValue": 100,
-                                    "minValue": 0,
-                                    "maxValue": 100
-                                }
-                            ]
+                            "writable": true,
+                            "defaultValue": 0,
+                            "minValue": 0,
+                            "cached": true
                         }
                     ]
                 },

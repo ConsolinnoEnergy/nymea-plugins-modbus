@@ -743,7 +743,6 @@ void IntegrationPluginFoxESS::setMaxCurrent(FoxESSModbusTcpConnection *connectio
     qCDebug(dcFoxess()) << "Setting maxChargePower to" << maxPower;
     maxPower = (230 * phaseCount * maxCurrent) / 1000;
     qCDebug(dcFoxess()) << "Calculated power is" << maxPower;
-    maxCurrent = maxPower;
     QModbusReply *reply = connection->setMaxChargeCurrent(maxCurrent, maxPower);
     connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
     connect(reply, &QModbusReply::finished, this, [this, connection, maxCurrent, reply]() {

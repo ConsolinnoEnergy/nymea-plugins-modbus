@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
+* Copyright 2013 - 2023, nymea GmbH
 * Contact: contact@nymea.io
 *
 * This file is part of nymea.
@@ -28,42 +28,50 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef INTEGRATIONPLUGINLAMBDA_H
-#define INTEGRATIONPLUGINLAMBDA_H
+#ifndef DISCOVERYIES_H
+#define DISCOVERYIES_H
 
-#include <plugintimer.h>
-#include <integrations/integrationplugin.h>
+#include <QObject>
+#include <QTimer>
 
-#include "lambdamodbustcpconnection.h"
-#include "lpcinterface.h"
+#include <network/networkdevicediscovery.h>
 
-class IntegrationPluginLambda: public IntegrationPlugin
+#include "solaxiesmodbustcpconnection.h"
+
+class DiscoveryIes : public QObject
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginlambda.json")
-    Q_INTERFACES(IntegrationPlugin)
-
 public:
-    explicit IntegrationPluginLambda();
+    explicit DiscoveryIes(NetworkDeviceDiscovery *networkDeviceDiscovery, QObject *parent = nullptr);
+    struct Result {
+        quint16 port;
+        quint16 modbusId;
+        QString productName;
+        QString manufacturerName;
+        quint16 powerRating;
+        NetworkDeviceInfo networkDeviceInfo;
+    };
 
-    void init() override;
-    void discoverThings(ThingDiscoveryInfo *info) override;
-    void startMonitoringAutoThings() override;
-    void setupThing(ThingSetupInfo *info) override;
-    void postSetupThing(Thing *thing) override;
-    void thingRemoved(Thing *thing) override;
-    void executeAction(ThingActionInfo *info) override;
+    void startDiscovery();
+
+    QList<Result> discoveryResults() const;
+
+signals:
+    void discoveryFinished();
 
 private:
-    void writePowerDemand(Thing *thing);
+    NetworkDeviceDiscovery *m_networkDeviceDiscovery = nullptr;
 
-    PluginTimer *m_pluginTimer = nullptr;
-    QHash<Thing *, LambdaModbusTcpConnection *> m_connections;
-    QHash<Thing *, qint16> m_demandPowers;
-    QHash<Thing *, LpcInterface *> m_lpcInterfaces;
+    QDateTime m_startDateTime;
+
+    QList<SolaxIesModbusTcpConnection *> m_connections;
+
+    QList<Result> m_discoveryResults;
+
+    void checkNetworkDevice(const NetworkDeviceInfo &networkDeviceInfo);
+    void cleanupConnection(SolaxIesModbusTcpConnection *connection);
+
+    void finishDiscovery();
 };
 
-#endif // INTEGRATIONPLUGINLAMBDA_H
-
-
+#endif // DISCOVERYIES_H
