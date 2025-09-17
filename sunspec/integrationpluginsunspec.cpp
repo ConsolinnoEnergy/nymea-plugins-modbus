@@ -1843,44 +1843,50 @@ void IntegrationPluginSunSpec::setForcePower(Thing *thing,
         }
         return;
     }
-    const auto forcePowerPercentage = 100 * forcePower / wChaMax;
-    qCDebug(dcSunSpec()) << forcePower << "/" << wChaMax << "=" << forcePowerPercentage << "%";
 
+    const auto forcePowerPercentage = 100 * forcePower / wChaMax;
     auto inWRteToSet = forcePowerPercentage;
     auto outWRteToSet = -forcePowerPercentage;
 
     qCDebug(dcSunSpec()) << "Setting InWRte (charge limit) to" << inWRteToSet;
-    const auto inWRteReply = storage->setInWRte(inWRteToSet);
-    if (!inWRteReply) {
-        qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
+    qCDebug(dcSunSpec()) << "Setting OutWRte (discharge limit) to" << outWRteToSet;
+
+    // Decide which value to set first to avoid error condition.
+    const auto currentInWRte = storage->inWRte();
+    const auto setInWRteFirst = inWRteToSet > currentInWRte;
+    const auto firstSettingName = setInWRteFirst ? "InWRte" : "OutWRte";
+    const auto secondSettingName = setInWRteFirst ? "OutWRte" : "InWRte";
+
+    const auto firstReply = setInWRteFirst ? storage->setInWRte(inWRteToSet) : storage->setOutWRte(outWRteToSet);
+    if (!firstReply) {
+        qWarning(dcSunSpec()) << "Unable to set" << firstSettingName << "for thing" << thing->name();
         if (info) {
             info->finish(Thing::ThingErrorHardwareFailure);
         }
         return;
     }
-    connect(inWRteReply, &QModbusReply::finished, inWRteReply, &QModbusReply::deleteLater);
-    connect(inWRteReply, &QModbusReply::finished, inWRteReply,
-            [info, inWRteReply, thing, outWRteToSet, storage]() {
-        if (inWRteReply->error() != QModbusDevice::NoError) {
-            qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
+    connect(firstReply, &QModbusReply::finished, firstReply, &QModbusReply::deleteLater);
+    connect(firstReply, &QModbusReply::finished, firstReply,
+            [info, firstReply, thing, outWRteToSet, storage, firstSettingName, setInWRteFirst, inWRteToSet, secondSettingName]() {
+        if (firstReply->error() != QModbusDevice::NoError) {
+            qWarning(dcSunSpec()) << "Unable to set" << firstSettingName << "for thing" << thing->name();
             if (info) {
                 info->finish(Thing::ThingErrorHardwareFailure);
             }
             return;
         }
 
-        qCDebug(dcSunSpec()) << "Setting OutWRte (discharge limit) to" << outWRteToSet;
-        const auto outWRteReply = storage->setOutWRte(outWRteToSet);
-        if (!outWRteReply) {
-            qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
+        const auto secondReply = setInWRteFirst ? storage->setOutWRte(outWRteToSet) : storage->setInWRte(inWRteToSet);
+        if (!secondReply) {
+            qWarning(dcSunSpec()) << "Unable to set" << secondSettingName << "for thing" << thing->name();
             if (info) {
                 info->finish(Thing::ThingErrorHardwareFailure);
             }
         }
-        connect(outWRteReply, &QModbusReply::finished, outWRteReply, &QModbusReply::deleteLater);
-        connect(outWRteReply, &QModbusReply::finished, outWRteReply, [info, outWRteReply, thing] {
-            if (outWRteReply->error() != QModbusDevice::NoError) {
-                qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
+        connect(secondReply, &QModbusReply::finished, secondReply, &QModbusReply::deleteLater);
+        connect(secondReply, &QModbusReply::finished, secondReply, [info, secondReply, thing, secondSettingName] {
+            if (secondReply->error() != QModbusDevice::NoError) {
+                qWarning(dcSunSpec()) << "Unable to set" << secondSettingName << "for thing" << thing->name();
                 if (info) {
                     info->finish(Thing::ThingErrorHardwareFailure);
                 }
