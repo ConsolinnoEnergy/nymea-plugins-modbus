@@ -128,15 +128,16 @@ private:
     void setupControlsModel(SunSpecControlsModel *model);
 
     void initializeFroniusControllableStorageModels(Thing *thing, SunSpecConnection *connection);
-    void setEnableForcePower(Thing *thing,
-                             bool enableforcePower,
-                             ThingActionInfo *info);
+    QModbusReply *setEnableForcePower(Thing *thing,
+                                      bool enableforcePower,
+                                      ThingActionInfo *info);
     void setForcePower(Thing *thing,
                        double forcePower,
                        ThingActionInfo *info);
     void setChargingAllowed(Thing *thing,
                             bool chargingAllowed,
                             ThingActionInfo *info);
+    void setupStorageModel(SunSpecStorageModel *model);
 
 private slots:
     void onRefreshTimer();
