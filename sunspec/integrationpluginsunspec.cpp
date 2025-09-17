@@ -675,7 +675,6 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
             qCInfo(dcSunSpec()) << "Ignoring unsupported action" << action.actionTypeId();
             info->finish(Thing::ThingErrorNoError);
         } else if (action.actionTypeId() == froniusControllableStorageEnableMaxChargingCurrentActionTypeId) {
-            // #TODO Use enableMaxCharging also for setMaxSoC?
             qCInfo(dcSunSpec()) << "Ignoring unsupported action" << action.actionTypeId();
             info->finish(Thing::ThingErrorNoError);
         } else if (action.actionTypeId() == froniusControllableStorageSetMaxSoCActionTypeId) {
@@ -2109,11 +2108,6 @@ void IntegrationPluginSunSpec::onInverterBlockUpdated()
     Thing *thing = m_sunSpecInverters.key(model);
     if (!thing) return;
 
-    // Get parent thing
-    Thing *parentThing = myThings().findById(thing->parentId());
-    if (!parentThing)
-        return;
-
     switch (model->modelId()) {
     case SunSpecModelFactory::ModelIdInverterSinglePhase: {
         SunSpecInverterSinglePhaseModel *inverter = qobject_cast<SunSpecInverterSinglePhaseModel *>(model);
@@ -2379,11 +2373,6 @@ void IntegrationPluginSunSpec::onMeterBlockUpdated()
     Thing *thing = m_sunSpecMeters.key(model);
     if (!thing) return;
 
-    // Get parent thing
-    Thing *parentThing = myThings().findById(thing->parentId());
-    if (!parentThing)
-        return;
-
     switch (model->modelId()) {
     case SunSpecModelFactory::ModelIdMeterSinglePhase: {
         SunSpecMeterSinglePhaseModel *meter = qobject_cast<SunSpecMeterSinglePhaseModel *>(model);
@@ -2573,10 +2562,6 @@ void IntegrationPluginSunSpec::onStorageBlockUpdated()
     Thing *thing = m_sunSpecStorages.key(model);
     if (!thing) return;
 
-    // #TODO needed in on<X>BlockUpdated methods?
-    Thing *parentThing = myThings().findById(thing->parentId());
-    if (!parentThing) { return; }
-
     if (model->modelId() != SunSpecModelFactory::ModelIdStorage) {
         qCWarning(dcSunSpec()) << "onStorageBlockUpdated for model with model id != ModelIdStorage for thing" << thing->name();
         return;
@@ -2740,9 +2725,6 @@ void IntegrationPluginSunSpec::onSettingsBlockUpdated()
     Thing *thing = m_sunSpecSettings.key(model);
     if (!thing) { return; }
 
-    Thing *parentThing = myThings().findById(thing->parentId());
-    if (!parentThing) { return; }
-
     if (model->modelId() != SunSpecModelFactory::ModelIdSettings) {
         qCWarning(dcSunSpec()) << "onSettingsBlockUpdated for model with model id != ModelIdSettings for thing" << thing->name();
         return;
@@ -2762,9 +2744,6 @@ void IntegrationPluginSunSpec::onControlsBlockUpdated()
     SunSpecModel *model = qobject_cast<SunSpecModel *>(sender());
     Thing *thing = m_sunSpecControls.key(model);
     if (!thing) { return; }
-
-    Thing *parentThing = myThings().findById(thing->parentId());
-    if (!parentThing) { return; }
 
     if (model->modelId() != SunSpecModelFactory::ModelIdControls) {
         qCWarning(dcSunSpec()) << "onControlsBlockUpdated for model with model id != ModelIdControls for thing" << thing->name();
@@ -2791,9 +2770,6 @@ void IntegrationPluginSunSpec::onNameplateBlockUpdated()
     Thing *thing = m_sunSpecNameplates.key(model);
     if (!thing) return;
 
-    Thing *parentThing = myThings().findById(thing->parentId());
-    if (!parentThing) { return; }
-
     if (model->modelId() != SunSpecModelFactory::ModelIdNameplate) {
         qCWarning(dcSunSpec()) << "onNameplateBlockUpdated for model with model id != ModelIdNameplate for thing" << thing->name();
         return;
@@ -2811,9 +2787,6 @@ void IntegrationPluginSunSpec::onMpptBlockUpdated()
     SunSpecModel *model = qobject_cast<SunSpecModel *>(sender());
     Thing *thing = m_sunSpecMppts.key(model);
     if (!thing) return;
-
-    Thing *parentThing = myThings().findById(thing->parentId());
-    if (!parentThing) { return; }
 
     if (model->modelId() != SunSpecModelFactory::ModelIdMppt) {
         qCWarning(dcSunSpec()) << "onMpptBlockUpdated for model with model id != ModelIdMppt for thing" << thing->name();
