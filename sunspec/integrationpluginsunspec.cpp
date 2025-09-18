@@ -691,92 +691,6 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
                     thing->setStateValue(froniusControllableStorageSetMaxSoCStateTypeId, maxSoC);
                 }
             });
-        } else if (action.actionTypeId() == froniusControllableStorageInWRteSetpointActionTypeId) {
-            const auto inWRteToSet =
-                    action.paramValue(froniusControllableStorageInWRteSetpointActionInWRteSetpointParamTypeId).toDouble();
-            SunSpecStorageModel *storage = qobject_cast<SunSpecStorageModel *>(m_sunSpecStorages.value(thing));
-            const auto reply = storage->setInWRte(inWRteToSet);
-            if (!reply) {
-                qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
-                info->finish(Thing::ThingErrorHardwareFailure);
-                return;
-            }
-            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, info, [info, reply, thing]() {
-                if (reply->error() != QModbusDevice::NoError) {
-                    qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                    return;
-                }
-                info->finish(Thing::ThingErrorNoError);
-            });
-        } else if (action.actionTypeId() == froniusControllableStorageOutWRteSetpointActionTypeId) {
-            const auto outWRteToSet =
-                    action.paramValue(froniusControllableStorageOutWRteSetpointActionOutWRteSetpointParamTypeId).toDouble();
-            SunSpecStorageModel *storage = qobject_cast<SunSpecStorageModel *>(m_sunSpecStorages.value(thing));
-            const auto reply = storage->setOutWRte(outWRteToSet);
-            if (!reply) {
-                qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
-                info->finish(Thing::ThingErrorHardwareFailure);
-                return;
-            }
-            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, info, [info, reply, thing]() {
-                if (reply->error() != QModbusDevice::NoError) {
-                    qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                    return;
-                }
-                info->finish(Thing::ThingErrorNoError);
-            });
-        } else if (action.actionTypeId() == froniusControllableStorageChargeLimitActionTypeId) {
-            const auto enableChargeLimit =
-                    action.paramValue(froniusControllableStorageChargeLimitActionChargeLimitParamTypeId).toBool();
-            const auto dischargeLimitEnabled =
-                    thing->stateValue(froniusControllableStorageDischargeLimitStateTypeId).toBool();
-            auto storCtlModToSet = SunSpecStorageModel::Storctl_modFlags{};
-            storCtlModToSet.setFlag(SunSpecStorageModel::Storctl_modCharge, enableChargeLimit);
-            storCtlModToSet.setFlag(SunSpecStorageModel::Storctl_modDiScharge, dischargeLimitEnabled);
-            SunSpecStorageModel *storage = qobject_cast<SunSpecStorageModel *>(m_sunSpecStorages.value(thing));
-            const auto reply = storage->setStorCtlMod(storCtlModToSet);
-            if (!reply) {
-                qWarning(dcSunSpec()) << "Unable to set StorCtl_Mod for thing" << thing->name();
-                info->finish(Thing::ThingErrorHardwareFailure);
-                return;
-            }
-            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, info, [info, reply, thing]() {
-                if (reply->error() != QModbusDevice::NoError) {
-                    qWarning(dcSunSpec()) << "Unable to set StorCtl_Mod for thing" << thing->name();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                    return;
-                }
-                info->finish(Thing::ThingErrorNoError);
-            });
-        } else if (action.actionTypeId() == froniusControllableStorageDischargeLimitActionTypeId) {
-            const auto enableDischargeLimit =
-                    action.paramValue(froniusControllableStorageDischargeLimitActionDischargeLimitParamTypeId).toBool();
-            const auto chargeLimitEnabled =
-                    thing->stateValue(froniusControllableStorageChargeLimitStateTypeId).toBool();
-            auto storCtlModToSet = SunSpecStorageModel::Storctl_modFlags{};
-            storCtlModToSet.setFlag(SunSpecStorageModel::Storctl_modCharge, chargeLimitEnabled);
-            storCtlModToSet.setFlag(SunSpecStorageModel::Storctl_modDiScharge, enableDischargeLimit);
-            SunSpecStorageModel *storage = qobject_cast<SunSpecStorageModel *>(m_sunSpecStorages.value(thing));
-            const auto reply = storage->setStorCtlMod(storCtlModToSet);
-            if (!reply) {
-                qWarning(dcSunSpec()) << "Unable to set StorCtl_Mod for thing" << thing->name();
-                info->finish(Thing::ThingErrorHardwareFailure);
-                return;
-            }
-            connect(reply, &QModbusReply::finished, reply, &QModbusReply::deleteLater);
-            connect(reply, &QModbusReply::finished, info, [info, reply, thing]() {
-                if (reply->error() != QModbusDevice::NoError) {
-                    qWarning(dcSunSpec()) << "Unable to set StorCtl_Mod for thing" << thing->name();
-                    info->finish(Thing::ThingErrorHardwareFailure);
-                    return;
-                }
-                info->finish(Thing::ThingErrorNoError);
-            });
         } else {
             qCWarning(dcSunSpec()) << "Unknown action type:" << action.actionTypeId();
             info->finish(Thing::ThingErrorActionTypeNotFound,
@@ -2651,23 +2565,6 @@ void IntegrationPluginSunSpec::onStorageBlockUpdated()
         thing->setStateMinMaxValues(froniusControllableStorageForcePowerStateTypeId,
                                     -storage->wChaMax(),
                                     storage->wChaMax());
-        thing->setStateValue(froniusControllableStorageInWRteFeedbackStateTypeId, storage->inWRte());
-        thing->setStateValue(froniusControllableStorageOutWRteFeedbackStateTypeId, storage->outWRte());
-        auto storCtlModStr = QString{};
-        const auto storCtlMod = storage->storCtlMod();
-        if (storCtlMod.testFlag(SunSpecStorageModel::Storctl_modCharge) &&
-                storCtlMod.testFlag(SunSpecStorageModel::Storctl_modDiScharge))
-        {
-            storCtlModStr = "Both";
-        } else if (storCtlMod.testFlag(SunSpecStorageModel::Storctl_modCharge)) {
-            storCtlModStr = "Charge";
-        } else if (storCtlMod.testFlag(SunSpecStorageModel::Storctl_modDiScharge)) {
-            storCtlModStr = "Discharge";
-        } else {
-            storCtlModStr = "None";
-        }
-        thing->setStateValue(froniusControllableStorageStorCtl_ModStateTypeId, storCtlModStr);
-
         const auto forcePowerEnabled = thing->stateValue(froniusControllableStorageEnableForcePowerStateTypeId).toBool();
         if (!forcePowerEnabled) {
             const auto maxSoCSetpoint = thing->stateValue(froniusControllableStorageSetMaxSoCStateTypeId).toInt();
