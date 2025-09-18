@@ -569,6 +569,19 @@
                             "suggestLogging": true
                         },
                         {
+                            "id": "eec53f3c-627f-40fa-afd7-301b30034331",
+                            "name": "powerLimitConsumer",
+                            "displayName": "LPC power limit",
+                            "displayNameEvent": "Power limit changed",
+                            "displayNameAction": "Change power limit",
+                            "writable": true,
+                            "type": "double",
+                            "unit": "Watt",
+                            "minValue": 0,
+                            "defaultValue": 0,
+                            "suggestLogging": true
+                        },
+                        {
                             "id": "cee50a87-cdab-4b6a-b5c5-2ef787a6f5c8",
                             "name": "relais1State",
                             "displayName": "Relay 1 enabled",

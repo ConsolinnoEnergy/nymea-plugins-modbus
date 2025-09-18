@@ -4,6 +4,7 @@ nymea-plugins-modbus (1.7.019) jammy; urgency=medium
   * AIT: Send info-finish()
   * Modbus code generator: Fix writing string registers
   * Fix conversion of strings for sending via Modbus
+  * Lambda: add powerLimitConsumer state
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 10 Sep 09:43:00 +0200
 
