@@ -700,7 +700,7 @@
                     "displayName": "SunSpec limitable single phase inverter",
                     "id": "71c78cbb-3805-4879-92ee-862e12214a96",
                     "createMethods": [ "Auto" ],
-                    "interfaces": [ "solarinverter", "connectable" ],
+                    "interfaces": [ "solarinverter", "connectable", "limitgridexport" ],
                     "paramTypes": [],
                     "stateTypes":[
                         {
@@ -840,7 +840,7 @@
                     "displayName": "SunSpec limitable split phase inverter",
                     "id": "dc2cf49e-7f78-444b-b218-dbd34ef6db7e",
                     "createMethods": [ "Auto" ],
-                    "interfaces": [ "solarinverter", "connectable" ],
+                    "interfaces": [ "solarinverter", "connectable", "limitgridexport" ],
                     "paramTypes": [],
                     "stateTypes":[
                         {
@@ -1006,7 +1006,7 @@
                     "displayName": "SunSpec limitable three phase inverter",
                     "id": "1ec75696-66e9-4f3d-a8a5-46b066ece7d3",
                     "createMethods": [ "Auto" ],
-                    "interfaces": [ "solarinverter", "connectable" ],
+                    "interfaces": [ "solarinverter", "connectable", "limitgridexport" ],
                     "paramTypes": [],
                     "stateTypes":[
                         {
