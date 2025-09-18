@@ -140,6 +140,8 @@ private:
     void setupStorageModel(SunSpecStorageModel *model);
     float getFroniusControllableStoragePowerFromMPPTModel(SunSpecMpptModel *model) const;
 
+    QString inverterThingName(SunSpecModel *model, const QString &genericName) const;
+
 private slots:
     void onRefreshTimer();
     void onPluginConfigurationChanged(const ParamTypeId &paramTypeId, const QVariant &value);

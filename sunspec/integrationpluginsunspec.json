@@ -1940,7 +1940,7 @@
                 },
                 {
                     "name": "froniusControllableStorage",
-                    "displayName": "Fronius Storage",
+                    "displayName": "Fronius Battery",
                     "id": "6d73a443-56b4-4fa6-a9fa-47fdb166e631",
                     "createMethods": [ "Auto" ],
                     "interfaces": ["energystorage", "controllablebattery", "limitablebattery", "connectable"],

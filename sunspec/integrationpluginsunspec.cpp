@@ -167,11 +167,13 @@ void IntegrationPluginSunSpec::discoverThings(ThingDiscoveryInfo *info)
 
             // Extract the manufacturer: we pick the first manufacturer name of the first common model having a manufacturer name for now
             QString manufacturer;
-            if (!result.modelManufacturers.isEmpty())
+            if (!result.modelManufacturers.isEmpty()) {
                 manufacturer = result.modelManufacturers.first();
+            }
 
             qCDebug(dcSunSpec()) << "Found manufacturers on" << result.networkDeviceInfo << result.port;
             qCDebug(dcSunSpec()) << "Manufacturers:" << result.modelManufacturers;
+            qCDebug(dcSunSpec()) << "Device name:" << result.deviceName;
             qCDebug(dcSunSpec()) << "Picking manufacturer for evaluation:" << manufacturer;
 
             // Filter for solar edge if we got one here
@@ -192,10 +194,14 @@ void IntegrationPluginSunSpec::discoverThings(ThingDiscoveryInfo *info)
             }
 
             QString title;
-            if (!manufacturer.isEmpty()) {
-                title = manufacturer + " ";
+            if (!manufacturer.isEmpty() && !result.deviceName.isEmpty()) {
+                title = manufacturer + " " + result.deviceName + " (SunSpec)";
+            } else {
+                if (!manufacturer.isEmpty()) {
+                    title = manufacturer + " ";
+                }
+                title.append("SunSpec connection");
             }
-            title.append("SunSpec connection");
 
             QString description;
             if (result.networkDeviceInfo.macAddressManufacturer().isEmpty()) {
@@ -756,16 +762,10 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
                             modelsById.value(SunSpecModelFactory::ModelIdInverterSinglePhaseFloat);
                 ThingDescriptor descriptor(sunspecLimitableSinglePhaseInverterThingClassId);
                 descriptor.setParentId(thing->id());
-                const auto thingName = QT_TR_NOOP("Limitable Single Phase Inverter");
-                QString finalThingName;
-                if (model->commonModelInfo().manufacturerName.isEmpty()) {
-                    finalThingName = thingName;
-                } else {
-                    finalThingName = model->commonModelInfo().manufacturerName + " " + thingName;
-                }
-                descriptor.setTitle(finalThingName);
+                const auto thingName = inverterThingName(model, QT_TR_NOOP("Limitable Single Phase Inverter"));
+                descriptor.setTitle(thingName);
                 descriptor.setParams(ParamList{});
-                qCDebug(dcSunSpec()) << "Auto appearing thing" << finalThingName;
+                qCDebug(dcSunSpec()) << "Auto appearing thing" << thingName;
                 emit autoThingsAppeared({descriptor});
             } else if (modelsById.contains(SunSpecModelFactory::ModelIdInverterSplitPhase) ||
                        modelsById.contains(SunSpecModelFactory::ModelIdInverterSplitPhaseFloat)) {
@@ -775,16 +775,10 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
                             modelsById.value(SunSpecModelFactory::ModelIdInverterSplitPhaseFloat);
                 ThingDescriptor descriptor(sunspecLimitableSplitPhaseInverterThingClassId);
                 descriptor.setParentId(thing->id());
-                const auto thingName = QT_TR_NOOP("Limitable Split Phase Inverter");
-                QString finalThingName;
-                if (model->commonModelInfo().manufacturerName.isEmpty()) {
-                    finalThingName = thingName;
-                } else {
-                    finalThingName = model->commonModelInfo().manufacturerName + " " + thingName;
-                }
-                descriptor.setTitle(finalThingName);
+                const auto thingName = inverterThingName(model, QT_TR_NOOP("Limitable Split Phase Inverter"));
+                descriptor.setTitle(thingName);
                 descriptor.setParams(ParamList{});
-                qCDebug(dcSunSpec()) << "Auto appearing thing" << finalThingName;
+                qCDebug(dcSunSpec()) << "Auto appearing thing" << thingName;
                 emit autoThingsAppeared({descriptor});
             } else {
                 const auto model =
@@ -793,16 +787,10 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
                             modelsById.value(SunSpecModelFactory::ModelIdInverterThreePhaseFloat);
                 ThingDescriptor descriptor(sunspecLimitableThreePhaseInverterThingClassId);
                 descriptor.setParentId(thing->id());
-                const auto thingName = QT_TR_NOOP("Limitable Three Phase Inverter");
-                QString finalThingName;
-                if (model->commonModelInfo().manufacturerName.isEmpty()) {
-                    finalThingName = thingName;
-                } else {
-                    finalThingName = model->commonModelInfo().manufacturerName + " " + thingName;
-                }
-                descriptor.setTitle(finalThingName);
+                const auto thingName = inverterThingName(model, QT_TR_NOOP("Limitable Three Phase Inverter"));
+                descriptor.setTitle(thingName);
                 descriptor.setParams(ParamList{});
-                qCDebug(dcSunSpec()) << "Auto appearing thing" << finalThingName;
+                qCDebug(dcSunSpec()) << "Auto appearing thing" << thingName;
                 emit autoThingsAppeared({descriptor});
             }
         }
@@ -825,7 +813,7 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
         if (!controllableFroniusStorageAlreadyExists) {
             ThingDescriptor descriptor(froniusControllableStorageThingClassId);
             descriptor.setParentId(thing->id());
-            const auto thingName = QT_TR_NOOP("Fronius Controllable Storage");
+            const auto thingName = QT_TR_NOOP("Fronius Battery (SunSpec)");
             descriptor.setTitle(thingName);
             descriptor.setParams(ParamList{});
             qCDebug(dcSunSpec()) << "Auto appearing thing" << thingName;
@@ -1967,6 +1955,21 @@ float IntegrationPluginSunSpec::getFroniusControllableStoragePowerFromMPPTModel(
         }
     }
     return currentPower;
+}
+
+QString IntegrationPluginSunSpec::inverterThingName(SunSpecModel *model, const QString &genericName) const
+{
+    if (!model->commonModelInfo().manufacturerName.isEmpty() &&
+            !model->commonModelInfo().modelName.isEmpty()) {
+        return model->commonModelInfo().manufacturerName + " " +
+                model->commonModelInfo().modelName + " (SunSpec)";
+    } else {
+        if (model->commonModelInfo().manufacturerName.isEmpty()) {
+            return genericName;
+        } else {
+            return model->commonModelInfo().manufacturerName + " " + genericName;
+        }
+    }
 }
 
 void IntegrationPluginSunSpec::onRefreshTimer()
