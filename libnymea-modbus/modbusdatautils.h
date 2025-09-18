@@ -102,7 +102,7 @@ public:
     static QVector<quint16> convertFromInt32(qint32 value, ByteOrder byteOrder = ByteOrderLittleEndian);
     static QVector<quint16> convertFromUInt64(quint64 value, ByteOrder byteOrder = ByteOrderLittleEndian);
     static QVector<quint16> convertFromInt64(qint64 value, ByteOrder byteOrder = ByteOrderLittleEndian);
-    static QVector<quint16> convertFromString(const QString &value, quint16 stringLength, ByteOrder characterByteOrder = ByteOrderLittleEndian);
+    static QVector<quint16> convertFromString(const QString &value, quint16 registerCount, ByteOrder characterByteOrder = ByteOrderLittleEndian);
     static QVector<quint16> convertFromFloat32(float value, ByteOrder byteOrder = ByteOrderLittleEndian);
     static QVector<quint16> convertFromFloat64(double value, ByteOrder byteOrder = ByteOrderLittleEndian);
 
