@@ -107,7 +107,7 @@ private:
     void searchSolarEdgeBattery(SunSpecConnection *connection, const ThingId &parentThingId, quint16 startRegister);
 
     // SolarEdge
-    double calculateSolarEdgePvProduction(Thing *thing, double acPower, double dcPower);
+    double calculatePvProduction(Thing *thing, double acPower, double dcPower);
 
     void autocreateSunSpecModelThing(const ThingClassId &thingClassId, const QString &thingName, const ThingId &parentId, SunSpecModel *model);
 
@@ -138,6 +138,7 @@ private:
                             bool chargingAllowed,
                             ThingActionInfo *info);
     void setupStorageModel(SunSpecStorageModel *model);
+    float getFroniusControllableStoragePowerFromMPPTModel(SunSpecMpptModel *model) const;
 
 private slots:
     void onRefreshTimer();
