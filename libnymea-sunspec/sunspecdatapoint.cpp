@@ -650,7 +650,7 @@ QVector<quint16> SunSpecDataPoint::convertFromFloatWithSSF(float value, qint16 s
         break;
     }
     case Int16: {
-        quint16 rawValue = static_cast<quint16>(value * pow(10, -1 * scaleFactor));
+        quint16 rawValue = static_cast<qint16>(value * pow(10, -1 * scaleFactor));
         rawData << rawValue;
         break;
     }
@@ -691,7 +691,7 @@ QDebug operator<<(QDebug debug, const SunSpecDataPoint &dataPoint)
 {
     debug.nospace().noquote() << "DataPoint(";
     if (dataPoint.description().isEmpty()) {
-        debug.nospace().noquote() << dataPoint.name();
+        debug.nospace().noquote() << dataPoint.name() << ", ";
     } else {
         debug.nospace().noquote() << dataPoint.description() << ", " << dataPoint.name() << ", ";
     }
