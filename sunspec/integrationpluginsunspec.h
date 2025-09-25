@@ -37,6 +37,7 @@
 
 #include <sunspecconnection.h>
 #include <models/sunspecmodelfactory.h>
+#include <models/sunspecstoragemodel.h>
 
 #include "sunspecthing.h"
 #include "extern-plugininfo.h"
@@ -92,7 +93,6 @@ private:
     QHash<Thing *, SunSpecModel *> m_sunSpecNameplates;
     QHash<Thing *, SunSpecModel *> m_sunSpecMppts;
 
-
     Thing *getThingForSunSpecModel(uint modelId, uint modbusAddress, const ThingId &parentId);
     void processDiscoveryResult(Thing *thing, SunSpecConnection *connection);
 
@@ -141,6 +141,14 @@ private:
     float getFroniusControllableStoragePowerFromMPPTModel(SunSpecMpptModel *model) const;
 
     QString inverterThingName(SunSpecModel *model, const QString &genericName) const;
+
+    struct BatterySettings {
+        SunSpecStorageModel::Storctl_modFlags storCtlModFlags;
+        float inWRte = 0.f;
+        float outWRte = 0.f;
+    };
+    QHash<Thing *, BatterySettings> m_cachedBatterySettings;
+    void restoreCachedBatterySettings(Thing *thing, ThingActionInfo *info);
 
 private slots:
     void onRefreshTimer();
