@@ -559,9 +559,8 @@
                         {
                             "id": "16370328-fb9d-4ab3-8a0d-b41a2af6f1d7",
                             "name": "activateLpc",
-                            "displayName": "Activate Limit of power consumption",
-                            "displayNameEvent": "LPC activation changed",
-                            "displayNameAction": "Set LPC activation",
+                            "displayName": "Activate limit power consumption",
+                            "displayNameAction": "Set activation limit power consumption",
                             "type": "bool",
                             "writable": true,
                             "defaultValue": false,
@@ -571,13 +570,13 @@
                         {
                             "id": "eec53f3c-627f-40fa-afd7-301b30034331",
                             "name": "powerLimitConsumer",
-                            "displayName": "LPC power limit",
-                            "displayNameEvent": "Power limit changed",
-                            "displayNameAction": "Change power limit",
+                            "displayName": "Power limit consumer",
+                            "displayNameAction": "Set power limit consumer",
                             "writable": true,
                             "type": "double",
                             "unit": "Watt",
                             "minValue": 0,
+                            "maxValue": 5000, 
                             "defaultValue": 0,
                             "suggestLogging": true
                         },
