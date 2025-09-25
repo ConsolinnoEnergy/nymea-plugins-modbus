@@ -55,7 +55,6 @@
 #include <models/sunspecmeterthreephasedeltaconnectmodel.h>
 #include <models/sunspecdeltaconnectthreephaseabcmetermodel.h>
 
-#include <models/sunspecstoragemodel.h>
 #include <models/sunspecsettingsmodel.h>
 #include <models/sunspeccontrolsmodel.h>
 #include <models/sunspecnameplatemodel.h>
@@ -640,13 +639,16 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
             info->finish(Thing::ThingErrorActionTypeNotFound,
                          QT_TR_NOOP("Unknown action type"));
         }
-        // #TODO add limitgridexport interface in plugin json again
     } else if (thing->thingClassId() == froniusControllableStorageThingClassId) {
         if (action.actionTypeId() == froniusControllableStorageEnableForcePowerActionTypeId) {
             const auto enableForcePower =
                     action.paramValue(froniusControllableStorageEnableForcePowerActionEnableForcePowerParamTypeId).toBool();
             if (enableForcePower) {
-                const auto reply = setEnableForcePower(thing, enableForcePower, nullptr); // Use nullptr for info to not yet finish action.
+                const auto maxSoCActive = thing->stateValue(froniusControllableStorageActivateMaxSoCStateTypeId).toBool();
+                if (maxSoCActive) {
+                    qCWarning(dcSunSpec()) << "Force power enabled while Max. SoC is active!";
+                }
+                const auto reply = setEnableForcePower(thing, true, nullptr); // Use nullptr for info to not yet finish action.
                 if (!reply) {
                     info->finish(Thing::ThingErrorHardwareFailure);
                     return;
@@ -660,7 +662,7 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
                     setForcePower(thing, forcePower, info);
                 });
             } else {
-                setEnableForcePower(thing, enableForcePower, info);
+                restoreCachedBatterySettings(thing, info);
             }
             connect(info, &ThingActionInfo::finished, info, [thing, info, enableForcePower]() {
                 if (info->status() == Thing::ThingErrorNoError) {
@@ -671,32 +673,61 @@ void IntegrationPluginSunSpec::executeAction(ThingActionInfo *info)
         } else if (action.actionTypeId() == froniusControllableStorageForcePowerActionTypeId) {
             const auto forcePower =
                     action.paramValue(froniusControllableStorageForcePowerActionForcePowerParamTypeId).toDouble();
-            setForcePower(thing, forcePower, info);
-            connect(info, &ThingActionInfo::finished, info, [thing, info, forcePower]() {
+            const auto forcePowerEnabled = thing->stateValue(froniusControllableStorageEnableForcePowerStateTypeId).toBool();
+            if (forcePowerEnabled) {
+                setForcePower(thing, forcePower, info);
+                connect(info, &ThingActionInfo::finished, info, [thing, info, forcePower]() {
+                    if (info->status() == Thing::ThingErrorNoError) {
+                        thing->setStateValue(froniusControllableStorageForcePowerStateTypeId, forcePower);
+                    }
+                });
+            } else {
+                thing->setStateValue(froniusControllableStorageForcePowerStateTypeId, forcePower);
+                info->finish(Thing::ThingErrorNoError);
+            }
+        } else if (action.actionTypeId() == froniusControllableStorageActivateMaxSoCActionTypeId) {
+            const auto activateMaxSoC =
+                    action.paramValue(froniusControllableStorageActivateMaxSoCActionActivateMaxSoCParamTypeId).toBool();
+            if (activateMaxSoC) {
+                const auto forcePowerEnabled = thing->stateValue(froniusControllableStorageEnableForcePowerStateStateTypeId).toBool();
+                if (forcePowerEnabled) {
+                    qCWarning(dcSunSpec()) << "Max. SoC activated while force power is enabled!";
+                }
+                const auto maxSoCSetpoint = thing->stateValue(froniusControllableStorageSetMaxSoCStateTypeId).toInt();
+                const auto currentSoC = thing->stateValue(froniusControllableStorageBatteryLevelStateTypeId).toInt();
+                if (currentSoC < maxSoCSetpoint) {
+                    setChargingAllowed(thing, true, info);
+                } else {
+                    setChargingAllowed(thing, false, info);
+                }
+            } else {
+                restoreCachedBatterySettings(thing, info);
+            }
+            connect(info, &ThingActionInfo::finished, info, [thing, info, activateMaxSoC]() {
                 if (info->status() == Thing::ThingErrorNoError) {
-                    thing->setStateValue(froniusControllableStorageForcePowerStateTypeId, forcePower);
+                    thing->setStateValue(froniusControllableStorageActivateMaxSoCStateTypeId, activateMaxSoC);
                 }
             });
-        } else if (action.actionTypeId() == froniusControllableStorageMaxChargingCurrentActionTypeId) {
-            qCInfo(dcSunSpec()) << "Ignoring unsupported action" << action.actionTypeId();
-            info->finish(Thing::ThingErrorNoError);
-        } else if (action.actionTypeId() == froniusControllableStorageEnableMaxChargingCurrentActionTypeId) {
-            qCInfo(dcSunSpec()) << "Ignoring unsupported action" << action.actionTypeId();
-            info->finish(Thing::ThingErrorNoError);
         } else if (action.actionTypeId() == froniusControllableStorageSetMaxSoCActionTypeId) {
             const auto maxSoC =
                     action.paramValue(froniusControllableStorageSetMaxSoCActionSetMaxSoCParamTypeId).toUInt();
-            const auto currentSoC = thing->stateValue(froniusControllableStorageBatteryLevelStateTypeId).toUInt();
-            if (currentSoC < maxSoC) {
-                setChargingAllowed(thing, true, info);
-            } else {
-                setChargingAllowed(thing, false, info);
-            }
-            connect(info, &ThingActionInfo::finished, info, [thing, info, maxSoC]() {
-                if (info->status() == Thing::ThingErrorNoError) {
-                    thing->setStateValue(froniusControllableStorageSetMaxSoCStateTypeId, maxSoC);
+            const auto maxSoCActive = thing->stateValue(froniusControllableStorageActivateMaxSoCStateTypeId).toBool();
+            if (maxSoCActive) {
+                const auto currentSoC = thing->stateValue(froniusControllableStorageBatteryLevelStateTypeId).toUInt();
+                if (currentSoC < maxSoC) {
+                    setChargingAllowed(thing, true, info);
+                } else {
+                    setChargingAllowed(thing, false, info);
                 }
-            });
+                connect(info, &ThingActionInfo::finished, info, [thing, info, maxSoC]() {
+                    if (info->status() == Thing::ThingErrorNoError) {
+                        thing->setStateValue(froniusControllableStorageSetMaxSoCStateTypeId, maxSoC);
+                    }
+                });
+            } else {
+                thing->setStateValue(froniusControllableStorageSetMaxSoCStateTypeId, maxSoC);
+                info->finish(Thing::ThingErrorNoError);
+            }
         } else {
             qCWarning(dcSunSpec()) << "Unknown action type:" << action.actionTypeId();
             info->finish(Thing::ThingErrorActionTypeNotFound,
@@ -725,7 +756,7 @@ Thing *IntegrationPluginSunSpec::getThingForSunSpecModel(uint modelId, uint modb
 
 void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConnection *connection)
 {
-    qCInfo(dcSunSpec()) << "Processing discovery result from" << thing->name() << connection;
+    qCDebug(dcSunSpec()) << "Processing discovery result from" << thing->name() << connection;
 
     auto modelsById = QMap<quint16, SunSpecModel *>{};
     foreach (SunSpecModel *model, connection->models()) {
@@ -944,7 +975,7 @@ void IntegrationPluginSunSpec::processDiscoveryResult(Thing *thing, SunSpecConne
         }
 
         if (!modelFoundForChild) {
-            qCInfo(dcSunSpec()) << "The model for" << child << "does not seem to be available any more on" << connection << "Removing the device since it does not seem to exist ony more on this connection.";
+            qCDebug(dcSunSpec()) << "The model for" << child << "does not seem to be available any more on" << connection << "Removing the device since it does not seem to exist ony more on this connection.";
             emit autoThingDisappeared(child->id());
         }
     }
@@ -1972,6 +2003,93 @@ QString IntegrationPluginSunSpec::inverterThingName(SunSpecModel *model, const Q
     }
 }
 
+void IntegrationPluginSunSpec::restoreCachedBatterySettings(Thing *thing, ThingActionInfo *info)
+{
+    qCDebug(dcSunSpec()) << "Restoring cached battery settings for thing" << thing->name();
+    SunSpecStorageModel *storage = qobject_cast<SunSpecStorageModel *>(m_sunSpecStorages.value(thing));
+    if (!storage) {
+        qWarning(dcSunSpec()) << "Could not find sunspec storage model for thing" << thing->name();
+        if (info) {
+            info->finish(Thing::ThingErrorHardwareNotAvailable);
+        }
+        return;
+    }
+    if (!m_cachedBatterySettings.contains(thing)) {
+        qWarning(dcSunSpec()) << "Could not find cached battery settings for thing" << thing->name();
+        if (info) {
+            info->finish(Thing::ThingErrorNoError);
+        }
+        return;
+    }
+
+    const auto settings = m_cachedBatterySettings.value(thing);
+    qCDebug(dcSunSpec()) << "Setting StorCtl_Mod to" << settings.storCtlModFlags;
+    const auto storCtlModReply = storage->setStorCtlMod(settings.storCtlModFlags);
+    if (!storCtlModReply) {
+        qWarning(dcSunSpec()) << "Unable to set StorCtl_Mod for thing" << thing->name();
+        if (info) {
+            info->finish(Thing::ThingErrorHardwareFailure);
+        }
+        return;
+    }
+
+    connect(storCtlModReply, &QModbusReply::finished, storCtlModReply, &QModbusReply::deleteLater);
+    connect(storCtlModReply, &QModbusReply::finished, storCtlModReply,
+            [info, storCtlModReply, thing, storage, settings]() {
+        if (storCtlModReply->error() != QModbusDevice::NoError) {
+            qWarning(dcSunSpec()) << "Unable to set StorCtl_Mod for thing" << thing->name();
+            if (info) {
+                info->finish(Thing::ThingErrorHardwareFailure);
+            }
+            return;
+        }
+
+        qCDebug(dcSunSpec()) << "Setting InWRte to" << settings.inWRte;
+        const auto inWRteReply = storage->setInWRte(settings.inWRte);
+        if (!inWRteReply) {
+            qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
+            if (info) {
+                info->finish(Thing::ThingErrorHardwareFailure);
+            }
+            return;
+        }
+        connect(inWRteReply, &QModbusReply::finished, inWRteReply, &QModbusReply::deleteLater);
+        connect(inWRteReply, &QModbusReply::finished, inWRteReply, [info, inWRteReply, thing, storage, settings]{
+            if (inWRteReply->error() != QModbusDevice::NoError) {
+                qWarning(dcSunSpec()) << "Unable to set InWRte for thing" << thing->name();
+                if (info) {
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+                return;
+            }
+
+            qCDebug(dcSunSpec()) << "Setting OutWRte to" << settings.outWRte;
+            const auto outWRteReply = storage->setOutWRte(settings.outWRte);
+            if (!outWRteReply) {
+                qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
+                if (info) {
+                    info->finish(Thing::ThingErrorHardwareFailure);
+                }
+                return;
+            }
+            connect(outWRteReply, &QModbusReply::finished, outWRteReply, &QModbusReply::deleteLater);
+            connect(outWRteReply, &QModbusReply::finished, outWRteReply, [info, outWRteReply, thing] {
+                if (outWRteReply->error() != QModbusDevice::NoError) {
+                    qWarning(dcSunSpec()) << "Unable to set OutWRte for thing" << thing->name();
+                    if (info) {
+                        info->finish(Thing::ThingErrorHardwareFailure);
+                    }
+                    return;
+                }
+
+                if (info) {
+                    info->finish(Thing::ThingErrorNoError);
+                }
+            });
+        });
+    });
+}
+
 void IntegrationPluginSunSpec::onRefreshTimer()
 {
     // Update meters
@@ -2569,13 +2687,23 @@ void IntegrationPluginSunSpec::onStorageBlockUpdated()
                                     -storage->wChaMax(),
                                     storage->wChaMax());
         const auto forcePowerEnabled = thing->stateValue(froniusControllableStorageEnableForcePowerStateTypeId).toBool();
-        if (!forcePowerEnabled) {
+        const auto maxSoCActive = thing->stateValue(froniusControllableStorageActivateMaxSoCStateTypeId).toBool();
+        // Check if charging needs to be dis-/allowed when max. SoC is active.
+        if (maxSoCActive && !forcePowerEnabled) {
             const auto maxSoCSetpoint = thing->stateValue(froniusControllableStorageSetMaxSoCStateTypeId).toInt();
             if (soc > maxSoCSetpoint) {
                 setChargingAllowed(thing, false, nullptr);
             } else {
                 setChargingAllowed(thing, true, nullptr);
             }
+        }
+        if (!maxSoCActive && !forcePowerEnabled) {
+            // Cache battery settings to restore them later when max. SoC or force power is disabled again.
+            auto settings = BatterySettings{};
+            settings.storCtlModFlags = storage->storCtlMod();
+            settings.inWRte = storage->inWRte();
+            settings.outWRte = storage->outWRte();
+            m_cachedBatterySettings[thing] = settings;
         }
     }
 }

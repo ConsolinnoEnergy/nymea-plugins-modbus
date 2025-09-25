@@ -1943,7 +1943,7 @@
                     "displayName": "Fronius Battery",
                     "id": "6d73a443-56b4-4fa6-a9fa-47fdb166e631",
                     "createMethods": [ "Auto" ],
-                    "interfaces": ["energystorage", "controllablebattery", "limitablebattery", "connectable"],
+                    "interfaces": ["energystorage", "controllablebattery", "limitablesoc", "connectable"],
                     "paramTypes": [],
                     "stateTypes":[
                         {
@@ -2039,30 +2039,19 @@
                             "displayNameAction": "Set force power"
                         },
                         {
-                            "id": "5b6dcaf4-63ca-4fcc-9f21-b4b01d00a115",
-                            "name": "maxChargingCurrent",
-                            "displayName": "Max. charging current (unused)",
-                            "type": "double",
-                            "unit": "Ampere",
-                            "defaultValue": 0,
-                            "writable": true,
-                            "minValue": 0,
-                            "maxValue": 0,
-                            "displayNameAction": "Set max. charging current"
-                        },
-                        {
-                            "id": "a2dd9a2b-a407-47d8-b76e-0ca6f951719b",
-                            "name": "enableMaxChargingCurrent",
-                            "displayName": "Enable max. charging current (unused)",
+                            "id": "d8a79ef6-e373-4fc5-8328-84f478d69647",
+                            "name": "activateMaxSoC",
+                            "displayName": "Activate maximum SoC",
+                            "displayNameAction": "Set activation maximum SoC",
                             "type": "bool",
                             "defaultValue": false,
-                            "writable": true,
-                            "displayNameAction": "Enable max. charging current"
+                            "cached": true,
+                            "writable": true
                         },
                         {
                             "id": "b65c5056-a91d-4f07-84c6-ce0c08e66c72",
                             "name": "setMaxSoC",
-                            "displayName": "Set max. SoC",
+                            "displayName": "Maximum SoC setting",
                             "type": "uint",
                             "unit": "Percentage",
                             "defaultValue": 100,
@@ -2070,7 +2059,7 @@
                             "maxValue": 100,
                             "writable": true,
                             "cached": true,
-                            "displayNameAction": "Set max. SoC"
+                            "displayNameAction": "Set maximum SoC setting"
                         },
                         {
                             "id": "96121b08-1a57-4db0-a622-4b1cf43956b4",

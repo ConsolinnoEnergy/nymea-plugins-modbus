@@ -4,8 +4,7 @@ nymea-plugins-modbus (1.7.019) jammy; urgency=medium
   * AIT: Send info-finish()
   * Modbus code generator: Fix writing string registers
   * SunSpec: Support for limitable inverters (limitgridexport)
-  * Fronius: Support for limitable inverters and controllable/limitable
-    batteries (via SunSpec)  
+  * Fronius: Support for limitable inverters and controllablebattery/limitablesoc (via SunSpec)
   * Fix conversion of strings for sending via Modbus
   * Apply interface changes: 
     - state properties for limitableconsumer
