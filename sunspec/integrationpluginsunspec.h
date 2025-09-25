@@ -61,6 +61,9 @@ public:
     void executeAction(ThingActionInfo *info) override;
 
 private:
+    static QHash<ThingClassId, ParamTypeId> enableExportLimitParamTypeId;
+    static QHash<ThingClassId, ParamTypeId> exportLimitParamTypeId;
+
     // SunSpec Connection params map
     QHash<ThingClassId, ParamTypeId> m_connectionIpParamTypeIds;
     QHash<ThingClassId, ParamTypeId> m_connectionPortParamTypeIds;
@@ -84,10 +87,13 @@ private:
     QHash<Thing *, SunSpecModel *> m_sunSpecInverters;
     QHash<Thing *, SunSpecModel *> m_sunSpecMeters;
     QHash<Thing *, SunSpecModel *> m_sunSpecStorages;
+    QHash<Thing *, SunSpecModel *> m_sunSpecSettings;
+    QHash<Thing *, SunSpecModel *> m_sunSpecControls;
+    QHash<Thing *, SunSpecModel *> m_sunSpecNameplates;
+    QHash<Thing *, SunSpecModel *> m_sunSpecMppts;
 
 
     Thing *getThingForSunSpecModel(uint modelId, uint modbusAddress, const ThingId &parentId);
-    bool sunspecThingAlreadyAdded(uint modelId, uint modbusAddress, const ThingId &parentId);
     void processDiscoveryResult(Thing *thing, SunSpecConnection *connection);
 
     // SunSpec things
@@ -101,7 +107,7 @@ private:
     void searchSolarEdgeBattery(SunSpecConnection *connection, const ThingId &parentThingId, quint16 startRegister);
 
     // SolarEdge
-    double calculateSolarEdgePvProduction(Thing *thing, double acPower, double dcPower);
+    double calculatePvProduction(Thing *thing, double acPower, double dcPower);
 
     void autocreateSunSpecModelThing(const ThingClassId &thingClassId, const QString &thingName, const ThingId &parentId, SunSpecModel *model);
 
@@ -112,6 +118,30 @@ private:
     bool hasManufacturer(const QStringList &manufacturers, const QString &manufacturer);
     void markThingStatesDisconnected(Thing *thing);
 
+    void initializeLimitableInverterModels(Thing *thing, SunSpecConnection *connection);
+    void setEnableExportLimit(Thing *thing,
+                              bool enableLimit,
+                              ThingActionInfo *info);
+    QModbusReply *setExportLimit(Thing *thing,
+                                 float exportLimit,
+                                 ThingActionInfo *info);
+    void setupControlsModel(SunSpecControlsModel *model);
+
+    void initializeFroniusControllableStorageModels(Thing *thing, SunSpecConnection *connection);
+    QModbusReply *setEnableForcePower(Thing *thing,
+                                      bool enableforcePower,
+                                      ThingActionInfo *info);
+    void setForcePower(Thing *thing,
+                       double forcePower,
+                       ThingActionInfo *info);
+    void setChargingAllowed(Thing *thing,
+                            bool chargingAllowed,
+                            ThingActionInfo *info);
+    void setupStorageModel(SunSpecStorageModel *model);
+    float getFroniusControllableStoragePowerFromMPPTModel(SunSpecMpptModel *model) const;
+
+    QString inverterThingName(SunSpecModel *model, const QString &genericName) const;
+
 private slots:
     void onRefreshTimer();
     void onPluginConfigurationChanged(const ParamTypeId &paramTypeId, const QVariant &value);
@@ -120,6 +150,10 @@ private slots:
     void onMeterBlockUpdated();
     void onStorageBlockUpdated();
     void onSolarEdgeBatteryBlockUpdated();
+    void onSettingsBlockUpdated();
+    void onControlsBlockUpdated();
+    void onNameplateBlockUpdated();
+    void onMpptBlockUpdated();
 
     void evaluateEnergyProducedValue(Thing *inverterThing, float energyProduced);
 

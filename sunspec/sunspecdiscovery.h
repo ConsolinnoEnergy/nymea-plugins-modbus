@@ -48,6 +48,7 @@ public:
         quint16 port;
         quint16 slaveId;
         QStringList modelManufacturers;
+        QString deviceName;
     } Result;
 
     QList<Result> results() const;

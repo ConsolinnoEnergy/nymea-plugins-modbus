@@ -175,6 +175,14 @@ void SunSpecDiscovery::checkNetworkDevice(const NetworkDeviceInfo &networkDevice
                             if (!manufacturer.isEmpty() && !result.modelManufacturers.contains(manufacturer)) {
                                 result.modelManufacturers.append(manufacturer);
                             }
+                            QString deviceName = commonModel->model();
+                            if (!deviceName.isEmpty())
+                            {
+                                if (!result.deviceName.isEmpty()) {
+                                    qCWarning(dcSunSpec()) << "Found different device name for same device:" << deviceName;
+                                }
+                                result.deviceName = deviceName;
+                            }
                         }
                     }
 
