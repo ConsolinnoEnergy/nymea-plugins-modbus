@@ -706,7 +706,10 @@ void IntegrationPluginLambda::executeAction(ThingActionInfo *info)
                 if (!lpcInterface->setLimitPowerConsumption(gpioSetting)) {
                         qCWarning(dcLambda()) << "Failed to set LPC relais on" << thing << "to" << gpioSetting;
                 }
-            }            
+            } else if(info->action().actionTypeId() == lambdaTCPPowerLimitConsumerActionTypeId) {
+                // nothing to do here: Lambda does not support setting of a power limit. 
+                // This is defined by the configuration within the Lambda control (Sigmatek or Hainzl).
+            }
         }
 }
 
