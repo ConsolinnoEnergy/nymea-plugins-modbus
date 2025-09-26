@@ -9,6 +9,7 @@ nymea-plugins-modbus (1.7.019) jammy; urgency=medium
   * Apply interface changes: 
     - state properties for limitableconsumer
     - remove limitablebattery
+  * Growatt: Remove registers causing issues
 
  -- Luis Reber <l.reber@consolinno.de> Wed, 10 Sep 09:43:00 +0200
 
