@@ -649,9 +649,8 @@ void IntegrationPluginGrowatt::postSetupThing(Thing *thing)
         if (!m_pluginTimer)
         {
             qCDebug(dcGrowatt()) << "Starting plugin timer...";
-            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(2);
-            connect(m_pluginTimer, &PluginTimer::timeout, this, [this]
-                    {
+            m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(4);
+            connect(m_pluginTimer, &PluginTimer::timeout, this, [this] {
                 foreach (GrowattModbusRtuConnection *connection, m_rtuConnections) {
                     connection->update();
                 } });
